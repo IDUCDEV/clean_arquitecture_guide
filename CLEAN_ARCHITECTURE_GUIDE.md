@@ -157,18 +157,65 @@ El flujo de datos es unidireccional y sigue la regla de dependencia.
     dependencies:
       flutter:
         sdk: flutter
-      # State Management
-      flutter_bloc: ^8.1.3
-      # Inyección de dependencias
-      get_it: ^7.6.4
-      # Comparación de objetos
-      equatable: ^2.0.5
-      # Functional programming (para Either)
-      dartz: ^0.10.1
-      # Red
-      dio: ^5.3.3
-      # Conectividad
-      internet_connection_checker: ^1.0.0+1
+      
+    # ============================================
+    # DEPENDENCIAS POR CARPETA/PROPÓSITO
+    # ============================================
+    
+    # Core/Common (Dependencias Fundamentales de la Arquitectura)
+    flutter_bloc: ^8.1.3                 # State management (Cubit/BLoC)
+    get_it: ^7.6.4                       # Inyección de dependencias
+    equatable: ^2.0.5                    # Comparación de objetos (usado en Entities, States)
+    dartz: ^0.10.1                       # Programación funcional (Either para manejo de errores)
+    
+    # Core/Network
+    dio: ^5.3.3                          # Cliente HTTP
+    internet_connection_checker: ^1.0.0+1 # Verificación de conectividad
+    logger: ^2.0.2+1                     # Logging de eventos y errores
+    pretty_dio_logger: ^1.3.0            # Logging detallado de peticiones HTTP
+    
+    # Core/Routing
+    go_router: ^12.1.3                  # Navegación declarativa y rutas
+    flutter_screenutil: ^5.9.0          # Diseño responsivo y adaptación de pantalla
+    
+    # Data/Local Storage
+    sqflite: ^2.3.0                     # Base de datos SQLite local
+    path_provider: ^2.1.1               # Acceso a rutas del sistema de archivos
+    hive: ^2.2.3                        # Almacenamiento local rápido (alternativa a SQLite)
+    shared_preferences: ^2.2.2          # Almacenamiento simple de clave-valor
+    
+    # Data/Cache
+    cached_network_image: ^3.3.0        # Caché de imágenes desde red
+    flutter_cache_manager: ^3.3.1       # Gestión de caché de archivos
+    
+    # Core/Services (Firebase - Opcional)
+    firebase_core: ^2.24.2              # Core de Firebase
+    firebase_analytics: ^10.7.4         # Análisis y estadísticas
+    firebase_crashlytics: ^3.4.8        # Reporte de errores y crashes
+    firebase_messaging: ^14.7.9         # Notificaciones push
+    
+    # Core/Utils
+    uuid: ^4.2.1                        # Generación de UUIDs únicos
+    crypto: ^3.0.3                      # Funciones criptográficas
+    intl: ^0.19.0                       # Internacionalización y formateo de fechas/números
+    package_info_plus: ^4.2.0           # Información de la aplicación (versión, build)
+    
+    # Presentation/UI
+    flutter_svg: ^2.0.9                 # Soporte para archivos SVG
+    lottie: ^2.7.0                      # Animaciones Lottie
+    shimmer: ^3.0.0                     # Efectos de carga shimmer
+    flutter_staggered_animations: ^1.1.1 # Animaciones escalonadas
+    
+    dev_dependencies:
+      flutter_test:
+        sdk: flutter
+      # Testing
+      mockito: ^5.4.2                   # Mocking para pruebas unitarias
+      build_runner: ^2.4.7              # Generación de código
+      # JSON Serialization
+      json_annotation: ^4.8.1            # Anotaciones para serialización JSON
+      json_serializable: ^6.7.1         # Generación automática de serialización
+      flutter_lints: ^3.0.0             # Reglas de linting para Flutter
     ```
 3.  **Crea la estructura de carpetas** como se describe en la sección 2.
 
