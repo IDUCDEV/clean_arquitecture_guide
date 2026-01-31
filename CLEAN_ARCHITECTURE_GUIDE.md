@@ -54,6 +54,7 @@ lib/
 │   ├── di/                 # Inyección de dependencias (GetIt)
 │   ├── error/              # Clases de error y fallos (Failures)
 │   ├── network/            # Configuración de red (Dio, etc.)
+│   ├── routing/            # Configuración de navegación (GoRouter, rutas)
 │   ├── services/           # Servicios externos (Firebase, etc.)
 │   ├── utils/              # Clases de utilidad
 │   └── widgets/            # Widgets reutilizables en toda la app
@@ -91,6 +92,7 @@ lib/
 - **`core`**: Código que se puede reutilizar en cualquier parte del proyecto. No debe depender de ninguna *feature*.
     - `common`: Clases base, helpers y abstracciones que se usan en toda la app, como la clase `UseCase` base.
     - `services`: Abstracciones y/o implementaciones de servicios externos como Analytics, Crash Reporting, Notificaciones Push, etc.
+    - `routing`: Configuración centralizada del sistema de navegación de la aplicación. Define todas las rutas, guardias de autenticación, y manejo de navegación profunda. Permite mantener separada la lógica de navegación del UI y facilita el mantenimiento de las rutas de la aplicación.
     - `widgets`: Widgets reutilizables a través de diferentes features (ej: `CustomButton`, `LoadingIndicator`).
 - **`features`**: Contiene las diferentes funcionalidades de la aplicación (ej: `login`, `profile`, `home`).
     - **`data`**: Implementación concreta de la obtención de datos. Habla con APIs, bases de datos locales, etc.
