@@ -113,6 +113,47 @@ lib/
 
 El flujo de datos es unidireccional y sigue la regla de dependencia.
 
+
+### Grafico MERMAID: UI → Cubit → UseCase → Repository → DataSource
+
+```mermaid
+graph TD
+    %% Capa de Presentación
+    A[Widget/UI] -->|Llama a función| B[Cubit]
+    B -->|Emitiendo estado| C[State]
+    C -->|Actualiza UI| A
+    
+    %% Cubit a Dominio
+    B -->|Llama a use case| D[UseCase]
+    D -->|Retorna Either<Failure, Entity>| B
+    
+    %% Dominio a Datos
+    D -->|Llama a interfaz| E[Repository Interface]
+    E -->|Retorna Either<Failure, Entity>| D
+    
+    %% Implementación de Repositorio
+    F[Repository Implementation] -->|Implementa| E
+    F -->|Llama a datasource| G[DataSource]
+    G -->|Retorna Model| F
+    F -->|Convierte Model a Entity| E
+    
+    %% Origen de datos externos
+    G -->|Hace request| H[API/Database]
+    H -->|Retorna datos crudos| G
+    
+    %% Estilos
+    classDef presentation fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef domain fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef data fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    classDef external fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    
+    class A,B,C presentation
+    class D,E domain
+    class F,G data
+    class H external
+```
+
+
 ### Diagrama del flujo: UI → Cubit → UseCase → Repository → DataSource
 
 ```
@@ -146,6 +187,7 @@ El flujo de datos es unidireccional y sigue la regla de dependencia.
 7.  **UI (Widget):** Un `BlocBuilder` escucha los cambios de estado. Cuando recibe `UserLoaded`, reconstruye la UI para mostrar la lista de usuarios. Si recibe `UserError`, muestra un mensaje de error.
 
 ---
+
 
 ## 4. Guía Práctica de Implementación
 
