@@ -58,6 +58,7 @@ lib/
 │   ├── services/           # Servicios externos (Firebase, etc.)
 │   ├── utils/              # Clases de utilidad
 │   └── widgets/            # Widgets reutilizables en toda la app
+│   └── theme/              # Configuración de tema (colores, fuentes, etc.)
 │
 ├── features/
 │   └── feature_name/
