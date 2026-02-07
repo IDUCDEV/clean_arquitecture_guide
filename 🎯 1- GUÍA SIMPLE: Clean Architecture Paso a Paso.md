@@ -842,6 +842,159 @@ class _AddProductDialogState extends State<_AddProductDialog> {
 
 ## 10. Paso 7: Conectar Todo
 
+### ¿Qué es la Inyección de Dependencias? (Para Principiantes)
+
+Imagina que estás construyendo una casa. Necesitas un electricista, un plomero y un carpintero. En lugar de que cada uno fabrique sus propias herramientas, **tú les proporcionas las herramientas que necesitan**.
+
+En programación, esto se llama **Inyección de Dependencias** (Dependency Injection - DI):
+- Una **dependencia** es cualquier objeto que tu clase necesita para funcionar (como un `Repository`, `UseCase`, o `http.Client`)
+- **Inyectar** significa proporcionar esos objetos desde afuera, en lugar de que la clase los cree internamente
+
+**¿Por qué es importante?**
+1. **Desacoplamiento**: Las clases no dependen de implementaciones específicas, solo de interfaces
+2. **Testabilidad**: Puedes inyectar "mocks" (objetos falsos) para probar tu código
+3. **Flexibilidad**: Puedes cambiar implementaciones sin modificar el código que las usa
+
+**El Problema: Constructor Drilling**
+
+Sin inyección de dependencias centralizada, tendrías que pasar objetos por todos los constructores. Por ejemplo:
+
+```dart
+// ❌ SIN inyección centralizada - MUY TEDIOSO
+void main() {
+  final client = http.Client();
+  final checker = InternetConnectionChecker();
+  final networkInfo = NetworkInfoImpl(checker);
+  final remoteDataSource = ProductRemoteDataSourceImpl(client: client);
+  final localDataSource = ProductLocalDataSourceImpl(database: database);
+  final repository = ProductRepositoryImpl(
+    remoteDataSource: remoteDataSource,
+    localDataSource: localDataSource,
+    networkInfo: networkInfo,
+  );
+  final getProducts = GetProducts(repository);
+  final createProduct = CreateProduct(repository);
+  final cubit = ProductCubit(
+    getProducts: getProducts,
+    createProduct: createProduct,
+  );
+  // Y así para CADA feature de tu app...
+}
+```
+
+Esto se vuelve **imposible de mantener** en apps grandes. Aquí es donde entra la inyección de dependencias.
+
+---
+
+### Método 1: Inyección Manual (Sin Librerías)
+
+Primero, veamos cómo sería pasar dependencias manualmente. Esto es importante entenderlo antes de usar GetIt.
+
+**Ejemplo de inyección manual en cada capa:**
+
+```dart
+// main.dart - Construyendo todo manualmente
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // 1. Capa Externa (Infraestructura)
+  final httpClient = http.Client();
+  final connectionChecker = InternetConnectionChecker();
+  final networkInfo = NetworkInfoImpl(connectionChecker);
+  
+  // 2. Capa de Datos
+  final database = await openDatabase('app.db', version: 1, ...);
+  final remoteDataSource = ProductRemoteDataSourceImpl(client: httpClient);
+  final localDataSource = ProductLocalDataSourceImpl(database: database);
+  
+  // 3. Capa de Repositorio
+  final productRepository = ProductRepositoryImpl(
+    remoteDataSource: remoteDataSource,
+    localDataSource: localDataSource,
+    networkInfo: networkInfo,
+  );
+  
+  // 4. Capa de Dominio
+  final getProductsUseCase = GetProducts(productRepository);
+  final createProductUseCase = CreateProduct(productRepository);
+  
+  // 5. Capa de Presentación
+  final productCubit = ProductCubit(
+    getProducts: getProductsUseCase,
+    createProduct: createProductUseCase,
+  );
+  
+  runApp(MyApp(productCubit: productCubit));
+}
+
+// Y luego pasar el cubit por todos los widgets...
+class MyApp extends StatelessWidget {
+  final ProductCubit productCubit;
+  
+  const MyApp({required this.productCubit});
+  
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => productCubit,
+      child: MaterialApp(home: ProductsPage()),
+    );
+  }
+}
+```
+
+**Ventajas:**
+- ✅ Totalmente explícito - ves exactamente qué depende de qué
+- ✅ Sin dependencias externas
+
+**Desventajas:**
+- ❌ Mucho código repetitivo
+- ❌ Si cambias una dependencia en el medio, tienes que actualizar TODOS los constructores
+- ❌ Difícil de mantener con más de 2-3 features
+
+---
+
+### Método 2: Usando GetIt (Service Locator)
+
+**GetIt** es un paquete que implementa el patrón **Service Locator** (Localizador de Servicios).
+
+**¿Qué es un Service Locator?**
+
+Imagina un gran almacén donde guardas todas tus herramientas. Cuando el electricista necesita un destornillador, **va al almacén y lo pide**. No necesitas llevarle el destornillador a su casa.
+
+En código:
+- Registras todas tus dependencias en un "contenedor" central
+- Cuando una clase necesita algo, lo "busca" en ese contenedor
+- No necesitas pasar nada por constructores
+
+**Conceptos clave de GetIt:**
+
+| Método | Descripción | Cuándo usarlo |
+|--------|-------------|---------------|
+| `registerSingleton()` | Crea la instancia inmediatamente y la guarda | Para objetos que deben existir desde el inicio |
+| `registerLazySingleton()` | Crea la instancia la primera vez que se use | Para objetos pesados que quizás no se usen (recomendado) |
+| `registerFactory()` | Crea una nueva instancia CADA vez que se pida | Para objetos que no deben compartir estado (como Cubits) |
+
+**¿Qué es `sl()`?**
+
+`sl` es simplemente una variable que creamos (abreviatura de "service locator"):
+
+```dart
+final GetIt sl = GetIt.instance;  // "sl" es solo un nombre corto
+
+// Luego usamos sl() para obtener dependencias:
+final client = sl<http.Client>();  // Busca el Client registrado
+final cubit = sl<ProductCubit>();  // Busca el Cubit registrado
+```
+
+El `()` después de `sl` es el operador de llamada. Es como decir "dame la instancia de tipo X del contenedor".
+
+---
+
+### Implementación con GetIt
+
+Ahora veamos cómo queda con GetIt:
+
 **Archivo**: `lib/core/di/injection_container.dart`
 
 ```dart
@@ -858,18 +1011,24 @@ import 'package:my_app/features/product/domain/usecases/create_product.dart';
 import 'package:my_app/features/product/domain/usecases/get_products.dart';
 import 'package:my_app/features/product/presentation/cubit/product_cubit.dart';
 
+// Creamos el contenedor global
 final GetIt sl = GetIt.instance;
 
 Future<void> init() async {
-  // External (librerías de terceros)
+  // ╔════════════════════════════════════════════════════════════╗
+  // ║  CAPA EXTERNA - Librerías de terceros e infraestructura   ║
+  // ╚════════════════════════════════════════════════════════════╝
   sl
+    // http.Client se crea solo cuando se necesite por primera vez
     ..registerLazySingleton(() => http.Client())
+    // Verificador de conexión a internet
     ..registerLazySingleton(() => InternetConnectionChecker())
+    // Implementación de NetworkInfo que depende del checker
     ..registerLazySingleton<NetworkInfo>(
-      () => NetworkInfoImpl(sl()),
+      () => NetworkInfoImpl(sl()),  // sl() obtiene el InternetConnectionChecker
     );
 
-  // Base de datos SQLite (deberías inicializarla en main.dart)
+  // Base de datos SQLite - necesita inicialización asíncrona
   final database = await openDatabase(
     'app.db',
     version: 1,
@@ -884,18 +1043,26 @@ Future<void> init() async {
       ''');
     },
   );
+  // Registramos la base de datos ya inicializada
   sl.registerLazySingleton<Database>(() => database);
 
-  // Data Sources
+  // ╔════════════════════════════════════════════════════════════╗
+  // ║  CAPA DE DATOS - DataSources                                ║
+  // ╚════════════════════════════════════════════════════════════╝
   sl
+    // RemoteDataSource necesita el http.Client
     ..registerLazySingleton<ProductRemoteDataSource>(
       () => ProductRemoteDataSourceImpl(client: sl()),
     )
+    // LocalDataSource necesita la base de datos
     ..registerLazySingleton<ProductLocalDataSource>(
       () => ProductLocalDataSourceImpl(database: sl()),
     );
 
-  // Repository
+  // ╔════════════════════════════════════════════════════════════╗
+  // ║  CAPA DE REPOSITORIO                                        ║
+  // ╚════════════════════════════════════════════════════════════╝
+  // El RepositoryImpl necesita ambos DataSources y NetworkInfo
   sl.registerLazySingleton<ProductRepository>(
     () => ProductRepositoryImpl(
       remoteDataSource: sl(),
@@ -904,18 +1071,33 @@ Future<void> init() async {
     ),
   );
 
-  // Use Cases
+  // ╔════════════════════════════════════════════════════════════╗
+  // ║  CAPA DE DOMINIO - UseCases                                 ║
+  // ╚════════════════════════════════════════════════════════════╝
   sl
+    // GetProducts necesita el Repository
     ..registerLazySingleton(() => GetProducts(sl()))
+    // CreateProduct también necesita el Repository
     ..registerLazySingleton(() => CreateProduct(sl()));
 
-  // Cubit
+  // ╔════════════════════════════════════════════════════════════╗
+  // ║  CAPA DE PRESENTACIÓN - Cubit                               ║
+  // ╚════════════════════════════════════════════════════════════╝
+  // Usamos registerFactory porque cada pantalla necesita su PROPIO Cubit
+  // Si usáramos singleton, todas las pantallas compartirían el mismo estado!
   sl.registerFactory(() => ProductCubit(
     getProducts: sl(),
     createProduct: sl(),
   ));
 }
 ```
+
+**Explicación del flujo:**
+
+1. **Llamamos a `init()` en `main.dart`** antes de arrancar la app
+2. **GetIt registra todo** en orden (de abajo hacia arriba en la arquitectura)
+3. **Cada dependencia obtiene sus sub-dependencias** usando `sl()`
+4. **En cualquier parte del código**, podemos obtener cualquier objeto registrado con `sl<Tipo>()`
 
 **Archivo**: `lib/main.dart`
 
@@ -926,7 +1108,11 @@ import 'package:my_app/features/product/presentation/pages/products_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Inicializamos todas las dependencias
+  // Esto registra todo en el contenedor de GetIt
   await di.init();
+  
   runApp(const MyApp());
 }
 
@@ -942,6 +1128,65 @@ class MyApp extends StatelessWidget {
   }
 }
 ```
+
+**Uso en Widgets (Pages):**
+
+```dart
+// lib/features/product/presentation/pages/products_page.dart
+class ProductsPage extends StatelessWidget {
+  const ProductsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      // Obtenemos el Cubit del contenedor de GetIt
+      // Como usamos registerFactory, se crea una instancia nueva
+      create: (_) => GetIt.I<ProductCubit>()..loadProducts(),
+      child: const ProductsView(),
+    );
+  }
+}
+```
+
+**Comparación Visual:**
+
+```
+SIN GetIt (Constructor Drilling):
+main() → MyApp → HomePage → ProductWidget → ProductCubit → UseCases → Repository → DataSources
+   ↓         ↓         ↓            ↓           ↓           ↓           ↓           ↓
+ pasa     pasa     pasa         pasa        pasa        pasa        pasa        crea todo
+
+CON GetIt (Service Locator):
+main() → init() → Registra todo en el "almacén" central
+
+En cualquier lugar: sl<LoQueNecesito>() → Obtiene del almacén
+```
+
+**¿Cuándo usar cada método de registro?**
+
+```dart
+// SINGLETON - Una única instancia para toda la app
+sl.registerSingleton<http.Client>(http.Client());
+// ✓ La instancia se crea INMEDIATAMENTE
+// ✓ Todos obtienen la MISMA instancia
+// ✓ Útil para: Clientes HTTP, Database, configuraciones globales
+
+// LAZY SINGLETON - Se crea solo cuando se necesita (RECOMENDADO)
+sl.registerLazySingleton(() => http.Client());
+// ✓ La instancia se crea la PRIMERA VEZ que alguien la pide
+// ✓ Ahorra memoria si no se usa
+// ✓ Útil para: Casi todo - Repositorios, UseCases, DataSources
+
+// FACTORY - Nueva instancia cada vez
+sl.registerFactory(() => ProductCubit(...));
+// ✓ Cada llamada crea una instancia NUEVA
+// ✓ Útil para: Cubits/Blocs (cada pantalla necesita su propio estado)
+```
+
+**Resumen:**
+- **Inyección manual**: Buena para entender, mala para mantener
+- **GetIt**: La solución estándar en Flutter para apps medianas/grandes
+- **Reglas de oro**: Usa `registerLazySingleton` para casi todo, `registerFactory` solo para Cubits/Blocs
 
 ---
 
