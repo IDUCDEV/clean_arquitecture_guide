@@ -51,6 +51,9 @@ Una estructura de carpetas organizada por *features* y luego por capas es la má
 lib/
 ├── core/
 │   ├── common/             # Clases base (UseCase) y helpers
+│   ├── data/                       # Configuración de datos global
+│   │   └── local/
+│   │       └── database_initializer.dart
 │   ├── di/                 # Inyección de dependencias (GetIt)
 │   ├── error/              # Clases de error y fallos (Failures)
 │   ├── network/            # Configuración de red (Dio, etc.)
