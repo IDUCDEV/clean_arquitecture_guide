@@ -1,48 +1,71 @@
 # 🧪 Parte 1: Fundamentos del Testing en Clean Architecture
 
+> **¿De qué trata esta parte?** De entender qué es un test, por qué es importante, y cómo escribirlos correctamente. Sin código todavía, solo conceptos que necesitas interiorizar.
+
+---
+
 ## 📋 Índice
-1. [¿Por qué testear en Clean Architecture?](#por-qué-testear-en-clean-architecture)
+
+1. [¿Qué es un test y por qué testear?](#qué-es-un-test-y-por-qué-testear)
 2. [Estructura del Proyecto de Tests](#estructura-del-proyecto-de-tests)
 3. [Dependencias Necesarias](#dependencias-necesarias)
 4. [Conceptos Fundamentales](#conceptos-fundamentales)
 5. [El Patrón AAA](#el-patrón-aaa)
 6. [Tu Primer Test](#tu-primer-test)
-7. [Ejercicios Prácticos](#ejercicios-prácticos)
+7. [Errores Comunes](#errores-comunes)
+8. [ Checklist](#-checklist)
 
 ---
 
-## ¿Por qué testear en Clean Architecture?
+## 1. ¿Qué es un Test y Por Qué Testear?
 
-Clean Architecture facilita enormemente el testing porque cada capa es **independiente** y tiene **responsabilidades únicas**:
+### 🧠 La Analogía del Chef
+
+Imagina que eres un chef en un restaurante:
+
+**Sin tests** = Cocinar un plato y directamente servirlo al cliente sin probarlo
+**Con tests** = Probar la comida mientras la cook, ajustar condimentos, verificar que está lista
+
+> Un test es como **probar tu comida mientras cookes**, no después de servirla al cliente.
+
+### 🤔 ¿Por qué dedicar tiempo a testear?
 
 ```
-┌─────────────────────────────────────┐
-│           PRESENTATION              │  ← Testeamos: Estados, UI, Cubits
-│   (Cubits, Pages, Widgets)          │     Herramientas: bloc_test, testWidgets
-├─────────────────────────────────────┤
-│              DOMAIN                 │  ← Testeamos: Lógica pura, reglas de negocio
-│   (Entities, UseCases)              │     Herramientas: flutter_test
-├─────────────────────────────────────┤
-│               DATA                  │  ← Testeamos: Persistencia, APIs, mapeo
-│   (Models, Repositories, Sources)   │     Herramientas: flutter_test, Fakes
-└─────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    BENEFICIOS DEL TESTING                   │
+├─────────────────────────────────────────────────────────────┤
+│ ✅ Detectar errores ANTES de que el usuario los vea        │
+│ ✅ Cambiar código con confianza (refactoring seguro)        │
+│ ✅ Documentación automática del comportamiento             │
+│ ✅ Ejecutar miles de pruebas en segundos                   │
+│ ✅ Encontrar bugs que aparecen solo en edge cases           │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### ✅ Beneficios de testear por capas:
+### 📊 El Costo del Testing
 
-1. **Domain (Lógica pura)**: Tests rápidos, sin dependencias de Flutter
-2. **Data (Infraestructura)**: Tests con Fakes/Mocks de APIs y BD
-3. **Presentation (UI/Estados)**: Tests de comportamiento del usuario
+| Aspecto | Sin Tests | Con Tests |
+|---------|-----------|-----------|
+| **Tiempo inicial** | 0 horas | 30% más |
+| **Debugging** | Horas/días | Minutos |
+| **Refactoring** | Con miedo | Con confianza |
+| **Bugs en producción** | Frecuentes | Raros |
+
+**Conclusión:** Invertir tiempo en tests **ahorra tiempo** a largo plazo.
 
 ---
 
-## Estructura del Proyecto de Tests
+## 2. Estructura del Proyecto de Tests
 
-Los tests deben **espejar** la estructura de `lib/clean/`:
+### 🎯 Principio Clave
+
+> Los tests deben **espejar** la estructura de tu código de producción.
+
+Si tu código está en `lib/clean/`, tus tests deben estar en `test/clean/`.
 
 ```
 project_root/
-├── lib/
+├── lib/                           ← Tu código de producción
 │   └── clean/
 │       ├── core/
 │       └── features/
@@ -51,10 +74,9 @@ project_root/
 │               ├── data/
 │               └── presentation/
 │
-└── test/                           ← Mirror de lib/clean/
+└── test/                          ← Tus tests (espejo de lib/)
     ├── core/
     │   ├── error/
-    │   ├── network/
     │   └── utils/
     ├── features/
     │   └── auth/
@@ -62,39 +84,44 @@ project_root/
     │       │   ├── entities/
     │       │   │   └── user_test.dart
     │       │   └── usecases/
-    │       │       ├── login_usecase_test.dart
-    │       │       ├── register_usecase_test.dart
-    │       │       └── logout_usecase_test.dart
+    │       │       └── login_usecase_test.dart
     │       ├── data/
     │       │   ├── models/
     │       │   │   └── user_model_test.dart
-    │       │   ├── repositories/
-    │       │   │   └── auth_repository_impl_test.dart
-    │       │   └── datasources/
-    │       │       ├── auth_remote_data_source_test.dart
-    │       │       └── auth_local_data_source_test.dart
+    │       │   └── repositories/
+    │       │       └── auth_repository_impl_test.dart
     │       └── presentation/
     │           ├── cubit/
     │           │   └── auth_cubit_test.dart
     │           └── pages/
     │               └── auth_page_test.dart
-    ├── fixtures/                    ← Datos de prueba JSON
+    ├── fixtures/                  ← Datos de prueba JSON
     │   ├── user.json
     │   └── auth_response.json
-    └── helpers/                     ← Utilidades de testing
+    └── helpers/                   ← Utilidades de testing
         ├── fake_repositories.dart
         └── fixture_reader.dart
 ```
 
-### 📝 Convenciones de nombrado:
+### 📝 Convenciones de Nombrado
 
-- **Archivos**: `nombre_original_test.dart` (siempre termina en `_test.dart`)
-- **Tests**: `'should [comportamiento] when [condición]'`
-- **Groups**: Agrupar por método o funcionalidad
+| Elemento | Convención | Ejemplo |
+|----------|------------|---------|
+| **Archivo de test** | `{nombre}_test.dart` | `user_test.dart` |
+| **Carpeta de test** | Mismo nombre que en lib | `domain/entities/` |
+| **Nombre del test** | `should [comportamiento] when [condición]` | `should return user when login succeeds` |
+
+### 💡 ¿Por qué esta estructura?
+
+1. **Encontrar tests rápidamente** - Si modificas `user.dart`, immediately sabes dónde está su test
+2. **Navegación fácil** - Puedes hacer Ctrl+Click entre código y test
+3. **Organización mental** - Separas "qué hago" (lib) de "cómo lo verifico" (test)
 
 ---
 
-## Dependencias Necesarias
+## 3. Dependencias Necesarias
+
+### 📦 pubspec.yaml
 
 Agrega estas dependencias a tu `pubspec.yaml`:
 
@@ -106,19 +133,21 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   bloc_test: ^9.1.0          # Para testear Cubits/Blocs
-  build_runner: ^2.10.2      # Si decides usar @GenerateMocks en el futuro
+  mockito: ^5.4.0            # Para tests avanzados (opcional)
+  build_runner: ^2.10.2      # Solo si usas @GenerateMocks
 ```
 
-### 📦 Explicación de cada dependencia:
+### 📋 Explicación de Cada Dependencia
 
 | Dependencia | Propósito | ¿Cuándo usarla? |
 |-------------|-----------|-----------------|
-| `flutter_test` | Framework base de testing | Siempre |
-| `integration_test` | Tests de flujo completo (E2E) | Para testear flujos de usuario |
-| `bloc_test` | Testing especializado de Cubits | Para testear la capa Presentation |
-| `build_runner` | Generación de código | Solo si usas @GenerateMocks (futuro) |
+| `flutter_test` | Framework base de testing en Flutter | **Siempre** |
+| `integration_test` | Tests de flujo completo (E2E) | Para simular usuario real |
+| `bloc_test` | Testing especializado de Cubits/Blocs | Para capa Presentation |
+| `mockito` | Generación automática de mocks | Avanzado (Parte 7) |
+| `build_runner` | Generación de código | Solo con Mockito |
 
-### 🚀 Instalación:
+### 🚀 Instalación
 
 ```bash
 flutter pub get
@@ -126,21 +155,40 @@ flutter pub get
 
 ---
 
-## Conceptos Fundamentales
+## 4. Conceptos Fundamentales
 
-### 1. **Test Function**
+### 4.1 La Función `test()`
 
-La función `test()` define un caso de prueba individual:
+Un **test** es un caso de prueba individual. Define un escenario específico:
 
 ```dart
-test('should return 2 when adding 1 + 1', () {
-  // Código del test
+test('descripción del test en lenguaje natural', () {
+  // Tu código de verificación
 });
 ```
 
-### 2. **Group**
+**Características:**
+- Nombre en **inglés** describiendo el comportamiento
+- Debe ser **declarativo** (qué debe pasar, no cómo)
+- Solo una **aserción principal** por test (idealmente)
 
-Agrupa tests relacionados para mejor organización:
+**Ejemplos de buenos nombres:**
+```dart
+test('should return true for valid email')
+test('should throw exception when dividing by zero')
+test('should return user when login is successful')
+```
+
+**Ejemplos de malos nombres:**
+```dart
+test('test1')                           // ❌ Ambiguo
+test('login function')                  // ❌ No dice qué debe pasar
+test('should work correctly')           // ❌ Qué significa "correctamente"?
+```
+
+### 4.2 El `group()`
+
+Agrupa tests relacionados para mejor organización y reporte:
 
 ```dart
 group('Calculator', () {
@@ -150,26 +198,52 @@ group('Calculator', () {
 });
 ```
 
-### 3. **Expect**
-
-Verifica que una condición sea verdadera:
-
-```dart
-expect(actual, expected);
+**Salida en consola:**
+```
+00:00 +3: Calculator
+  should add correctly
+  should subtract correctly  
+  should multiply correctly
 ```
 
-**Matchers comunes:**
+### 4.3 El `expect()` - Verificar Resultados
+
+**`expect()`** es el corazón del testing. Verifica que un valor sea el esperado:
+
 ```dart
-expect(value, equals(42));           // Igualdad exacta
-expect(value, isA<String>());        // Tipo de dato
-expect(value, isTrue);               // Booleano true
-expect(value, isNull);               // Null
-expect(value, isNotNull);            // No null
-expect(list, hasLength(3));          // Longitud de lista
-expect(list, contains('item'));      // Contiene elemento
+expect(actual, matcher);
 ```
 
-### 4. **SetUp**
+#### 🎯 Matchers (Comparadores) Más Comunes
+
+```dart
+// Igualdad exacta
+expect(value, equals(42));
+
+// Tipo de dato
+expect(value, isA<String>());
+
+// Booleanos
+expect(value, isTrue);
+expect(value, isFalse);
+
+// Null
+expect(value, isNull);
+expect(value, isNotNull);
+
+// Listas
+expect(list, hasLength(3));
+expect(list, contains('item'));
+
+// Excepciones
+expect(() => code(), throwsA(isA<Exception>()));
+
+// Composables (combinaciones)
+expect(value, isNotNull);
+expect(value, isA<String>().having((s) => s.length, 'length', 5));
+```
+
+### 4.4 El `setUp()` - Preparación
 
 Código que se ejecuta **antes de cada test** en un grupo:
 
@@ -178,15 +252,25 @@ group('AuthRepository', () {
   late FakeAuthRepository repository;
   
   setUp(() {
-    repository = FakeAuthRepository();  // Se crea antes de cada test
+    repository = FakeAuthRepository();  // Se ejecuta ANTES de cada test
   });
   
-  test('test 1', () { ... });  // Usa repository fresco
-  test('test 2', () { ... });  // Usa repository fresco (nueva instancia)
+  test('test 1', () { 
+    // repository aquí está FRESCO (nueva instancia)
+  });
+  
+  test('test 2', () { 
+    // repository aquí está FRESCO (nueva instancia otra vez)
+  });
 });
 ```
 
-### 5. **TearDown**
+**¿Por qué usar setUp?**
+- Evita repetir código de preparación
+- Garantiza que cada test tiene datos frescos
+- Facilita el mantenimiento
+
+### 4.5 El `tearDown()` - Limpieza
 
 Código que se ejecuta **después de cada test**:
 
@@ -196,39 +280,63 @@ setUp(() {
 });
 
 tearDown(() {
-  cubit.close();  // Limpieza importante para Cubits
+  cubit.close();  // ¡Importante! Libera recursos
 });
 ```
 
-### 6. **Async/Await**
+**¿Por qué usar tearDown?**
+- Liberar memoria
+- Cerrar conexiones
+- Limpiar estado global
 
-Para testear código asíncrono:
+### 4.6 Async/Await - Código Asíncrono
+
+Para testear código asíncrono (futures, streams):
 
 ```dart
 test('should complete async operation', () async {
+  // El test espera a que termine la operación
   final result = await repository.login('email', 'pass');
+  
+  // Luego verifica el resultado
   expect(result, isA<Right<Failure, User>>());
 });
 ```
 
 ---
 
-## El Patrón AAA
+## 5. El Patrón AAA
 
-El patrón **AAA** (Arrange-Act-Assert) es la estructura estándar para escribir tests claros:
+> **El patrón AAA** es la estructura estándar para escribir tests claros y mantenibles.
+
+### 🤔 ¿Por qué AAA?
+
+Imagina que lees un test sin saber qué hace. ¿Qué necesitas saber?
+
+1. **Qué preparaste** (Arrange)
+2. **Qué ejecutaste** (Act)  
+3. **Qué esperabas** (Assert)
+
+### 📦 Las Tres Secciones
 
 ```dart
 test('should return user when login is successful', () async {
+  // ═══════════════════════════════════════════════════════════
   // ARRANGE: Preparar el escenario
+  // ═══════════════════════════════════════════════════════════
   const email = 'test@example.com';
   const password = 'password123';
   final fakeRepository = FakeAuthRepository();
   fakeRepository.userToReturn = const User(id: '1', email: email);
   
+  // ═══════════════════════════════════════════════════════════
   // ACT: Ejecutar la acción a testear
+  // ═══════════════════════════════════════════════════════════
   final result = await fakeRepository.login(email, password);
   
+  // ═══════════════════════════════════════════════════════════
   // ASSERT: Verificar el resultado
+  // ═══════════════════════════════════════════════════════════
   expect(result, isA<Right<Failure, User>>());
   result.fold(
     (failure) => fail('Should not return failure'),
@@ -237,27 +345,50 @@ test('should return user when login is successful', () async {
 });
 ```
 
-### 🎯 Cada sección tiene un propósito claro:
+### 📊 Resumen del AAA
 
 | Sección | Propósito | Ejemplo |
 |---------|-----------|---------|
 | **ARRANGE** | Setup inicial, crear objetos, configurar mocks | Crear FakeRepository, setear datos |
-| **ACT** | Ejecutar la acción que queremos testear | Llamar a login() |
-| **ASSERT** | Verificar que el resultado es el esperado | expect(result, ...) |
+| **ACT** | Ejecutar la acción que queremos testear | Llamar a `login()` |
+| **ASSERT** | Verificar que el resultado es el esperado | `expect(result, ...)` |
+
+### ⚠️ Errores Comunes con AAA
+
+```dart
+// ❌ MALO: Mezclar Arrange y Act
+test('bad example', () {
+  final repo = FakeAuthRepository();  // Arrange
+  final result = repo.login(...);      // Act - mezclado con arrange
+  expect(result, ...);                  // Assert
+});
+
+// ✅ BUENO: Secciones claras
+test('good example', () {
+  // Arrange
+  final repo = FakeAuthRepository();
+  
+  // Act
+  final result = await repo.login(...);
+  
+  // Assert
+  expect(result, ...);
+});
+```
 
 ---
 
-## Tu Primer Test
+## 6. Tu Primer Test
 
-Vamos a crear un test simple para una función pura (sin dependencias):
+Vamos a crear un test simple para una función pura (sin dependencias externas).
 
-### 1. Crea el archivo de test
+### Paso 1: Crea el archivo de test
 
 ```bash
 touch test/core/utils/string_utils_test.dart
 ```
 
-### 2. Escribe tu primera función (en lib)
+### Paso 2: Crea la función (si no existe)
 
 ```dart
 // lib/clean/core/utils/string_utils.dart
@@ -274,7 +405,7 @@ class StringUtils {
 }
 ```
 
-### 3. Escribe el test
+### Paso 3: Escribe el test
 
 ```dart
 // test/core/utils/string_utils_test.dart
@@ -283,6 +414,7 @@ import 'package:sereni/clean/core/utils/string_utils.dart';
 
 void main() {
   group('StringUtils', () {
+    
     group('isValidEmail', () {
       test('should return true for valid email', () {
         // Arrange
@@ -356,7 +488,7 @@ void main() {
 }
 ```
 
-### 4. Ejecuta el test
+### Paso 4: Ejecuta el test
 
 ```bash
 # Ejecutar un test específico
@@ -369,106 +501,98 @@ flutter test test/core/utils/string_utils_test.dart --verbose
 flutter test --plain-name "should return true for valid email"
 ```
 
-### 5. Salida esperada
+### Paso 5: Salida Esperada
 
 ```
+✓ All tests passed!
 00:00 +4: All tests passed!
 ```
 
 ---
 
-## Ejercicios Prácticos
+## 7. Errores Comunes
 
-### Ejercicio 1: Test básico
-Crea tests para esta función:
-
-```dart
-int add(int a, int b) => a + b;
-```
-
-**Tests a escribir:**
-- Suma de positivos
-- Suma con cero
-- Suma de negativos
-
-<details>
-<summary>Ver solución</summary>
+### ❌ Error 1: Olvidar async/await
 
 ```dart
-group('add', () {
-  test('should add two positive numbers', () {
-    expect(add(2, 3), equals(5));
-  });
-  
-  test('should return same number when adding zero', () {
-    expect(add(5, 0), equals(5));
-  });
-  
-  test('should add negative numbers', () {
-    expect(add(-2, -3), equals(-5));
-  });
+// ❌ MALO: Test asíncrono sin async
+test('should login', () {
+  final result = repository.login('email', 'pass');
+  expect(result, ...);  // ¡Esto falla! result es un Future, no el valor
+});
+
+// ✅ BUENO: Usar async/await
+test('should login', () async {
+  final result = await repository.login('email', 'pass');
+  expect(result, ...);
 });
 ```
-</details>
 
-### Ejercicio 2: Test con excepciones
-Crea tests para esta función:
+### ❌ Error 2: No verificar excepciones
 
 ```dart
-double divide(double a, double b) {
-  if (b == 0) throw ArgumentError('Cannot divide by zero');
-  return a / b;
-}
-```
+// ❌ MALO: Esperar que funcione sin verificar el error
+test('should throw on invalid input', () {
+  expect(() => divide(10, 0), returnsNormally);  // ¡Esto pasa!
+});
 
-**Tests a escribir:**
-- División normal
-- División por cero (debe lanzar excepción)
-
-<details>
-<summary>Ver solución</summary>
-
-```dart
-group('divide', () {
-  test('should divide correctly', () {
-    expect(divide(10, 2), equals(5.0));
-  });
-  
-  test('should throw ArgumentError when dividing by zero', () {
-    expect(
-      () => divide(10, 0),
-      throwsA(isA<ArgumentError>()),
-    );
-  });
+// ✅ BUENO: Verificar que lanza la excepción correcta
+test('should throw on divide by zero', () {
+  expect(
+    () => divide(10, 0),
+    throwsA(isA<ArgumentError>()),
+  );
 });
 ```
-</details>
+
+### ❌ Error 3: Tests que dependen de otros tests
+
+```dart
+// ❌ MALO: Un test depende del estado de otro
+test('first test', () {
+  counter = 5;
+});
+
+test('second test depends on first', () {
+  expect(counter, 5);  // ¡Podería fallar si se ejecutan en otro orden!
+});
+```
+
+### ❌ Error 4: Nombres poco descriptivos
+
+```dart
+// ❌ MALO
+test('test1', () { ... });
+test('login test', () { ... });
+
+// ✅ BUENO
+test('should return user when credentials are valid', () { ... });
+test('should throw exception when password is empty', () { ... });
+```
 
 ---
 
-## ✅ Checklist de Fundamentos
+## ✅ Checklist
 
 Antes de pasar a la siguiente parte, asegúrate de:
 
-- [ ] Entender la estructura de carpetas de tests
+- [ ] Entender qué es un test y por qué es importante
+- [ ] Conocer la estructura de carpetas de tests
 - [ ] Saber usar `test()` y `group()`
 - [ ] Conocer los matchers básicos (`equals`, `isA`, `isTrue`, etc.)
 - [ ] Aplicar el patrón AAA en cada test
 - [ ] Saber usar `setUp()` y `tearDown()`
 - [ ] Ejecutar tests desde la terminal
 - [ ] Instalar las dependencias necesarias
+- [ ] Evitar errores comunes (async/await, nombres)
 
 ---
 
 ## 🚀 Siguiente Paso
 
-➡️ **Parte 2: Testing Domain (Entities y UseCases)**
+**Teoría:** [Parte 2: Testing Domain (Entities y UseCases)](./02-domain-testing.md)
 
-En la siguiente parte aprenderás a:
-- Testear Entities con Equatable
-- Testear UseCases con Fakes manuales
-- Manejar Either<Failure, Success>
-- Crear tu primer Fake Repository
+**Práctica:** [01a-practica-primeros-tests.md](./01a-practica-primeros-tests.md) ← ¡Practica lo que aprendiste!
 
 ---
 

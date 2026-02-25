@@ -1,59 +1,74 @@
 # 🧪 Parte 3: Testing Data (Models, Repositories, DataSources)
 
+> **¿De qué trata esta parte?** De testear la capa **Data** que maneja la comunicación con el exterior: APIs, bases de datos locales, y la lógica de decidir cuándo usar datos remotos vs locales.
+
+---
+
 ## 📋 Índice
+
 1. [Introducción a la Capa Data](#introducción-a-la-capa-data)
-2. [Fixtures JSON](#fixtures-json)
+2. [Fixtures JSON - Datos de Prueba](#fixtures-json---datos-de-prueba)
 3. [Testing de Models](#testing-de-models)
 4. [Testing de Remote DataSources](#testing-de-remote-datasources)
 5. [Testing de Local DataSources](#testing-de-local-datasources)
 6. [Testing de Repository Implementation](#testing-de-repository-implementation)
-7. [Ejercicios Prácticos](#ejercicios-prácticos)
+7. [ Checklist](#-checklist)
 
 ---
 
-## Introducción a la Capa Data
+## 1. Introducción a la Capa Data
+
+### 🤔 ¿Qué es la Capa Data?
 
 La capa **Data** es responsable de:
-- **Models**: Mapeo de datos JSON a objetos Dart
-- **DataSources**: Comunicación con APIs y almacenamiento local
-- **Repository Implementation**: Lógica de decisión (online/offline)
+- **Models**: Transformar datos JSON a objetos Dart
+- **DataSources**: Comunicarse con APIs y almacenamiento local
+- **Repository Implementation**: Decidir cuándo usar datos remotos vs locales (lógica de cache)
 
-### 🎯 Por qué es más compleja de testear:
-
-- ✅ **Dependencias externas**: HTTP, SharedPreferences, SQLite
-- ✅ **Manejo de errores**: Timeouts, parsing errors, network errors
-- ✅ **Async/await**: Código asíncrono complejo
-- ✅ **Estados de red**: Online vs Offline
-
-### 📦 Arquitectura de la capa Data:
+### 📊 Arquitectura de la Capa Data
 
 ```
-Data Layer
-├── Models          ← Mapeo JSON ↔ Dart
-│   └── user_model.dart
-├── DataSources     ← Origen de datos
-│   ├── Remote      ← HTTP/Supabase
-│   └── Local       ← SharedPreferences/SQLite
-└── Repositories    ← Lógica de negocio + cache
-    └── auth_repository_impl.dart
+┌─────────────────────────────────────────────────────────────────┐
+│                         DATA LAYER                              │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│   ┌─────────┐    ┌─────────────┐    ┌───────────────────┐      │
+│   │ MODELS  │ ←→ │  DATASOURCES │ ←→ │ REPOSITORY IMPL  │      │
+│   └─────────┘    └─────────────┘    └───────────────────┘      │
+│       ↑                ↑                      ↑                 │
+│       │                │                      │                 │
+│   JSON ↔ Dart     HTTP / Cache           Coordina todo          │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
+
+### 🎯 ¿Por qué es Más Compleja de Testear?
+
+| Aspecto | Domain | Data |
+|---------|--------|------|
+| **Dependencias externas** | ❌ Ninguna | ✅ HTTP, SharedPreferences |
+| **Manejo de errores** | Simple | ✅ Timeouts, parsing, red |
+| **Async/await** | Básico | ✅ Complejo |
+| **Estados de red** | ❌ No aplica | ✅ Online vs Offline |
 
 ---
 
-## Fixtures JSON
+## 2. Fixtures JSON - Datos de Prueba
 
-Los **fixtures** son archivos JSON con datos de prueba reutilizables.
+### 🤔 ¿Qué son los Fixtures?
 
-### 📁 Estructura de carpetas
+Los **fixtures** son archivos JSON que contienen datos de prueba reutilizables. Son como "actores secundarios" en nuestros tests.
+
+### 📁 Estructura de Carpetas
 
 ```
 test/
-├── fixtures/
-│   ├── user.json              ← Usuario individual
-│   ├── users_list.json        ← Lista de usuarios
-│   └── auth_response.json     ← Respuesta de login
+├── fixtures/                    ← Archivos JSON de prueba
+│   ├── user.json               ← Un usuario
+│   ├── users_list.json         ← Lista de usuarios
+│   └── auth_response.json      ← Respuesta de login
 └── helpers/
-    └── fixture_reader.dart    ← Helper para leer fixtures
+    └── fixture_reader.dart     ← Helper para leer fixtures
 ```
 
 ### 📝 Paso 1: Crear archivos de fixtures
@@ -101,10 +116,11 @@ test/
 }
 ```
 
-### 📝 Paso 2: Crear el helper
+### 📝 Paso 2: Crear el helper de fixtures
 
-**`test/helpers/fixture_reader.dart`**
 ```dart
+// test/helpers/fixture_reader.dart
+import 'dart:convert';
 import 'dart:io';
 
 /// Lee un archivo fixture JSON de la carpeta test/fixtures/
@@ -137,11 +153,16 @@ List<dynamic> fixtureAsList(String name) {
 
 ---
 
-## Testing de Models
+## 3. Testing de Models
 
-### 📁 Archivo fuente: `lib/clean/features/auth/data/models/user_model.dart`
+### 🤔 ¿Qué es un Model?
+
+Un **Model** es la versión "data" de un Entity. Mientras el Entity solo tiene datos de negocio, el Model sabe cómo convertirlos a/from JSON.
+
+### 📁 Archivo Fuente: UserModel
 
 ```dart
+// lib/clean/features/auth/data/models/user_model.dart
 import 'package:sereni/clean/features/auth/domain/entities/user.dart';
 
 class UserModel extends User {
@@ -157,23 +178,23 @@ class UserModel extends User {
           lastName: lastName,
         );
 
-  /// Deserializa desde JSON
+  /// Deserializa desde JSON → Dart
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'] as String,
       email: json['email'] as String,
       name: json['name'] as String,
-      lastName: json['last_name'] as String,
+      lastName: json['last_name'] as String,  // nota: snake_case en JSON
     );
   }
 
-  /// Serializa a JSON
+  /// Serializa a JSON → String
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'email': email,
       'name': name,
-      'last_name': lastName,
+      'last_name': lastName,  // nota: snake_case en JSON
     };
   }
 
@@ -199,258 +220,163 @@ class UserModel extends User {
 }
 ```
 
-### 🧪 Tests completos del Model
+### 🎓 Patrones Comunes en Models
 
-**`test/features/auth/data/models/user_model_test.dart`**
+```
+JSON (snake_case)  ↔  Dart (camelCase)
 
-```dart
-import 'dart:convert';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/features/auth/data/models/user_model.dart';
-import 'package:sereni/clean/features/auth/domain/entities/user.dart';
-
-import '../../../../helpers/fixture_reader.dart';
-
-void main() {
-  const tUserModel = UserModel(
-    id: '123',
-    email: 'test@example.com',
-    name: 'John',
-    lastName: 'Doe',
-  );
-
-  group('UserModel', () {
-    test('should be a subclass of User entity', () {
-      // ASSERT
-      expect(tUserModel, isA<User>());
-    });
-
-    group('fromJson', () {
-      test('should return valid model from JSON', () {
-        // ARRANGE
-        final Map<String, dynamic> jsonMap = 
-            json.decode(fixture('user')) as Map<String, dynamic>;
-
-        // ACT
-        final result = UserModel.fromJson(jsonMap);
-
-        // ASSERT
-        expect(result, equals(tUserModel));
-      });
-
-      test('should return valid model with different data', () {
-        // ARRANGE
-        final jsonMap = {
-          'id': '456',
-          'email': 'jane@example.com',
-          'name': 'Jane',
-          'last_name': 'Smith',
-        };
-
-        // ACT
-        final result = UserModel.fromJson(jsonMap);
-
-        // ASSERT
-        expect(result.id, '456');
-        expect(result.email, 'jane@example.com');
-        expect(result.name, 'Jane');
-        expect(result.lastName, 'Smith');
-      });
-
-      test('should throw when required field is missing', () {
-        // ARRANGE
-        final jsonMap = {
-          'id': '123',
-          'email': 'test@example.com',
-          // Falta 'name' y 'last_name'
-        };
-
-        // ACT & ASSERT
-        expect(
-          () => UserModel.fromJson(jsonMap),
-          throwsA(isA<TypeError>()),
-        );
-      });
-
-      test('should handle extra fields gracefully', () {
-        // ARRANGE
-        final jsonMap = {
-          'id': '123',
-          'email': 'test@example.com',
-          'name': 'John',
-          'last_name': 'Doe',
-          'extra_field': 'ignored',
-        };
-
-        // ACT
-        final result = UserModel.fromJson(jsonMap);
-
-        // ASSERT
-        expect(result, equals(tUserModel));
-      });
-    });
-
-    group('toJson', () {
-      test('should return a valid JSON map', () {
-        // ARRANGE - tUserModel definido arriba
-
-        // ACT
-        final result = tUserModel.toJson();
-
-        // ASSERT
-        final expectedMap = {
-          'id': '123',
-          'email': 'test@example.com',
-          'name': 'John',
-          'last_name': 'Doe',
-        };
-        expect(result, equals(expectedMap));
-      });
-
-      test('toJson and fromJson should be inverse operations', () {
-        // ARRANGE
-        final original = tUserModel;
-
-        // ACT
-        final json = original.toJson();
-        final recreated = UserModel.fromJson(json);
-
-        // ASSERT
-        expect(recreated, equals(original));
-      });
-    });
-
-    group('toEntity', () {
-      test('should return a User entity with correct data', () {
-        // ARRANGE
-        const model = UserModel(
-          id: '123',
-          email: 'test@example.com',
-          name: 'John',
-          lastName: 'Doe',
-        );
-
-        // ACT
-        final result = model.toEntity();
-
-        // ASSERT
-        expect(result, isA<User>());
-        expect(result.id, '123');
-        expect(result.email, 'test@example.com');
-        expect(result.name, 'John');
-        expect(result.lastName, 'Doe');
-      });
-
-      test('should create User that is equal to expected entity', () {
-        // ARRANGE
-        const model = tUserModel;
-        const expectedEntity = User(
-          id: '123',
-          email: 'test@example.com',
-          name: 'John',
-          lastName: 'Doe',
-        );
-
-        // ACT
-        final result = model.toEntity();
-
-        // ASSERT
-        expect(result, equals(expectedEntity));
-      });
-    });
-
-    group('fromEntity', () {
-      test('should return UserModel from User entity', () {
-        // ARRANGE
-        const entity = User(
-          id: '789',
-          email: 'entity@example.com',
-          name: 'Entity',
-          lastName: 'User',
-        );
-
-        // ACT
-        final result = UserModel.fromEntity(entity);
-
-        // ASSERT
-        expect(result, isA<UserModel>());
-        expect(result.id, '789');
-        expect(result.email, 'entity@example.com');
-      });
-
-      test('fromEntity and toEntity should preserve data', () {
-        // ARRANGE
-        const originalModel = tUserModel;
-
-        // ACT
-        final entity = originalModel.toEntity();
-        final recreatedModel = UserModel.fromEntity(entity);
-
-        // ASSERT
-        expect(recreatedModel, equals(originalModel));
-      });
-    });
-
-    group('equality', () {
-      test('should be equal when all fields match', () {
-        // ARRANGE
-        const model1 = UserModel(
-          id: '123',
-          email: 'test@example.com',
-          name: 'John',
-          lastName: 'Doe',
-        );
-        const model2 = UserModel(
-          id: '123',
-          email: 'test@example.com',
-          name: 'John',
-          lastName: 'Doe',
-        );
-
-        // ASSERT
-        expect(model1, equals(model2));
-      });
-
-      test('should not be equal when fields differ', () {
-        // ARRANGE
-        const model1 = UserModel(
-          id: '123',
-          email: 'test1@example.com',
-          name: 'John',
-          lastName: 'Doe',
-        );
-        const model2 = UserModel(
-          id: '123',
-          email: 'test2@example.com',
-          name: 'John',
-          lastName: 'Doe',
-        );
-
-        // ASSERT
-        expect(model1, isNot(equals(model2)));
-      });
-    });
-  });
-}
+last_name (JSON)   →  lastName (Dart)
+created_at (JSON)  →  createdAt (Dart)
 ```
 
-### 🎓 Qué testear en Models:
+### 🧪 Tests de Model: Paso a Paso
 
-1. **fromJson**: Deserialización correcta, campos faltantes, campos extra
-2. **toJson**: Serialización correcta, inversión con fromJson
-3. **toEntity**: Conversión a Domain, preservación de datos
-4. **fromEntity**: Creación desde Domain, round-trip
-5. **Equality**: Comparación de modelos
+#### Test 1: fromJson - básico
+
+```dart
+group('fromJson', () {
+  test('should return valid model from JSON', () {
+    // Arrange - leer fixture
+    final Map<String, dynamic> jsonMap = 
+        json.decode(fixture('user')) as Map<String, dynamic>;
+
+    // Act
+    final result = UserModel.fromJson(jsonMap);
+
+    // Assert
+    expect(result.id, '123');
+    expect(result.email, 'test@example.com');
+    expect(result.name, 'John');
+    expect(result.lastName, 'Doe');
+  });
+});
+```
+
+#### Test 2: fromJson - campos faltantes
+
+```dart
+  test('should throw when required field is missing', () {
+    // Arrange
+    final jsonMap = {
+      'id': '123',
+      'email': 'test@example.com',
+      // Falta 'name' y 'last_name'
+    };
+
+    // Act & Assert
+    expect(
+      () => UserModel.fromJson(jsonMap),
+      throwsA(isA<TypeError>()),
+    );
+  });
+```
+
+#### Test 3: fromJson - campos extra
+
+```dart
+  test('should handle extra fields gracefully', () {
+    // Arrange
+    final jsonMap = {
+      'id': '123',
+      'email': 'test@example.com',
+      'name': 'John',
+      'last_name': 'Doe',
+      'extra_field': 'ignored',  // Campo extra
+    };
+
+    // Act
+    final result = UserModel.fromJson(jsonMap);
+
+    // Assert
+    expect(result.id, '123');
+    // Los campos extra se ignoran silenciosamente
+  });
+```
+
+#### Test 4: toJson
+
+```dart
+group('toJson', () {
+  test('should return a valid JSON map', () {
+    // Arrange
+    const model = UserModel(
+      id: '123',
+      email: 'test@example.com',
+      name: 'John',
+      lastName: 'Doe',
+    );
+
+    // Act
+    final result = model.toJson();
+
+    // Assert
+    expect(result['id'], '123');
+    expect(result['email'], 'test@example.com');
+    expect(result['name'], 'John');
+    expect(result['last_name'], 'Doe');  // snake_case
+  });
+});
+```
+
+#### Test 5: toJson + fromJson = roundtrip
+
+```dart
+  test('toJson and fromJson should be inverse operations', () {
+    // Arrange
+    const original = UserModel(
+      id: '123',
+      email: 'test@example.com',
+      name: 'John',
+      lastName: 'Doe',
+    );
+
+    // Act
+    final json = original.toJson();
+    final recreated = UserModel.fromJson(json);
+
+    // Assert
+    expect(recreated.id, original.id);
+    expect(recreated.email, original.email);
+    expect(recreated.name, original.name);
+    expect(recreated.lastName, original.lastName);
+  });
+```
+
+#### Test 6: toEntity / fromEntity
+
+```dart
+group('toEntity', () {
+  test('should return User entity with correct data', () {
+    // Arrange
+    const model = UserModel(
+      id: '123',
+      email: 'test@example.com',
+      name: 'John',
+      lastName: 'Doe',
+    );
+
+    // Act
+    final result = model.toEntity();
+
+    // Assert
+    expect(result, isA<User>());  // Es un User
+    expect(result.id, '123');
+  });
+});
+```
 
 ---
 
-## Testing de Remote DataSources
+## 4. Testing de Remote DataSources
 
-Los **Remote DataSources** se comunican con APIs externas (HTTP/Supabase).
+### 🤔 ¿Qué es un Remote DataSource?
 
-### 📁 Archivo fuente: `lib/clean/features/auth/data/datasources/auth_remote_data_source.dart`
+Un **Remote DataSource** se comunica con APIs externas (HTTP/Supabase/Firebase). Es como un "traductor" entre tu app y el servidor.
+
+### 📁 Archivo Fuente: AuthRemoteDataSource
 
 ```dart
+// lib/clean/features/auth/data/datasources/auth_remote_data_source.dart
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:sereni/clean/core/error/exceptions.dart';
@@ -458,12 +384,7 @@ import 'package:sereni/clean/features/auth/data/models/user_model.dart';
 
 abstract class AuthRemoteDataSource {
   Future<UserModel> login(String email, String password);
-  Future<UserModel> register({
-    required String email,
-    required String password,
-    required String name,
-    required String lastName,
-  });
+  Future<UserModel> register({...});
   Future<void> logout();
 }
 
@@ -471,10 +392,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final http.Client client;
   final String baseUrl;
 
-  AuthRemoteDataSourceImpl({
-    required this.client,
-    required this.baseUrl,
-  });
+  AuthRemoteDataSourceImpl({required this.client, required this.baseUrl});
 
   @override
   Future<UserModel> login(String email, String password) async {
@@ -498,58 +416,16 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
     }
   }
-
-  @override
-  Future<UserModel> register({
-    required String email,
-    required String password,
-    required String name,
-    required String lastName,
-  }) async {
-    final response = await client.post(
-      Uri.parse('$baseUrl/auth/register'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'email': email,
-        'password': password,
-        'name': name,
-        'last_name': lastName,
-      }),
-    );
-
-    if (response.statusCode == 201) {
-      return UserModel.fromJson(
-        json.decode(response.body) as Map<String, dynamic>,
-      );
-    } else {
-      throw ServerException(
-        message: 'Registration failed: ${response.statusCode}',
-        statusCode: response.statusCode,
-      );
-    }
-  }
-
-  @override
-  Future<void> logout() async {
-    final response = await client.post(
-      Uri.parse('$baseUrl/auth/logout'),
-      headers: {'Content-Type': 'application/json'},
-    );
-
-    if (response.statusCode != 200) {
-      throw ServerException(
-        message: 'Logout failed: ${response.statusCode}',
-        statusCode: response.statusCode,
-      );
-    }
-  }
+  // ... más métodos
 }
 ```
 
-### 🧪 Paso 1: Crear Fake del HTTP Client
+### 🧪 Fake del HTTP Client
 
-**`test/helpers/fake_http_client.dart`**
+Para testear el DataSource, necesitamos un Fake del HTTP Client:
+
 ```dart
+// test/helpers/fake_http_client.dart
 import 'package:http/http.dart' as http;
 
 /// Fake HTTP Client para testing
@@ -561,21 +437,6 @@ class FakeHttpClient extends http.BaseClient {
   Map<String, String>? lastHeaders;
   String? lastBody;
   String? lastMethod;
-
-  @override
-  Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    throw UnimplementedError('Use get/post/put/delete methods');
-  }
-
-  @override
-  Future<http.Response> get(Uri url, {Map<String, String>? headers}) async {
-    lastUri = url;
-    lastHeaders = headers;
-    lastMethod = 'GET';
-    
-    if (exceptionToThrow != null) throw exceptionToThrow!;
-    return responseToReturn!;
-  }
 
   @override
   Future<http.Response> post(
@@ -604,262 +465,67 @@ class FakeHttpClient extends http.BaseClient {
 }
 ```
 
-### 🧪 Paso 2: Tests del Remote DataSource
-
-**`test/features/auth/data/datasources/auth_remote_data_source_test.dart`**
+### 🧪 Tests del Remote DataSource
 
 ```dart
-import 'dart:convert';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/core/error/exceptions.dart';
-import 'package:sereni/clean/features/auth/data/datasources/auth_remote_data_source.dart';
-import 'package:sereni/clean/features/auth/data/models/user_model.dart';
+group('login', () {
+  const tEmail = 'test@example.com';
+  const tPassword = 'password123';
+  final tUserJson = fixtureAsMap('user');
 
-import '../../../../helpers/fake_http_client.dart';
-import '../../../../helpers/fixture_reader.dart';
+  test('should return UserModel when response is 200', () async {
+    // Arrange
+    fakeClient.responseToReturn = http.Response(
+      json.encode(tUserJson),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
 
-void main() {
-  late AuthRemoteDataSourceImpl dataSource;
-  late FakeHttpClient fakeClient;
-  const baseUrl = 'https://api.example.com';
+    // Act
+    final result = await dataSource.login(tEmail, tPassword);
 
-  setUp(() {
-    fakeClient = FakeHttpClient();
-    dataSource = AuthRemoteDataSourceImpl(
-      client: fakeClient,
-      baseUrl: baseUrl,
+    // Assert
+    expect(result.id, '123');
+    expect(result.email, 'test@example.com');
+  });
+
+  test('should call correct endpoint with POST', () async {
+    // Arrange
+    fakeClient.responseToReturn = http.Response(json.encode(tUserJson), 200);
+
+    // Act
+    await dataSource.login(tEmail, tPassword);
+
+    // Assert
+    expect(fakeClient.lastMethod, 'POST');
+    expect(fakeClient.lastUri, Uri.parse('$baseUrl/auth/login'));
+  });
+
+  test('should throw ServerException when response is 401', () async {
+    // Arrange
+    fakeClient.responseToReturn = http.Response('Unauthorized', 401);
+
+    // Act & Assert
+    expect(
+      () => dataSource.login(tEmail, tPassword),
+      throwsA(isA<ServerException>()),
     );
   });
-
-  tearDown(() {
-    fakeClient.reset();
-  });
-
-  group('login', () {
-    const tEmail = 'test@example.com';
-    const tPassword = 'password123';
-    final tUserJson = fixtureAsMap('user');
-    final tUserModel = UserModel.fromJson(tUserJson);
-
-    test('should return UserModel when response is 200', () async {
-      // ARRANGE
-      fakeClient.responseToReturn = http.Response(
-        json.encode(tUserJson),
-        200,
-        headers: {'content-type': 'application/json'},
-      );
-
-      // ACT
-      final result = await dataSource.login(tEmail, tPassword);
-
-      // ASSERT
-      expect(result, equals(tUserModel));
-    });
-
-    test('should call correct endpoint with POST', () async {
-      // ARRANGE
-      fakeClient.responseToReturn = http.Response(
-        json.encode(tUserJson),
-        200,
-      );
-
-      // ACT
-      await dataSource.login(tEmail, tPassword);
-
-      // ASSERT
-      expect(fakeClient.lastMethod, 'POST');
-      expect(
-        fakeClient.lastUri,
-        Uri.parse('$baseUrl/auth/login'),
-      );
-    });
-
-    test('should send correct body', () async {
-      // ARRANGE
-      fakeClient.responseToReturn = http.Response(
-        json.encode(tUserJson),
-        200,
-      );
-
-      // ACT
-      await dataSource.login(tEmail, tPassword);
-
-      // ASSERT
-      final bodyJson = json.decode(fakeClient.lastBody!) as Map<String, dynamic>;
-      expect(bodyJson['email'], tEmail);
-      expect(bodyJson['password'], tPassword);
-    });
-
-    test('should send Content-Type header', () async {
-      // ARRANGE
-      fakeClient.responseToReturn = http.Response(
-        json.encode(tUserJson),
-        200,
-      );
-
-      // ACT
-      await dataSource.login(tEmail, tPassword);
-
-      // ASSERT
-      expect(
-        fakeClient.lastHeaders?['Content-Type'],
-        'application/json',
-      );
-    });
-
-    test('should throw ServerException when response is 401', () async {
-      // ARRANGE
-      fakeClient.responseToReturn = http.Response(
-        json.encode({'error': 'Unauthorized'}),
-        401,
-      );
-
-      // ACT & ASSERT
-      expect(
-        () => dataSource.login(tEmail, tPassword),
-        throwsA(
-          isA<ServerException>().having(
-            (e) => e.statusCode,
-            'statusCode',
-            401,
-          ),
-        ),
-      );
-    });
-
-    test('should throw ServerException when response is 500', () async {
-      // ARRANGE
-      fakeClient.responseToReturn = http.Response(
-        'Internal Server Error',
-        500,
-      );
-
-      // ACT & ASSERT
-      expect(
-        () => dataSource.login(tEmail, tPassword),
-        throwsA(isA<ServerException>()),
-      );
-    });
-
-    test('should throw Exception on network error', () async {
-      // ARRANGE
-      fakeClient.exceptionToThrow = Exception('No internet');
-
-      // ACT & ASSERT
-      expect(
-        () => dataSource.login(tEmail, tPassword),
-        throwsA(isA<Exception>()),
-      );
-    });
-  });
-
-  group('register', () {
-    const tEmail = 'new@example.com';
-    const tPassword = 'pass123';
-    const tName = 'Jane';
-    const tLastName = 'Doe';
-    final tUserJson = fixtureAsMap('user');
-
-    test('should return UserModel when response is 201', () async {
-      // ARRANGE
-      fakeClient.responseToReturn = http.Response(
-        json.encode(tUserJson),
-        201,
-      );
-
-      // ACT
-      final result = await dataSource.register(
-        email: tEmail,
-        password: tPassword,
-        name: tName,
-        lastName: tLastName,
-      );
-
-      // ASSERT
-      expect(result, isA<UserModel>());
-    });
-
-    test('should send all required fields', () async {
-      // ARRANGE
-      fakeClient.responseToReturn = http.Response(
-        json.encode(tUserJson),
-        201,
-      );
-
-      // ACT
-      await dataSource.register(
-        email: tEmail,
-        password: tPassword,
-        name: tName,
-        lastName: tLastName,
-      );
-
-      // ASSERT
-      final bodyJson = json.decode(fakeClient.lastBody!) as Map<String, dynamic>;
-      expect(bodyJson['email'], tEmail);
-      expect(bodyJson['password'], tPassword);
-      expect(bodyJson['name'], tName);
-      expect(bodyJson['last_name'], tLastName);
-    });
-
-    test('should throw ServerException when email already exists (409)', () async {
-      // ARRANGE
-      fakeClient.responseToReturn = http.Response(
-        json.encode({'error': 'Email already exists'}),
-        409,
-      );
-
-      // ACT & ASSERT
-      expect(
-        () => dataSource.register(
-          email: tEmail,
-          password: tPassword,
-          name: tName,
-          lastName: tLastName,
-        ),
-        throwsA(isA<ServerException>()),
-      );
-    });
-  });
-
-  group('logout', () {
-    test('should complete when response is 200', () async {
-      // ARRANGE
-      fakeClient.responseToReturn = http.Response('', 200);
-
-      // ACT & ASSERT
-      expect(
-        dataSource.logout(),
-        completes,
-      );
-    });
-
-    test('should throw ServerException when response is not 200', () async {
-      // ARRANGE
-      fakeClient.responseToReturn = http.Response(
-        'Unauthorized',
-        401,
-      );
-
-      // ACT & ASSERT
-      expect(
-        () => dataSource.logout(),
-        throwsA(isA<ServerException>()),
-      );
-    });
-  });
-}
+});
 ```
 
 ---
 
-## Testing de Local DataSources
+## 5. Testing de Local DataSources
 
-Los **Local DataSources** usan almacenamiento local (SharedPreferences, SQLite).
+### 🤔 ¿Qué es un Local DataSource?
 
-### 📁 Archivo fuente: `lib/clean/features/auth/data/datasources/auth_local_data_source.dart`
+Un **Local DataSource** usa almacenamiento local (SharedPreferences, SQLite). Es la "memoria" de tu app.
+
+### 📁 Archivo Fuente: AuthLocalDataSource
 
 ```dart
+// lib/clean/features/auth/data/datasources/auth_local_data_source.dart
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sereni/clean/core/error/exceptions.dart';
@@ -916,17 +582,15 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
 }
 ```
 
-### 🧪 Paso 1: Crear Fake de SharedPreferences
+### 🧪 Fake de SharedPreferences
 
-**`test/helpers/fake_shared_preferences.dart`**
 ```dart
+// test/helpers/fake_shared_preferences.dart
 class FakeSharedPreferences {
   final Map<String, Object> _storage = {};
   bool shouldFail = false;
 
-  String? getString(String key) {
-    return _storage[key] as String?;
-  }
+  String? getString(String key) => _storage[key] as String?;
 
   Future<bool> setString(String key, String value) async {
     if (shouldFail) return false;
@@ -939,9 +603,7 @@ class FakeSharedPreferences {
     return true;
   }
 
-  bool containsKey(String key) {
-    return _storage.containsKey(key);
-  }
+  bool containsKey(String key) => _storage.containsKey(key);
 
   void clear() {
     _storage.clear();
@@ -950,165 +612,21 @@ class FakeSharedPreferences {
 }
 ```
 
-### 🧪 Paso 2: Tests del Local DataSource
-
-**`test/features/auth/data/datasources/auth_local_data_source_test.dart`**
-
-```dart
-import 'dart:convert';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/core/error/exceptions.dart';
-import 'package:sereni/clean/features/auth/data/datasources/auth_local_data_source.dart';
-import 'package:sereni/clean/features/auth/data/models/user_model.dart';
-
-import '../../../../helpers/fake_shared_preferences.dart';
-
-void main() {
-  late AuthLocalDataSourceImpl dataSource;
-  late FakeSharedPreferences fakePreferences;
-
-  setUp(() {
-    fakePreferences = FakeSharedPreferences();
-    dataSource = AuthLocalDataSourceImpl(
-      preferences: fakePreferences as dynamic,  // Cast temporal
-    );
-  });
-
-  tearDown(() {
-    fakePreferences.clear();
-  });
-
-  const tUserModel = UserModel(
-    id: '123',
-    email: 'test@example.com',
-    name: 'John',
-    lastName: 'Doe',
-  );
-
-  group('cacheUser', () {
-    test('should store user in SharedPreferences', () async {
-      // ACT
-      await dataSource.cacheUser(tUserModel);
-
-      // ASSERT
-      final jsonString = fakePreferences.getString('CACHED_USER');
-      expect(jsonString, isNotNull);
-      
-      final jsonMap = json.decode(jsonString!) as Map<String, dynamic>;
-      expect(jsonMap['id'], tUserModel.id);
-      expect(jsonMap['email'], tUserModel.email);
-    });
-
-    test('should throw CacheException when storage fails', () async {
-      // ARRANGE
-      fakePreferences.shouldFail = true;
-
-      // ACT & ASSERT
-      expect(
-        () => dataSource.cacheUser(tUserModel),
-        throwsA(isA<CacheException>()),
-      );
-    });
-  });
-
-  group('getUser', () {
-    test('should return UserModel when user is cached', () async {
-      // ARRANGE
-      await fakePreferences.setString(
-        'CACHED_USER',
-        json.encode(tUserModel.toJson()),
-      );
-
-      // ACT
-      final result = await dataSource.getUser();
-
-      // ASSERT
-      expect(result, equals(tUserModel));
-    });
-
-    test('should return null when no user is cached', () async {
-      // ACT
-      final result = await dataSource.getUser();
-
-      // ASSERT
-      expect(result, isNull);
-    });
-
-    test('should throw CacheException when JSON is invalid', () async {
-      // ARRANGE
-      await fakePreferences.setString(
-        'CACHED_USER',
-        'invalid json',
-      );
-
-      // ACT & ASSERT
-      expect(
-        () => dataSource.getUser(),
-        throwsA(isA<CacheException>()),
-      );
-    });
-  });
-
-  group('clearUser', () {
-    test('should remove user from storage', () async {
-      // ARRANGE
-      await fakePreferences.setString(
-        'CACHED_USER',
-        json.encode(tUserModel.toJson()),
-      );
-
-      // ACT
-      await dataSource.clearUser();
-
-      // ASSERT
-      expect(fakePreferences.containsKey('CACHED_USER'), isFalse);
-    });
-  });
-
-  group('hasUser', () {
-    test('should return true when user is cached', () async {
-      // ARRANGE
-      await fakePreferences.setString(
-        'CACHED_USER',
-        json.encode(tUserModel.toJson()),
-      );
-
-      // ACT
-      final result = await dataSource.hasUser();
-
-      // ASSERT
-      expect(result, isTrue);
-    });
-
-    test('should return false when no user is cached', () async {
-      // ACT
-      final result = await dataSource.hasUser();
-
-      // ASSERT
-      expect(result, isFalse);
-    });
-  });
-}
-```
-
 ---
 
-## Testing de Repository Implementation
+## 6. Testing de Repository Implementation
 
-El **Repository** es el cerebro de la capa Data. Decide entre local y remoto.
+### 🤔 ¿Qué es el Repository Implementation?
 
-### 📁 Archivo fuente: `lib/clean/features/auth/data/repositories/auth_repository_impl.dart`
+El **Repository Implementation** es el "cerebro" de la capa Data. Decide:
+- ¿Tenemos internet? → Usar datos remotos
+- ¿No tenemos internet? → Usar datos locales (cache)
+- ¿El servidor falló? → Retornar error
+
+### 📁 Archivo Fuente: AuthRepositoryImpl
 
 ```dart
-import 'package:dartz/dartz.dart';
-import 'package:sereni/clean/core/error/exceptions.dart';
-import 'package:sereni/clean/core/error/failures.dart';
-import 'package:sereni/clean/core/network/network_info.dart';
-import 'package:sereni/clean/features/auth/data/datasources/auth_local_data_source.dart';
-import 'package:sereni/clean/features/auth/data/datasources/auth_remote_data_source.dart';
-import 'package:sereni/clean/features/auth/domain/entities/user.dart';
-import 'package:sereni/clean/features/auth/domain/repositories/auth_repository.dart';
-
+// lib/clean/features/auth/data/repositories/auth_repository_impl.dart
 class AuthRepositoryImpl implements IAuthRepository {
   final AuthRemoteDataSource remoteDataSource;
   final AuthLocalDataSource localDataSource;
@@ -1122,486 +640,130 @@ class AuthRepositoryImpl implements IAuthRepository {
 
   @override
   Future<Either<Failure, User>> login(String email, String password) async {
+    // 1. ¿Tenemos internet?
     if (await networkInfo.isConnected) {
       try {
+        // 2. Llamar al servidor
         final user = await remoteDataSource.login(email, password);
+        // 3. Guardar en cache
         await localDataSource.cacheUser(user);
         return Right(user);
       } on ServerException catch (e) {
         return Left(ServerFailure(e.message));
       }
     } else {
+      // Sin internet
       return Left(NetworkFailure());
     }
   }
-
-  @override
-  Future<Either<Failure, void>> logout() async {
-    try {
-      await remoteDataSource.logout();
-      await localDataSource.clearUser();
-      return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
-  }
-
-  @override
-  Future<Either<Failure, User>> register({
-    required String email,
-    required String password,
-    required String name,
-    required String lastName,
-  }) async {
-    if (await networkInfo.isConnected) {
-      try {
-        final user = await remoteDataSource.register(
-          email: email,
-          password: password,
-          name: name,
-          lastName: lastName,
-        );
-        await localDataSource.cacheUser(user);
-        return Right(user);
-      } on ServerException catch (e) {
-        return Left(ServerFailure(e.message));
-      }
-    } else {
-      return Left(NetworkFailure());
-    }
-  }
-
-  @override
-  Future<Either<Failure, User?>> checkAuthStatus() async {
-    try {
-      final user = await localDataSource.getUser();
-      return Right(user);
-    } on CacheException catch (e) {
-      return Left(CacheFailure(e.message));
-    }
-  }
 }
 ```
 
-### 🧪 Paso 1: Crear Fakes de DataSources y NetworkInfo
+### 🧪 Fakes Necesarios
 
-**`test/helpers/fake_datasources.dart`**
-```dart
-import 'package:sereni/clean/features/auth/data/datasources/auth_local_data_source.dart';
-import 'package:sereni/clean/features/auth/data/datasources/auth_remote_data_source.dart';
-import 'package:sereni/clean/features/auth/data/models/user_model.dart';
+Para testear el Repository, necesitamos:
+1. **FakeAuthRemoteDataSource** - Simula el servidor
+2. **FakeAuthLocalDataSource** - Simula el cache local
+3. **FakeNetworkInfo** - Simula el estado de red
 
-class FakeAuthRemoteDataSource implements AuthRemoteDataSource {
-  bool shouldThrow = false;
-  UserModel? userToReturn;
-  Exception? exceptionToThrow;
-  
-  String? lastEmail;
-  String? lastPassword;
-
-  @override
-  Future<UserModel> login(String email, String password) async {
-    lastEmail = email;
-    lastPassword = password;
-    if (shouldThrow) throw exceptionToThrow ?? Exception('Login error');
-    return userToReturn!;
-  }
-
-  @override
-  Future<UserModel> register({
-    required String email,
-    required String password,
-    required String name,
-    required String lastName,
-  }) async {
-    if (shouldThrow) throw exceptionToThrow ?? Exception('Register error');
-    return userToReturn!;
-  }
-
-  @override
-  Future<void> logout() async {
-    if (shouldThrow) throw exceptionToThrow ?? Exception('Logout error');
-  }
-}
-
-class FakeAuthLocalDataSource implements AuthLocalDataSource {
-  UserModel? cachedUser;
-  bool shouldThrow = false;
-  
-  UserModel? lastCachedUser;
-
-  @override
-  Future<UserModel?> getUser() async {
-    if (shouldThrow) throw Exception('Cache error');
-    return cachedUser;
-  }
-
-  @override
-  Future<void> cacheUser(UserModel user) async {
-    if (shouldThrow) throw Exception('Cache error');
-    lastCachedUser = user;
-    cachedUser = user;
-  }
-
-  @override
-  Future<void> clearUser() async {
-    cachedUser = null;
-  }
-
-  @override
-  Future<bool> hasUser() async {
-    return cachedUser != null;
-  }
-}
-```
-
-**`test/helpers/fake_network_info.dart`**
-```dart
-import 'package:sereni/clean/core/network/network_info.dart';
-
-class FakeNetworkInfo implements NetworkInfo {
-  bool isOnline = true;
-
-  @override
-  Future<bool> get isConnected async => isOnline;
-}
-```
-
-### 🧪 Paso 2: Tests del Repository
-
-**`test/features/auth/data/repositories/auth_repository_impl_test.dart`**
+### 🧪 Tests del Repository
 
 ```dart
-import 'package:dartz/dartz.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/core/error/exceptions.dart';
-import 'package:sereni/clean/core/error/failures.dart';
-import 'package:sereni/clean/features/auth/data/models/user_model.dart';
-import 'package:sereni/clean/features/auth/data/repositories/auth_repository_impl.dart';
-import 'package:sereni/clean/features/auth/domain/entities/user.dart';
-
-import '../../../../helpers/fake_datasources.dart';
-import '../../../../helpers/fake_network_info.dart';
-
-void main() {
-  late AuthRepositoryImpl repository;
-  late FakeAuthRemoteDataSource fakeRemote;
-  late FakeAuthLocalDataSource fakeLocal;
-  late FakeNetworkInfo fakeNetwork;
-
-  setUp(() {
-    fakeRemote = FakeAuthRemoteDataSource();
-    fakeLocal = FakeAuthLocalDataSource();
-    fakeNetwork = FakeNetworkInfo();
-    repository = AuthRepositoryImpl(
-      remoteDataSource: fakeRemote,
-      localDataSource: fakeLocal,
-      networkInfo: fakeNetwork,
-    );
-  });
-
-  const tEmail = 'test@example.com';
-  const tPassword = 'password123';
-  const tUserModel = UserModel(
-    id: '123',
-    email: tEmail,
-    name: 'John',
-    lastName: 'Doe',
-  );
-  const tUser = User(
-    id: '123',
-    email: tEmail,
-    name: 'John',
-    lastName: 'Doe',
-  );
-
-  group('login', () {
-    test('should check network connectivity first', () async {
-      // ARRANGE
+group('login', () {
+  group('device is online', () {
+    setUp(() {
       fakeNetwork.isOnline = true;
+    });
+
+    test('should return user when remote call succeeds', () async {
+      // Arrange
       fakeRemote.userToReturn = tUserModel;
 
-      // ACT
+      // Act
+      final result = await repository.login(tEmail, tPassword);
+
+      // Assert
+      expect(result.isRight(), true);
+    });
+
+    test('should cache user locally when remote call succeeds', () async {
+      // Arrange
+      fakeRemote.userToReturn = tUserModel;
+
+      // Act
       await repository.login(tEmail, tPassword);
 
-      // ASSERT - NetworkInfo se usó
-      expect(fakeNetwork.isOnline, isTrue);
+      // Assert
+      expect(fakeLocal.lastCachedUser, isNotNull);
     });
 
-    group('device is online', () {
-      setUp(() {
-        fakeNetwork.isOnline = true;
-      });
+    test('should return ServerFailure when remote call fails', () async {
+      // Arrange
+      fakeRemote.shouldThrow = true;
+      fakeRemote.exceptionToThrow = const ServerException(message: 'Login failed');
 
-      test('should return user when remote call succeeds', () async {
-        // ARRANGE
-        fakeRemote.userToReturn = tUserModel;
+      // Act
+      final result = await repository.login(tEmail, tPassword);
 
-        // ACT
-        final result = await repository.login(tEmail, tPassword);
-
-        // ASSERT
-        expect(result, equals(const Right(tUser)));
-      });
-
-      test('should cache user locally when remote call succeeds', () async {
-        // ARRANGE
-        fakeRemote.userToReturn = tUserModel;
-
-        // ACT
-        await repository.login(tEmail, tPassword);
-
-        // ASSERT
-        expect(fakeLocal.lastCachedUser, equals(tUserModel));
-      });
-
-      test('should return ServerFailure when remote call fails', () async {
-        // ARRANGE
-        fakeRemote.shouldThrow = true;
-        fakeRemote.exceptionToThrow = const ServerException(
-          message: 'Login failed',
-          statusCode: 401,
-        );
-
-        // ACT
-        final result = await repository.login(tEmail, tPassword);
-
-        // ASSERT
-        expect(result, isA<Left<Failure, User>>());
-        result.fold(
-          (failure) => expect(failure, isA<ServerFailure>()),
-          (_) => fail('Should return failure'),
-        );
-      });
-
-      test('should not cache user when remote call fails', () async {
-        // ARRANGE
-        fakeRemote.shouldThrow = true;
-
-        // ACT
-        await repository.login(tEmail, tPassword);
-
-        // ASSERT
-        expect(fakeLocal.lastCachedUser, isNull);
-      });
-    });
-
-    group('device is offline', () {
-      setUp(() {
-        fakeNetwork.isOnline = false;
-      });
-
-      test('should return NetworkFailure when offline', () async {
-        // ACT
-        final result = await repository.login(tEmail, tPassword);
-
-        // ASSERT
-        expect(result, isA<Left<Failure, User>>());
-        result.fold(
-          (failure) => expect(failure, isA<NetworkFailure>()),
-          (_) => fail('Should return failure'),
-        );
-      });
-
-      test('should not call remote when offline', () async {
-        // ACT
-        await repository.login(tEmail, tPassword);
-
-        // ASSERT
-        expect(fakeRemote.lastEmail, isNull);
-      });
+      // Assert
+      expect(result.isLeft(), true);
     });
   });
 
-  group('register', () {
-    const tName = 'Jane';
-    const tLastName = 'Doe';
-
-    test('should return user when online and registration succeeds', () async {
-      // ARRANGE
-      fakeNetwork.isOnline = true;
-      fakeRemote.userToReturn = tUserModel;
-
-      // ACT
-      final result = await repository.register(
-        email: tEmail,
-        password: tPassword,
-        name: tName,
-        lastName: tLastName,
-      );
-
-      // ASSERT
-      expect(result, equals(const Right(tUser)));
-    });
-
-    test('should cache user after successful registration', () async {
-      // ARRANGE
-      fakeNetwork.isOnline = true;
-      fakeRemote.userToReturn = tUserModel;
-
-      // ACT
-      await repository.register(
-        email: tEmail,
-        password: tPassword,
-        name: tName,
-        lastName: tLastName,
-      );
-
-      // ASSERT
-      expect(fakeLocal.lastCachedUser, equals(tUserModel));
+  group('device is offline', () {
+    setUp(() {
+      fakeNetwork.isOnline = false;
     });
 
     test('should return NetworkFailure when offline', () async {
-      // ARRANGE
-      fakeNetwork.isOnline = false;
+      // Act
+      final result = await repository.login(tEmail, tPassword);
 
-      // ACT
-      final result = await repository.register(
-        email: tEmail,
-        password: tPassword,
-        name: tName,
-        lastName: tLastName,
-      );
+      // Assert
+      expect(result.isLeft(), true);
+    });
 
-      // ASSERT
-      expect(result, isA<Left<Failure, User>>());
+    test('should not call remote when offline', () async {
+      // Act
+      await repository.login(tEmail, tPassword);
+
+      // Assert
+      expect(fakeRemote.lastEmail, isNull);  // No se llamó
     });
   });
-
-  group('logout', () {
-    test('should clear local cache on logout', () async {
-      // ARRANGE
-      fakeLocal.cachedUser = tUserModel;
-
-      // ACT
-      await repository.logout();
-
-      // ASSERT
-      expect(fakeLocal.cachedUser, isNull);
-    });
-
-    test('should call remote logout', () async {
-      // ACT
-      await repository.logout();
-
-      // ASSERT - No debería lanzar excepción
-      expect(true, isTrue);
-    });
-
-    test('should return failure when remote logout fails', () async {
-      // ARRANGE
-      fakeRemote.shouldThrow = true;
-      fakeRemote.exceptionToThrow = const ServerException(
-        message: 'Logout failed',
-      );
-
-      // ACT
-      final result = await repository.logout();
-
-      // ASSERT
-      expect(result, isA<Left<Failure, void>>());
-    });
-  });
-
-  group('checkAuthStatus', () {
-    test('should return user from cache', () async {
-      // ARRANGE
-      fakeLocal.cachedUser = tUserModel;
-
-      // ACT
-      final result = await repository.checkAuthStatus();
-
-      // ASSERT
-      expect(result, equals(const Right(tUser)));
-    });
-
-    test('should return null when no user cached', () async {
-      // ARRANGE
-      fakeLocal.cachedUser = null;
-
-      // ACT
-      final result = await repository.checkAuthStatus();
-
-      // ASSERT
-      expect(result, equals(const Right<Failure, User?>(null)));
-    });
-
-    test('should return CacheFailure on error', () async {
-      // ARRANGE
-      fakeLocal.shouldThrow = true;
-
-      // ACT
-      final result = await repository.checkAuthStatus();
-
-      // ASSERT
-      expect(result, isA<Left<Failure, User?>>());
-      result.fold(
-        (failure) => expect(failure, isA<CacheFailure>()),
-        (_) => fail('Should return failure'),
-      );
-    });
-  });
-}
+});
 ```
 
 ---
 
-## Ejercicios Prácticos
-
-### Ejercicio 1: Completa los tests para checkAuthStatus
-
-Añade tests para verificar:
-1. Que se llama a localDataSource.getUser()
-2. Que no se llama a remoteDataSource
-3. Que maneja correctamente un UserModel null
-
-### Ejercicio 2: Test de Error Handling
-
-Crea un test que verifique que el Repository maneja correctamente cuando:
-1. NetworkInfo lanza una excepción
-2. LocalDataSource lanza CacheException en login (caso edge)
-
-### Ejercicio 3: Extensión del Model
-
-Añade un campo opcional `avatarUrl` al UserModel y escribe tests para:
-1. fromJson con y sin avatarUrl
-2. toJson con y sin avatarUrl
-3. toEntity preserva avatarUrl
-
----
-
-## ✅ Checklist de Data Testing
+## ✅ Checklist
 
 Antes de pasar a la siguiente parte, asegúrate de:
 
+- [ ] Entender la estructura de la capa Data (Models, DataSources, Repositories)
 - [ ] Crear fixtures JSON reutilizables
+- [ ] Entender el helper fixture_reader
 - [ ] Testear Models (fromJson, toJson, toEntity)
 - [ ] Testear Remote DataSources con HTTP mock
 - [ ] Testear Local DataSources con SharedPreferences mock
 - [ ] Testear Repository (online/offline/fallback)
 - [ ] Verificar interacciones entre DataSources
 - [ ] Manejar errores (ServerException, CacheException)
-- [ ] Usar Fakes manuales correctamente
 
 ---
 
 ## 🚀 Siguiente Paso
 
-➡️ **Parte 4: Testing Presentation (Cubits y Widgets)**
-
-Aprenderás a:
-- Testear Cubits con bloc_test
-- Testear estados y transiciones
-- Testear Widgets con interacciones
-- Mock providers en widget tests
+**Práctica:**
+- [03a-practica-fixtures-models.md](./03a-practica-fixtures-models.md) ← Fixtures y Models
+- [03b-practica-datasources.md](./03b-practica-datasources.md) ← DataSources
+- [03c-practica-repositories.md](./03c-practica-repositories.md) ← Repositories
 
 ---
 
 ## 💡 Tips Adicionales
 
-### 1. **Organización de Fakes**
-Agrupa todos los Fakes en `test/helpers/`:
-
+### Organización
 ```dart
 // test/helpers/all_fakes.dart
 export 'fake_repositories.dart';
@@ -1611,37 +773,11 @@ export 'fake_http_client.dart';
 export 'fake_shared_preferences.dart';
 ```
 
-### 2. **Datos de prueba consistentes**
-Define datos de prueba globales:
-
-```dart
-// test/helpers/test_data.dart
-const tUserModel = UserModel(...);
-const tUser = User(...);
-const tEmail = 'test@example.com';
-const tPassword = 'password123';
-```
-
-### 3. **Comandos útiles**
+### Comandos útiles
 ```bash
 # Tests de data completo
 flutter test test/features/auth/data/
 
-# Con coverage específico
+# Con coverage
 flutter test --coverage test/features/auth/data/
-
-# Solo un archivo
-flutter test test/features/auth/data/models/user_model_test.dart
-```
-
-### 4. **Estructura recomendada de tests**
-```
-test/features/auth/data/
-├── models/
-│   └── user_model_test.dart
-├── datasources/
-│   ├── auth_remote_data_source_test.dart
-│   └── auth_local_data_source_test.dart
-└── repositories/
-    └── auth_repository_impl_test.dart
 ```

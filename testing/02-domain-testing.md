@@ -1,38 +1,80 @@
 # 🧪 Parte 2: Testing Domain (Entities y UseCases)
 
-## 📋 Índice
-1. [Introducción a la Capa Domain](#introducción-a-la-capa-domain)
-2. [Testing de Entities](#testing-de-entities)
-3. [Testing de UseCases](#testing-de-usecases)
-4. [Creando Fakes Manuales](#creando-fakes-manuales)
-5. [Testing de Failures](#testing-de-failures)
-6. [Ejercicios Prácticos](#ejercicios-prácticos)
+> **¿De qué trata esta parte?** De testear la capa más importante de Clean Architecture: **Domain**. Esta capa contiene la lógica de negocio pura, sin dependencias externas.
 
 ---
 
-## Introducción a la Capa Domain
+## 📋 Índice
+
+1. [Introducción a la Capa Domain](#introducción-a-la-capa-domain)
+2. [Testing de Entities](#testing-de-entities)
+3. [Creando Fakes Manuales (Explicación Paso a Paso)](#creando-fakes-manuales-explicación-paso-a-paso)
+4. [Testing de UseCases](#testing-de-usecases)
+5. [Testing de Failures](#testing-de-failures)
+6. [ Checklist](#-checklist)
+
+---
+
+## 1. Introducción a la Capa Domain
+
+### 🤔 ¿Qué es la Capa Domain?
 
 La capa **Domain** es el corazón de Clean Architecture. Contiene:
 
-- **Entities**: Objetos de negocio puros (User, Task, etc.)
-- **UseCases**: Acciones que el usuario puede realizar
-- **Repository Interfaces**: Contratos que deben implementar otras capas
-- **Failures**: Objetos que representan errores
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      DOMAIN LAYER                           │
+├─────────────────────────────────────────────────────────────┤
+│  Entities        → Objetos de negocio puros               │
+│  UseCases        → Acciones que el usuario puede realizar │
+│  Repositories    → Contratos (interfaces) que otras       │
+│                   capas deben implementar                 │
+│  Failures        → Objetos que representan errores        │
+└─────────────────────────────────────────────────────────────┘
+```
 
-### 🎯 Por qué es fácil de testear:
+### 📊 Ejemplo: Feature de Auth
 
-✅ **Sin dependencias externas** - No usa Flutter, HTTP, ni BD
-✅ **Lógica pura** - Solo Dart puro
-✅ **Tests rápidos** - Milisegundos por test
-✅ **Sin mocks complejos** - Solo lógica de negocio
+```dart
+// Entity: representa el objeto de negocio
+class User { ... }
+
+// UseCase: una acción que el usuario puede hacer
+class LoginUseCase { ... }
+
+// Repository Interface: el contrato
+abstract class IAuthRepository { ... }
+
+// Failure: un error possível
+class ServerFailure { ... }
+```
+
+### 🎯 ¿Por qué es Fácil de Testear?
+
+```
+✅ SIN DEPENDENCIAS EXTERNAS   → No usa Flutter, HTTP, ni Base de Datos
+✅ LÓGICA PURA                → Solo Dart estándar
+✅ TESTS RÁPIDOS              → Milisegundos por test
+✅ SIN MOCKS COMPLEJOS        → Solo lógica de negocio
+```
+
+> **Comparación:** Un test de Domain puede ejecutarse en **menos de 1ms**, mientras que un test de UI puede tomar **100-500ms**.
 
 ---
 
-## Testing de Entities
+## 2. Testing de Entities
 
-### 📁 Archivo fuente: `lib/clean/features/auth/domain/entities/user.dart`
+### 🤔 ¿Qué es un Entity?
+
+Un **Entity** es un objeto de negocio que representa algo en tu dominio. Ejemplos:
+- `User` - Un usuario del sistema
+- `Task` - Una tarea
+- `Product` - Un producto en una tienda
+
+### 📁 Archivo Fuente: Entity User
 
 ```dart
+// lib/clean/features/auth/domain/entities/user.dart
 import 'package:equatable/equatable.dart';
 
 class User extends Equatable {
@@ -67,13 +109,21 @@ class User extends Equatable {
 }
 ```
 
-### 🧪 Paso 1: Crear el archivo de test
+### 🎓 ¿Por qué usamos Equatable?
 
-```bash
-touch test/features/auth/domain/entities/user_test.dart
+`Equatable` nos permite comparar objetos fácilmente:
+
+```dart
+// Sin Equatable - compara referencias (¿son el mismo objeto en memoria?)
+user1 == user2  // false (aunque tengan los mismos datos)
+
+// Con Equatable - compara valores (¿tienen los mismos datos?)
+user1 == user2  // true (si tienen los mismos valores)
 ```
 
-### 🧪 Paso 2: Escribir tests completos
+### 🧪 Tests de Entity: Paso a Paso
+
+#### Test 1: Creación básica del Entity
 
 ```dart
 // test/features/auth/domain/entities/user_test.dart
@@ -82,202 +132,164 @@ import 'package:sereni/clean/features/auth/domain/entities/user.dart';
 
 void main() {
   group('User Entity', () {
-    // Datos de prueba reutilizables
-    const tUser = User(
-      id: '123',
-      email: 'test@example.com',
-      name: 'John',
-      lastName: 'Doe',
-    );
-
+    
     test('should create User with all required fields', () {
-      // ARRANGE & ACT
+      // ARRANGE - Preparar los datos
+      const id = '456';
+      const email = 'jane@example.com';
+      const name = 'Jane';
+      const lastName = 'Smith';
+
+      // ACT - Crear el usuario
       const user = User(
-        id: '456',
-        email: 'jane@example.com',
-        name: 'Jane',
-        lastName: 'Smith',
+        id: id,
+        email: email,
+        name: name,
+        lastName: lastName,
       );
 
-      // ASSERT
+      // ASSERT - Verificar
       expect(user.id, '456');
       expect(user.email, 'jane@example.com');
       expect(user.name, 'Jane');
       expect(user.lastName, 'Smith');
     });
 
-    group('Equatable', () {
-      test('should be equal when properties are equal', () {
-        // ARRANGE
-        const user1 = User(
-          id: '123',
-          email: 'test@example.com',
-          name: 'John',
-          lastName: 'Doe',
-        );
-        const user2 = User(
-          id: '123',
-          email: 'test@example.com',
-          name: 'John',
-          lastName: 'Doe',
-        );
-
-        // ACT & ASSERT
-        expect(user1, equals(user2));
-      });
-
-      test('should not be equal when properties differ', () {
-        // ARRANGE
-        const user1 = User(
-          id: '123',
-          email: 'test@example.com',
-          name: 'John',
-          lastName: 'Doe',
-        );
-        const user2 = User(
-          id: '456',  // Diferente id
-          email: 'test@example.com',
-          name: 'John',
-          lastName: 'Doe',
-        );
-
-        // ACT & ASSERT
-        expect(user1, isNot(equals(user2)));
-      });
-
-      test('should not be equal when email differs', () {
-        // ARRANGE
-        const user1 = User(
-          id: '123',
-          email: 'test1@example.com',
-          name: 'John',
-          lastName: 'Doe',
-        );
-        const user2 = User(
-          id: '123',
-          email: 'test2@example.com',  // Diferente email
-          name: 'John',
-          lastName: 'Doe',
-        );
-
-        // ACT & ASSERT
-        expect(user1, isNot(equals(user2)));
-      });
-
-      test('props should contain all fields', () {
-        // ARRANGE
-        const user = User(
-          id: '123',
-          email: 'test@example.com',
-          name: 'John',
-          lastName: 'Doe',
-        );
-
-        // ACT
-        final props = user.props;
-
-        // ASSERT
-        expect(props, [
-          '123',
-          'test@example.com',
-          'John',
-          'Doe',
-        ]);
-      });
-    });
-
-    group('copyWith', () {
-      test('should update only specified field (name)', () {
-        // ARRANGE
-        const original = User(
-          id: '123',
-          email: 'test@example.com',
-          name: 'John',
-          lastName: 'Doe',
-        );
-
-        // ACT
-        final updated = original.copyWith(name: 'Jane');
-
-        // ASSERT
-        expect(updated.id, original.id);        // Igual
-        expect(updated.email, original.email);  // Igual
-        expect(updated.name, 'Jane');           // Cambió
-        expect(updated.lastName, original.lastName);  // Igual
-      });
-
-      test('should update only specified field (email)', () {
-        // ARRANGE
-        const original = tUser;
-
-        // ACT
-        final updated = original.copyWith(email: 'new@example.com');
-
-        // ASSERT
-        expect(updated.id, original.id);
-        expect(updated.email, 'new@example.com');
-        expect(updated.name, original.name);
-        expect(updated.lastName, original.lastName);
-      });
-
-      test('should return same instance when no parameters provided', () {
-        // ARRANGE
-        const original = tUser;
-
-        // ACT
-        final updated = original.copyWith();
-
-        // ASSERT
-        expect(updated, equals(original));
-      });
-
-      test('should update multiple fields at once', () {
-        // ARRANGE
-        const original = tUser;
-
-        // ACT
-        final updated = original.copyWith(
-          name: 'Jane',
-          lastName: 'Smith',
-        );
-
-        // ASSERT
-        expect(updated.name, 'Jane');
-        expect(updated.lastName, 'Smith');
-        expect(updated.id, original.id);
-        expect(updated.email, original.email);
-      });
-    });
-
-    test('should maintain immutability', () {
-      // ARRANGE
-      const user = tUser;
-
-      // ACT - Intentar modificar (esto no compilaría si no fuera inmutable)
-      final updated = user.copyWith(name: 'Jane');
-
-      // ASSERT - Original no cambió
-      expect(user.name, 'John');
-      expect(updated.name, 'Jane');
-    });
   });
 }
 ```
 
-### ✅ Conceptos clave en tests de Entities:
+#### Test 2: Verificar igualdad (Equatable)
 
-1. **Equatable**: Verifica que `==` funciona correctamente
-2. **copyWith**: Asegura que solo cambia lo que pedimos
-3. **Inmutabilidad**: Confirma que los objetos originales no se modifican
-4. **Props**: Verifica que todos los campos son considerados en la igualdad
+```dart
+group('Equatable', () {
+  test('should be equal when properties are equal', () {
+    // Arrange - Dos usuarios con los mismos datos
+    const user1 = User(
+      id: '123',
+      email: 'test@example.com',
+      name: 'John',
+      lastName: 'Doe',
+    );
+    const user2 = User(
+      id: '123',
+      email: 'test@example.com',
+      name: 'John',
+      lastName: 'Doe',
+    );
+
+    // Act & Assert
+    expect(user1, equals(user2));  // ✅ Son iguales con Equatable
+  });
+
+  test('should not be equal when properties differ', () {
+    // Arrange
+    const user1 = User(id: '123', email: 'test@example.com', name: 'John', lastName: 'Doe');
+    const user2 = User(id: '456', email: 'test@example.com', name: 'John', lastName: 'Doe');
+
+    // Act & Assert
+    expect(user1, isNot(equals(user2)));
+  });
+});
+```
+
+#### Test 3: Verificar copyWith
+
+```dart
+group('copyWith', () {
+  test('should update only specified field (name)', () {
+    // Arrange
+    const original = User(
+      id: '123',
+      email: 'test@example.com',
+      name: 'John',
+      lastName: 'Doe',
+    );
+
+    // Act
+    final updated = original.copyWith(name: 'Jane');
+
+    // Assert
+    expect(updated.name, 'Jane');           // ✅ Cambió
+    expect(updated.id, original.id);       // ✅ Sin cambios
+    expect(updated.email, original.email);  // ✅ Sin cambios
+    expect(updated.lastName, original.lastName);  // ✅ Sin cambios
+  });
+
+  test('should return same instance when no parameters provided', () {
+    // Arrange
+    const original = User(
+      id: '123',
+      email: 'test@example.com',
+      name: 'John',
+      lastName: 'Doe',
+    );
+
+    // Act
+    final updated = original.copyWith();
+
+    // Assert
+    expect(updated, equals(original));  // ✅ Son iguales
+  });
+});
+```
 
 ---
 
-## Creando Fakes Manuales
+## 3. Creando Fakes Manuales (Explicación Paso a Paso)
 
-Antes de testear UseCases, necesitamos crear **Fakes** de los Repositories. Un Fake es una implementación de prueba de una interfaz.
+### 🤔 ¿Por qué necesitamos Fakes?
 
-### 📁 Archivo: `test/helpers/fake_repositories.dart`
+Imagina que quieres testear un `LoginUseCase`:
+
+```dart
+class LoginUseCase {
+  final IAuthRepository repository;
+  
+  LoginUseCase({required this.repository});
+  
+  Future<Either<Failure, User>> call(LoginParams params) async {
+    return await repository.login(params.email, params.password);
+  }
+}
+```
+
+**Problema:** `LoginUseCase` depende de `IAuthRepository`. No podemos llamarlo directamente porque necesitamos una implementación.
+
+**Solución:** Creamos un **Fake** - una implementación falsa de la interfaz que controla el comportamiento.
+
+### 🎬 La Analogía del Actor
+
+Un Fake es como un **actor** que sigue un guión:
+
+| Concepto | Analogía del Actor |
+|----------|---------------------|
+| `shouldFail` | "Actor, hoy haz de fallar" |
+| `userToReturn` | "Actor, cuando te pregunten, entrega este usuario" |
+| `loginCallCount` | "Actor, cuenta cuántas veces te preguntan" |
+
+### 📁 Estructura de un Fake Paso a Paso
+
+#### Paso 1: Copia la Interfaz
+
+Primero, mira tu interfaz original:
+
+```dart
+// lib/clean/features/auth/domain/repositories/auth_repository.dart
+abstract class IAuthRepository {
+  Future<Either<Failure, User>> login(String email, String password);
+  Future<Either<Failure, void>> logout();
+  Future<Either<Failure, User>> register({
+    required String email,
+    required String password,
+    required String name,
+    required String lastName,
+  });
+  Future<Either<Failure, User?>> checkAuthStatus();
+}
+```
+
+#### Paso 2: Crea la Clase Fake
 
 ```dart
 // test/helpers/fake_repositories.dart
@@ -288,45 +300,68 @@ import 'package:sereni/clean/features/auth/domain/repositories/auth_repository.d
 
 /// Fake implementation of IAuthRepository for testing
 /// 
-/// Allows controlling behavior to test success and failure scenarios
+/// This is like an actor following a script - you control what it returns
 class FakeAuthRepository implements IAuthRepository {
-  // Control flags
+  // ═══════════════════════════════════════════════════════════════
+  // CONTROL FLAGS - Like telling the actor what to do
+  // ═══════════════════════════════════════════════════════════════
+  
+  /// When true, all methods will return a failure
   bool shouldFail = false;
+  
+  /// When true, methods will throw an exception
   bool shouldThrowException = false;
   
-  // Data to return
-  User? userToReturn;
-  List<User> usersListToReturn = [];
+  // ═══════════════════════════════════════════════════════════════
+  // DATA TO RETURN - What the actor should give back
+  // ═══════════════════════════════════════════════════════════════
   
-  // Failures to return
+  /// User to return on successful login/register
+  User? userToReturn;
+  
+  /// Failure to return when shouldFail is true
   Failure? failureToReturn;
   
-  // Track method calls
+  // ═══════════════════════════════════════════════════════════════
+  // TRACKING - Counting how many times the actor is called
+  // ═══════════════════════════════════════════════════════════════
+  
   int loginCallCount = 0;
   int logoutCallCount = 0;
   int registerCallCount = 0;
   int checkAuthStatusCallCount = 0;
   
-  // Store last parameters
+  // ═══════════════════════════════════════════════════════════════
+  // TRACKING PARAMETERS - What was passed to the actor
+  // ═══════════════════════════════════════════════════════════════
+  
   String? lastEmail;
   String? lastPassword;
   String? lastName;
   String? lastLastName;
 
+  // ═══════════════════════════════════════════════════════════════
+  // IMPLEMENTATION - The actual "acting"
+  // ═══════════════════════════════════════════════════════════════
+
   @override
   Future<Either<Failure, User>> login(String email, String password) async {
+    // Track the call
     loginCallCount++;
     lastEmail = email;
     lastPassword = password;
     
+    // Check if we should throw exception
     if (shouldThrowException) {
       throw Exception('Network error');
     }
     
+    // Check if we should fail
     if (shouldFail) {
       return Left(failureToReturn ?? const ServerFailure('Login failed'));
     }
     
+    // Success case
     return Right(userToReturn!);
   }
 
@@ -373,6 +408,7 @@ class FakeAuthRepository implements IAuthRepository {
   }
   
   /// Reset all state for fresh test
+  /// Like resetting the actor for the next scene
   void reset() {
     shouldFail = false;
     shouldThrowException = false;
@@ -390,21 +426,33 @@ class FakeAuthRepository implements IAuthRepository {
 }
 ```
 
-### 🎓 Características de un buen Fake:
+### 🎓 ¿Por qué cada parte del Fake?
 
-1. **Implementa la interfaz real**: `implements IAuthRepository`
-2. **Flags de control**: `shouldFail`, `shouldThrowException`
-3. **Datos configurables**: `userToReturn`, `failureToReturn`
-4. **Tracking de llamadas**: Contadores para verificar interacciones
-5. **Reset method**: Limpia estado entre tests
+| Sección | Propósito | ¿Cuándo usarla? |
+|---------|-----------|-----------------|
+| `shouldFail` | Controlar si retorna error | Test de casos de error |
+| `shouldThrowException` | Simular excepciones | Test de manejo de errores |
+| `userToReturn` | Qué retornar en éxito | Test de casos exitosos |
+| `failureToReturn` | Qué error retornar | Test de tipos específicos de error |
+| `*CallCount` | Verificar que se llamó | Test de interacciones |
+| `last*` | Verificar parámetros | Test de que se pasaron datos correctos |
+| `reset()` | Limpiar estado | En `tearDown()` |
 
 ---
 
-## Testing de UseCases
+## 4. Testing de UseCases
 
-### 📁 Archivo fuente: `lib/clean/features/auth/domain/usecases/login_usecase.dart`
+### 🤔 ¿Qué es un UseCase?
+
+Un **UseCase** representa una acción que el usuario puede realizar. Ejemplos:
+- `LoginUseCase` - Iniciar sesión
+- `RegisterUseCase` - Registrarse
+- `GetTasksUseCase` - Obtener tareas
+
+### 📁 Archivo Fuente: LoginUseCase
 
 ```dart
+// lib/clean/features/auth/domain/usecases/login_usecase.dart
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:sereni/clean/core/error/failures.dart';
@@ -434,13 +482,9 @@ class LoginParams extends Equatable {
 }
 ```
 
-### 🧪 Paso 1: Crear archivo de test
+### 🧪 Tests del UseCase: Paso a Paso
 
-```bash
-touch test/features/auth/domain/usecases/login_usecase_test.dart
-```
-
-### 🧪 Paso 2: Tests completos del UseCase
+#### Estructura Base
 
 ```dart
 // test/features/auth/domain/usecases/login_usecase_test.dart
@@ -457,146 +501,107 @@ void main() {
   late FakeAuthRepository fakeRepository;
 
   setUp(() {
+    // Create fresh instances for each test
     fakeRepository = FakeAuthRepository();
     useCase = LoginUseCase(repository: fakeRepository);
   });
 
   tearDown(() {
+    // Reset state after each test
     fakeRepository.reset();
   });
 
-  group('LoginUseCase', () {
-    const tEmail = 'test@example.com';
-    const tPassword = 'password123';
-    const tUser = User(
-      id: '123',
-      email: tEmail,
-      name: 'John',
-      lastName: 'Doe',
-    );
-
-    test('should return User when login is successful', () async {
-      // ARRANGE
-      fakeRepository.userToReturn = tUser;
-
-      // ACT
-      final result = await useCase(const LoginParams(
-        email: tEmail,
-        password: tPassword,
-      ));
-
-      // ASSERT
-      expect(result, equals(const Right(tUser)));
-      expect(fakeRepository.loginCallCount, 1);
-      expect(fakeRepository.lastEmail, tEmail);
-      expect(fakeRepository.lastPassword, tPassword);
-    });
-
-    test('should return ServerFailure when login fails', () async {
-      // ARRANGE
-      fakeRepository.shouldFail = true;
-      fakeRepository.failureToReturn = const ServerFailure('Invalid credentials');
-
-      // ACT
-      final result = await useCase(const LoginParams(
-        email: tEmail,
-        password: tPassword,
-      ));
-
-      // ASSERT
-      expect(result, equals(const Left(ServerFailure('Invalid credentials'))));
-      expect(fakeRepository.loginCallCount, 1);
-    });
-
-    test('should pass correct parameters to repository', () async {
-      // ARRANGE
-      fakeRepository.userToReturn = tUser;
-      const customEmail = 'custom@example.com';
-      const customPassword = 'customPass';
-
-      // ACT
-      await useCase(const LoginParams(
-        email: customEmail,
-        password: customPassword,
-      ));
-
-      // ASSERT
-      expect(fakeRepository.lastEmail, customEmail);
-      expect(fakeRepository.lastPassword, customPassword);
-    });
-
-    test('should call repository only once', () async {
-      // ARRANGE
-      fakeRepository.userToReturn = tUser;
-
-      // ACT
-      await useCase(const LoginParams(email: tEmail, password: tPassword));
-
-      // ASSERT
-      expect(fakeRepository.loginCallCount, 1);
-    });
-  });
-
-  group('LoginParams', () {
-    test('should create LoginParams with correct values', () {
-      // ARRANGE & ACT
-      const params = LoginParams(
-        email: 'test@example.com',
-        password: 'pass123',
-      );
-
-      // ASSERT
-      expect(params.email, 'test@example.com');
-      expect(params.password, 'pass123');
-    });
-
-    test('should be equal when properties are equal', () {
-      // ARRANGE
-      const params1 = LoginParams(email: 'test@test.com', password: 'pass');
-      const params2 = LoginParams(email: 'test@test.com', password: 'pass');
-
-      // ACT & ASSERT
-      expect(params1, equals(params2));
-    });
-
-    test('should not be equal when email differs', () {
-      // ARRANGE
-      const params1 = LoginParams(email: 'test1@test.com', password: 'pass');
-      const params2 = LoginParams(email: 'test2@test.com', password: 'pass');
-
-      // ACT & ASSERT
-      expect(params1, isNot(equals(params2)));
-    });
-
-    test('props should contain email and password', () {
-      // ARRANGE
-      const params = LoginParams(email: 'test@test.com', password: 'pass');
-
-      // ACT
-      final props = params.props;
-
-      // ASSERT
-      expect(props, ['test@test.com', 'pass']);
-    });
-  });
+  // Tests go here...
 }
 ```
 
-### 🎓 Conceptos clave en tests de UseCases:
+#### Test 1: Caso de Éxito
 
-1. **Crear Fake en setUp**: Cada test tiene un repository fresco
-2. **Configurar comportamiento**: Setear `userToReturn` o `shouldFail`
-3. **Verificar resultado**: `expect(result, equals(Right/Left(...)))`
-4. **Verificar interacciones**: Contadores de llamadas
-5. **Probar parámetros**: Asegurar que se pasan correctamente
+```dart
+group('LoginUseCase', () {
+  const tEmail = 'test@example.com';
+  const tPassword = 'password123';
+  const tUser = User(
+    id: '123',
+    email: tEmail,
+    name: 'John',
+    lastName: 'Doe',
+  );
+
+  test('should return User when login is successful', () async {
+    // ARRANGE - Configurar el Fake para éxito
+    fakeRepository.userToReturn = tUser;
+
+    // ACT - Ejecutar el UseCase
+    final result = await useCase(const LoginParams(
+      email: tEmail,
+      password: tPassword,
+    ));
+
+    // ASSERT - Verificar resultado
+    expect(result, equals(const Right(tUser)));
+    
+    // ASSERT - Verificar que se llamó al repositorio
+    expect(fakeRepository.loginCallCount, 1);
+    
+    // ASSERT - Verificar parámetros
+    expect(fakeRepository.lastEmail, tEmail);
+    expect(fakeRepository.lastPassword, tPassword);
+  });
+});
+```
+
+#### Test 2: Caso de Error
+
+```dart
+  test('should return ServerFailure when login fails', () async {
+    // ARRANGE - Configurar el Fake para fallar
+    fakeRepository.shouldFail = true;
+    fakeRepository.failureToReturn = const ServerFailure('Invalid credentials');
+
+    // ACT
+    final result = await useCase(const LoginParams(
+      email: tEmail,
+      password: tPassword,
+    ));
+
+    // ASSERT
+    expect(result, equals(const Left(ServerFailure('Invalid credentials'))));
+    expect(fakeRepository.loginCallCount, 1);
+  });
+```
+
+#### Test 3: Verificar que solo se llama una vez
+
+```dart
+  test('should call repository only once', () async {
+    // ARRANGE
+    fakeRepository.userToReturn = tUser;
+
+    // ACT - Llamar múltiples veces
+    await useCase(const LoginParams(email: tEmail, password: tPassword));
+
+    // ASSERT
+    expect(fakeRepository.loginCallCount, 1);
+  });
+```
 
 ---
 
-## Testing de Failures
+## 5. Testing de Failures
 
-### 📁 Archivo fuente: `lib/clean/core/error/failures.dart`
+### 🤔 ¿Qué es un Failure?
+
+Un **Failure** representa un error en la aplicación. Ejemplos:
+- `ServerFailure` - Error del servidor
+- `NetworkFailure` - Sin conexión a internet
+- `CacheFailure` - Error de caché
+- `AuthFailure` - Error de autenticación
+
+### 📁 Archivo Fuente: Failures
 
 ```dart
+// lib/clean/core/error/failures.dart
 import 'package:equatable/equatable.dart';
 
 abstract class Failure extends Equatable {
@@ -634,6 +639,7 @@ import 'package:sereni/clean/core/error/failures.dart';
 
 void main() {
   group('Failures', () {
+    
     group('ServerFailure', () {
       test('should create with default message', () {
         const failure = ServerFailure();
@@ -680,209 +686,13 @@ void main() {
 
 ---
 
-## Ejercicios Prácticos
-
-### Ejercicio 1: Test RegisterUseCase
-
-Crea tests para `RegisterUseCase` que recibe email, password, name y lastName.
-
-**Archivo fuente:** `lib/clean/features/auth/domain/usecases/register_usecase.dart`
-
-<details>
-<summary>Ver estructura del UseCase</summary>
-
-```dart
-class RegisterUseCase implements UseCase<User, RegisterParams> {
-  final IAuthRepository repository;
-
-  RegisterUseCase({required this.repository});
-
-  @override
-  Future<Either<Failure, User>> call(RegisterParams params) async {
-    return await repository.register(
-      email: params.email,
-      password: params.password,
-      name: params.name,
-      lastName: params.lastName,
-    );
-  }
-}
-
-class RegisterParams extends Equatable {
-  final String email;
-  final String password;
-  final String name;
-  final String lastName;
-
-  const RegisterParams({
-    required this.email,
-    required this.password,
-    required this.name,
-    required this.lastName,
-  });
-
-  @override
-  List<Object?> get props => [email, password, name, lastName];
-}
-```
-</details>
-
-**Tests a escribir:**
-1. Success: should return User when registration succeeds
-2. Failure: should return ServerFailure when registration fails
-3. Params: should pass all parameters to repository
-4. Params equality test
-
-<details>
-<summary>Ver solución completa</summary>
-
-```dart
-// test/features/auth/domain/usecases/register_usecase_test.dart
-import 'package:dartz/dartz.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/core/error/failures.dart';
-import 'package:sereni/clean/features/auth/domain/entities/user.dart';
-import 'package:sereni/clean/features/auth/domain/usecases/register_usecase.dart';
-
-import '../../../../helpers/fake_repositories.dart';
-
-void main() {
-  late RegisterUseCase useCase;
-  late FakeAuthRepository fakeRepository;
-
-  setUp(() {
-    fakeRepository = FakeAuthRepository();
-    useCase = RegisterUseCase(repository: fakeRepository);
-  });
-
-  tearDown(() {
-    fakeRepository.reset();
-  });
-
-  group('RegisterUseCase', () {
-    const tEmail = 'new@example.com';
-    const tPassword = 'pass123';
-    const tName = 'Jane';
-    const tLastName = 'Doe';
-    const tUser = User(
-      id: '456',
-      email: tEmail,
-      name: tName,
-      lastName: tLastName,
-    );
-
-    test('should return User when registration is successful', () async {
-      // ARRANGE
-      fakeRepository.userToReturn = tUser;
-
-      // ACT
-      final result = await useCase(const RegisterParams(
-        email: tEmail,
-        password: tPassword,
-        name: tName,
-        lastName: tLastName,
-      ));
-
-      // ASSERT
-      expect(result, equals(const Right(tUser)));
-    });
-
-    test('should return ServerFailure when registration fails', () async {
-      // ARRANGE
-      fakeRepository.shouldFail = true;
-
-      // ACT
-      final result = await useCase(const RegisterParams(
-        email: tEmail,
-        password: tPassword,
-        name: tName,
-        lastName: tLastName,
-      ));
-
-      // ASSERT
-      expect(result, isA<Left<Failure, User>>());
-    });
-
-    test('should pass all parameters to repository', () async {
-      // ARRANGE
-      fakeRepository.userToReturn = tUser;
-
-      // ACT
-      await useCase(const RegisterParams(
-        email: tEmail,
-        password: tPassword,
-        name: tName,
-        lastName: tLastName,
-      ));
-
-      // ASSERT
-      expect(fakeRepository.lastEmail, tEmail);
-      expect(fakeRepository.lastPassword, tPassword);
-      expect(fakeRepository.lastName, tName);
-      expect(fakeRepository.lastLastName, tLastName);
-    });
-
-    test('should call register on repository', () async {
-      // ARRANGE
-      fakeRepository.userToReturn = tUser;
-
-      // ACT
-      await useCase(const RegisterParams(
-        email: tEmail,
-        password: tPassword,
-        name: tName,
-        lastName: tLastName,
-      ));
-
-      // ASSERT
-      expect(fakeRepository.registerCallCount, 1);
-    });
-  });
-
-  group('RegisterParams', () {
-    test('should create with all required fields', () {
-      const params = RegisterParams(
-        email: 'test@test.com',
-        password: 'pass',
-        name: 'John',
-        lastName: 'Doe',
-      );
-
-      expect(params.email, 'test@test.com');
-      expect(params.password, 'pass');
-      expect(params.name, 'John');
-      expect(params.lastName, 'Doe');
-    });
-
-    test('should be equal when all properties equal', () {
-      const params1 = RegisterParams(
-        email: 'test@test.com',
-        password: 'pass',
-        name: 'John',
-        lastName: 'Doe',
-      );
-      const params2 = RegisterParams(
-        email: 'test@test.com',
-        password: 'pass',
-        name: 'John',
-        lastName: 'Doe',
-      );
-
-      expect(params1, equals(params2));
-    });
-  });
-}
-```
-</details>
-
----
-
-## ✅ Checklist de Domain Testing
+## ✅ Checklist
 
 Antes de pasar a la siguiente parte, asegúrate de:
 
 - [ ] Entender qué es un Entity y por qué usar Equatable
 - [ ] Saber testear `copyWith` e igualdad de objetos
+- [ ] Comprender qué es un Fake y por qué lo necesitamos
 - [ ] Crear Fakes manuales implementando interfaces
 - [ ] Configurar comportamiento de Fakes (shouldFail, userToReturn)
 - [ ] Testear UseCases con éxito y fallo
@@ -894,21 +704,16 @@ Antes de pasar a la siguiente parte, asegúrate de:
 
 ## 🚀 Siguiente Paso
 
-➡️ **Parte 3: Testing Data (Models, Repositories, DataSources)**
+**Teoría:** [Parte 3: Testing Data](./03-data-testing.md)
 
-Aprenderás a:
-- Testear Models con fromJson/toJson
-- Testear Repository Implementation (lógica online/offline)
-- Testear Remote DataSources con HTTP
-- Testear Local DataSources con SharedPreferences
-- Crear Fixtures JSON
+**Práctica:** [02a-practica-fakes-manuales.md](./02a-practica-fakes-manuales.md) ← ¡Practica creando Fakes!
 
 ---
 
 ## 💡 Tips Adicionales
 
-### 1. **Organización de Fakes**
-Mantén todos tus Fakes en `test/helpers/` para reutilización:
+### Organización de Fakes
+Mantén todos tus Fakes en `test/helpers/`:
 
 ```dart
 // test/helpers/fakes.dart
@@ -917,7 +722,7 @@ export 'fake_repositories.dart';
 // export 'fake_services.dart';     // Cuando los tengas
 ```
 
-### 2. **Datos de prueba consistentes**
+### Datos de prueba consistentes
 Define constantes para datos de prueba reutilizables:
 
 ```dart
@@ -927,7 +732,7 @@ const tPassword = 'password123';
 const tUser = User(id: '123', email: tEmail, name: 'John', lastName: 'Doe');
 ```
 
-### 3. **Comandos útiles**
+### Comandos útiles
 ```bash
 # Ejecutar todos los tests de domain
 flutter test test/features/auth/domain/
