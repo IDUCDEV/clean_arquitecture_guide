@@ -501,329 +501,762 @@ class LoginCubit extends Cubit<LoginState> {
 
 ---
 
-## 5. Guía de Prompts
+## 5. Guía de Prompts en Español
+
+> Todos los prompts están traducidos al español e incluyen un ejemplo práctico usando la **feature de Reservas** del salón de belleza.
+
+---
 
 ### 📁 5.1 Prompts para Estructura de Feature
 
 ```markdown
 # PROMPT 1: Crear estructura de feature completa
 ---
-"Create the folder structure for a [FEATURE_NAME] feature in Clean Architecture.
-Include:
+
+📝 PROMPT BASE:
+"Crea la estructura de carpetas para una feature de [NOMBRE] en 
+Clean Architecture. Incluye domain/, data/, presentation/ y core/.
+Cada carpeta debe tener un archivo index.dart barrel."
+
+💡 CUÁNDO USARLO:
+→ Al inicio de cada nueva feature
+→ Para mantener consistencia en el proyecto
+
+📗 EJEMPLO PRÁCTICO (Feature de Reservas):
+
+---
+
+"Crea la estructura de carpetas para una feature de RESERVAS en 
+Clean Architecture para un salón de belleza. Incluye:
 - domain/entities/
 - domain/repositories/
 - domain/usecases/
+- domain/failures/
 - data/models/
 - data/datasources/
 - data/repositories/
 - presentation/cubit/
 - presentation/pages/
 - presentation/widgets/
+- core/constants/
+- core/utils/
 
-Each folder should have an index.dart barrel file.
-Format: bash commands to create directories."
+Cada carpeta debe tener un archivo index.dart barrel.
+Genera los comandos bash para crear los directorios."
 
+---
 
 # PROMPT 2: Generar Entity
 ---
-"Generate a Clean Architecture Entity for [ENTITY_NAME] with these fields:
-[field1]: [type], required
-[field2]: [type], optional with default [value]
-[field3]: [related_entity_id]
 
-Include:
-- Equatable for equality
-- CopyWith method
-- Private constructor with factory
-Use Dart conventions."
+📝 PROMPT BASE:
+"Crea una Entity de Clean Architecture para [NOMBRE] con los siguientes campos:
+- [campo1]: [tipo], requerido
+- [campo2]: [tipo], opcional con valor por defecto [valor]
+- [campo3]: [tipo], relación con otra entidad
 
+Incluye:
+- Equatable para igualdad
+- Método CopyWith
+- Constructor privado con factory
+- Usa convenciones de Dart."
+
+💡 CUÁNDO USARLO:
+→ Cuando necesitas definir el modelo del dominio
+→ Antes de crear el repository
+
+📗 EJEMPLO PRÁCTICO (Entity Client):
+
+---
+
+"Crea una Entity de Clean Architecture para CLIENTE con los siguientes campos:
+- id: String, requerido
+- name: String, requerido
+- email: String, requerido
+- phone: String, requerido
+- noShowCount: int, opcional con valor por defecto 0
+- status: enum (active, blocked), opcional con valor active
+- lastNoShowDate: DateTime?, opcional
+- isVip: bool, opcional con valor false
+
+Incluye:
+- Equatable para igualdad
+- Método CopyWith
+- Constructor privado con factory
+- Usa convenciones de Dart."
+
+---
 
 # PROMPT 3: Generar Repository Interface
 ---
-"Create a Clean Architecture repository interface for [FEATURE].
-Methods needed:
-1. [method1]: returns Future<Either<Failure, Type>>
-2. [method2]: returns Future<Either<Failure, Type>>
-3. [method3]: returns Future<Either<Failure, Type>>
 
-Use dartz Either type.
-Include documentation comments for each method."
-```
+📝 PROMPT BASE:
+"Crea la interfaz de repository de Clean Architecture para [FEATURE].
+Métodos necesarios:
+1. [método1]: devuelve Future<Either<Failure, Tipo>>
+2. [método2]: devuelve Future<Either<Failure, Tipo>>
+3. [método3]: devuelve Future<Either<Failure, Tipo>>
+
+Usa el tipo Either de dartz.
+Incluye comentarios de documentación para cada método."
+
+💡 CUÁNDO USARLO:
+→ Después de definir las entities
+→ Para establecer el contrato entre domain y data
+
+📗 EJEMPLO PRÁCTICO (BookingRepository):
+
+---
+
+"Crea la interfaz de repository de Clean Architecture para BOOKING (Reservas).
+Métodos necesarios:
+1. getAvailableSlots: recibe date y serviceId, devuelve Future<Either<Failure, List<Slot>>>
+2. createBooking: recibe clientId, serviceId y dateTime, devuelve Future<Either<Failure, Booking>>>
+3. cancelBooking: recibe bookingId, devuelve Future<Either<Failure, CancellationResult>>>
+4. markNoShow: recibe bookingId, devuelve Future<Either<Failure, NoShowResult>>>
+
+Usa el tipo Either de dartz.
+Incluye comentarios de documentación para cada método.
+Define clases de resultado como CancellationResult y NoShowResult."
+
+---
 
 ### 🏗️ 5.2 Prompts para Boilerplate de Implementación
 
 ```markdown
 # PROMPT 4: Boilerplate de UseCase
 ---
-"Create a Clean Architecture UseCase template for [USE_CASE_NAME]:
+
+📝 PROMPT BASE:
+"Crea una plantilla de UseCase de Clean Architecture para [NOMBRE]. 
+Solo genera el scaffold, yo implementaré la lógica."
+
+💡 CUÁNDO USARLO:
+→ Para obtener la estructura base del UseCase
+→ Tú siempre implementas la lógica de negocio después
+
+📗 EJEMPLO PRÁCTICO (CreateBookingUseCase):
+
+---
+
+"Crea una plantilla de UseCase de Clean Architecture para CREATE_BOOKING (Crear Reserva).
+Solo genera el scaffold, yo implementaré la lógica.
 
 ```dart
-class [Name]UseCase {
-  final [Repository]Repository repository;
+class CreateBookingUseCase {
+  final BookingRepository repository;
 
-  [Name]UseCase({required this.repository});
+  CreateBookingUseCase({required this.repository});
 
-  Future<Either<Failure, [ReturnType]]> call([Params] params) async {
-    // TODO: Implement your business logic here
-    // 1. Validate params
-    // 2. Check preconditions
-    // 3. Call repository
-    // 4. Handle result and post-process
+  Future<Either<Failure, Booking>> call(CreateBookingParams params) async {
+    // TODO: Implementar lógica de negocio aquí
+    // 1. Validar parámetros
+    // 2. Verificar precondiciones
+    // 3. Llamar al repository
+    // 4. Manejar resultado y post-procesamiento
   }
 }
 ```
 
-Just generate the scaffold, I'll fill in the logic."
+Genera también la clase CreateBookingParams con Equatable."
 
+---
 
 # PROMPT 5: Boilerplate de Repository Implementation
 ---
-"Create a repository implementation skeleton for [FEATURE]:
+
+📝 PROMPT BASE:
+"Crea el esqueleto de implementación de repository para [FEATURE].
+Proporciona implementaciones vacías con TODOs."
+
+💡 CUÁNDO USARLO:
+→ Para la estructura base del repository
+→ Después de definir la interfaz del repository
+
+📗 EJEMPLO PRÁCTICO (BookingRepositoryImpl):
+
+---
+
+"Crea el esqueleto de implementación de repository para BOOKING (Reservas).
 
 ```dart
-class [Feature]RepositoryImpl implements [Feature]Repository {
-  final RemoteDataSource remoteDataSource;
-  final LocalDataSource localDataSource;
+class BookingRepositoryImpl implements BookingRepository {
+  final ReservationRemoteDataSource remoteDataSource;
+  final ReservationLocalDataSource localDataSource;
   final NetworkInfo networkInfo;
 
-  [Feature]RepositoryImpl({
+  BookingRepositoryImpl({
     required this.remoteDataSource,
     required this.localDataSource,
     required this.networkInfo,
   });
 
-  // TODO: Implement each method from interface
-  // Handle:
-  // - Online vs Offline logic
-  // - Cache strategy
-  // - Error mapping
+  // Implementar cada método de la interfaz:
+  // - Lógica online vs offline
+  // - Estrategia de cache
+  // - Mapeo de errores
 }
 ```
 
-Provide empty method implementations with TODOs."
+Proporciona implementaciones vacías con comentarios TODO."
 
+---
 
 # PROMPT 6: Model con fromJson/toJson
 ---
-"Generate a Clean Architecture Model for [MODEL_NAME] with these fields:
-[field definitions]
 
-Requirements:
-- fromJson factory constructor
-- toJson method
-- fromEntity factory (if applicable)
-- toEntity method (if applicable)
-- Proper null safety
-- Use const constructor where possible"
-```
+📝 PROMPT BASE:
+"Crea un Model de Clean Architecture para [NOMBRE] con estos campos:
+[definición de campos]
+
+Requisitos:
+- Constructor factory fromJson
+- Método toJson
+- Factory fromEntity (si aplica)
+- Método toEntity (si aplica)
+- Null safety adecuado
+- Usa constructor const donde sea posible"
+
+💡 CUÁNDO USARLO:
+→ Para convertir datos de API a modelos
+→ Para persistencia local
+
+📗 EJEMPLO PRÁCTICO (BookingModel):
+
+---
+
+"Crea un Model de Clean Architecture para BOOKING con estos campos:
+- id: String
+- clientId: String
+- serviceId: String
+- dateTime: DateTime
+- status: enum (confirmed, cancelled, completed, noShow)
+- createdAt: DateTime
+- cancelledAt: DateTime? (nullable)
+- wasOverbooking: bool
+
+Requisitos:
+- Constructor factory fromJson
+- Método toJson
+- Factory fromEntity (recibiendo Booking entity)
+- Método toEntity (devolviendo Booking entity)
+- Null safety adecuado
+- Usa constructor const donde sea posible
+- Incluye parsing de DateTime a ISO8601"
+
+---
 
 ### 🧪 5.3 Prompts para Testing
 
 ```markdown
 # PROMPT 7: Scaffold de tests para UseCase
 ---
-"Generate test scaffold for [USE_CASE_NAME] UseCase using bloc_test:
+
+📝 PROMPT BASE:
+"Crea el scaffold de tests para el UseCase [NOMBRE] usando bloc_test.
+Solo genera la estructura, yo escribiré las aserciones."
+
+💡 CUÁNDO USARLO:
+→ Para obtener la estructura base de tests
+→ Tú siempre escribes las aserciones de lógica de negocio
+
+📗 EJEMPLO PRÁCTICO (CreateBookingUseCase Test):
+
+---
+
+"Crea el scaffold de tests para CreateBookingUseCase usando bloc_test.
+Solo genera la estructura, yo escribiré las aserciones.
+
+Estructura esperada:
+- group para el UseCase
+- setUp con mocks
+- test para caso de éxito
+- test para casos de error (slot no disponible, cliente bloqueado)
+- Usa Mock classes generadas con mockito
 
 ```dart
-group('[Name]UseCase', () {
-  late [Name]UseCase useCase;
-  late Mock[Repository]Repository mockRepository;
+group('CreateBookingUseCase', () {
+  late CreateBookingUseCase useCase;
+  late MockBookingRepository mockRepository;
+  late MockClientRepository mockClientRepository;
 
   setUp(() {
-    mockRepository = Mock[Repository]Repository();
-    useCase = [Name]UseCase(repository: mockRepository);
+    mockRepository = MockBookingRepository();
+    mockClientRepository = MockClientRepository();
+    useCase = CreateBookingUseCase(
+      bookingRepository: mockRepository,
+      clientRepository: mockClientRepository,
+    );
   });
 
   group('call', () {
-    test('should return [expected result] when [condition]', () async {
-      // arrange
-      // act
-      // assert
+    test('should return booking when successful', () async {
+      // TODO: Yo escribiré arrange, act y assert
     });
-
-    // TODO: Add more test cases here
-    // - Happy path
-    // - Error cases
-    // - Edge cases
+    
+    // Agregar más casos de prueba:
+    // - Slot no disponible
+    // - Cliente bloqueado
+    // - Horario inválido
   });
 });
-```
+```"
 
-I'll write the actual test logic."
-
+---
 
 # PROMPT 8: Test de Repository con Fakes
 ---
-"Generate repository test scaffold with manual fakes for [FEATURE]:
+
+📝 PROMPT BASE:
+"Crea el scaffold de tests de repository usando fakes manuales para [FEATURE].
+Solo genera la estructura, yo escribiré las aserciones."
+
+💡 CUÁNDO USARLO:
+→ Para tests de integración de repository
+→ Para probar lógica de cache offline/online
+
+📗 EJEMPLO PRÁCTICO (BookingRepository Test):
+
+---
+
+"Crea el scaffold de tests de repository usando fakes manuales para BOOKING.
+Solo genera la estructura, yo escribiré las aserciones.
+
+Estructura esperada:
+- Fake Data Source que implementa ReservationRemoteDataSource
+- Fake Data Source que implementa ReservationLocalDataSource
+- group para el repository
+- setUp con fakes y mock de NetworkInfo
+- test para: online con datos remotos
+- test para: offline con cache
+- test para: offline sin cache (error)
+- test para: error de servidor
 
 ```dart
-// Fake Data Source for testing
-class Fake[Feature]DataSource implements [Feature]DataSource {
+// Fake para testing
+class FakeReservationRemoteDataSource implements ReservationRemoteDataSource {
   @override
-  Future<[Model]> get[Feature]() async {
-    // TODO: Return test data
+  Future<List<BookingModel>> getBookings() async {
+    // TODO: Yo definiré los datos de test
   }
   
   @override
-  Future<void> cache[Feature]([Model] data) async {
-    // TODO: Track cache operations for assertions
+  Future<BookingModel> createBooking(CreateBookingParams params) async {
+    // TODO: Yo definiré el comportamiento
   }
 }
 
-group('[Feature]Repository', () {
-  late [Feature]RepositoryImpl repository;
-  late Fake[Feature]DataSource fakeRemoteDataSource;
-  late Fake[Feature]DataSource fakeLocalDataSource;
+group('BookingRepository', () {
+  late BookingRepositoryImpl repository;
+  late FakeReservationRemoteDataSource fakeRemoteDataSource;
+  late FakeReservationLocalDataSource fakeLocalDataSource;
   late MockNetworkInfo mockNetworkInfo;
 
   setUp(() {
-    // setup fakes and mocks
+    // TODO: Yo configuraré los fakes
   });
 
-  group('get[Feature]', () {
+  group('getBookings', () {
     test('should return remote data when online', () async {
-      // TODO: arrange - setup mocks
-      // TODO: act
-      // TODO: assert
+      // TODO: Yo escribiré arrange, act y assert
     });
-
-    // Add more test scenarios:
-    // - Offline with cache
-    // - Offline without cache
-    // - Server error
-    // - Cache error
+    
+    // Agregar más escenarios:
+    // - Offline con cache válido
+    // - Offline sin cache
+    // - Error de servidor
   });
 });
-```
+```"
 
-I'll write the test assertions."
-
+---
 
 # PROMPT 9: Test de Cubit
 ---
-"Generate Cubit test scaffold for [CUBIT_NAME]:
+
+📝 PROMPT BASE:
+"Crea el scaffold de tests de Cubit para [NOMBRE].
+Solo genera la estructura, yo escribiré las aserciones."
+
+💡 CUÁNDO USARLO:
+→ Para tests de estado de UI
+→ Para probar transiciones de estados
+
+📗 EJEMPLO PRÁCTICO (ReservationCubit Test):
+
+---
+
+"Crea el scaffold de tests de Cubit para RESERVATION (manejo de reservas).
+Solo genera la estructura, yo escribiré las aserciones.
+
+Estructura esperada:
+- group para el Cubit
+- setUp con mocks de UseCases
+- setUpAll con registerFallbackValue
+- blocTest para: cargar reservas exitosamente
+- blocTest para: error al cargar reservas
+- test para: estado inicial
 
 ```dart
-group('[Cubit]Cubit', () {
-  late [Cubit]Cubit cubit;
-  late MockGet[Feature]UseCase mockGetUseCase;
-  late MockSave[Feature]UseCase mockSaveUseCase;
+group('ReservationCubit', () {
+  late ReservationCubit cubit;
+  late MockGetAvailableSlotsUseCase mockGetSlotsUseCase;
+  late MockCreateBookingUseCase mockCreateBookingUseCase;
 
   setUp(() {
-    // setup mocks
+    mockGetSlotsUseCase = MockGetAvailableSlotsUseCase();
+    mockCreateBookingUseCase = MockCreateBookingUseCase();
+    cubit = ReservationCubit(
+      getAvailableSlots: mockGetSlotsUseCase,
+      createBooking: mockCreateBookingUseCase,
+    );
   });
 
   setUpAll(() {
-    registerFallbackValue(FakeParams());
+    registerFallbackValue(FakeGetAvailableSlotsParams());
+    registerFallbackValue(FakeCreateBookingParams());
   });
 
-  blocTest<[Cubit]Cubit, [State]State>(
-    'emits [states] when [event] is added',
+  blocTest<ReservationCubit, ReservationState>(
+    'emits [Loading, Loaded] when loadSlots succeeds',
     build: () {
-      when(mockUseCase(any)).thenAnswer(
-        (_) async => const Right([testData]),
+      when(mockGetSlotsUseCase(any)).thenAnswer(
+        (_) async => Right([testSlot]),
       );
       return cubit;
     },
-    act: (cubit) => cubit.[event](),
+    act: (cubit) => cubit.loadAvailableSlots(testDate),
     expect: () => [
-      isA<[State]>(),
+      isA<ReservationLoading>(),
+      isA<ReservationLoaded>(),
     ],
   );
 
-  // TODO: Add error test cases
-  // TODO: Add loading state tests
+  // Agregar más tests:
+  // - Error de red
+  // - Crear reserva exitosa
+  // - Error al crear reserva
 });
-```
+```"
 
-I'll complete the test logic."
-```
+---
 
 ### 🔍 5.4 Prompts para Debugging y Análisis
 
 ```markdown
 # PROMPT 10: Analizar error
 ---
-"I'm getting this error in [FILE]:
+
+📝 PROMPT BASE:
+"Estoy recibiendo este error en [ARCHIVO]:
 
 ```
-[ERROR_MESSAGE]
+[MENSAJE_DE_ERROR]
 ```
 
-Context:
-- Flutter version: [VERSION]
-- Package versions: [LIST]
-- The error happens when: [DESCRIPTION]
+Contexto:
+- Versión de Flutter: [VERSIÓN]
+- Versiones de paquetes: [LISTA]
+- El error ocurre cuando: [DESCRIPCIÓN]
 
-Can you help me understand:
-1. What's causing this error?
-2. How to fix it?
-3. How to prevent it in the future?"
+¿Puedes ayudarme a entender:
+1. ¿Qué está causando este error?
+2. ¿Cómo solucionarlo?
+3. ¿Cómo prevenirlo en el futuro?"
 
+💡 CUÁNDO USARLO:
+→ Cuando tienes un error que no entiendes
+→ Para debugging rápido
+
+📗 EJEMPLO PRÁCTICO (Error en CreateBooking):
+
+---
+
+"Estoy recibiendo este error en create_booking.dart:
+
+```
+Stack trace:
+#0      CreateBookingUseCase.call (create_booking.dart:45)
+#1      ReservationCubit.createBooking (reservation_cubit.dart:78)
+Bad state: No element
+```
+
+Contexto:
+- Versión de Flutter: 3.19.0
+- Paquetes: flutter_bloc 8.1.3, dartz 0.10.1
+- El error ocurre cuando intento crear una reserva a las 10:00 AM
+
+¿Puedes ayudarme a entender:
+1. ¿Qué está causando este error?
+2. ¿Cómo solucionarlo?
+3. ¿Cómo prevenirlo en el futuro?"
+
+---
 
 # PROMPT 11: Analizar código y sugerir mejoras
 ---
-"Analyze this code and suggest improvements:
+
+📝 PROMPT BASE:
+"Analiza este código y sugiere mejoras:
 
 ```dart
-[YOUR_CODE_HERE]
+[TU_CÓDIGO]
 ```
 
-Consider:
+Considera:
 1. Performance
-2. Maintainability
-3. Clean Architecture compliance
-4. Error handling
+2. Mantenibilidad
+3. Cumplimiento de Clean Architecture
+4. Manejo de errores
 5. Null safety
 
-Be specific about what to change and why."
+Sé específico en qué cambiar y por qué."
 
+💡 CUÁNDO USARLO:
+→ Para refactorización
+→ Para mejorar código existente
+
+📗 EJEMPLO PRÁCTICO (Repository con problemas):
+
+---
+
+"Analiza este código y sugiere mejoras:
+
+```dart
+class BookingRepositoryImpl implements BookingRepository {
+  final RemoteDataSource remote;
+  final LocalDataSource local;
+  
+  Future<Either<Failure, List<Booking>>> getBookings() async {
+    try {
+      final result = await remote.getBookings();
+      await local.cacheBookings(result);
+      return Right(result);
+    } catch (e) {
+      final cached = await local.getBookings();
+      return Right(cached);
+    }
+  }
+}
+```
+
+Considera:
+1. Performance
+2. Mantenibilidad
+3. Cumplimiento de Clean Architecture
+4. Manejo de errores
+5. Null safety
+
+Sé específico en qué cambiar y por qué."
+
+---
 
 # PROMPT 12: Explicar patrón/código
 ---
-"Explain what this code does in simple terms:
+
+📝 PROMPT BASE:
+"Explica qué hace este código en términos simples:
 
 ```dart
-[CODE_TO_EXPLAIN]
+[CÓDIGO_A_EXPLICAR]
 ```
 
-Then explain:
-1. Why was this approach chosen?
-2. What are the alternatives?
-3. When would you use a different approach?"
+Luego explica:
+1. ¿Por qué se eligió este enfoque?
+2. ¿Cuáles son las alternativas?
+3. ¿Cuándo usarías un enfoque diferente?"
+
+💡 CUÁNDO USARLO:
+→ Para entender código de otros
+→ Para aprender nuevos patrones
+
+📗 EJEMPLO PRÁCTICO (Lógica de buffer time):
+
+---
+
+"Explica qué hace este código en términos simples:
+
+```dart
+bool _checkSlotOverlap({
+  required DateTime slotStart,
+  required int slotDuration,
+  required List<Slot> reservedSlots,
+}) {
+  final slotEnd = slotStart.add(Duration(minutes: slotDuration));
+
+  for (final reserved in reservedSlots) {
+    final overlaps = slotStart.isBefore(reserved.endTime) &&
+        slotEnd.isAfter(reserved.startTime);
+    if (overlaps) return true;
+  }
+  return false;
+}
 ```
+
+Luego explica:
+1. ¿Por qué se eligió este enfoque?
+2. ¿Cuáles son las alternativas?
+3. ¿Cuándo usarías un enfoque diferente?"
+
+---
 
 ### ✨ 5.5 Prompts para Refactoring
 
 ```markdown
 # PROMPT 13: Sugerir refactoring
 ---
-"Refactor this code to improve [ASPECT: readability/performance/maintainability]:
+
+📝 PROMPT BASE:
+"Refactoriza este código para mejorar [ASPECTO: legibilidad/rendimiento/mantenibilidad]:
 
 ```dart
-[CODE_TO_REFACTOR]
+[CÓDIGO_A_REFACTORIZAR]
 ```
 
-Rules:
-- Keep the same functionality
-- Follow Clean Architecture principles
-- Maintain null safety
-- Use modern Dart/Flutter patterns"
+Reglas:
+- Mantén la misma funcionalidad
+- Sigue principios de Clean Architecture
+- Mantén null safety
+- Usa patrones modernos de Dart/Flutter"
 
+💡 CUÁNDO USARLO:
+→ Para limpiar código
+→ Para aplicar mejores prácticas
+
+📗 EJEMPLO PRÁCTICO (UseCase largo):
+
+---
+
+"Refactoriza este UseCase para mejorar la mantenibilidad:
+
+```dart
+class CreateBookingUseCase {
+  Future<Either<Failure, Booking>> call(CreateBookingParams params) async {
+    // 1. Obtener cliente
+    final clientResult = await clientRepository.getClient(params.clientId);
+    if (clientResult.isLeft()) return Left(clientResult.fold((l) => l, (r) => r));
+    final client = clientResult.getOrElse(() => throw Exception());
+    
+    // 2. Verificar no bloqueado
+    if (client.status == ClientStatus.blocked) {
+      return const Left(ClientBlockedFailure());
+    }
+    
+    // 3. Obtener reservas activas
+    final bookingsResult = await bookingRepository.getClientBookings(params.clientId);
+    if (bookingsResult.isLeft()) return Left(bookingsResult.fold((l) => l, (r) => r));
+    final activeBookings = bookingsResult.getOrElse(() => throw Exception());
+    
+    // 4. Verificar límite
+    if (activeBookings.length >= 5) {
+      return const Left(ReservationFailure(message: 'Límite alcanzado'));
+    }
+    
+    // 5. Crear reserva
+    return await bookingRepository.createBooking(...);
+  }
+}
+```
+
+Reglas:
+- Mantén la misma funcionalidad
+- Sigue principios de Clean Architecture
+- Mantén null safety
+- Usa patrones modernos de Dart/Flutter
+- Extrae validaciones a métodos privados bien nombrados"
+
+---
 
 # PROMPT 14: Extraer a método/clase
 ---
-"Refactor this code to extract [WHAT_TO_EXTRACT] into a separate [METHOD/CLASS]:
+
+📝 PROMPT BASE:
+"Refactoriza este código para extraer [QUÉ_EXTRAER] en un [MÉTODO/CLASE] separado:
 
 ```dart
-[LONG_METHOD_OR_CLASS]
+[MÉTODO_O_CLASE_LARGA]
 ```
 
-Create a new [METHOD/CLASS] that:
-- Has a descriptive name
-- Takes appropriate parameters
-- Returns appropriate type
-- Is reusable"
+Crea un nuevo [MÉTODO/CLASE] que:
+- Tiene un nombre descriptivo
+- Toma los parámetros apropiados
+- Devuelve el tipo apropiado
+- Es reutilizable"
+
+💡 CUÁNDO USARLO:
+→ Para reducir complejidad
+→ Para código más testeable
+
+📗 EJEMPLO PRÁCTICO (Extraer validaciones):
+
+---
+
+"Refactoriza este UseCase para extraer las validaciones en clases separadas:
+
+```dart
+class CreateBookingUseCase {
+  Future<Either<Failure, Booking>> call(CreateBookingParams params) async {
+    // Validar cliente
+    final clientResult = await clientRepository.getClient(params.clientId);
+    final client = clientResult.fold((f) => null, (c) => c);
+    if (client == null) return const Left(ReservationFailure('Cliente no encontrado'));
+    if (client.status == ClientStatus.blocked) return const Left(ClientBlockedFailure());
+    
+    // Validar límite reservas
+    final bookingsResult = await bookingRepository.getClientBookings(params.clientId);
+    final bookings = bookingsResult.fold((f) => <Booking>[], (b) => b);
+    if (bookings.length >= 5) return const Left(ReservationFailure('Límite de reservas'));
+    
+    // Crear reserva...
+  }
+}
+```
+
+Crea clases de validación separadas para:
+- ClientValidation (verificar existe, no bloqueado)
+- BookingLimitValidation (verificar límite de reservas activas)
+- SchedulingValidation (verificar horarios disponibles)
+
+Cada clase debe:
+- Tener un nombre descriptivo
+- Tomar los parámetros apropiados
+- Devolver Either<Failure, ValidResult>
+- Ser reutilizable y testeable"
+
+---
+
+### 📊 Resumen Rápido de Prompts
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                 CHEAT SHEET DE PROMPTS                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  📁 ESTRUCTURA                                                  │
+│     Prompt 1: Estructura de carpeta                           │
+│     Prompt 2: Entity                                          │
+│     Prompt 3: Repository interface                            │
+│                                                                 │
+│  🏗️ IMPLEMENTACIÓN                                              │
+│     Prompt 4: UseCase scaffold                                │
+│     Prompt 5: Repository implementation scaffold               │
+│     Prompt 6: Model with fromJson/toJson                      │
+│                                                                 │
+│  🧪 TESTING                                                     │
+│     Prompt 7: Test scaffold para UseCase                       │
+│     Prompt 8: Test scaffold para Repository con Fakes          │
+│     Prompt 9: Test scaffold para Cubit                        │
+│                                                                 │
+│  🔍 DEBUGGING                                                   │
+│     Prompt 10: Analizar error                                │
+│     Prompt 11: Analizar código y sugerir mejoras              │
+│     Prompt 12: Explicar patrón/código                        │
+│                                                                 │
+│  ✨ REFACTORING                                                 │
+│     Prompt 13: Sugerir refactoring                            │
+│     Prompt 14: Extraer a método/clase                         │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
