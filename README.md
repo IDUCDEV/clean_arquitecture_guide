@@ -88,6 +88,52 @@ testing/
     └── 07a-practica-migration.md   ← Práctica: Migrar Fakes a Mocks
 ```
 
+### 3️⃣ Guía de Uso Inteligente de IA
+
+Aprende a usar herramientas de IA como asistente en tu desarrollo, manteniendo el control sobre la lógica crítica de tu aplicación:
+
+| Archivo | Descripción |
+|---------|-------------|
+| [🤖 GUÍA - Uso Inteligente de IA](./🤖%20GUÍA%20-%20Uso%20Inteligente%20de%20IA%20en%20Desarrollo%20Flutter.md) | Framework AIDR, prompts optimizados y estrategias por capa |
+| [🤖 PRÁCTICA - Sistema de Reservas](./🤖%20PRÁCTICA%20-%20Sistema%20de%20Reservas%20con%20Enfoque%20Híbrido.md) | Caso de estudio completo aplicando el enfoque híbrido IA + Código Manual |
+
+#### Enfoque 70/30 (IA vs Código Manual):
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Distribución Sugerida del Tiempo en una Feature        │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│   IA (70%)                   Manual (30%)               │
+│   ┌──────────────┐           ┌──────────────┐           │
+│   │ • Estructura │           │ • Lógica de  │           │
+│   │ • Boilerplate│           │   negocio    │           │
+│   │ • Scaffolding│           │ • Validaciones│          │
+│   │ • Tests base │           │ • Edge cases │           │
+│   │ • Documentación│         │ • Debugging  │           │
+│   └──────────────┘           └──────────────┘           │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+#### Marco AIDR (4 Pasos):
+
+| Paso | Descripción |
+|------|-------------|
+| **A**nalyze | Analiza tú primero el problema antes de preguntar a IA |
+| **I**nvestigate | Investiga con IA patrones y soluciones (solo buscar información) |
+| **D**ecide | Decide qué va a IA (boilerplate) y qué haces tú (lógica crítica) |
+| **R**eview | Revisa y valida todo lo que generó IA |
+
+#### Qué hacer tú vs qué delegar a IA:
+
+| Componente | Boilerplate (IA) | Lógica Crítica (Tú) |
+|------------|------------------|---------------------|
+| **Domain** | Entity, Repository Interface | UseCases, Validaciones |
+| **Data** | Models (fromJson/toJson), DataSources | Repository Implementation, Cache Strategy |
+| **Presentation** | Estados de Cubit, Layout base | Validación de formularios, Interacciones |
+| **Testing** | Scaffold de tests, Arrange repetitivo | Aserciones, Edge cases |
+
 ---
 
 ## 🚀 Cómo Usar Esta Guía
@@ -123,6 +169,20 @@ testing/
    - [04-presentation-testing.md](./testing/04-presentation-testing.md)
    - [04a-practica-cubits-bloc-test.md](./testing/04a-practica-cubits-bloc-test.md)
    - [04b-practica-widgets.md](./testing/04b-practica-widgets.md)
+
+### Si quieres usar IA de forma inteligente en tu desarrollo:
+
+1. **Fundamentos (30 min):**
+   - Lee [🤖 GUÍA - Uso Inteligente de IA](./🤖%20GUÍA%20-%20Uso%20Inteligente%20de%20IA%20en%20Desarrollo%20Flutter.md)
+   - Entiende el framework AIDR (Analyze, Investigate, Decide, Review)
+
+2. **Prompts y estrategias (30 min):**
+   - Revisa los prompts optimizados por capa de Clean Architecture
+   - Descarga el cheat sheet de prompts
+
+3. **Caso práctico (1-2 horas):**
+   - Sigue el [Sistema de Reservas con Enfoque Híbrido](./🤖%20PRÁCTICA%20-%20Sistema%20de%20Reservas%20con%20Enfoque%20Híbrido.md)
+   - Aplica el framework a tu propio proyecto
 
 ---
 
@@ -276,5 +336,5 @@ MIT License - Libre de usar y modificar.
 
 ---
 
-**Última actualización:** 2026-02-25  
-**Versión:** 2.0.0
+**Última actualización:** 2026-03-19  
+**Versión:** 2.1.0
