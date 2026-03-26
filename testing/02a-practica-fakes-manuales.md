@@ -18,10 +18,10 @@
 Necesitas tener la interfaz del repository. Si no la tienes, aquí está:
 
 ```dart
-// lib/clean/features/auth/domain/repositories/auth_repository.dart
-import 'package:dartz/dartz.dart';
-import 'package:sereni/clean/core/error/failures.dart';
-import 'package:sereni/clean/features/auth/domain/entities/user.dart';
+// lib/features/features/auth/domain/repositories/auth_repository.dart
+import 'package:fpdart/fpdart.dart';
+import 'package:mi_proyecto_flutter/clean/core/error/failures.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/entities/user.dart';
 
 abstract class IAuthRepository {
   Future<Either<Failure, User>> login(String email, String password);
@@ -57,10 +57,10 @@ Abre `test/helpers/fake_auth_repository.dart` y escribe:
 
 ```dart
 // test/helpers/fake_auth_repository.dart
-import 'package:dartz/dartz.dart';
-import 'package:sereni/clean/core/error/failures.dart';
-import 'package:sereni/clean/features/auth/domain/entities/user.dart';
-import 'package:sereni/clean/features/auth/domain/repositories/auth_repository.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:mi_proyecto_flutter/clean/core/error/failures.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/entities/user.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/repositories/auth_repository.dart';
 
 /// Fake implementation of IAuthRepository for testing
 /// 
@@ -210,11 +210,11 @@ Future<Either<Failure, User>> login(String email, String password) async {
   
   // 4. Verificar si debemos fallar
   if (shouldFail) {
-    return Left(failureToReturn ?? const ServerFailure('Login failed'));
+    return Either.left(failureToReturn ?? const ServerFailure('Login failed'));
   }
   
   // 5. Éxito - retornar el usuario
-  return Right(userToReturn!);
+  return Either.right(userToReturn!);
 }
 ```
 
@@ -228,11 +228,11 @@ Future<Either<Failure, void>> logout() async {
   
   // Verificar si debemos fallar
   if (shouldFail) {
-    return Left(failureToReturn ?? const ServerFailure('Logout failed'));
+    return Either.left(failureToReturn ?? const ServerFailure('Logout failed'));
   }
   
   // Éxito
-  return const Right(null);
+  return Either.right(null);
 }
 ```
 
@@ -257,11 +257,11 @@ Future<Either<Failure, User>> register({
   
   // Verificar si debemos fallar
   if (shouldFail) {
-    return Left(failureToReturn ?? const ServerFailure('Registration failed'));
+    return Either.left(failureToReturn ?? const ServerFailure('Registration failed'));
   }
   
   // Éxito
-  return Right(userToReturn!);
+  return Either.right(userToReturn!);
 }
 ```
 
@@ -275,11 +275,11 @@ Future<Either<Failure, User?>> checkAuthStatus() async {
   
   // Verificar si debemos fallar
   if (shouldFail) {
-    return Left(failureToReturn ?? const ServerFailure('Auth check failed'));
+    return Either.left(failureToReturn ?? const ServerFailure('Auth check failed'));
   }
   
   // Éxito - puede retornar null si no hay usuario
-  return Right(userToReturn);
+  return Either.right(userToReturn);
 }
 ```
 
@@ -312,10 +312,10 @@ Tu archivo debería verse así:
 
 ```dart
 // test/helpers/fake_auth_repository.dart
-import 'package:dartz/dartz.dart';
-import 'package:sereni/clean/core/error/failures.dart';
-import 'package:sereni/clean/features/auth/domain/entities/user.dart';
-import 'package:sereni/clean/features/auth/domain/repositories/auth_repository.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:mi_proyecto_flutter/clean/core/error/failures.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/entities/user.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/repositories/auth_repository.dart';
 
 class FakeAuthRepository implements IAuthRepository {
   bool shouldFail = false;
@@ -344,10 +344,10 @@ class FakeAuthRepository implements IAuthRepository {
     }
     
     if (shouldFail) {
-      return Left(failureToReturn ?? const ServerFailure('Login failed'));
+      return Either.left(failureToReturn ?? const ServerFailure('Login failed'));
     }
     
-    return Right(userToReturn!);
+    return Either.right(userToReturn!);
   }
 
   @override
@@ -355,10 +355,10 @@ class FakeAuthRepository implements IAuthRepository {
     logoutCallCount++;
     
     if (shouldFail) {
-      return Left(failureToReturn ?? const ServerFailure('Logout failed'));
+      return Either.left(failureToReturn ?? const ServerFailure('Logout failed'));
     }
     
-    return const Right(null);
+    return Either.right(null);
   }
 
   @override
@@ -375,10 +375,10 @@ class FakeAuthRepository implements IAuthRepository {
     lastLastName = lastName;
     
     if (shouldFail) {
-      return Left(failureToReturn ?? const ServerFailure('Registration failed'));
+      return Either.left(failureToReturn ?? const ServerFailure('Registration failed'));
     }
     
-    return Right(userToReturn!);
+    return Either.right(userToReturn!);
   }
 
   @override
@@ -386,10 +386,10 @@ class FakeAuthRepository implements IAuthRepository {
     checkAuthStatusCallCount++;
     
     if (shouldFail) {
-      return Left(failureToReturn ?? const ServerFailure('Auth check failed'));
+      return Either.left(failureToReturn ?? const ServerFailure('Auth check failed'));
     }
     
-    return Right(userToReturn);
+    return Either.right(userToReturn);
   }
   
   void reset() {
@@ -428,11 +428,11 @@ touch test/features/auth/domain/usecases/login_usecase_test.dart
 
 ```dart
 // test/features/auth/domain/usecases/login_usecase_test.dart
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/core/error/failures.dart';
-import 'package:sereni/clean/features/auth/domain/entities/user.dart';
-import 'package:sereni/clean/features/auth/domain/usecases/login_usecase.dart';
+import 'package:mi_proyecto_flutter/clean/core/error/failures.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/entities/user.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/usecases/login_usecase.dart';
 
 import '../../../../helpers/fake_auth_repository.dart';
 
@@ -478,7 +478,7 @@ void main() {
       // ═══════════════════════════════════════════════════════════
       
       // 1. Verificar que retornó el usuario correcto
-      expect(result, equals(const Right(tUser)));
+      expect(result, equals(Either.right(tUser)));
       
       // 2. Verificar que se llamó al repositorio
       expect(fakeRepository.loginCallCount, 1);
@@ -506,7 +506,7 @@ void main() {
       ));
 
       // ASSERT
-      expect(result, equals(const Left(ServerFailure('Invalid credentials'))));
+      expect(result, equals(Either.left(ServerFailure('Invalid credentials'))));
       expect(fakeRepository.loginCallCount, 1);
     });
 ```

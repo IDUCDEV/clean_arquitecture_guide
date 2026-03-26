@@ -88,9 +88,9 @@ class FakeAuthRepository implements IAuthRepository {
     lastPassword = password;
     
     if (shouldFail) {
-      return Left(failureToReturn ?? const ServerFailure('Login failed'));
+      return Either.left(failureToReturn ?? const ServerFailure('Login failed'));
     }
-    return Right(userToReturn!);
+    return Either.right(userToReturn!);
   }
 }
 
@@ -115,7 +115,7 @@ void main() {
     ));
 
     // ASSERT
-    expect(result, equals(const Right(tUser)));
+    expect(result, equals(Either.right(tUser)));
     expect(fakeRepository.loginCallCount, 1);
     expect(fakeRepository.lastEmail, tEmail);
   });
@@ -145,7 +145,7 @@ void main() {
   test('should return User when login succeeds', () async {
     // ARRANGE
     when(mockRepository.login(any, any))
-        .thenAnswer((_) async => const Right(tUser));
+        .thenAnswer((_) async => Either.right(tUser));
 
     // ACT
     final result = await useCase(const LoginParams(
@@ -154,7 +154,7 @@ void main() {
     ));
 
     // ASSERT
-    expect(result, equals(const Right(tUser)));
+    expect(result, equals(Either.right(tUser)));
     verify(mockRepository.login(tEmail, tPassword)).called(1);
     verifyNoMoreInteractions(mockRepository);
   });
@@ -235,11 +235,11 @@ fakeRepository.shouldFail = true;
 ```dart
 // Para éxito
 when(mockRepository.login(any, any))
-    .thenAnswer((_) async => const Right(tUser));
+    .thenAnswer((_) async => Either.right(tUser));
 
 // Para fallo
 when(mockRepository.login(any, any))
-    .thenAnswer((_) async => Left(ServerFailure('Error')));
+    .thenAnswer((_) async => Either.left(ServerFailure('Error')));
 
 // Para excepciones
 when(mockRepository.login(any, any))
@@ -327,14 +327,14 @@ final List<dynamic> captured = verify(
 
 ```dart
 // test/features/auth/domain/usecases/login_usecase_test.dart
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:sereni/clean/core/error/failures.dart';
-import 'package:sereni/clean/features/auth/domain/entities/user.dart';
-import 'package:sereni/clean/features/auth/domain/repositories/auth_repository.dart';
-import 'package:sereni/clean/features/auth/domain/usecases/login_usecase.dart';
+import 'package:mi_proyecto_flutter/clean/core/error/failures.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/entities/user.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/repositories/auth_repository.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/usecases/login_usecase.dart';
 
 // Genera los mocks
 @GenerateMocks([IAuthRepository])
@@ -362,7 +362,7 @@ void main() {
     test('should return User when login is successful', () async {
       // ARRANGE
       when(mockRepository.login(any, any))
-          .thenAnswer((_) async => const Right(tUser));
+          .thenAnswer((_) async => Either.right(tUser));
 
       // ACT
       final result = await useCase(const LoginParams(
@@ -371,7 +371,7 @@ void main() {
       ));
 
       // ASSERT
-      expect(result, equals(const Right(tUser)));
+      expect(result, equals(Either.right(tUser)));
       verify(mockRepository.login(tEmail, tPassword));
       verifyNoMoreInteractions(mockRepository);
     });
@@ -379,7 +379,7 @@ void main() {
     test('should return ServerFailure when login fails', () async {
       // ARRANGE
       when(mockRepository.login(any, any)).thenAnswer(
-        (_) async => const Left(ServerFailure('Invalid credentials')),
+        (_) async => Either.left(ServerFailure('Invalid credentials')),
       );
 
       // ACT
@@ -390,7 +390,7 @@ void main() {
 
       // ASSERT
       expect(result, isA<Left<Failure, User>>());
-      result.fold(
+      result.match(
         (failure) => expect(failure, isA<ServerFailure>()),
         (_) => fail('Should not return User'),
       );
@@ -400,7 +400,7 @@ void main() {
     test('should pass correct parameters to repository', () async {
       // ARRANGE
       when(mockRepository.login(any, any))
-          .thenAnswer((_) async => const Right(tUser));
+          .thenAnswer((_) async => Either.right(tUser));
 
       // ACT
       await useCase(const LoginParams(
@@ -421,7 +421,7 @@ void main() {
     test('should call repository only once', () async {
       // ARRANGE
       when(mockRepository.login(any, any))
-          .thenAnswer((_) async => const Right(tUser));
+          .thenAnswer((_) async => Either.right(tUser));
 
       // ACT
       await useCase(const LoginParams(email: tEmail, password: tPassword));

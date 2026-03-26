@@ -212,13 +212,16 @@ Al completar **toda** la guía serás capaz de:
 - [ ] Flutter instalado (3.0+)
 - [ ] Conocimientos básicos de Dart
 - [ ] Proyecto con Clean Architecture
-- [ ] Tu proyecto usa estructura `lib/clean/`
+- [ ] Tu proyecto usa estructura `lib/features/`
 
 ---
 
 ## 📦 Dependencias Necesarias
 
 ```yaml
+dependencies:
+  fpdart: ^1.2.0              # Programación funcional (Either, Option)
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -227,7 +230,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   bloc_test: ^9.1.0          # Para Cubits/Blocs
   mockito: ^5.4.0            # Para tests avanzados
-  build_runner: ^2.10.2      # Solo si usas @GenerateMocks
+  build_runner: ^2.4.7       # Solo si usas @GenerateMocks
 ```
 
 ### ¿Por qué Fakes en lugar de Mocks?
@@ -345,11 +348,11 @@ dart run build_runner build --delete-conflicting-outputs
 
 ## 📝 Notas del Autor
 
-Esta guía fue diseñada para el proyecto **Sereni** que usa:
-- Clean Architecture en `lib/clean/`
+Esta guía fue diseñada para **cualquier proyecto Flutter** que use:
+- Clean Architecture en `lib/features/`
 - BLoC/Cubit para gestión de estado
 - Fakes manuales (estilo preferido)
-- Supabase como backend
+- fpdart para manejo funcional de errores
 
 Los ejemplos usan el feature de **Auth** como referencia, pero los conceptos aplican a **cualquier feature** de tu aplicación.
 
@@ -361,6 +364,6 @@ MIT License - Libre de usar y modificar.
 
 ---
 
-**Última actualización:** 2026-02-25  
-**Versión:** 2.0.0  
-**Autora:** Guía de Testing para Clean Architecture Flutter
+**Última actualización:** 2026-03-26  
+**Versión:** 3.0.0  
+**Actualizado con:** fpdart para manejo de errores

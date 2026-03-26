@@ -61,7 +61,7 @@ Imagina que eres un chef en un restaurante:
 
 > Los tests deben **espejar** la estructura de tu código de producción.
 
-Si tu código está en `lib/clean/`, tus tests deben estar en `test/clean/`.
+Si tu código está en `lib/features/`, tus tests deben estar en `test/features/`.
 
 ```
 project_root/
@@ -338,7 +338,7 @@ test('should return user when login is successful', () async {
   // ASSERT: Verificar el resultado
   // ═══════════════════════════════════════════════════════════
   expect(result, isA<Right<Failure, User>>());
-  result.fold(
+  result.match(
     (failure) => fail('Should not return failure'),
     (user) => expect(user.email, email),
   );
@@ -391,7 +391,7 @@ touch test/core/utils/string_utils_test.dart
 ### Paso 2: Crea la función (si no existe)
 
 ```dart
-// lib/clean/core/utils/string_utils.dart
+// lib/features/core/utils/string_utils.dart
 class StringUtils {
   static bool isValidEmail(String email) {
     final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
@@ -410,7 +410,7 @@ class StringUtils {
 ```dart
 // test/core/utils/string_utils_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/core/utils/string_utils.dart';
+import 'package:mi_proyecto_flutter/clean/core/utils/string_utils.dart';
 
 void main() {
   group('StringUtils', () {

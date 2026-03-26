@@ -74,7 +74,7 @@ Un **Entity** es un objeto de negocio que representa algo en tu dominio. Ejemplo
 ### 📁 Archivo Fuente: Entity User
 
 ```dart
-// lib/clean/features/auth/domain/entities/user.dart
+// lib/features/features/auth/domain/entities/user.dart
 import 'package:equatable/equatable.dart';
 
 class User extends Equatable {
@@ -128,7 +128,7 @@ user1 == user2  // true (si tienen los mismos valores)
 ```dart
 // test/features/auth/domain/entities/user_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/features/auth/domain/entities/user.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/entities/user.dart';
 
 void main() {
   group('User Entity', () {
@@ -275,7 +275,7 @@ Un Fake es como un **actor** que sigue un guión:
 Primero, mira tu interfaz original:
 
 ```dart
-// lib/clean/features/auth/domain/repositories/auth_repository.dart
+// lib/features/features/auth/domain/repositories/auth_repository.dart
 abstract class IAuthRepository {
   Future<Either<Failure, User>> login(String email, String password);
   Future<Either<Failure, void>> logout();
@@ -293,10 +293,10 @@ abstract class IAuthRepository {
 
 ```dart
 // test/helpers/fake_repositories.dart
-import 'package:dartz/dartz.dart';
-import 'package:sereni/clean/core/error/failures.dart';
-import 'package:sereni/clean/features/auth/domain/entities/user.dart';
-import 'package:sereni/clean/features/auth/domain/repositories/auth_repository.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:mi_proyecto_flutter/clean/core/error/failures.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/entities/user.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/repositories/auth_repository.dart';
 
 /// Fake implementation of IAuthRepository for testing
 /// 
@@ -358,11 +358,11 @@ class FakeAuthRepository implements IAuthRepository {
     
     // Check if we should fail
     if (shouldFail) {
-      return Left(failureToReturn ?? const ServerFailure('Login failed'));
+      return Either.left(failureToReturn ?? const ServerFailure('Login failed'));
     }
     
     // Success case
-    return Right(userToReturn!);
+    return Either.right(userToReturn!);
   }
 
   @override
@@ -370,10 +370,10 @@ class FakeAuthRepository implements IAuthRepository {
     logoutCallCount++;
     
     if (shouldFail) {
-      return Left(failureToReturn ?? const ServerFailure('Logout failed'));
+      return Either.left(failureToReturn ?? const ServerFailure('Logout failed'));
     }
     
-    return const Right(null);
+    return Either.right(null);
   }
 
   @override
@@ -390,10 +390,10 @@ class FakeAuthRepository implements IAuthRepository {
     lastLastName = lastName;
     
     if (shouldFail) {
-      return Left(failureToReturn ?? const ServerFailure('Registration failed'));
+      return Either.left(failureToReturn ?? const ServerFailure('Registration failed'));
     }
     
-    return Right(userToReturn!);
+    return Either.right(userToReturn!);
   }
 
   @override
@@ -401,10 +401,10 @@ class FakeAuthRepository implements IAuthRepository {
     checkAuthStatusCallCount++;
     
     if (shouldFail) {
-      return Left(failureToReturn ?? const ServerFailure('Auth check failed'));
+      return Either.left(failureToReturn ?? const ServerFailure('Auth check failed'));
     }
     
-    return Right(userToReturn);
+    return Either.right(userToReturn);
   }
   
   /// Reset all state for fresh test
@@ -452,13 +452,13 @@ Un **UseCase** representa una acción que el usuario puede realizar. Ejemplos:
 ### 📁 Archivo Fuente: LoginUseCase
 
 ```dart
-// lib/clean/features/auth/domain/usecases/login_usecase.dart
-import 'package:dartz/dartz.dart';
+// lib/features/features/auth/domain/usecases/login_usecase.dart
+import 'package:fpdart/fpdart.dart';
 import 'package:equatable/equatable.dart';
-import 'package:sereni/clean/core/error/failures.dart';
-import 'package:sereni/clean/core/usecases/usecase.dart';
-import 'package:sereni/clean/features/auth/domain/entities/user.dart';
-import 'package:sereni/clean/features/auth/domain/repositories/auth_repository.dart';
+import 'package:mi_proyecto_flutter/clean/core/error/failures.dart';
+import 'package:mi_proyecto_flutter/clean/core/usecases/usecase.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/entities/user.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/repositories/auth_repository.dart';
 
 class LoginUseCase implements UseCase<User, LoginParams> {
   final IAuthRepository repository;
@@ -488,11 +488,11 @@ class LoginParams extends Equatable {
 
 ```dart
 // test/features/auth/domain/usecases/login_usecase_test.dart
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/core/error/failures.dart';
-import 'package:sereni/clean/features/auth/domain/entities/user.dart';
-import 'package:sereni/clean/features/auth/domain/usecases/login_usecase.dart';
+import 'package:mi_proyecto_flutter/clean/core/error/failures.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/entities/user.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/usecases/login_usecase.dart';
 
 import '../../../../helpers/fake_repositories.dart';
 
@@ -539,7 +539,7 @@ group('LoginUseCase', () {
     ));
 
     // ASSERT - Verificar resultado
-    expect(result, equals(const Right(tUser)));
+    expect(result, equals(Either.right(tUser)));
     
     // ASSERT - Verificar que se llamó al repositorio
     expect(fakeRepository.loginCallCount, 1);
@@ -566,7 +566,7 @@ group('LoginUseCase', () {
     ));
 
     // ASSERT
-    expect(result, equals(const Left(ServerFailure('Invalid credentials'))));
+    expect(result, equals(Either.left(ServerFailure('Invalid credentials'))));
     expect(fakeRepository.loginCallCount, 1);
   });
 ```
@@ -601,7 +601,7 @@ Un **Failure** representa un error en la aplicación. Ejemplos:
 ### 📁 Archivo Fuente: Failures
 
 ```dart
-// lib/clean/core/error/failures.dart
+// lib/features/core/error/failures.dart
 import 'package:equatable/equatable.dart';
 
 abstract class Failure extends Equatable {
@@ -635,7 +635,7 @@ class AuthFailure extends Failure {
 ```dart
 // test/core/error/failures_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/core/error/failures.dart';
+import 'package:mi_proyecto_flutter/clean/core/error/failures.dart';
 
 void main() {
   group('Failures', () {

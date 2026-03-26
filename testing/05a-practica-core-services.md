@@ -28,7 +28,7 @@ touch test/core/network/network_info_test.dart
 ```dart
 // test/core/network/network_info_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/core/network/network_info.dart';
+import 'package:mi_proyecto_flutter/clean/core/network/network_info.dart';
 
 // Fake del connection checker
 class FakeInternetConnectionChecker {
@@ -97,10 +97,10 @@ touch test/core/utils/validators_test.dart
 
 ### ✅ Paso 2: Implementa las funciones de validación
 
-Crea `lib/clean/core/utils/validators.dart`:
+Crea `lib/features/core/utils/validators.dart`:
 
 ```dart
-// lib/clean/core/utils/validators.dart
+// lib/features/core/utils/validators.dart
 class Validators {
   static bool isValidEmail(String email) {
     final regex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
@@ -138,7 +138,7 @@ class Validators {
 ```dart
 // test/core/utils/validators_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/core/utils/validators.dart';
+import 'package:mi_proyecto_flutter/clean/core/utils/validators.dart';
 
 void main() {
   group('Validators - isValidEmail', () {
@@ -219,10 +219,10 @@ Testear un servicio de logging simple.
 
 ### ✅ Paso 1: Crea el Logger
 
-Crea `lib/clean/core/utils/logger.dart`:
+Crea `lib/features/core/utils/logger.dart`:
 
 ```dart
-// lib/clean/core/utils/logger.dart
+// lib/features/core/utils/logger.dart
 
 /// Simple logger that stores messages in memory
 class Logger {
@@ -273,7 +273,7 @@ touch test/core/utils/logger_test.dart
 ```dart
 // test/core/utils/logger_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/core/utils/logger.dart';
+import 'package:mi_proyecto_flutter/clean/core/utils/logger.dart';
 
 void main() {
   late Logger logger;

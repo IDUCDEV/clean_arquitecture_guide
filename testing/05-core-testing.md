@@ -45,7 +45,7 @@ Core Layer
 
 NetworkInfo verifica si el dispositivo tiene conexión a internet.
 
-### 📁 Archivo fuente: `lib/clean/core/network/network_info.dart`
+### 📁 Archivo fuente: `lib/features/core/network/network_info.dart`
 
 ```dart
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
@@ -70,7 +70,7 @@ class NetworkInfoImpl implements NetworkInfo {
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/core/network/network_info.dart';
+import 'package:mi_proyecto_flutter/clean/core/network/network_info.dart';
 
 // Fake del connection checker
 class FakeInternetConnectionChecker {
@@ -136,9 +136,9 @@ void main() {
 ### 📁 Ejemplo: AuthStateMonitor
 
 ```dart
-// lib/clean/core/services/auth_state_monitor.dart
+// lib/features/core/services/auth_state_monitor.dart
 import 'dart:async';
-import 'package:sereni/clean/features/auth/domain/entities/user.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/entities/user.dart';
 
 abstract class IAuthStateMonitor {
   Stream<User?> get authStateChanges;
@@ -168,8 +168,8 @@ class AuthStateMonitor implements IAuthStateMonitor {
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/core/services/auth_state_monitor.dart';
-import 'package:sereni/clean/features/auth/domain/entities/user.dart';
+import 'package:mi_proyecto_flutter/clean/core/services/auth_state_monitor.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/entities/user.dart';
 
 void main() {
   late AuthStateMonitor monitor;
@@ -298,7 +298,7 @@ void main() {
 
 ## Testing de Storage
 
-### 📁 Archivo fuente: `lib/clean/core/storage/storage_service.dart`
+### 📁 Archivo fuente: `lib/features/core/storage/storage_service.dart`
 
 ```dart
 import 'dart:convert';
@@ -358,7 +358,7 @@ class StorageServiceImpl implements StorageService {
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/core/storage/storage_service.dart';
+import 'package:mi_proyecto_flutter/clean/core/storage/storage_service.dart';
 
 // Fake de SharedPreferences
 class FakeSharedPreferences {
@@ -510,7 +510,7 @@ void main() {
 
 ## Testing de Utils
 
-### 📁 Archivo fuente: `lib/clean/core/utils/validators.dart`
+### 📁 Archivo fuente: `lib/features/core/utils/validators.dart`
 
 ```dart
 class Validators {
@@ -555,7 +555,7 @@ class Validators {
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/core/utils/validators.dart';
+import 'package:mi_proyecto_flutter/clean/core/utils/validators.dart';
 
 void main() {
   group('isValidEmail', () {

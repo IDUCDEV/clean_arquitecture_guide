@@ -168,9 +168,9 @@ touch test/features/auth/data/datasources/auth_remote_data_source_test.dart
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
-import 'package:sereni/clean/core/error/exceptions.dart';
-import 'package:sereni/clean/features/auth/data/datasources/auth_remote_data_source.dart';
-import 'package:sereni/clean/features/auth/data/models/user_model.dart';
+import 'package:mi_proyecto_flutter/clean/core/error/exceptions.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/data/datasources/auth_remote_data_source.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/data/models/user_model.dart';
 
 import '../../../../helpers/fake_http_client.dart';
 import '../../../../helpers/fixture_reader.dart';
@@ -425,9 +425,9 @@ touch test/features/auth/data/datasources/auth_local_data_source_test.dart
 // test/features/auth/data/datasources/auth_local_data_source_test.dart
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/core/error/exceptions.dart';
-import 'package:sereni/clean/features/auth/data/datasources/auth_local_data_source.dart';
-import 'package:sereni/clean/features/auth/data/models/user_model.dart';
+import 'package:mi_proyecto_flutter/clean/core/error/exceptions.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/data/datasources/auth_local_data_source.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/data/models/user_model.dart';
 
 import '../../../../helpers/fake_shared_preferences.dart';
 

@@ -1,6 +1,6 @@
 # 📚 Clean Architecture Guide para Flutter
 
-> Una guía completa y práctica para implementar **Clean Architecture** en tus proyectos Flutter, desde los conceptos básicos hasta el testing avanzado.
+> Una guía completa y práctica para implementar **Clean Architecture** en tus proyectos Flutter, desde los conceptos básicos hasta el testing avanzado. Actualizada con **fpdart** para manejo funcional de errores.
 
 ---
 
@@ -13,10 +13,10 @@ Clean Architecture es una forma de organizar el código en **capas independiente
 │           PRESENTATION (UI)                 │
 │   Widgets, Pages, Cubits/BLoCs             │
 ├─────────────────────────────────────────────┤
-│              DOMAIN (Lógica)                │
+│              DOMAIN (Lógica)               │
 │   Entities, UseCases, Repository Interfaces │
 ├─────────────────────────────────────────────┤
-│                DATA (Datos)                 │
+│                DATA (Datos)                │
 │   Models, DataSources, Repository Impl      │
 └─────────────────────────────────────────────┘
 ```
@@ -32,15 +32,24 @@ Clean Architecture es una forma de organizar el código en **capas independiente
 
 ## 📁 Estructura de la Guía
 
-Esta guía está organizada en **tres partes principales**:
-
-### 1️⃣ Guía de Implementación
+### 1️⃣ Guía Completa Unificada
 
 | Archivo | Descripción |
 |---------|-------------|
-| [CLEAN_ARCHITECTURE_GUIDE.md](./CLEAN_ARCHITECTURE_GUIDE.md) | Guía completa con todos los detalles |
-| [🏗️ 3 - GUÍA GENERAL](./🏗️%203%20-%20GUÍA%20GENERAL%20Clean%20Architecture%20para%20Cualquier%20Proyecto%20Flutter.md) | Guía general extendida con ejemplos |
-| [🎯 1- GUÍA SIMPLE](./🎯%201-%20GUÍA%20SIMPLE%20Clean%20Architecture%20Paso%20a%20Paso.md) | Introducción rápida |
+| [📚 GUÍA COMPLETA](./📚%20GUÍA%20COMPLETA%20-%20Clean%20Architecture%20Unificada.md) | Guía completa con Implementación, Testing, Templates y fpdart |
+
+La guía unificada incluye:
+- Introducción y Filosofía
+- Las 4 Capas de Clean Architecture
+- Estructura de Carpetas
+- Flujo de Datos
+- Implementación Práctica: Sistema de Usuarios CRUD
+- Inyección de Dependencias con GetIt
+- Testing por Capas
+- Templates Universales
+- Comparación: `Future<Either>` vs `TaskEither`
+- Decisiones de Arquitectura
+- Migración desde Código Espagueti
 
 ### 2️⃣ Guía de Testing
 
@@ -102,7 +111,6 @@ Conceptos avanzados para llevar tus proyectos a nivel de producción profesional
 
 | Archivo | Descripción |
 |---------|-------------|
-| [01 - fpdart y Result Pattern](./🚀%204%20-%20NIVEL%20EXPERTO/01-fpdart-y-result-pattern.md) | Programación funcional moderna vs dartz |
 | [02 - Automatización DI con Injectable](./🚀%204%20-%20NIVEL%20EXPERTO/02-automatizacion-di-injectable.md) | Elimina el boilerplate con generación de código |
 | [03 - Comunicación entre Features](./🚀%204%20-%20NIVEL%20EXPERTO/03-comunicacion-entre-features.md) | Estrategias de desacoplamiento para apps grandes |
 | [04 - Streams y Tiempo Real](./🚀%204%20-%20NIVEL%20EXPERTO/04-streams-y-tiempo-real.md) | Implementación de StreamUseCases (Firebase/WebSockets) |
@@ -152,14 +160,14 @@ Conceptos avanzados para llevar tus proyectos a nivel de producción profesional
 
 ### Si eres nuevo en Clean Architecture:
 
-1. **Empieza por la guía básica:**
-   - Lee [🎯 1- GUÍA SIMPLE](./🎯%201-%20GUÍA%20SIMPLE%20Clean%20Architecture%20Paso%20a%20Paso.md)
+1. **Lee la guía completa unificada:**
+   - [📚 GUÍA COMPLETA](./📚%20GUÍA%20COMPLETA%20-%20Clean%20Architecture%20Unificada.md)
+   - Empieza por la introducción y filosofía
+   - Sigue el ejemplo práctico paso a paso
 
-2. **Profundiza con la guía completa:**
-   - Lee [CLEAN_ARCHITECTURE_GUIDE.md](./CLEAN_ARCHITECTURE_GUIDE.md)
-
-3. **Implementa tu primera feature:**
-   - Sigue los templates de la sección 4
+2. **Implementa tu primera feature:**
+   - Usa los templates universales provistos
+   - Sigue el ejemplo del Sistema de Usuarios CRUD
 
 ### Si ya conoces Clean Architecture y quieres aprender testing:
 
@@ -275,16 +283,27 @@ Representa una **acción** que el usuario puede realizar. Ejemplo: `LoginUseCase
 
 ### Either<Failure, Success>
 
-Patrón funcional para manejo de errores:
+Patrón funcional para manejo de errores usando **fpdart**:
 
 ```dart
 Future<Either<Failure, User>> login(String email, String password) async {
   if (success) {
-    return Right(user);  // Éxito
+    return Either.right(user);  // Éxito (Right = Success)
   } else {
-    return Left(error);  // Error
+    return Either.left(error);  // Error (Left = Failure)
   }
 }
+```
+
+**Manejo del resultado:**
+
+```dart
+final result = await login(email, password);
+
+result.match(
+  (failure) => print('Error: $failure'),  // Left
+  (user) => print('Usuario: ${user.name}'),  // Right
+);
 ```
 
 ---
@@ -300,16 +319,18 @@ dependencies:
   # Dependency Injection
   get_it: ^7.6.4
   
-  # Functional Programming
-  dartz: ^0.10.1
+  # Functional Programming (fpdart - reemplazo moderno de dartz)
+  fpdart: ^1.2.0
   
   # Networking
   dio: ^5.3.3
   internet_connection_checker: ^1.0.0+1
   
   # Storage
-  shared_preferences: ^2.2.2
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
   sqflite: ^2.3.0
+  shared_preferences: ^2.2.2
   
   # Routing
   go_router: ^12.1.3
@@ -319,7 +340,8 @@ dev_dependencies:
     sdk: flutter
   bloc_test: ^9.1.0
   mockito: ^5.4.0
-  build_runner: ^2.10.2
+  build_runner: ^2.4.7
+  hive_generator: ^2.0.1
 ```
 
 ---
@@ -348,5 +370,5 @@ MIT License - Libre de usar y modificar.
 
 ---
 
-**Última actualización:** 2026-03-19  
-**Versión:** 2.1.0
+**Última actualización:** 2026-03-26  
+**Versión:** 3.0.0

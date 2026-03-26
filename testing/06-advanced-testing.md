@@ -182,7 +182,7 @@ integration_test/
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:sereni/main.dart' as app;
+import 'package:mi_proyecto_flutter/main.dart' as app;
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -333,7 +333,7 @@ start coverage/html/index.html       # Windows
 genhtml coverage/lcov.info -o coverage/html \
   --ignore-errors source \
   --legend \
-  --title "Sereni Test Coverage"
+  --title "mi_proyecto_flutter Test Coverage"
 ```
 
 **`.github/workflows/test.yml`** para CI:

@@ -39,9 +39,9 @@ touch test/helpers/fake_datasources.dart
 
 ```dart
 // test/helpers/fake_datasources.dart
-import 'package:sereni/clean/features/auth/data/datasources/auth_remote_data_source.dart';
-import 'package:sereni/clean/features/auth/data/datasources/auth_local_data_source.dart';
-import 'package:sereni/clean/features/auth/data/models/user_model.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/data/datasources/auth_remote_data_source.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/data/datasources/auth_local_data_source.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/data/models/user_model.dart';
 
 /// Fake Remote DataSource - Simula el servidor
 class FakeAuthRemoteDataSource implements AuthRemoteDataSource {
@@ -135,7 +135,7 @@ touch test/helpers/fake_network_info.dart
 
 ```dart
 // test/helpers/fake_network_info.dart
-import 'package:sereni/clean/core/network/network_info.dart';
+import 'package:mi_proyecto_flutter/clean/core/network/network_info.dart';
 
 /// Fake NetworkInfo - Simula el estado de conexión
 class FakeNetworkInfo implements NetworkInfo {
@@ -166,13 +166,13 @@ touch test/features/auth/data/repositories/auth_repository_impl_test.dart
 
 ```dart
 // test/features/auth/data/repositories/auth_repository_impl_test.dart
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/core/error/exceptions.dart';
-import 'package:sereni/clean/core/error/failures.dart';
-import 'package:sereni/clean/features/auth/data/models/user_model.dart';
-import 'package:sereni/clean/features/auth/data/repositories/auth_repository_impl.dart';
-import 'package:sereni/clean/features/auth/domain/entities/user.dart';
+import 'package:mi_proyecto_flutter/clean/core/error/exceptions.dart';
+import 'package:mi_proyecto_flutter/clean/core/error/failures.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/data/models/user_model.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/entities/user.dart';
 
 import '../../../../helpers/fake_datasources.dart';
 import '../../../../helpers/fake_network_info.dart';
@@ -233,7 +233,7 @@ void main() {
       // ═══════════════════════════════════════════════════════════
       // ASSERT: Verificar resultado
       // ═══════════════════════════════════════════════════════════
-      expect(result, equals(const Right(tUser)));
+      expect(result, equals(Either.right(tUser)));
     });
   });
 ```
@@ -293,7 +293,7 @@ Escribir tests que verifiquen el comportamiento cuando el dispositivo no tiene i
 
         // Assert - Debe retornar NetworkFailure
         expect(result.isLeft(), true);
-        result.fold(
+        result.match(
           (failure) => expect(failure, isA<NetworkFailure>()),
           (_) => fail('Should return failure'),
         );
@@ -347,7 +347,7 @@ Escribir tests que verifiquen cómo el Repository maneja diferentes tipos de err
 
         // Assert
         expect(result.isLeft(), true);
-        result.fold(
+        result.match(
           (failure) => expect(failure, isA<ServerFailure>()),
           (_) => fail('Should return failure'),
         );
@@ -457,7 +457,7 @@ Escribir tests que verifiquen cómo el Repository maneja diferentes tipos de err
       final result = await repository.checkAuthStatus();
 
       // Assert
-      expect(result, equals(const Right(tUser)));
+      expect(result, equals(Either.right(tUser)));
     });
 
     test('should return null when no user cached', () async {

@@ -504,8 +504,8 @@ Los estados deben ser inmutables y comparables. Testearlos es crucial para asegu
 ```dart
 // test/features/auth/presentation/cubit/auth_state_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/features/auth/domain/entities/user.dart';
-import 'package:sereni/clean/features/auth/presentation/cubit/auth_state.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/entities/user.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/presentation/cubit/auth_state.dart';
 
 void main() {
   group('AuthInitial', () {

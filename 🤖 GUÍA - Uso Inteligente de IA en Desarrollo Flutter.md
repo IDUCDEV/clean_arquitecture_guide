@@ -597,7 +597,7 @@ Métodos necesarios:
 2. [método2]: devuelve Future<Either<Failure, Tipo>>
 3. [método3]: devuelve Future<Either<Failure, Tipo>>
 
-Usa el tipo Either de dartz.
+Usa el tipo Either de fpdart.
 Incluye comentarios de documentación para cada método."
 
 💡 CUÁNDO USARLO:
@@ -615,7 +615,7 @@ Métodos necesarios:
 3. cancelBooking: recibe bookingId, devuelve Future<Either<Failure, CancellationResult>>>
 4. markNoShow: recibe bookingId, devuelve Future<Either<Failure, NoShowResult>>>
 
-Usa el tipo Either de dartz.
+Usa el tipo Either de fpdart.
 Incluye comentarios de documentación para cada método.
 Define clases de resultado como CancellationResult y NoShowResult."
 
@@ -983,7 +983,7 @@ Bad state: No element
 
 Contexto:
 - Versión de Flutter: 3.19.0
-- Paquetes: flutter_bloc 8.1.3, dartz 0.10.1
+- Paquetes: flutter_bloc 8.1.3, fpdart ^1.2.0
 - El error ocurre cuando intento crear una reserva a las 10:00 AM
 
 ¿Puedes ayudarme a entender:
@@ -1576,7 +1576,7 @@ Include:
 IA genera:
 ```dart
 import 'package:bloc_test/bloc_test.dart';
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';

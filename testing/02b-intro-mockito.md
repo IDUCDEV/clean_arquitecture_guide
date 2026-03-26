@@ -46,8 +46,8 @@ class FakeProductRepository implements IProductRepository {
   
   @override
   Future<Either<Failure, Product>> getProduct(String id) async {
-    if (shouldFail) return Left(ServerFailure());
-    return Right(productToReturn!);
+    if (shouldFail) return Either.left(ServerFailure());
+    return Either.right(productToReturn!);
   }
 }
 
@@ -55,7 +55,7 @@ class FakeProductRepository implements IProductRepository {
 late MockIProductRepository mockRepository;  // ← Generado por Mockito
 
 // Tú solo dices qué retornar:
-when(mockRepository.getProduct(any)).thenAnswer((_) async => Right(tProduct));
+when(mockRepository.getProduct(any)).thenAnswer((_) async => Either.right(tProduct));
 ```
 
 ---
@@ -216,7 +216,7 @@ El stubbing le dice al mock: "Cuando alguien llame a este método con estos argu
 ```dart
 // Cuando llamen a getProduct('1'), retorna Right(tProduct)
 when(mockRepository.getProduct('1'))
-    .thenAnswer((_) async => Right(tProduct));
+    .thenAnswer((_) async => Either.right(tProduct));
 ```
 
 **Versión acortada (solo para返回值 simples):**
@@ -252,15 +252,15 @@ when(mockRepository.getProduct('999'))
 ```dart
 // Primera llamada retorna X, segunda retorna Y
 when(mockRepository.getProduct(any)).thenAnswer(
-  (_) async => Right(tProduct),
+  (_) async => Either.right(tProduct),
 ).thenAnswer(
-  (_) async => Left(ServerFailure()),
+  (_) async => Either.left(ServerFailure()),
 );
 
 // Versión más legible
 when(mockRepository.getProduct(any))
-    .thenAnswer((_) async => Right(tProduct))
-    .thenAnswer((_) async => Left(ServerFailure()));
+    .thenAnswer((_) async => Either.right(tProduct))
+    .thenAnswer((_) async => Either.left(ServerFailure()));
 ```
 
 ### 🎲thenAnswer() vs thenReturn()
@@ -275,9 +275,9 @@ when(mockRepository.getProduct(any))
 when(mockRepository.getProduct(any)).thenAnswer((invocation) async {
   final id = invocation.positionalArguments[0];
   if (id == '999') {
-    return Left(ProductNotFoundFailure());
+    return Either.left(ProductNotFoundFailure());
   }
-  return Right(tProduct);
+  return Either.right(tProduct);
 });
 
 // ✅ thenReturn - valor simple
@@ -360,7 +360,7 @@ verify(mockRepository.getProduct('123')).called(1);
 
 // Verifica argumentos específicos con anyNamed
 when(mockRepository.updateProduct(id: anyNamed('id'), product: anyNamed('product')))
-    .thenAnswer((_) async => Right(tProduct));
+    .thenAnswer((_) async => Either.right(tProduct));
 
 verify(mockRepository.updateProduct(id: '123', product: tProduct)).called(1);
 ```
@@ -379,7 +379,7 @@ Los matchers te permiten verificar o stubbing sin especificar valores exactos.
 
 ```dart
 // Stubbing: No importa qué ID pasen, retorna tProduct
-when(mockRepository.getProduct(any)).thenAnswer((_) => Right(tProduct));
+when(mockRepository.getProduct(any)).thenAnswer((_) => Either.right(tProduct));
 
 // Verificación: Verifica que se llamó con ALGÚN argumento
 verify(mockRepository.getProduct(any)).called(1);
@@ -392,7 +392,7 @@ verify(mockRepository.getProduct(any)).called(1);
 when(mockRepository.updateProduct(
   id: anyNamed('id'),
   product: anyNamed('product'),
-)).thenAnswer((_) async => Right(tProduct));
+)).thenAnswer((_) async => Either.right(tProduct));
 
 verify(mockRepository.updateProduct(
   id: anyNamed('id'),
@@ -405,7 +405,7 @@ verify(mockRepository.updateProduct(
 ```dart
 // Stubbing con condición
 when(mockRepository.getProduct(argThat(startsWith('PROD-'))))
-    .thenAnswer((_) => Right(tProduct));
+    .thenAnswer((_) => Either.right(tProduct));
 
 // Verificación con condición
 verify(mockRepository.getProduct(argThat(equals('PROD-123')))).called(1);
@@ -449,7 +449,7 @@ print(capturedId); // ['123']
 ```dart
 test('should call repository with correct id', () {
   // Arrange
-  when(mockRepository.getProduct(any)).thenAnswer((_) async => Right(tProduct));
+  when(mockRepository.getProduct(any)).thenAnswer((_) async => Either.right(tProduct));
   
   // Act
   await getProductUseCase('123');
@@ -536,7 +536,7 @@ setUpAll(() {
 });
 
 // El uso es idéntico
-when(() => mockRepository.getProduct(any())).thenAnswer((_) async => Right(tProduct));
+when(() => mockRepository.getProduct(any())).thenAnswer((_) async => Either.right(tProduct));
 verify(() => mockRepository.getProduct('123')).called(1);
 ```
 
@@ -565,11 +565,11 @@ MissingStubError: 'Method getProduct was not stubbed'
 **Solución:**
 ```dart
 // ❌ FALLA
-when(mockRepository.getProduct('123')).thenAnswer((_) async => Right(tProduct));
+when(mockRepository.getProduct('123')).thenAnswer((_) async => Either.right(tProduct));
 final result = await mockRepository.getProduct('999'); // ¡No stubbed!
 
 // ✅ CORRECTO - Stub todos los casos posibles
-when(mockRepository.getProduct(any())).thenAnswer((_) async => Right(tProduct));
+when(mockRepository.getProduct(any())).thenAnswer((_) async => Either.right(tProduct));
 ```
 
 ---
@@ -704,7 +704,7 @@ setUpAll(() {
      mockRepository = MockIProductRepository();
      useCase = GetProductUseCase(mockRepository);
      when(() => mockRepository.getProduct(any()))
-         .thenAnswer((_) async => Right(tProduct));
+         .thenAnswer((_) async => Either.right(tProduct));
    });
    ```
 
@@ -727,12 +727,12 @@ setUpAll(() {
 1. **No stub en el test cuando no lo necesitas**
    ```dart
    // ❌ Sobrestubbing
-   when(mockRepository.getProduct(any())).thenAnswer((_) async => Right(tProduct));
-   when(mockRepository.updateProduct(any(), any())).thenAnswer((_) async => Right(tProduct));
-   when(mockRepository.deleteProduct(any())).thenAnswer((_) async => const Right(null));
+   when(mockRepository.getProduct(any())).thenAnswer((_) async => Either.right(tProduct));
+   when(mockRepository.updateProduct(any(), any())).thenAnswer((_) async => Either.right(tProduct));
+   when(mockRepository.deleteProduct(any())).thenAnswer((_) async => Either.right(null));
    
    // ✅ Solo lo que necesitas
-   when(mockRepository.getProduct(any())).thenAnswer((_) async => Right(tProduct));
+   when(mockRepository.getProduct(any())).thenAnswer((_) async => Either.right(tProduct));
    ```
 
 2. **No verifiques todo**
@@ -752,7 +752,7 @@ setUpAll(() {
    when(mockRepository.getProduct(any())).thenAnswer((_) async => null);
    
    // ✅ Especifica el tipo de retorno correcto
-   when(mockRepository.getProduct(any())).thenAnswer((_) async => Right(tProduct));
+   when(mockRepository.getProduct(any())).thenAnswer((_) async => Either.right(tProduct));
    ```
 
 ---
