@@ -998,7 +998,7 @@ class UnexpectedFailure extends ReservationFailure {
 // domain/repositories/booking_repository.dart
 // GENERADO POR IA (scaffold)
 
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import '../entities/booking.dart';
 import '../entities/slot.dart';
 import '../entities/service.dart';
@@ -1063,7 +1063,7 @@ class NoShowResult {
 // domain/repositories/waitlist_repository.dart
 // GENERADO POR IA (scaffold)
 
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import '../entities/waitlist.dart';
 import '../failures/reservation_failure.dart';
 
@@ -1130,7 +1130,7 @@ Just scaffold with TODO comments, I'll implement the logic."
 ```dart
 // domain/usecases/get_available_slots.dart
 
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:equatable/equatable.dart';
 import '../entities/slot.dart';
 import '../failures/reservation_failure.dart';
@@ -1156,7 +1156,7 @@ class GetAvailableSlotsUseCase {
 
     // 1. Verificar que la fecha no sea pasado
     if (_isDateInPast(params.date)) {
-      return const Left(InvalidBookingTimeFailure());
+      return Either.left(InvalidBookingTimeFailure());
     }
 
     // 2. Obtener configuración de horarios
@@ -1164,7 +1164,7 @@ class GetAvailableSlotsUseCase {
 
     // 3. Si el salón está cerrado ese día
     if (!scheduleConfig.isOpen) {
-      return const Left(SpecialScheduleFailure());
+      return Either.left(SpecialScheduleFailure());
     }
 
     // 4. Generar TODOS los slots posibles para ese día
@@ -1181,8 +1181,8 @@ class GetAvailableSlotsUseCase {
       serviceId: params.serviceId,
     );
 
-    return reservedSlotsResult.fold(
-      (failure) => Left(failure),
+    return reservedSlotsResult.match(
+      (failure) => Either.left(failure),
       (reservedSlots) {
         // ═══════════════════════════════════════════════════════════
         // LOGICA CRITICA: Filtrar slots no disponibles
@@ -1201,7 +1201,7 @@ class GetAvailableSlotsUseCase {
           return _filterPastSlots(availableSlots);
         }
 
-        return Right(availableSlots);
+        return Either.right(availableSlots);
       },
     );
   }
@@ -1335,7 +1335,7 @@ class GetAvailableSlotsParams extends Equatable {
 ```dart
 // domain/usecases/create_booking.dart
 
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:equatable/equatable.dart';
 import '../entities/booking.dart';
 import '../entities/client.dart';
@@ -1363,20 +1363,20 @@ class CreateBookingUseCase {
     // 1. VERIFICAR: Cliente existe y no está bloqueado
     final clientResult = await clientRepository.getClient(params.clientId);
 
-    final client = clientResult.fold(
+    final client = clientResult.match(
       (failure) => null,
       (client) => client,
     );
 
     if (client == null) {
-      return const Left(ReservationFailure(
+      return Either.left(ReservationFailure(
         message: 'Cliente no encontrado',
         code: 'CLIENT_NOT_FOUND',
       ));
     }
 
     if (client.status == ClientStatus.blocked) {
-      return const Left(ClientBlockedFailure());
+      return Either.left(ClientBlockedFailure());
     }
 
     // 2. VERIFICAR: No excedió límite de reservas activas
@@ -1384,7 +1384,7 @@ class CreateBookingUseCase {
       clientId: params.clientId,
     );
 
-    final activeBookings = activeBookingsResult.fold(
+    final activeBookings = activeBookingsResult.match(
       (failure) => <Booking>[],
       (bookings) => bookings
           .where((b) => b.status == BookingStatus.confirmed)
@@ -1392,7 +1392,7 @@ class CreateBookingUseCase {
     );
 
     if (activeBookings.length >= ReservationConstants.maxActiveBookings) {
-      return Left(ReservationFailure(
+      return Either.left(ReservationFailure(
         message:
             'Tienes demasiadas reservas activas (máximo ${ReservationConstants.maxActiveBookings})',
         code: 'TOO_MANY_BOOKINGS',
@@ -1401,12 +1401,12 @@ class CreateBookingUseCase {
 
     // 3. VERIFICAR: Horario dentro de límites
     if (!_isWithinBusinessHours(params.dateTime, params.serviceDuration)) {
-      return const Left(SlotOutsideBusinessHoursFailure());
+      return Either.left(SlotOutsideBusinessHoursFailure());
     }
 
     // 4. VERIFICAR: No es fecha pasada
     if (params.dateTime.isBefore(DateTime.now())) {
-      return const Left(InvalidBookingTimeFailure());
+      return Either.left(InvalidBookingTimeFailure());
     }
 
     // 5. VERIFICAR: Es fecha futura mínima
@@ -1415,7 +1415,7 @@ class CreateBookingUseCase {
     );
 
     if (params.dateTime.isBefore(minimumBookingTime)) {
-      return Left(ReservationFailure(
+      return Either.left(ReservationFailure(
         message:
             'Las reservas deben hacerse con al menos ${ReservationConstants.minimumAdvanceMinutes} minutos de anticipación',
         code: 'TOO_SHORT_NOTICE',
@@ -1430,8 +1430,8 @@ class CreateBookingUseCase {
     );
 
     // 7. MANEJAR: Posible overbooking estratégico
-    return result.fold(
-      (failure) => Left(failure),
+    return result.match(
+      (failure) => Either.left(failure),
       (booking) async {
         // Si se creó exitosamente, verificar si es overbooking
         // (para métricas, no para revertir)
@@ -1439,7 +1439,7 @@ class CreateBookingUseCase {
           // Log para analytics: booking created as overbooking
           _logOverbooking(params.clientId, params.serviceId);
         }
-        return Right(booking);
+        return Either.right(booking);
       },
     );
   }
@@ -1516,7 +1516,7 @@ class CreateBookingParams extends Equatable {
 ```dart
 // domain/usecases/cancel_booking.dart
 
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:equatable/equatable.dart';
 import '../failures/reservation_failure.dart';
 import '../repositories/booking_repository.dart';
@@ -1537,12 +1537,12 @@ class CancelBookingUseCase {
     // 1. Obtener la reserva
     final bookingResult = await repository.getBooking(params.bookingId);
 
-    return bookingResult.fold(
-      (failure) => Left(failure),
+    return bookingResult.match(
+      (failure) => Either.left(failure),
       (booking) async {
         // 2. Verificar que se puede cancelar
         if (booking.status != BookingStatus.confirmed) {
-          return Left(ReservationFailure(
+          return Either.left(ReservationFailure(
             message: 'Solo se pueden cancelar reservas confirmadas',
             code: 'CANNOT_CANCEL',
           ));
@@ -1596,9 +1596,9 @@ class CancelBookingUseCase {
           refund: refund,
         );
 
-        return cancelResult.fold(
-          (failure) => Left(failure),
-          (_) => Right(CancellationResult(
+        return cancelResult.match(
+          (failure) => Either.left(failure),
+          (_) => Either.right(CancellationResult(
             wasCancelled: true,
             refundAmount: refund,
             penaltyAmount: penalty,
@@ -1624,7 +1624,7 @@ class CancelBookingParams extends Equatable {
 ```dart
 // domain/usecases/mark_no_show.dart
 
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:equatable/equatable.dart';
 import '../failures/reservation_failure.dart';
 import '../repositories/booking_repository.dart';
@@ -1650,12 +1650,12 @@ class MarkNoShowUseCase {
     // 1. Obtener la reserva
     final bookingResult = await repository.getBooking(params.bookingId);
 
-    return bookingResult.fold(
-      (failure) => Left(failure),
+    return bookingResult.match(
+      (failure) => Either.left(failure),
       (booking) async {
         // 2. Verificar que se puede marcar como no-show
         if (booking.status != BookingStatus.confirmed) {
-          return Left(ReservationFailure(
+          return Either.left(ReservationFailure(
             message: 'Esta reserva ya no está confirmada',
             code: 'INVALID_STATUS',
           ));
@@ -1668,7 +1668,7 @@ class MarkNoShowUseCase {
         );
 
         if (now.isBefore(gracePeriodEnd)) {
-          return Left(ReservationFailure(
+          return Either.left(ReservationFailure(
             message: 'Aún es muy temprano para marcar como no-show',
             code: 'TOO_EARLY',
           ));
@@ -1679,14 +1679,14 @@ class MarkNoShowUseCase {
           bookingId: params.bookingId,
         );
 
-        return markResult.fold(
-          (failure) => Left(failure),
+        return markResult.match(
+          (failure) => Either.left(failure),
           (_) async {
             // 4. Actualizar contador del cliente
             final clientResult = await clientRepository.getClient(booking.clientId);
 
-            return clientResult.fold(
-              (failure) => Left(failure),
+            return clientResult.match(
+              (failure) => Either.left(failure),
               (client) async {
                 // Incrementar no-show count
                 final newNoShowCount = client.noShowCount + 1;
@@ -1713,7 +1713,7 @@ class MarkNoShowUseCase {
                   );
                 }
 
-                return Right(NoShowResult(
+                return Either.right(NoShowResult(
                   wasMarked: true,
                   clientBlocked: shouldBlock,
                   currentNoShowCount: newNoShowCount,
@@ -1758,7 +1758,7 @@ class MarkNoShowParams extends Equatable {
 ```dart
 // domain/usecases/process_waitlist.dart
 
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:equatable/equatable.dart';
 import '../entities/waitlist.dart';
 import '../failures/reservation_failure.dart';
@@ -1791,11 +1791,11 @@ class ProcessWaitlistUseCase {
       date: params.availableSlot,
     );
 
-    return waitlistResult.fold(
-      (failure) => Left(failure),
+    return waitlistResult.match(
+      (failure) => Either.left(failure),
       (entries) async {
         if (entries.isEmpty) {
-          return const Right(ProcessWaitlistResult(
+          return Either.right(ProcessWaitlistResult(
             notifiedEntries: [],
             processed: false,
           ));
@@ -1817,7 +1817,7 @@ class ProcessWaitlistUseCase {
           // Verificar que el cliente no esté bloqueado
           final clientResult = await clientRepository.getClient(entry.clientId);
           
-          final client = clientResult.fold(
+          final client = clientResult.match(
             (_) => null,
             (c) => c,
           );
@@ -1838,13 +1838,13 @@ class ProcessWaitlistUseCase {
             availableSlot: params.availableSlot,
           );
 
-          notifyResult.fold(
+          notifyResult.match(
             (failure) => null, // No notificado, continuar con siguiente
             (notifiedEntry) => notifiedEntries.add(notifiedEntry),
           );
         }
 
-        return Right(ProcessWaitlistResult(
+        return Either.right(ProcessWaitlistResult(
           notifiedEntries: notifiedEntries,
           processed: true,
         ));
@@ -2176,7 +2176,7 @@ class ScheduleConfig {
 // test/features/reservation/domain/usecases/get_available_slots_test.dart
 
 import 'package:bloc_test/bloc_test.dart';
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
@@ -2269,7 +2269,7 @@ void main() {
       when(mockRepository.getReservedSlots(
         date: anyNamed('date'),
         serviceId: anyNamed('serviceId'),
-      )).thenAnswer((_) async => Right([existingBooking]));
+      )).thenAnswer((_) async => Either.right([existingBooking]));
 
       // act
       final result = await useCase(GetAvailableSlotsParams(
@@ -2281,7 +2281,7 @@ void main() {
 
       // assert - ✍️ MI ASERCIÓN
       expect(result.isRight(), true);
-      result.fold(
+      result.match(
         (failure) => fail('Expected success but got failure'),
         (slots) {
           // Verifico que el slot reservado NO esté
@@ -2337,7 +2337,7 @@ void main() {
       when(mockRepository.getReservedSlots(
         date: anyNamed('date'),
         serviceId: anyNamed('serviceId'),
-      )).thenAnswer((_) async => Right([bookingWithBuffer]));
+      )).thenAnswer((_) async => Either.right([bookingWithBuffer]));
 
       // act
       final result = await useCase(GetAvailableSlotsParams(
@@ -2349,7 +2349,7 @@ void main() {
 
       // assert - ✍️ MI ASERCIÓN - Verifico lógica de buffer
       expect(result.isRight(), true);
-      result.fold(
+      result.match(
         (failure) => fail('Expected success'),
         (slots) {
           // Slot que empieza 9:45 termina 10:30 (45+15 buffer) = overlap
@@ -2371,7 +2371,7 @@ void main() {
       when(mockRepository.getReservedSlots(
         date: anyNamed('date'),
         serviceId: anyNamed('serviceId'),
-      )).thenAnswer((_) async => const Right([]));
+      )).thenAnswer((_) async => Either.right([]));
 
       // Configurar slot calculator para generar slots hasta 15:00
       when(mockSlotCalculator.generateSlotsForDay(
@@ -2413,7 +2413,7 @@ void main() {
       when(mockRepository.getReservedSlots(
         date: anyNamed('date'),
         serviceId: anyNamed('serviceId'),
-      )).thenAnswer((_) async => const Left(NetworkFailure()));
+      )).thenAnswer((_) async => Either.left(NetworkFailure()));
 
       // act
       final result = await useCase(GetAvailableSlotsParams(
@@ -2425,7 +2425,7 @@ void main() {
 
       // assert
       expect(result.isLeft(), true);
-      result.fold(
+      result.match(
         (failure) => expect(failure, isA<NetworkFailure>()),
         (_) => fail('Expected failure'),
       );
@@ -2439,7 +2439,7 @@ void main() {
 ```dart
 // test/features/reservation/domain/usecases/cancel_booking_test.dart
 
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
@@ -2501,19 +2501,19 @@ void main() {
       );
 
       when(mockRepository.getBooking(any))
-          .thenAnswer((_) async => Right(booking));
+          .thenAnswer((_) async => Either.right(booking));
       when(mockRepository.cancelBooking(
         bookingId: any,
         penalty: any,
         refund: any,
-      )).thenAnswer((_) async => const Right(true));
+      )).thenAnswer((_) async => Either.right(true));
 
       // act
       final result = await useCase(CancelBookingParams(bookingId: 'booking-1'));
 
       // assert - ✍️ MI ASERCIÓN
       expect(result.isRight(), true);
-      result.fold(
+      result.match(
         (failure) => fail('Expected success'),
         (cancellationResult) {
           expect(cancellationResult.wasCancelled, true);
@@ -2537,19 +2537,19 @@ void main() {
       );
 
       when(mockRepository.getBooking(any))
-          .thenAnswer((_) async => Right(booking));
+          .thenAnswer((_) async => Either.right(booking));
       when(mockRepository.cancelBooking(
         bookingId: any,
         penalty: any,
         refund: any,
-      )).thenAnswer((_) async => const Right(true));
+      )).thenAnswer((_) async => Either.right(true));
 
       // act
       final result = await useCase(CancelBookingParams(bookingId: 'booking-1'));
 
       // assert - ✍️ MI ASERCIÓN
       expect(result.isRight(), true);
-      result.fold(
+      result.match(
         (failure) => fail('Expected success'),
         (cancellationResult) {
           expect(cancellationResult.wasCancelled, true);
@@ -2573,19 +2573,19 @@ void main() {
       );
 
       when(mockRepository.getBooking(any))
-          .thenAnswer((_) async => Right(booking));
+          .thenAnswer((_) async => Either.right(booking));
       when(mockRepository.cancelBooking(
         bookingId: any,
         penalty: any,
         refund: any,
-      )).thenAnswer((_) async => const Right(true));
+      )).thenAnswer((_) async => Either.right(true));
 
       // act
       final result = await useCase(CancelBookingParams(bookingId: 'booking-1'));
 
       // assert - ✍️ MI ASERCIÓN
       expect(result.isRight(), true);
-      result.fold(
+      result.match(
         (failure) => fail('Expected success'),
         (cancellationResult) {
           expect(cancellationResult.wasCancelled, true);
@@ -2607,14 +2607,14 @@ void main() {
       );
 
       when(mockRepository.getBooking(any))
-          .thenAnswer((_) async => Right(booking));
+          .thenAnswer((_) async => Either.right(booking));
 
       // act
       final result = await useCase(CancelBookingParams(bookingId: 'booking-1'));
 
       // assert
       expect(result.isLeft(), true);
-      result.fold(
+      result.match(
         (failure) => expect(failure.code, 'CANNOT_CANCEL'),
         (_) => fail('Expected failure'),
       );
@@ -2639,19 +2639,19 @@ void main() {
       );
 
       when(mockRepository.getBooking(any))
-          .thenAnswer((_) async => Right(booking));
+          .thenAnswer((_) async => Either.right(booking));
       when(mockRepository.cancelBooking(
         bookingId: any,
         penalty: any,
         refund: any,
-      )).thenAnswer((_) async => const Right(true));
+      )).thenAnswer((_) async => Either.right(true));
 
       // act
       final result = await useCase(CancelBookingParams(bookingId: 'booking-1'));
 
       // assert - ✍️ MI ASERCIÓN - Verifico lógica de festivo
       expect(result.isRight(), true);
-      result.fold(
+      result.match(
         (failure) => fail('Expected success'),
         (cancellationResult) {
           // En festivo <24h = penalty 100%
@@ -2669,7 +2669,7 @@ void main() {
 ```dart
 // test/features/reservation/domain/usecases/mark_no_show_test.dart
 
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
@@ -2753,24 +2753,24 @@ void main() {
       final client = createClient(noShowCount: 0);
 
       when(mockBookingRepository.getBooking(any))
-          .thenAnswer((_) async => Right(booking));
+          .thenAnswer((_) async => Either.right(booking));
       when(mockBookingRepository.markNoShow(bookingId: any))
-          .thenAnswer((_) async => const Right(true));
+          .thenAnswer((_) async => Either.right(true));
       when(mockClientRepository.getClient(any))
-          .thenAnswer((_) async => Right(client));
+          .thenAnswer((_) async => Either.right(client));
       when(mockClientRepository.updateClient(
         clientId: any,
         noShowCount: any,
         lastNoShowDate: any,
         status: any,
-      )).thenAnswer((_) async => const Right(true));
+      )).thenAnswer((_) async => Either.right(true));
 
       // act
       final result = await useCase(MarkNoShowParams(bookingId: 'booking-1'));
 
       // assert - ✍️ MI ASERCIÓN
       expect(result.isRight(), true);
-      result.fold(
+      result.match(
         (failure) => fail('Expected success'),
         (noShowResult) {
           expect(noShowResult.wasMarked, true);
@@ -2797,24 +2797,24 @@ void main() {
       final client = createClient(noShowCount: 2); // Ya tiene 2 no-shows
 
       when(mockBookingRepository.getBooking(any))
-          .thenAnswer((_) async => Right(booking));
+          .thenAnswer((_) async => Either.right(booking));
       when(mockBookingRepository.markNoShow(bookingId: any))
-          .thenAnswer((_) async => const Right(true));
+          .thenAnswer((_) async => Either.right(true));
       when(mockClientRepository.getClient(any))
-          .thenAnswer((_) async => Right(client));
+          .thenAnswer((_) async => Either.right(client));
       when(mockClientRepository.updateClient(
         clientId: any,
         noShowCount: any,
         lastNoShowDate: any,
         status: any,
-      )).thenAnswer((_) async => const Right(true));
+      )).thenAnswer((_) async => Either.right(true));
 
       // act
       final result = await useCase(MarkNoShowParams(bookingId: 'booking-1'));
 
       // assert - ✍️ MI ASERCIÓN - El cliente DEBE bloquearse
       expect(result.isRight(), true);
-      result.fold(
+      result.match(
         (failure) => fail('Expected success'),
         (noShowResult) {
           expect(noShowResult.wasMarked, true);
@@ -2838,14 +2838,14 @@ void main() {
       );
 
       when(mockBookingRepository.getBooking(any))
-          .thenAnswer((_) async => Right(booking));
+          .thenAnswer((_) async => Either.right(booking));
 
       // act
       final result = await useCase(MarkNoShowParams(bookingId: 'booking-1'));
 
       // assert
       expect(result.isLeft(), true);
-      result.fold(
+      result.match(
         (failure) => expect(failure.code, 'TOO_EARLY'),
         (_) => fail('Expected failure'),
       );
@@ -2871,24 +2871,24 @@ void main() {
       );
 
       when(mockBookingRepository.getBooking(any))
-          .thenAnswer((_) async => Right(booking));
+          .thenAnswer((_) async => Either.right(booking));
       when(mockBookingRepository.markNoShow(bookingId: any))
-          .thenAnswer((_) async => const Right(true));
+          .thenAnswer((_) async => Either.right(true));
       when(mockClientRepository.getClient(any))
-          .thenAnswer((_) async => Right(blockedClient));
+          .thenAnswer((_) async => Either.right(blockedClient));
       when(mockClientRepository.updateClient(
         clientId: any,
         noShowCount: any,
         lastNoShowDate: any,
         status: any,
-      )).thenAnswer((_) async => const Right(true));
+      )).thenAnswer((_) async => Either.right(true));
 
       // act
       final result = await useCase(MarkNoShowParams(bookingId: 'booking-1'));
 
       // assert
       expect(result.isRight(), true);
-      result.fold(
+      result.match(
         (failure) => fail('Expected success'),
         (noShowResult) {
           expect(noShowResult.wasMarked, true);

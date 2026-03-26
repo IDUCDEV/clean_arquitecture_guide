@@ -119,11 +119,11 @@ class PerfilCubit extends Cubit<PerfilState> {
     // Solo conoce AuthRepository, NO ProductRepository
     final user = await authRepository.getCurrentUser();
     
-    user.fold(
+    user.match(
       () => emit(PerfilUnauthenticated()),
       (u) async {
         final profile = await getUserProfile(u.id);
-        profile.fold(
+        profile.match(
           (f) => emit(PerfilError(f.message)),
           (p) => emit(PerfilLoaded(p)),
         );
@@ -257,7 +257,7 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> signOut() async {
     final result = await authRepository.signOut();
     
-    result.fold(
+    result.match(
       (failure) => emit(AuthError(failure.message)),
       (_) {
         eventBus.fire(UserLoggedOutEvent()); // ✅ Notificar a otros
@@ -491,7 +491,7 @@ class CartCubit extends Cubit<CartState> {
   Future<void> addProduct(Product product) async {
     final user = await authRepository.getCurrentUser();
     
-    user.fold(
+    user.match(
       () => emit(CartNeedsLogin()), // Redirigir a login
       (_) => addToCart.execute(product),
     );
@@ -862,11 +862,11 @@ void main() {
       final profile2 = await getProfile();
 
       // Assert - Mismo resultado
-      profile1.fold(
+      profile1.match(
         (_) => fail('No debería fallar'),
         (p) => expect(p.user.name, 'Test User'),
       );
-      profile2.fold(
+      profile2.match(
         (_) => fail('No debería fallar'),
         (p) => expect(p.user.name, 'Test User'),
       );

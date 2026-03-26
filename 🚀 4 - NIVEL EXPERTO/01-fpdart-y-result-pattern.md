@@ -87,7 +87,7 @@ final chained = result.flatMap((r) => Right(r * 2));
 final value = result.getOrElse(() => 0); // 10
 
 // fold: procesar ambos casos
-result.fold(
+result.match(
   (failure) => print('Error: $failure'),
   (value) => print('Valor: $value'),
 );
@@ -380,11 +380,11 @@ A veces quieres intentar una operación, y si falla, intentar otra. Esto se llam
 Future<Either<Failure, Data>> getData() async {
   final primary = await primarySource.getData();
   
-  return primary.fold(
+  return primary.match(
     (failure) async {
       // Fallback: intentar fuente secundaria
       final secondary = await secondarySource.getData();
-      return secondary.fold(
+      return secondary.match(
         (e) => Failure('Both failed: $e'),  // Todas las opciones agotadas
         (data) => Right(data),
       );
@@ -428,7 +428,7 @@ final result = divide(10, 2).flatMap((r) => divide(r, 2));
 
 ```dart
 // ❌ fold sin especificar tipos puede perder типы
-result.fold(
+result.match(
   (e) => print(e),  // e puede ser Any
   (v) => print(v),  // v puede ser Any
 );
@@ -529,7 +529,7 @@ class UserCubit extends Cubit<UserState> {
 
     final result = await getUser(GetUserParams(id));
 
-    result.fold(
+    result.match(
       (failure) => emit(UserError(failure.message)),
       (user) => emit(UserLoaded(user)),
     );
@@ -561,7 +561,7 @@ fpdart está diseñado para tree shaking:
 ```yaml
 # pubspec.yaml - asegurate de no importar todo
 dependencies:
-  fpdart: ^1.1.0
+  fpdart: ^1.2.0
   # No importes package:fpdart/fpdart.dart
   # Mejor: import solo lo que necesitas
 ```
@@ -752,7 +752,7 @@ void main() {
       final result = await repository.getUser('1').run();
 
       // Assert
-      result.fold(
+      result.match(
         (failure) => expect(failure, isA<ServerFailure>()),
         (_) => fail('No debería retornar usuario'),
       );
@@ -767,7 +767,7 @@ void main() {
       final result = await repository.getUser('1').run();
 
       // Assert
-      result.fold(
+      result.match(
         (failure) => expect(failure.message, contains('conexión')),
         (_) => fail('No debería retornar usuario'),
       );
@@ -806,7 +806,7 @@ void main() {
       final result = validator.validateUser('', 'john@test.com');
 
       // Assert
-      result.fold(
+      result.match(
         (failure) => expect(failure.message, 'Nombre requerido'),
         (_) => fail('No debería ser válido'),
       );
@@ -817,7 +817,7 @@ void main() {
       final result = validator.validateUser('John', 'invalid-email');
 
       // Assert
-      result.fold(
+      result.match(
         (failure) => expect(failure.message, 'Email inválido'),
         (_) => fail('No debería ser válido'),
       );
@@ -828,7 +828,7 @@ void main() {
       final result = validator.validateUser('', '');
 
       // Assert: solo primer error
-      result.fold(
+      result.match(
         (failure) => expect(failure.message, 'Nombre requerido'),
         (_) => fail('No debería ser válido'),
       );

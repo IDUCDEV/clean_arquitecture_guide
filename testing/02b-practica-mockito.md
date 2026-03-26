@@ -128,7 +128,7 @@ class Product {
 Crea `test/features/products/domain/repositories/product_repository.dart`:
 
 ```dart
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 
 abstract class IProductRepository {
   Future<Either<Failure, Product>> getProduct(String id);
@@ -157,7 +157,7 @@ class NotFoundFailure extends Failure {
 Crea `test/features/products/domain/usecases/get_product_usecase.dart`:
 
 ```dart
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import '../entities/product.dart';
 import '../repositories/product_repository.dart';
 
@@ -191,7 +191,7 @@ Crear el primer test con la anotación `@GenerateMocks` y generar el código.
 Crea `test/features/products/domain/usecases/get_product_usecase_test.dart`:
 
 ```dart
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -265,14 +265,14 @@ void main() {
     test('should return Product when repository returns success', () async {
       // ARRANGE: Configurar el mock
       when(mockRepository.getProduct(any)).thenAnswer(
-        (_) async => const Right(tProduct),
+        (_) async => Either.right(tProduct),
       );
 
       // ACT: Ejecutar el UseCase
       final result = await useCase(tProductId);
 
       // ASSERT: Verificar resultado
-      expect(result, equals(const Right(tProduct)));
+      expect(result, equals(Either.right(tProduct)));
       verify(mockRepository.getProduct(tProductId)).called(1);
     });
   });
@@ -309,13 +309,13 @@ group('GetProductUseCase - error cases', () {
 
   test('should return NotFoundFailure when product does not exist', () async {
     when(mockRepository.getProduct(any)).thenAnswer(
-      (_) async => const Left(NotFoundFailure('Product not found')),
+      (_) async => Either.left(NotFoundFailure('Product not found')),
     );
 
     final result = await useCase('nonexistent-id');
 
     expect(result.isLeft(), true);
-    result.fold(
+    result.match(
       (failure) => expect(failure, isA<NotFoundFailure>()),
       (_) => fail('Should have returned failure'),
     );
@@ -337,7 +337,7 @@ Aprender a verificar que el UseCase realmente llamó al repository.
 group('Verification', () {
   test('should call repository exactly once', () async {
     when(mockRepository.getProduct(any)).thenAnswer(
-      (_) async => const Right(tProduct),
+      (_) async => Either.right(tProduct),
     );
 
     await useCase(tProductId);
@@ -375,7 +375,7 @@ DOMAIN
 Crea `test/features/products/domain/usecases/get_all_products_usecase.dart`:
 
 ```dart
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import '../entities/product.dart';
 import '../repositories/product_repository.dart';
 
@@ -393,7 +393,7 @@ class GetAllProductsUseCase {
 Crea `test/features/products/domain/usecases/get_all_products_usecase_test.dart`:
 
 ```dart
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -420,21 +420,21 @@ void main() {
   test('should get all products from repository', () async {
     // Arrange
     when(mockRepository.getAllProducts()).thenAnswer(
-      (_) async => const Right(tProducts),
+      (_) async => Either.right(tProducts),
     );
 
     // Act
     final result = await useCase();
 
     // Assert
-    expect(result, equals(const Right(tProducts)));
+    expect(result, equals(Either.right(tProducts)));
     verify(mockRepository.getAllProducts()).called(1);
   });
 
   test('should return empty list when no products exist', () async {
     // Arrange
     when(mockRepository.getAllProducts()).thenAnswer(
-      (_) async => const Right([]),
+      (_) async => Either.right([]),
     );
 
     // Act
@@ -442,7 +442,7 @@ void main() {
 
     // Assert
     expect(result.isRight(), true);
-    result.fold(
+    result.match(
       (_) => fail('Should return list'),
       (products) => expect(products, isEmpty),
     );
@@ -475,7 +475,7 @@ DATA
 Crea `test/features/products/data/datasources/product_remote_datasource.dart`:
 
 ```dart
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/repositories/product_repository.dart';
 
@@ -488,7 +488,7 @@ abstract class ProductRemoteDataSource {
 Crea `test/features/products/data/datasources/product_remote_datasource_test.dart`:
 
 ```dart
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -512,21 +512,21 @@ void main() {
     test('should return product when remote call is successful', () async {
       // Arrange - Simulamos que la API responde bien
       when(mockDataSource.getProduct(any)).thenAnswer(
-        (_) async => const Right(tProduct),
+        (_) async => Either.right(tProduct),
       );
 
       // Act
       final result = await mockDataSource.getProduct('1');
 
       // Assert
-      expect(result, equals(const Right(tProduct)));
+      expect(result, equals(Either.right(tProduct)));
       verify(mockDataSource.getProduct('1')).called(1);
     });
 
     test('should return ServerFailure when remote call fails', () async {
       // Arrange - Simulamos error de red
       when(mockDataSource.getProduct(any)).thenAnswer(
-        (_) async => const Left(ServerFailure('Network error')),
+        (_) async => Either.left(ServerFailure('Network error')),
       );
 
       // Act
@@ -543,14 +543,14 @@ void main() {
         Product(id: '2', name: 'Product 2', price: 200, stock: 20),
       ];
       when(mockDataSource.getProducts()).thenAnswer(
-        (_) async => const Right(products),
+        (_) async => Either.right(products),
       );
 
       // Act
       final result = await mockDataSource.getProducts();
 
       // Assert
-      result.fold(
+      result.match(
         (_) => fail('Should return products'),
         (data) => expect(data.length, 2),
       );
@@ -564,7 +564,7 @@ void main() {
 Crea `test/features/products/data/repositories/product_repository_impl.dart`:
 
 ```dart
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/repositories/product_repository.dart';
 import '../datasources/product_remote_datasource.dart';
@@ -607,7 +607,7 @@ class ProductRepositoryImpl implements IProductRepository {
 Crea `test/features/products/data/repositories/product_repository_impl_test.dart`:
 
 ```dart
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -634,21 +634,21 @@ void main() {
     test('should forward call to remote data source', () async {
       // Arrange
       when(mockRemoteDataSource.getProduct(any)).thenAnswer(
-        (_) async => const Right(tProduct),
+        (_) async => Either.right(tProduct),
       );
 
       // Act
       final result = await repository.getProduct('1');
 
       // Assert
-      expect(result, equals(const Right(tProduct)));
+      expect(result, equals(Either.right(tProduct)));
       verify(mockRemoteDataSource.getProduct('1')).called(1);
     });
 
     test('should return failure when remote fails', () async {
       // Arrange
       when(mockRemoteDataSource.getProduct(any)).thenAnswer(
-        (_) async => const Left(ServerFailure('API Error')),
+        (_) async => Either.left(ServerFailure('API Error')),
       );
 
       // Act
@@ -717,7 +717,7 @@ class ProductCubit extends Cubit<ProductState> {
 
     final result = await getProductUseCase(productId);
 
-    result.fold(
+    result.match(
       (failure) => emit(ProductError(failure.message)),
       (product) => emit(ProductLoaded(product)),
     );
@@ -730,7 +730,7 @@ Ahora el test con la combinación de **bloc_test** + **Mockito**:
 ```dart
 // test/features/products/presentation/cubit/product_cubit_test.dart
 import 'package:bloc_test/bloc_test.dart';
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -772,7 +772,7 @@ void main() {
       'emits [ProductLoading, ProductLoaded] when loadProduct succeeds',
       build: () {
         when(mockGetProductUseCase(any)).thenAnswer(
-          (_) async => const Right(tProduct),
+          (_) async => Either.right(tProduct),
         );
         return cubit;
       },
@@ -790,7 +790,7 @@ void main() {
       'emits [ProductLoading, ProductError] when loadProduct fails',
       build: () {
         when(mockGetProductUseCase(any)).thenAnswer(
-          (_) async => const Left(ServerFailure('Not found')),
+          (_) async => Either.left(ServerFailure('Not found')),
         );
         return cubit;
       },
@@ -805,7 +805,7 @@ void main() {
       'calls useCase with correct productId',
       build: () {
         when(mockGetProductUseCase(any)).thenAnswer(
-          (_) async => const Right(tProduct),
+          (_) async => Either.right(tProduct),
         );
         return cubit;
       },
@@ -908,7 +908,7 @@ Imagina que tienes un repository que decide si usar cache o red:
 
 ```dart
 // test/features/products/domain/usecases/get_product_with_cache_usecase.dart
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import '../entities/product.dart';
 import '../repositories/product_repository.dart';
 import '../../../core/network_info.dart';
@@ -929,7 +929,7 @@ class GetProductWithCacheUseCase {
       return await repository.getProduct(id);
     } else {
       // Podría retornar de cache local
-      return const Left(ServerFailure('No internet connection'));
+      return Either.left(ServerFailure('No internet connection'));
     }
   }
 }
@@ -939,7 +939,7 @@ Test con múltiples mocks:
 
 ```dart
 // test/features/products/domain/usecases/get_product_with_cache_usecase_test.dart
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -974,14 +974,14 @@ void main() {
         (_) async => true,
       );
       when(mockRepository.getProduct(any)).thenAnswer(
-        (_) async => const Right(tProduct),
+        (_) async => Either.right(tProduct),
       );
 
       // Act
       final result = await useCase('1');
 
       // Assert
-      expect(result, equals(const Right(tProduct)));
+      expect(result, equals(Either.right(tProduct)));
       verify(mockNetworkInfo.isConnected).called(1);
       verify(mockRepository.getProduct('1')).called(1);
     });

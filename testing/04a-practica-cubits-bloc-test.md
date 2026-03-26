@@ -43,13 +43,13 @@ touch test/helpers/fake_usecases.dart
 
 ```dart
 // test/helpers/fake_usecases.dart
-import 'package:dartz/dartz.dart';
-import 'package:sereni/clean/core/error/failures.dart';
-import 'package:sereni/clean/features/auth/domain/entities/user.dart';
-import 'package:sereni/clean/features/auth/domain/usecases/login_usecase.dart';
-import 'package:sereni/clean/features/auth/domain/usecases/register_usecase.dart';
-import 'package:sereni/clean/features/auth/domain/usecases/logout_usecase.dart';
-import 'package:sereni/clean/features/auth/domain/usecases/check_auth_status_usecase.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:mi_proyecto_flutter/clean/core/error/failures.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/entities/user.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/usecases/login_usecase.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/usecases/register_usecase.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/usecases/logout_usecase.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/usecases/check_auth_status_usecase.dart';
 
 /// Fake LoginUseCase
 class FakeLoginUseCase implements LoginUseCase {
@@ -125,12 +125,12 @@ touch test/features/auth/presentation/cubit/auth_cubit_test.dart
 ```dart
 // test/features/auth/presentation/cubit/auth_cubit_test.dart
 import 'package:bloc_test/bloc_test.dart';
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/core/error/failures.dart';
-import 'package:sereni/clean/features/auth/domain/entities/user.dart';
-import 'package:sereni/clean/features/auth/presentation/cubit/auth_cubit.dart';
-import 'package:sereni/clean/features/auth/presentation/cubit/auth_state.dart';
+import 'package:mi_proyecto_flutter/clean/core/error/failures.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/entities/user.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/presentation/cubit/auth_state.dart';
 
 import '../../../../helpers/fake_auth_repository.dart';
 

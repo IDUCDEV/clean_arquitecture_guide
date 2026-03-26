@@ -162,8 +162,8 @@ Un **Model** es la versión "data" de un Entity. Mientras el Entity solo tiene d
 ### 📁 Archivo Fuente: UserModel
 
 ```dart
-// lib/clean/features/auth/data/models/user_model.dart
-import 'package:sereni/clean/features/auth/domain/entities/user.dart';
+// lib/features/features/auth/data/models/user_model.dart
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/entities/user.dart';
 
 class UserModel extends User {
   const UserModel({
@@ -376,11 +376,11 @@ Un **Remote DataSource** se comunica con APIs externas (HTTP/Supabase/Firebase).
 ### 📁 Archivo Fuente: AuthRemoteDataSource
 
 ```dart
-// lib/clean/features/auth/data/datasources/auth_remote_data_source.dart
+// lib/features/features/auth/data/datasources/auth_remote_data_source.dart
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:sereni/clean/core/error/exceptions.dart';
-import 'package:sereni/clean/features/auth/data/models/user_model.dart';
+import 'package:mi_proyecto_flutter/clean/core/error/exceptions.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/data/models/user_model.dart';
 
 abstract class AuthRemoteDataSource {
   Future<UserModel> login(String email, String password);
@@ -525,11 +525,11 @@ Un **Local DataSource** usa almacenamiento local (SharedPreferences, SQLite). Es
 ### 📁 Archivo Fuente: AuthLocalDataSource
 
 ```dart
-// lib/clean/features/auth/data/datasources/auth_local_data_source.dart
+// lib/features/features/auth/data/datasources/auth_local_data_source.dart
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sereni/clean/core/error/exceptions.dart';
-import 'package:sereni/clean/features/auth/data/models/user_model.dart';
+import 'package:mi_proyecto_flutter/clean/core/error/exceptions.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/data/models/user_model.dart';
 
 abstract class AuthLocalDataSource {
   Future<UserModel?> getUser();
@@ -626,7 +626,7 @@ El **Repository Implementation** es el "cerebro" de la capa Data. Decide:
 ### 📁 Archivo Fuente: AuthRepositoryImpl
 
 ```dart
-// lib/clean/features/auth/data/repositories/auth_repository_impl.dart
+// lib/features/features/auth/data/repositories/auth_repository_impl.dart
 class AuthRepositoryImpl implements IAuthRepository {
   final AuthRemoteDataSource remoteDataSource;
   final AuthLocalDataSource localDataSource;
@@ -647,13 +647,13 @@ class AuthRepositoryImpl implements IAuthRepository {
         final user = await remoteDataSource.login(email, password);
         // 3. Guardar en cache
         await localDataSource.cacheUser(user);
-        return Right(user);
+        return Either.right(user);
       } on ServerException catch (e) {
-        return Left(ServerFailure(e.message));
+        return Either.left(ServerFailure(e.message));
       }
     } else {
       // Sin internet
-      return Left(NetworkFailure());
+      return Either.left(NetworkFailure());
     }
   }
 }

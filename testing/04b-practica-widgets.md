@@ -33,10 +33,10 @@ Verificar que un widget se renderiza correctamente.
 
 ### ✅ Paso 1: Crea un widget simple
 
-Crea `lib/clean/features/auth/presentation/widgets/login_button.dart`:
+Crea `lib/features/features/auth/presentation/widgets/login_button.dart`:
 
 ```dart
-// lib/clean/features/auth/presentation/widgets/login_button.dart
+// lib/features/features/auth/presentation/widgets/login_button.dart
 import 'package:flutter/material.dart';
 
 class LoginButton extends StatelessWidget {
@@ -80,7 +80,7 @@ touch test/features/auth/presentation/widgets/login_button_test.dart
 // test/features/auth/presentation/widgets/login_button_test.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/features/auth/presentation/widgets/login_button.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/presentation/widgets/login_button.dart';
 
 void main() {
   group('LoginButton', () {
@@ -252,10 +252,10 @@ Crear y testear un widget de campo de email.
 
 ### ✅ Paso 1: Crea el widget EmailInput
 
-Crea `lib/clean/features/auth/presentation/widgets/email_input.dart`:
+Crea `lib/features/features/auth/presentation/widgets/email_input.dart`:
 
 ```dart
-// lib/clean/features/auth/presentation/widgets/email_input.dart
+// lib/features/features/auth/presentation/widgets/email_input.dart
 import 'package:flutter/material.dart';
 
 class EmailInput extends StatelessWidget {
@@ -295,7 +295,7 @@ touch test/features/auth/presentation/widgets/email_input_test.dart
 // test/features/auth/presentation/widgets/email_input_test.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/features/auth/presentation/widgets/email_input.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/presentation/widgets/email_input.dart';
 
 void main() {
   group('EmailInput', () {
@@ -388,13 +388,13 @@ Testear un formulario completo de login.
 
 ### ✅ Paso 1: Crea el widget AuthForm
 
-Crea `lib/clean/features/auth/presentation/widgets/auth_form.dart`:
+Crea `lib/features/features/auth/presentation/widgets/auth_form.dart`:
 
 ```dart
-// lib/clean/features/auth/presentation/widgets/auth_form.dart
+// lib/features/features/auth/presentation/widgets/auth_form.dart
 import 'package:flutter/material.dart';
-import 'package:sereni/clean/features/auth/presentation/widgets/email_input.dart';
-import 'package:sereni/clean/features/auth/presentation/widgets/login_button.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/presentation/widgets/email_input.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/presentation/widgets/login_button.dart';
 
 class AuthForm extends StatefulWidget {
   final void Function(String email, String password) onSubmit;
@@ -488,7 +488,7 @@ touch test/features/auth/presentation/widgets/auth_form_test.dart
 // test/features/auth/presentation/widgets/auth_form_test.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/features/auth/presentation/widgets/auth_form.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/presentation/widgets/auth_form.dart';
 
 void main() {
   group('AuthForm', () {

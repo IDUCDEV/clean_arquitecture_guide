@@ -152,7 +152,7 @@ touch test/features/auth/data/models/user_model_test.dart
 // test/features/auth/data/models/user_model_test.dart
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/features/auth/data/models/user_model.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/data/models/user_model.dart';
 
 import '../../../../helpers/fixture_reader.dart';
 

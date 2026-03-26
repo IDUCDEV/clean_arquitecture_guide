@@ -305,7 +305,7 @@ class ChatCubit extends Cubit<ChatState> {
     _subscription?.cancel(); // Limpiar stream anterior
     
     _subscription = watchMessages(chatId).listen((result) {
-      result.fold(
+      result.match(
         (failure) => emit(ChatError(failure.message)),
         (messages) => emit(ChatLoaded(messages)),
       );
@@ -322,7 +322,7 @@ class ChatCubit extends Cubit<ChatState> {
       content: content,
     ));
     
-    result.fold(
+    result.match(
       (failure) => emit(ChatError(failure.message)),
       (_) => emit(ChatMessageSent()),
     );
@@ -891,7 +891,7 @@ void main() {
         stream,
         emits(predicate<Either<Failure, List<Message>>>((result) {
           return result.isLeft() && 
-                 result.fold((f) => f is NetworkFailure, (_) => false);
+                 result.match((f) => f is NetworkFailure, (_) => false);
         })),
       );
     });
@@ -908,7 +908,7 @@ void main() {
       await expectLater(
         stream,
         emits(predicate<Either<Failure, List<Message>>>((result) {
-          return result.fold(
+          return result.match(
             (_) => false,
             (messages) => messages.first.id == '1',
           );
@@ -1136,7 +1136,7 @@ void main() {
       final results = <int>[];
       
       useCase('BTCUSD').listen((result) {
-        result.fold((_) {}, (v) => results.add(v));
+        result.match((_) {}, (v) => results.add(v));
       });
 
       // Act - Emitir 10 valores en 100ms

@@ -37,10 +37,10 @@ mkdir -p test/core/utils
 
 ### ✅ Paso 2: Crea el archivo con la función
 
-Crea el archivo `lib/clean/core/utils/calculator.dart`:
+Crea el archivo `lib/features/core/utils/calculator.dart`:
 
 ```dart
-// lib/clean/core/utils/calculator.dart
+// lib/features/core/utils/calculator.dart
 
 /// Suma dos números
 int add(int a, int b) => a + b;
@@ -73,7 +73,7 @@ Abre `test/core/utils/calculator_test.dart` y escribe:
 ```dart
 // test/core/utils/calculator_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/core/utils/calculator.dart';
+import 'package:mi_proyecto_flutter/clean/core/utils/calculator.dart';
 
 void main() {
   group('Calculator', () {
@@ -230,10 +230,10 @@ Imagina que tienes una función que valida passwords. Necesitas testear varios c
 
 ### ✅ Paso 1: Crea la función
 
-Crea `lib/clean/core/utils/password_validator.dart`:
+Crea `lib/features/core/utils/password_validator.dart`:
 
 ```dart
-// lib/clean/core/utils/password_validator.dart
+// lib/features/core/utils/password_validator.dart
 
 /// Valida una contraseña
 /// Retorna true si es válida
@@ -254,7 +254,7 @@ Crea `test/core/utils/password_validator_test.dart`:
 ```dart
 // test/core/utils/password_validator_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/core/utils/password_validator.dart';
+import 'package:mi_proyecto_flutter/clean/core/utils/password_validator.dart';
 
 void main() {
   group('PasswordValidator', () {
@@ -321,10 +321,10 @@ Vamos a testear una clase `User` que tiene múltiples propiedades. Esto es más 
 
 ### ✅ Paso 1: Crea la clase User
 
-Crea `lib/clean/core/models/user.dart`:
+Crea `lib/features/core/models/user.dart`:
 
 ```dart
-// lib/clean/core/models/user.dart
+// lib/features/core/models/user.dart
 import 'package:equatable/equatable.dart';
 
 class User extends Equatable {
@@ -366,7 +366,7 @@ Crea `test/core/models/user_test.dart`:
 ```dart
 // test/core/models/user_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sereni/clean/core/models/user.dart';
+import 'package:mi_proyecto_flutter/clean/core/models/user.dart';
 
 void main() {
   group('User', () {
