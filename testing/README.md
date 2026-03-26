@@ -15,9 +15,10 @@ Cada parte tiene **dos archivos**:
 ```
 01-fundamentos.md      →  01a-practica-primeros-tests.md
 02-domain-testing.md   →  02a-practica-fakes-manuales.md
+02b-intro-mockito.md   →  02b-practica-mockito.md
 03-data-testing.md    →  03a-practica-fixtures-models.md
-                       →  03b-practica-datasources.md
-                       →  03c-practica-repositories.md
+                        →  03b-practica-datasources.md
+                        →  03c-practica-repositories.md
 ```
 
 ### Ruta de Aprendizaje Sugerida
@@ -26,6 +27,9 @@ Cada parte tiene **dos archivos**:
 SEMANA 1: Fundamentos + Domain
 ├── 01-fundamentos.md + 01a-practica-primeros-tests.md
 └── 02-domain-testing.md + 02a-practica-fakes-manuales.md
+
+SEMANA 1b: Mockito (Avanzado - Después de dominar Fakes)
+├── 02b-intro-mockito.md + 02b-practica-mockito.md
 
 SEMANA 2: Data Layer
 ├── 03-data-testing.md + 03a-practica-fixtures-models.md
@@ -46,7 +50,8 @@ SEMANA 4: Core + Avanzado
 | Parte | Teoría | Práctica | Total |
 |-------|--------|----------|-------|
 | Fundamentos | 20 min | 30 min | ~1 hora |
-| Domain | 30 min | 45 min | ~1.5 horas |
+| Domain (Fakes) | 30 min | 45 min | ~1.5 horas |
+| Mockito (Avanzado) | 45 min | 1 hora | ~1.5 horas |
 | Data (3 archivos) | 45 min | 1 hora | ~2 horas |
 | Presentation | 30 min | 45 min | ~1.5 horas |
 | Core | 15 min | 30 min | ~45 min |
@@ -75,6 +80,17 @@ SEMANA 4: Core + Avanzado
 | [02a-practica-fakes-manuales.md](./02a-practica-fakes-manuales.md) | Práctica ✏️ | Crear FakeAuthRepository paso a paso |
 
 **Objetivos:** Testear lógica pura, crear Fakes manuales
+
+---
+
+### 🅰️ PARTE 2b: MOCKITO (Avanzado - Después de dominar Fakes)
+
+| Archivo | Tipo | Contenido |
+|---------|------|-----------|
+| [02b-intro-mockito.md](./02b-intro-mockito.md) | Teoría | Configuración, when(), verify(), @GenerateMocks |
+| [02b-practica-mockito.md](./02b-practica-mockito.md) | Práctica ✏️ | Ejercicios paso a paso con generación de mocks |
+
+**Objetivos:** Dominar mocks automáticos con Mockito, cuándo migrar desde Fakes
 
 ---
 
@@ -147,6 +163,9 @@ testing/
 │
 ├── 02-domain-testing.md                     ← Teoría
 ├── 02a-practica-fakes-manuales.md           ← Práctica
+│
+├── 02b-intro-mockito.md                     ← Teoría (Avanzado)
+├── 02b-practica-mockito.md                  ← Práctica
 │
 ├── 03-data-testing.md                       ← Teoría
 ├── 03a-practica-fixtures-models.md          ← Práctica
