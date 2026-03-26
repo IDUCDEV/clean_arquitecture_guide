@@ -87,7 +87,6 @@ testing/
     ├── 07-migration-to-mockito.md  ← Teoría: Cuándo usar Mockito
     └── 07a-practica-migration.md   ← Práctica: Migrar Fakes a Mocks
 ```
-
 ### 3️⃣ Guía de Uso Inteligente de IA
 
 Aprende a usar herramientas de IA como asistente en tu desarrollo, manteniendo el control sobre la lógica crítica de tu aplicación:
@@ -97,7 +96,20 @@ Aprende a usar herramientas de IA como asistente en tu desarrollo, manteniendo e
 | [🤖 GUÍA - Uso Inteligente de IA](./🤖%20GUÍA%20-%20Uso%20Inteligente%20de%20IA%20en%20Desarrollo%20Flutter.md) | Framework AIDR, prompts optimizados y estrategias por capa |
 | [🤖 PRÁCTICA - Sistema de Reservas](./🤖%20PRÁCTICA%20-%20Sistema%20de%20Reservas%20con%20Enfoque%20Híbrido.md) | Caso de estudio completo aplicando el enfoque híbrido IA + Código Manual |
 
-#### Enfoque 70/30 (IA vs Código Manual):
+### 4️⃣ Nivel Experto (Arquitectura Escalable)
+
+Conceptos avanzados para llevar tus proyectos a nivel de producción profesional:
+
+| Archivo | Descripción |
+|---------|-------------|
+| [01 - fpdart y Result Pattern](./🚀%204%20-%20NIVEL%20EXPERTO/01-fpdart-y-result-pattern.md) | Programación funcional moderna vs dartz |
+| [02 - Automatización DI con Injectable](./🚀%204%20-%20NIVEL%20EXPERTO/02-automatizacion-di-injectable.md) | Elimina el boilerplate con generación de código |
+| [03 - Comunicación entre Features](./🚀%204%20-%20NIVEL%20EXPERTO/03-comunicacion-entre-features.md) | Estrategias de desacoplamiento para apps grandes |
+| [04 - Streams y Tiempo Real](./🚀%204%20-%20NIVEL%20EXPERTO/04-streams-y-tiempo-real.md) | Implementación de StreamUseCases (Firebase/WebSockets) |
+
+---
+
+## 🚀 Cómo Usar Esta Guía
 
 ```
 ┌─────────────────────────────────────────────────────────┐
