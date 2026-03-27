@@ -360,7 +360,7 @@ graph TD
 2. **Cubit (Presentation):** El `UserCubit` recibe la llamada. Emite un estado de carga: `emit(UserLoading())`. Luego, llama al `UseCase`.
 3. **UseCase (Domain):** El `GetUsersUseCase` llama al método del `Repository`.
 4. **Repository Impl (Data):** Decide cómo obtener los datos. Si hay internet, pide a la fuente remota. Si no, usa la caché local.
-5. **DataSource (Data):** Usa `dio` o `hive` para obtener los datos. Devuelve una lista de `UserModel`.
+5. **DataSource (Data):** Usa `dio` o `isar` para obtener los datos. Devuelve una lista de `UserModel`.
 6. **Retorno del Flujo:**
    - El `DataSource` devuelve `List<UserModel>` al `Repository Impl`.
    - El `Repository Impl` convierte `List<UserModel>` a `List<UserEntity>`.
@@ -763,20 +763,28 @@ final result = await program.run();
 
 ### 5.2 Data Layer (La Cocina)
 
-#### Model (con Hive)
+#### Model (con Isar)
+
+> **Isar** es una base de datos NoSQL de código abierto, extremadamente rápida y fácil de usar. A diferencia de Hive, Isar ofrece:
+> - Queries reactivos con streams
+> - Índices compuestos y multi-entrada
+> - Búsqueda de texto completo
+> - Completamente asíncrono con soporte multi-isolate
+> 
+> Es la opción recomendada para aplicaciones que necesitan alto rendimiento con datos locales complejos.
 
 **Archivo**: `lib/features/user/data/models/user_model.dart`
 
 ```dart
-import 'package:hive/hive.dart';
+import 'package:isar_community/isar_community.dart';
 import 'package:my_app/features/user/domain/entities/user.dart';
 
 part 'user_model.g.dart';
 
-@HiveType(typeId: 5)
-class UserModel extends HiveObject {
+@collection
+class UserModel {
   UserModel({
-    required this.id,
+    this.id = Isar.autoIncrement,
     required this.name,
     required this.email,
     this.isActive = true,
@@ -784,27 +792,23 @@ class UserModel extends HiveObject {
     this.avatarUrl,
   });
 
-  @HiveField(0)
-  String id;
+  Id id;
 
-  @HiveField(1)
+  @Index()
   String name;
 
-  @HiveField(2)
+  @Index(unique: true)
   String email;
 
-  @HiveField(3, defaultValue: true)
   bool isActive;
 
-  @HiveField(4)
   DateTime? createdAt;
 
-  @HiveField(5)
   String? avatarUrl;
 
   User toEntity() {
     return User(
-      id: id,
+      id: id.toString(),
       name: name,
       email: email,
       isActive: isActive,
@@ -815,7 +819,7 @@ class UserModel extends HiveObject {
 
   factory UserModel.fromEntity(User entity) {
     return UserModel(
-      id: entity.id,
+      id: entity.id.isNotEmpty ? int.tryParse(entity.id) ?? Isar.autoIncrement : Isar.autoIncrement,
       name: entity.name,
       email: entity.email,
       isActive: entity.isActive,
@@ -826,9 +830,19 @@ class UserModel extends HiveObject {
 }
 ```
 
+**Diferencias clave Hive vs Isar:**
+
+| Aspecto | Hive | Isar 3.x |
+|---------|------|----------|
+| Anotaciones | `@HiveType(typeId: 5)` | `@collection` |
+| Campo ID | `String id` | `Id id = Isar.autoIncrement` |
+| Índices | No tiene | `@Index()`, `@Index(unique: true)` |
+| Herencia | Extiende `HiveObject` | No extiende nada |
+| Serialización | Genera adapter | Genera schema |
+
 #### Model Nativo (API REST)
 
-> Cuando usas comunicación con APIs REST (JSON), no necesitas Hive. Solo necesitas serialización con `fromJson`/`toJson`.
+> Cuando usas comunicación con APIs REST (JSON), no necesitas Isar para el modelo remote. Solo necesitas serialización con `fromJson`/`toJson`.
 
 **Archivo**: `lib/features/user/data/models/user_model.dart`
 
@@ -893,14 +907,16 @@ class UserModel extends User {
 }
 ```
 
-**Diferencias clave entre Hive y API REST:**
+**Diferencias clave entre Isar y API REST:**
 
-| Aspecto | Hive | API REST |
+| Aspecto | Isar | API REST |
 |---------|------|----------|
-| Serialización | `@HiveField()` annotations | `fromJson()` / `toJson()` |
+| Serialización | `@collection` + generación de schema | `fromJson()` / `toJson()` |
 | Persistencia | Local en dispositivo | Remoto en servidor |
 | Sincronización | No requiere red | Requiere conexión a internet |
 | Offline | Soportado nativamente | Necesita caché local |
+| Queries | Rich query language con índices | Limitado a endpoints del servidor |
+| Reactivo | Streams para cambios | Polling o websockets |
 
 #### Remote DataSource (API REST)
 
@@ -1038,47 +1054,61 @@ class CacheException implements Exception {
 }
 ```
 
-#### DataSource
+#### DataSource (con Isar)
 
 **Archivo**: `lib/features/user/data/datasources/user_local_data_source.dart`
 
 ```dart
-import 'package:hive/hive.dart';
+import 'package:isar_community/isar_community.dart';
 import 'package:my_app/features/user/data/models/user_model.dart';
 
 abstract class UserLocalDataSource {
   Future<List<UserModel>> getUsers();
-  Future<UserModel?> getUser(String id);
-  Future<void> saveUser(UserModel user);
-  Future<void> deleteUser(String id);
+  Future<UserModel?> getUser(int id);
+  Future<int> saveUser(UserModel user);
+  Future<void> deleteUser(int id);
 }
 
 class UserLocalDataSourceImpl implements UserLocalDataSource {
-  final Box<UserModel> _box;
+  final Isar _isar;
   
-  UserLocalDataSourceImpl(this._box);
+  UserLocalDataSourceImpl(this._isar);
   
   @override
   Future<List<UserModel>> getUsers() async {
-    return _box.values.toList();
+    return _isar.userModels.where().findAll();
   }
   
   @override
-  Future<UserModel?> getUser(String id) async {
-    return _box.get(id);
+  Future<UserModel?> getUser(int id) async {
+    return _isar.userModels.get(id);
   }
   
   @override
-  Future<void> saveUser(UserModel user) async {
-    await _box.put(user.id, user);
+  Future<int> saveUser(UserModel user) async {
+    return _isar.writeTxn(() async {
+      return _isar.userModels.put(user);
+    });
   }
   
   @override
-  Future<void> deleteUser(String id) async {
-    await _box.delete(id);
+  Future<void> deleteUser(int id) async {
+    await _isar.writeTxn(() async {
+      await _isar.userModels.delete(id);
+    });
   }
 }
 ```
+
+**Diferencias clave entre Hive Box e Isar:**
+
+| Aspecto | Hive Box | Isar |
+|---------|----------|------|
+| Obtener todos | `_box.values.toList()` | `_isar.userModels.where().findAll()` |
+| Obtener uno | `_box.get(id)` | `_isar.userModels.get(id)` |
+| Guardar | `_box.put(key, value)` | `_isar.writeTxn(() => isar.collection.put(value))` |
+| Eliminar | `_box.delete(key)` | `_isar.writeTxn(() => isar.collection.delete(id))` |
+| Tipo ID | String | int (Id) |
 
 #### Repository Implementation (con lógica Online/Offline)
 
@@ -1280,6 +1310,8 @@ getUsers()
     │       │
     └──────┘
 ```
+
+> **Nota**: Con Isar, puedes aprovechar sus streams reactivos para observadores en tiempo real de los datos locales, lo cual simplifica la sincronización con la UI.
 
 ---
 
@@ -1777,7 +1809,7 @@ void main() {
 ```dart
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:isar_community/isar_community.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:my_app/core/network/network_info.dart';
 import 'package:my_app/features/user/data/datasources/user_local_data_source.dart';
@@ -1790,6 +1822,7 @@ import 'package:my_app/features/user/domain/usecases/delete_user.dart';
 import 'package:my_app/features/user/domain/usecases/get_user.dart';
 import 'package:my_app/features/user/domain/usecases/get_users.dart';
 import 'package:my_app/features/user/presentation/cubit/user_cubit.dart';
+import 'package:path_provider/path_provider.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -1818,11 +1851,14 @@ Future<void> init() async {
   // NetworkInfo
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
 
-  // Hive - Base de datos local (caché)
-  await Hive.initFlutter();
-  Hive.registerAdapter(UserModelAdapter());
-  final userBox = await Hive.openBox<UserModel>('users');
-  sl.registerLazySingleton<Box<UserModel>>(() => userBox);
+  // Isar - Base de datos local (caché)
+  final dir = await getApplicationDocumentsDirectory();
+  final isar = await Isar.open(
+    [UserModelSchema],
+    directory: dir.path,
+    name: 'my_app_db',
+  );
+  sl.registerLazySingleton<Isar>(() => isar);
 
   // ╔════════════════════════════════════════════════════════════╗
   // ║  CAPA DE DATOS - DataSources                             ║
@@ -1833,7 +1869,7 @@ Future<void> init() async {
     () => UserRemoteDataSourceImpl(client: sl()),
   );
 
-  // Local DataSource (Caché Hive)
+  // Local DataSource (Caché Isar)
   sl.registerLazySingleton<UserLocalDataSource>(
     () => UserLocalDataSourceImpl(sl()),
   );
@@ -1870,33 +1906,38 @@ Future<void> init() async {
 }
 ```
 
-**Nota**: Si solo usas API REST sin Hive, elimina las líneas de Hive y usa solo RemoteDataSource. El injection_container sería:
+> **Nota**: Si usas **solo** base de datos local sin API, el `remoteDataSource` no es necesario. En ese caso, el `UserRepositoryImpl` solo usaría `localDataSource`.
+
+**Versión con solo Isar (sin API REST):**
 
 ```dart
-// Versión simplificada solo con API REST (sin Hive)
+// Versión simplificada solo con base de datos local Isar
 Future<void> init() async {
-  // Dio
-  sl.registerLazySingleton<Dio>(() => Dio());
+  // Isar - Base de datos local
+  final dir = await getApplicationDocumentsDirectory();
+  final isar = await Isar.open(
+    [UserModelSchema],
+    directory: dir.path,
+  );
+  sl.registerLazySingleton<Isar>(() => isar);
 
-  // NetworkInfo
-  sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
-
-  // RemoteDataSource
-  sl.registerLazySingleton<UserRemoteDataSource>(
-    () => UserRemoteDataSourceImpl(client: sl()),
+  // LocalDataSource (Isar)
+  sl.registerLazySingleton<UserLocalDataSource>(
+    () => UserLocalDataSourceImpl(sl()),
   );
 
-  // Repository (sin localDataSource)
+  // Repository (solo con localDataSource)
   sl.registerLazySingleton<UserRepository>(
     () => UserRepositoryImpl(
-      remoteDataSource: sl(),
-      networkInfo: sl(),
+      localDataSource: sl(),
     ),
   );
 
   // ... resto de UseCases y Cubits
 }
 ```
+
+> **Diferencia clave**: El `UserRepositoryImpl` necesitaría una versión simplificada que solo use `localDataSource` sin verificar conexión a internet.
 
 **Archivo**: `lib/core/common/usecase.dart`
 
@@ -2478,9 +2519,9 @@ UseCase llama a repository.getUsers()
     ↓
 Repository verifica: ¿Hay internet?
     ├─► SÍ → remoteDataSource.getUsers() → API REST
-    │      └→ cacheUsers() → Guardar todos en Hive
+    │      └→ cacheUsers() → Guardar todos en Isar
     │
-    └─► NO → localDataSource.getUsers() → Leer de Hive
+    └─► NO → localDataSource.getUsers() → Leer de Isar
     ↓
 Datos vuelven convertidos a List<User>
     ↓
@@ -2508,9 +2549,12 @@ dependencies:
   dio: ^5.3.3
   internet_connection_checker: ^1.0.0+1
   
-  # Local Storage
-  hive: ^2.2.3
-  hive_flutter: ^1.1.0
+  # Local Storage - Isar (reemplaza Hive)
+  isar_community: ^3.3.2
+  isar_community_flutter_libs: ^3.3.2
+  
+  # Path provider (necesario para Isar)
+  path_provider: ^2.1.2
   
   # Routing
   go_router: ^12.1.3
@@ -2520,8 +2564,37 @@ dev_dependencies:
     sdk: flutter
   mockito: ^5.4.2
   build_runner: ^2.4.7
-  hive_generator: ^2.0.1
+  isar_community_generator: ^3.3.2
 ```
+
+### Diferencias Hive vs Isar en pubspec
+
+| Paquete | Hive | Isar 3.x |
+|---------|------|----------|
+| Runtime | `hive`, `hive_flutter` | `isar_community`, `isar_community_flutter_libs` |
+| Generator | `hive_generator` | `isar_community_generator` |
+| Path | No necesita | `path_provider` |
+
+### Notas Importantes
+
+1. **Generación de código**: Con Isar, después de definir tus modelos, ejecuta:
+   ```bash
+   dart run build_runner build
+   ```
+   Esto generará el archivo `user_model.g.dart`.
+
+2. **Testing**: Para tests unitarios con Isar, necesitas inicializar Isar Core:
+   ```dart
+   setUpAll(() async {
+     await Isar.initializeIsarCore(download: true);
+   });
+   ```
+   Ejecuta los tests con: `flutter test -j 1` (evita paralelismo).
+
+3. **Instancias múltiples**: Isar permite múltiples bases de datos con el parámetro `name`:
+   ```dart
+   final isar = await Isar.open([Schema], directory: dir.path, name: 'mi_db');
+   ```
 
 ---
 
