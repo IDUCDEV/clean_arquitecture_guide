@@ -327,8 +327,9 @@ dependencies:
   internet_connection_checker: ^1.0.0+1
   
   # Storage
-  hive: ^2.2.3
-  hive_flutter: ^1.1.0
+  isar_community: ^3.3.2
+  isar_community_flutter_libs: ^3.3.2
+  path_provider: ^2.1.2
   sqflite: ^2.3.0
   shared_preferences: ^2.2.2
   
@@ -341,7 +342,7 @@ dev_dependencies:
   bloc_test: ^9.1.0
   mockito: ^5.4.0
   build_runner: ^2.4.7
-  hive_generator: ^2.0.1
+  isar_community_generator: ^3.3.2
 ```
 
 ---

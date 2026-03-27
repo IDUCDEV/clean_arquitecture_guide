@@ -625,6 +625,202 @@ Has aprendido a:
 
 ---
 
+## ⚡ Alternativa: Testear Local DataSource con Isar
+
+> Esta sección muestra cómo testear un Local DataSource usando **Isar** en lugar de SharedPreferences.
+
+### 📝 Diferencias Clave
+
+| Aspecto | SharedPreferences | Isar |
+|---------|-------------------|------|
+| Tipo de datos | Solo strings/primitivos | Objetos complejos |
+| Queries | No | Sí, con filtros |
+| Streams reactivos | No | Sí |
+| Tests | Fake manual | Isar.inMemory |
+
+### ✅ Paso 1: Setup para Tests con Isar
+
+```dart
+// test/helpers/isar_test_helper.dart
+import 'package:isar_community/isar_community.dart';
+import 'package:mi_proyecto_flutter/features/user/data/models/user_model.dart';
+
+/// Helper para crear Isar en memoria para testing
+class IsarTestHelper {
+  static Future<Isar> createIsar() async {
+    await Isar.initializeIsarCore(download: true);
+    
+    return await Isar.open(
+      [UserModelSchema],
+      directory: '',
+      name: 'test_${DateTime.now().millisecondsSinceEpoch}',
+    );
+  }
+}
+```
+
+### ✅ Paso 2: Test del Local DataSource con Isar
+
+```dart
+// test/features/user/data/datasources/user_local_data_source_test.dart
+import 'package:flutter_test/flutter_test.dart';
+import 'package:isar_community/isar_community.dart';
+import 'package:mi_proyecto_flutter/features/user/data/datasources/user_local_data_source.dart';
+import 'package:mi_proyecto_flutter/features/user/data/models/user_model.dart';
+
+import '../../../../helpers/isar_test_helper.dart';
+
+void main() {
+  late UserLocalDataSourceImpl dataSource;
+  late Isar isar;
+
+  setUpAll(() async {
+    await Isar.initializeIsarCore(download: true);
+  });
+
+  setUp(() async {
+    isar = await IsarTestHelper.createIsar();
+    dataSource = UserLocalDataSourceImpl(isar);
+  });
+
+  tearDown(() async {
+    await isar.close(deleteFromDisk: true);
+  });
+
+  group('UserLocalDataSource with Isar', () {
+    final tUserModel = UserModel(
+      name: 'John',
+      email: 'john@example.com',
+      isActive: true,
+    );
+
+    group('saveUser', () {
+      test('should save user to Isar database', () async {
+        // Act
+        final id = await dataSource.saveUser(tUserModel);
+
+        // Assert
+        expect(id, isPositive);
+        final savedUser = await isar.userModels.get(id);
+        expect(savedUser?.name, 'John');
+        expect(savedUser?.email, 'john@example.com');
+      });
+
+      test('should update existing user', () async {
+        // Arrange
+        final id = await dataSource.saveUser(tUserModel);
+        final updatedUser = UserModel(
+          id: id,
+          name: 'Jane',
+          email: 'jane@example.com',
+        );
+
+        // Act
+        await dataSource.saveUser(updatedUser);
+
+        // Assert
+        final savedUser = await isar.userModels.get(id);
+        expect(savedUser?.name, 'Jane');
+      });
+    });
+
+    group('getUser', () {
+      test('should return user by id', () async {
+        // Arrange
+        final id = await dataSource.saveUser(tUserModel);
+
+        // Act
+        final result = await dataSource.getUser(id);
+
+        // Assert
+        expect(result, isNotNull);
+        expect(result?.name, 'John');
+      });
+
+      test('should return null for non-existent id', () async {
+        // Act
+        final result = await dataSource.getUser(999999);
+
+        // Assert
+        expect(result, isNull);
+      });
+    });
+
+    group('getUsers', () {
+      test('should return all users', () async {
+        // Arrange
+        await dataSource.saveUser(tUserModel);
+        await dataSource.saveUser(UserModel(
+          name: 'Jane',
+          email: 'jane@example.com',
+        ));
+
+        // Act
+        final result = await dataSource.getUsers();
+
+        // Assert
+        expect(result.length, 2);
+      });
+
+      test('should return empty list when no users', () async {
+        // Act
+        final result = await dataSource.getUsers();
+
+        // Assert
+        expect(result, isEmpty);
+      });
+    });
+
+    group('deleteUser', () {
+      test('should delete user by id', () async {
+        // Arrange
+        final id = await dataSource.saveUser(tUserModel);
+
+        // Act
+        await dataSource.deleteUser(id);
+
+        // Assert
+        final result = await isar.userModels.get(id);
+        expect(result, isNull);
+      });
+    });
+  });
+}
+```
+
+### 🧪 Ejecuta los tests
+
+```bash
+flutter test -j 1 test/features/user/data/datasources/user_local_data_source_test.dart
+```
+
+> **Nota**: Usa `-j 1` para evitar problemas con la descarga automática de Isar Core en paralelo.
+
+---
+
+## ✅ Checklist de Ejercicio Completado
+
+- [ ] Ejercicio 1: Fake HTTP Client creado
+- [ ] Ejercicio 2: Tests Remote DataSource (9 tests)
+- [ ] Ejercicio 3: Fake SharedPreferences creado
+- [ ] Ejercicio 4: Tests Local DataSource (6 tests)
+- [ ] Alternativa Isar: Tests Local DataSource con Isar
+- [ ] **Total: 15+ tests** ejecutándose correctamente
+
+---
+
+## 🎉 ¡Felicitaciones!
+
+Has aprendido a:
+- ✅ Crear un Fake HTTP Client para simular APIs
+- ✅ Testear Remote DataSource (éxito, errores, parámetros)
+- ✅ Crear un Fake de SharedPreferences para simular cache
+- ✅ Testear Local DataSource (guardar, obtener, limpiar)
+- ✅ Testear Local DataSource con Isar (alternativa moderna)
+- ✅ Testear manejo de errores (excepciones)
+
+---
+
 ## 🚀 Siguiente Paso
 
 **Práctica:** [03c-practica-repositories.md](./03c-practica-repositories.md)
