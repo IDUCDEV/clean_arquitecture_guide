@@ -8,7 +8,7 @@
 
 1. [Introducción a la Capa Domain](#introducción-a-la-capa-domain)
 2. [Testing de Entities](#testing-de-entities)
-3. [Creando Fakes Manuales (Explicación Paso a Paso)](#creando-fakes-manuales-explicación-paso-a-paso)
+3. [Creando Mocks con Mockito](#creando-mocks-con-mockito)
 4. [Testing de UseCases](#testing-de-usecases)
 5. [Testing de Failures](#testing-de-failures)
 6. [ Checklist](#-checklist)
@@ -236,9 +236,9 @@ group('copyWith', () {
 
 ---
 
-## 3. Creando Fakes Manuales (Explicación Paso a Paso)
+## 3. Creando Mocks con Mockito
 
-### 🤔 ¿Por qué necesitamos Fakes?
+### 🤔 ¿Por qué necesitamos Mocks?
 
 Imagina que quieres testear un `LoginUseCase`:
 
@@ -256,187 +256,83 @@ class LoginUseCase {
 
 **Problema:** `LoginUseCase` depende de `IAuthRepository`. No podemos llamarlo directamente porque necesitamos una implementación.
 
-**Solución:** Creamos un **Fake** - una implementación falsa de la interfaz que controla el comportamiento.
+**Solución:** Usar **Mockito** para generar automáticamente un Mock de la interfaz.
 
-### 🎬 La Analogía del Actor
+### 🎬 La Analogía del Director
 
-Un Fake es como un **actor** que sigue un guión:
+Con Mockito, es como tener un **director de cine** que entrena actores:
 
-| Concepto | Analogía del Actor |
-|----------|---------------------|
-| `shouldFail` | "Actor, hoy haz de fallar" |
-| `userToReturn` | "Actor, cuando te pregunten, entrega este usuario" |
-| `loginCallCount` | "Actor, cuenta cuántas veces te preguntan" |
+| Concepto | Analogía del Director |
+|----------|----------------------|
+| `when()` | "Cuando te pregunten X, responde Y" |
+| `verify()` | "¿Realmente llamaste a ese método?" |
+| `any()` | "No me importa el valor, solo responde" |
 
-### 📁 Estructura de un Fake Paso a Paso
+### 📁 Estructura con Mockito Paso a Paso
 
-#### Paso 1: Copia la Interfaz
+#### Paso 1: Añadir dependencias
 
-Primero, mira tu interfaz original:
+En tu `pubspec.yaml`:
 
-```dart
-// lib/features/features/auth/domain/repositories/auth_repository.dart
-abstract class IAuthRepository {
-  Future<Either<Failure, User>> login(String email, String password);
-  Future<Either<Failure, void>> logout();
-  Future<Either<Failure, User>> register({
-    required String email,
-    required String password,
-    required String name,
-    required String lastName,
-  });
-  Future<Either<Failure, User?>> checkAuthStatus();
-}
+```yaml
+dev_dependencies:
+  mockito: ^5.4.0
+  build_runner: ^2.4.0
 ```
 
-#### Paso 2: Crea la Clase Fake
+#### Paso 2: Crear el test con @GenerateMocks
 
 ```dart
-// test/helpers/fake_repositories.dart
+// test/features/auth/domain/usecases/login_usecase_test.dart
 import 'package:fpdart/fpdart.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 import 'package:mi_proyecto_flutter/clean/core/error/failures.dart';
 import 'package:mi_proyecto_flutter/clean/features/auth/domain/entities/user.dart';
 import 'package:mi_proyecto_flutter/clean/features/auth/domain/repositories/auth_repository.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/usecases/login_usecase.dart';
 
-/// Fake implementation of IAuthRepository for testing
-/// 
-/// This is like an actor following a script - you control what it returns
-class FakeAuthRepository implements IAuthRepository {
-  // ═══════════════════════════════════════════════════════════════
-  // CONTROL FLAGS - Like telling the actor what to do
-  // ═══════════════════════════════════════════════════════════════
-  
-  /// When true, all methods will return a failure
-  bool shouldFail = false;
-  
-  /// When true, methods will throw an exception
-  bool shouldThrowException = false;
-  
-  // ═══════════════════════════════════════════════════════════════
-  // DATA TO RETURN - What the actor should give back
-  // ═══════════════════════════════════════════════════════════════
-  
-  /// User to return on successful login/register
-  User? userToReturn;
-  
-  /// Failure to return when shouldFail is true
-  Failure? failureToReturn;
-  
-  // ═══════════════════════════════════════════════════════════════
-  // TRACKING - Counting how many times the actor is called
-  // ═══════════════════════════════════════════════════════════════
-  
-  int loginCallCount = 0;
-  int logoutCallCount = 0;
-  int registerCallCount = 0;
-  int checkAuthStatusCallCount = 0;
-  
-  // ═══════════════════════════════════════════════════════════════
-  // TRACKING PARAMETERS - What was passed to the actor
-  // ═══════════════════════════════════════════════════════════════
-  
-  String? lastEmail;
-  String? lastPassword;
-  String? lastName;
-  String? lastLastName;
+/// Esta anotación genera automáticamente un mock para IAuthRepository
+@GenerateMocks([IAuthRepository])
+import 'login_usecase_test.mocks.dart';
 
-  // ═══════════════════════════════════════════════════════════════
-  // IMPLEMENTATION - The actual "acting"
-  // ═══════════════════════════════════════════════════════════════
+void main() {
+  late LoginUseCase useCase;
+  late MockIAuthRepository mockRepository;
 
-  @override
-  Future<Either<Failure, User>> login(String email, String password) async {
-    // Track the call
-    loginCallCount++;
-    lastEmail = email;
-    lastPassword = password;
-    
-    // Check if we should throw exception
-    if (shouldThrowException) {
-      throw Exception('Network error');
-    }
-    
-    // Check if we should fail
-    if (shouldFail) {
-      return Either.left(failureToReturn ?? const ServerFailure('Login failed'));
-    }
-    
-    // Success case
-    return Either.right(userToReturn!);
-  }
+  setUp(() {
+    // Crear el mock automáticamente generado
+    mockRepository = MockIAuthRepository();
+    // Inyectar el mock en el UseCase
+    useCase = LoginUseCase(repository: mockRepository);
+  });
 
-  @override
-  Future<Either<Failure, void>> logout() async {
-    logoutCallCount++;
-    
-    if (shouldFail) {
-      return Either.left(failureToReturn ?? const ServerFailure('Logout failed'));
-    }
-    
-    return Either.right(null);
-  }
-
-  @override
-  Future<Either<Failure, User>> register({
-    required String email,
-    required String password,
-    required String name,
-    required String lastName,
-  }) async {
-    registerCallCount++;
-    lastEmail = email;
-    lastPassword = password;
-    lastName = name;
-    lastLastName = lastName;
-    
-    if (shouldFail) {
-      return Either.left(failureToReturn ?? const ServerFailure('Registration failed'));
-    }
-    
-    return Either.right(userToReturn!);
-  }
-
-  @override
-  Future<Either<Failure, User?>> checkAuthStatus() async {
-    checkAuthStatusCallCount++;
-    
-    if (shouldFail) {
-      return Either.left(failureToReturn ?? const ServerFailure('Auth check failed'));
-    }
-    
-    return Either.right(userToReturn);
-  }
-  
-  /// Reset all state for fresh test
-  /// Like resetting the actor for the next scene
-  void reset() {
-    shouldFail = false;
-    shouldThrowException = false;
-    userToReturn = null;
-    failureToReturn = null;
-    loginCallCount = 0;
-    logoutCallCount = 0;
-    registerCallCount = 0;
-    checkAuthStatusCallCount = 0;
-    lastEmail = null;
-    lastPassword = null;
-    lastName = null;
-    lastLastName = null;
-  }
+  // Tests van aquí...
 }
 ```
 
-### 🎓 ¿Por qué cada parte del Fake?
+#### Paso 3: Generar el Mock
 
-| Sección | Propósito | ¿Cuándo usarla? |
-|---------|-----------|-----------------|
-| `shouldFail` | Controlar si retorna error | Test de casos de error |
-| `shouldThrowException` | Simular excepciones | Test de manejo de errores |
-| `userToReturn` | Qué retornar en éxito | Test de casos exitosos |
-| `failureToReturn` | Qué error retornar | Test de tipos específicos de error |
-| `*CallCount` | Verificar que se llamó | Test de interacciones |
-| `last*` | Verificar parámetros | Test de que se pasaron datos correctos |
-| `reset()` | Limpiar estado | En `tearDown()` |
+```bash
+dart run build_runner build --delete-conflicting-outputs
+```
+
+Esto genera automáticamente `login_usecase_test.mocks.dart` con:
+
+```dart
+// Generated file - NO MODIFICAR
+class MockIAuthRepository extends Mock implements IAuthRepository {}
+```
+
+### 🎓 ¿Por qué usar Mockito?
+
+| Aspecto | Con Fake Manual | Con Mockito |
+|---------|---------------|-------------|
+| **Código a escribir** | Mucho (implementar toda la clase) | Poco (solo anotaciones) |
+| **Verificación** | Manual (contadores) | Automática (verify) |
+| **Mantenimiento** | Actualizar manualmente | Regenerar con build_runner |
+| **Verificación de argumentos** | Manual (guardar last*) | Automática (captureAny) |
 
 ---
 
@@ -484,41 +380,31 @@ class LoginParams extends Equatable {
 
 ### 🧪 Tests del UseCase: Paso a Paso
 
-#### Estructura Base
+#### Estructura Base con Mockito
 
 ```dart
 // test/features/auth/domain/usecases/login_usecase_test.dart
 import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 import 'package:mi_proyecto_flutter/clean/core/error/failures.dart';
 import 'package:mi_proyecto_flutter/clean/features/auth/domain/entities/user.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/domain/repositories/auth_repository.dart';
 import 'package:mi_proyecto_flutter/clean/features/auth/domain/usecases/login_usecase.dart';
 
-import '../../../../helpers/fake_repositories.dart';
+@GenerateMocks([IAuthRepository])
+import 'login_usecase_test.mocks.dart';
 
 void main() {
   late LoginUseCase useCase;
-  late FakeAuthRepository fakeRepository;
+  late MockIAuthRepository mockRepository;
 
   setUp(() {
-    // Create fresh instances for each test
-    fakeRepository = FakeAuthRepository();
-    useCase = LoginUseCase(repository: fakeRepository);
+    mockRepository = MockIAuthRepository();
+    useCase = LoginUseCase(repository: mockRepository);
   });
 
-  tearDown(() {
-    // Reset state after each test
-    fakeRepository.reset();
-  });
-
-  // Tests go here...
-}
-```
-
-#### Test 1: Caso de Éxito
-
-```dart
-group('LoginUseCase', () {
   const tEmail = 'test@example.com';
   const tPassword = 'password123';
   const tUser = User(
@@ -528,9 +414,18 @@ group('LoginUseCase', () {
     lastName: 'Doe',
   );
 
+  // Tests van aquí...
+}
+```
+
+#### Test 1: Caso de Éxito
+
+```dart
+group('LoginUseCase', () {
   test('should return User when login is successful', () async {
-    // ARRANGE - Configurar el Fake para éxito
-    fakeRepository.userToReturn = tUser;
+    // ARRANGE - Configurar el Mock para éxito
+    when(mockRepository.login(any, any))
+        .thenAnswer((_) async => Either.right(tUser));
 
     // ACT - Ejecutar el UseCase
     final result = await useCase(const LoginParams(
@@ -542,11 +437,7 @@ group('LoginUseCase', () {
     expect(result, equals(Either.right(tUser)));
     
     // ASSERT - Verificar que se llamó al repositorio
-    expect(fakeRepository.loginCallCount, 1);
-    
-    // ASSERT - Verificar parámetros
-    expect(fakeRepository.lastEmail, tEmail);
-    expect(fakeRepository.lastPassword, tPassword);
+    verify(mockRepository.login(tEmail, tPassword)).called(1);
   });
 });
 ```
@@ -555,9 +446,10 @@ group('LoginUseCase', () {
 
 ```dart
   test('should return ServerFailure when login fails', () async {
-    // ARRANGE - Configurar el Fake para fallar
-    fakeRepository.shouldFail = true;
-    fakeRepository.failureToReturn = const ServerFailure('Invalid credentials');
+    // ARRANGE - Configurar el Mock para fallar
+    when(mockRepository.login(any, any)).thenAnswer(
+      (_) async => Either.left(ServerFailure('Invalid credentials')),
+    );
 
     // ACT
     final result = await useCase(const LoginParams(
@@ -567,7 +459,7 @@ group('LoginUseCase', () {
 
     // ASSERT
     expect(result, equals(Either.left(ServerFailure('Invalid credentials'))));
-    expect(fakeRepository.loginCallCount, 1);
+    verify(mockRepository.login(tEmail, tPassword)).called(1);
   });
 ```
 
@@ -576,13 +468,40 @@ group('LoginUseCase', () {
 ```dart
   test('should call repository only once', () async {
     // ARRANGE
-    fakeRepository.userToReturn = tUser;
+    when(mockRepository.login(any, any))
+        .thenAnswer((_) async => Either.right(tUser));
 
-    // ACT - Llamar múltiples veces
+    // ACT
     await useCase(const LoginParams(email: tEmail, password: tPassword));
 
     // ASSERT
-    expect(fakeRepository.loginCallCount, 1);
+    verify(mockRepository.login(tEmail, tPassword)).called(1);
+    verifyNoMoreInteractions(mockRepository);
+  });
+```
+
+#### Test 4: Capturar argumentos
+
+```dart
+  test('should capture arguments passed to repository', () async {
+    // ARRANGE
+    when(mockRepository.login(any, any))
+        .thenAnswer((_) async => Either.right(tUser));
+
+    // ACT
+    await useCase(const LoginParams(
+      email: tEmail,
+      password: tPassword,
+    ));
+
+    // ASSERT - Capturar los argumentos
+    final captured = verify(mockRepository.login(
+      captureAny,
+      captureAny,
+    )).captured;
+
+    expect(captured[0], tEmail);
+    expect(captured[1], tPassword);
   });
 ```
 
@@ -692,11 +611,12 @@ Antes de pasar a la siguiente parte, asegúrate de:
 
 - [ ] Entender qué es un Entity y por qué usar Equatable
 - [ ] Saber testear `copyWith` e igualdad de objetos
-- [ ] Comprender qué es un Fake y por qué lo necesitamos
-- [ ] Crear Fakes manuales implementando interfaces
-- [ ] Configurar comportamiento de Fakes (shouldFail, userToReturn)
+- [ ] Comprender qué es un Mock y por qué lo necesitamos
+- [ ] Crear Mocks con @GenerateMocks de Mockito
+- [ ] Configurar comportamiento de Mocks (when + thenAnswer)
 - [ ] Testear UseCases con éxito y fallo
-- [ ] Verificar parámetros pasados a repositorios
+- [ ] Verificar llamadas con verify()
+- [ ] Capturar argumentos con captureAny
 - [ ] Entender Either<Failure, Success>
 - [ ] Testear diferentes tipos de Failure
 
@@ -706,34 +626,17 @@ Antes de pasar a la siguiente parte, asegúrate de:
 
 **Teoría:** [Parte 3: Testing Data](./03-data-testing.md)
 
-**Práctica:** [02a-practica-fakes-manuales.md](./02a-practica-fakes-manuales.md) ← ¡Practica creando Fakes!
+**Práctica:** [02a-practica-mockito.md](./02a-practica-mockito.md) ← ¡Practica con Mockito!
 
 ---
 
 ## 💡 Tips Adicionales
 
-### Organización de Fakes
-Mantén todos tus Fakes en `test/helpers/`:
-
-```dart
-// test/helpers/fakes.dart
-export 'fake_repositories.dart';
-// export 'fake_datasources.dart';  // Cuando los tengas
-// export 'fake_services.dart';     // Cuando los tengas
-```
-
-### Datos de prueba consistentes
-Define constantes para datos de prueba reutilizables:
-
-```dart
-// test/helpers/test_constants.dart
-const tEmail = 'test@example.com';
-const tPassword = 'password123';
-const tUser = User(id: '123', email: tEmail, name: 'John', lastName: 'Doe');
-```
-
 ### Comandos útiles
 ```bash
+# Generar todos los mocks
+dart run build_runner build --delete-conflicting-outputs
+
 # Ejecutar todos los tests de domain
 flutter test test/features/auth/domain/
 
@@ -742,4 +645,24 @@ flutter test --coverage test/features/auth/domain/
 
 # Ver reporte de coverage
 genhtml coverage/lcov.info -o coverage/html
+```
+
+### API de Mockito resumida
+
+```dart
+// Stubbing
+when(mock.method(any)).thenAnswer((_) async => value);
+when(mock.method(any)).thenThrow(Exception('error'));
+
+// Verificación
+verify(mock.method(args)).called(1);
+verifyNever(mock.method(any));
+verifyZeroInteractions(mock);
+verifyNoMoreInteractions(mock);
+
+// Matchers
+any(), anyNamed('param'), argThat(matcher)
+
+// Captura
+verify(mock.method(captureAny())).captured;
 ```

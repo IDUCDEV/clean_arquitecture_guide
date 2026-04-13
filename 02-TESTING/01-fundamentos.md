@@ -99,7 +99,7 @@ project_root/
     │   ├── user.json
     │   └── auth_response.json
     └── helpers/                   ← Utilidades de testing
-        ├── fake_repositories.dart
+        └── mocks/                  ← Mocks generados
         └── fixture_reader.dart
 ```
 
@@ -249,18 +249,18 @@ Código que se ejecuta **antes de cada test** en un grupo:
 
 ```dart
 group('AuthRepository', () {
-  late FakeAuthRepository repository;
+  late MockIAuthRepository mockRepository;
   
   setUp(() {
-    repository = FakeAuthRepository();  // Se ejecuta ANTES de cada test
+    mockRepository = MockIAuthRepository();  // Se ejecuta ANTES de cada test
   });
   
   test('test 1', () { 
-    // repository aquí está FRESCO (nueva instancia)
+    // mockRepository aquí está FRESCO (nueva instancia)
   });
   
   test('test 2', () { 
-    // repository aquí está FRESCO (nueva instancia otra vez)
+    // mockRepository aquí está FRESCO (nueva instancia otra vez)
   });
 });
 ```
@@ -326,13 +326,14 @@ test('should return user when login is successful', () async {
   // ═══════════════════════════════════════════════════════════
   const email = 'test@example.com';
   const password = 'password123';
-  final fakeRepository = FakeAuthRepository();
-  fakeRepository.userToReturn = const User(id: '1', email: email);
+  final mockRepository = MockIAuthRepository();
+  when(() => mockRepository.login(any, any))
+      .thenAnswer((_) async => Either.right(tUser));
   
   // ═══════════════════════════════════════════════════════════
-  // ACT: Ejecutar la acción a testear
+  // ACT: Ejecutar la acción que queremos testear
   // ═══════════════════════════════════════════════════════════
-  final result = await fakeRepository.login(email, password);
+  final result = await mockRepository.login(email, password);
   
   // ═══════════════════════════════════════════════════════════
   // ASSERT: Verificar el resultado
@@ -349,9 +350,9 @@ test('should return user when login is successful', () async {
 
 | Sección | Propósito | Ejemplo |
 |---------|-----------|---------|
-| **ARRANGE** | Setup inicial, crear objetos, configurar mocks | Crear FakeRepository, setear datos |
+| **ARRANGE** | Setup inicial, crear objetos, configurar mocks | Crear MockRepository, configurar when() |
 | **ACT** | Ejecutar la acción que queremos testear | Llamar a `login()` |
-| **ASSERT** | Verificar que el resultado es el esperado | `expect(result, ...)` |
+| **ASSERT** | Verificar que el resultado es el esperado | `expect(result, ...)` y `verify(...)` |
 
 ### ⚠️ Errores Comunes con AAA
 
@@ -364,15 +365,18 @@ test('bad example', () {
 });
 
 // ✅ BUENO: Secciones claras
-test('good example', () {
+test('good example', () async {
   // Arrange
-  final repo = FakeAuthRepository();
+  final mockRepository = MockIAuthRepository();
+  when(() => mockRepository.login(any, any))
+      .thenAnswer((_) async => Either.right(tUser));
   
   // Act
-  final result = await repo.login(...);
+  final result = await mockRepository.login(...);
   
   // Assert
-  expect(result, ...);
+  expect(result.isRight(), true);
+  verify(() => mockRepository.login(...)).called(1);
 });
 ```
 

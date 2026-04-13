@@ -1,6 +1,6 @@
 # 🧪 Parte 3: Testing Data (Models, Repositories, DataSources)
 
-> **¿De qué trata esta parte?** De testear la capa **Data** que maneja la comunicación con el exterior: APIs, bases de datos locales, y la lógica de decidir cuándo usar datos remotos vs locales.
+> **¿De qué trata esta parte?** De testear la capa **Data** que maneja la comunicación con el exterior: APIs, bases de datos locales, y la lógica de decidir cuándo usar datos remotos vs locales. Usaremos **Mockito** para crear los mocks.
 
 ---
 
@@ -420,98 +420,96 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 }
 ```
 
-### 🧪 Fake del HTTP Client
+### 🧪 Mock del HTTP Client con Mockito
 
-Para testear el DataSource, necesitamos un Fake del HTTP Client:
+Para testear el DataSource, usamos Mockito para crear un Mock del HTTP Client:
 
 ```dart
-// test/helpers/fake_http_client.dart
+// test/features/auth/data/datasources/auth_remote_data_source_test.dart
+import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
+import 'package:mi_proyecto_flutter/clean/core/error/exceptions.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/data/datasources/auth_remote_data_source.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/data/models/user_model.dart';
 
-/// Fake HTTP Client para testing
-class FakeHttpClient extends http.BaseClient {
-  http.Response? responseToReturn;
-  Exception? exceptionToThrow;
-  
-  Uri? lastUri;
-  Map<String, String>? lastHeaders;
-  String? lastBody;
-  String? lastMethod;
+import 'auth_remote_data_source_test.mocks.dart';
 
-  @override
-  Future<http.Response> post(
-    Uri url, {
-    Map<String, String>? headers,
-    Object? body,
-    Encoding? encoding,
-  }) async {
-    lastUri = url;
-    lastHeaders = headers;
-    lastBody = body as String?;
-    lastMethod = 'POST';
-    
-    if (exceptionToThrow != null) throw exceptionToThrow!;
-    return responseToReturn!;
-  }
+@GenerateMocks([http.Client])
+import 'auth_remote_data_source_test.mocks.dart';
 
-  void reset() {
-    responseToReturn = null;
-    exceptionToThrow = null;
-    lastUri = null;
-    lastHeaders = null;
-    lastBody = null;
-    lastMethod = null;
-  }
+void main() {
+  late AuthRemoteDataSourceImpl dataSource;
+  late MockClient mockClient;
+
+  setUp(() {
+    mockClient = MockClient();
+    dataSource = AuthRemoteDataSourceImpl(
+      client: mockClient,
+      baseUrl: 'https://api.example.com',
+    );
+  });
+
+  group('login', () {
+    const tEmail = 'test@example.com';
+    const tPassword = 'password123';
+    final tUserJson = {'id': '123', 'email': tEmail, 'name': 'John', 'last_name': 'Doe'};
+
+    test('should return UserModel when response is 200', () async {
+      // Arrange
+      when(() => mockClient.post(
+        any(),
+        headers: anyNamed('headers'),
+        body: anyNamed('body'),
+      )).thenAnswer((_) async => http.Response(
+        json.encode(tUserJson),
+        200,
+      ));
+
+      // Act
+      final result = await dataSource.login(tEmail, tPassword);
+
+      // Assert
+      expect(result.id, '123');
+      expect(result.email, 'test@example.com');
+    });
+
+    test('should throw ServerException when response is 401', () async {
+      // Arrange
+      when(() => mockClient.post(
+        any(),
+        headers: anyNamed('headers'),
+        body: anyNamed('body'),
+      )).thenAnswer((_) async => http.Response('Unauthorized', 401));
+
+      // Act & Assert
+      expect(
+        () => dataSource.login(tEmail, tPassword),
+        throwsA(isA<ServerException>()),
+      );
+    });
+
+    test('should call correct endpoint with POST', () async {
+      // Arrange
+      when(() => mockClient.post(
+        any(),
+        headers: anyNamed('headers'),
+        body: anyNamed('body'),
+      )).thenAnswer((_) async => http.Response(json.encode(tUserJson), 200));
+
+      // Act
+      await dataSource.login(tEmail, tPassword);
+
+      // Assert
+      verify(() => mockClient.post(
+        Uri.parse('https://api.example.com/auth/login'),
+        headers: anyNamed('headers'),
+        body: anyNamed('body'),
+      )).called(1);
+    });
+  });
 }
-```
-
-### 🧪 Tests del Remote DataSource
-
-```dart
-group('login', () {
-  const tEmail = 'test@example.com';
-  const tPassword = 'password123';
-  final tUserJson = fixtureAsMap('user');
-
-  test('should return UserModel when response is 200', () async {
-    // Arrange
-    fakeClient.responseToReturn = http.Response(
-      json.encode(tUserJson),
-      200,
-      headers: {'content-type': 'application/json'},
-    );
-
-    // Act
-    final result = await dataSource.login(tEmail, tPassword);
-
-    // Assert
-    expect(result.id, '123');
-    expect(result.email, 'test@example.com');
-  });
-
-  test('should call correct endpoint with POST', () async {
-    // Arrange
-    fakeClient.responseToReturn = http.Response(json.encode(tUserJson), 200);
-
-    // Act
-    await dataSource.login(tEmail, tPassword);
-
-    // Assert
-    expect(fakeClient.lastMethod, 'POST');
-    expect(fakeClient.lastUri, Uri.parse('$baseUrl/auth/login'));
-  });
-
-  test('should throw ServerException when response is 401', () async {
-    // Arrange
-    fakeClient.responseToReturn = http.Response('Unauthorized', 401);
-
-    // Act & Assert
-    expect(
-      () => dataSource.login(tEmail, tPassword),
-      throwsA(isA<ServerException>()),
-    );
-  });
-});
 ```
 
 ---
@@ -582,33 +580,124 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
 }
 ```
 
-### 🧪 Fake de SharedPreferences
+### 🧪 Mock de SharedPreferences con Mockito
+
+Para testear el Local DataSource, usamos Mockito para crear un Mock de SharedPreferences:
 
 ```dart
-// test/helpers/fake_shared_preferences.dart
-class FakeSharedPreferences {
-  final Map<String, Object> _storage = {};
-  bool shouldFail = false;
+// test/features/auth/data/datasources/auth_local_data_source_test.dart
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mi_proyecto_flutter/clean/core/error/exceptions.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/data/datasources/auth_local_data_source.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/data/models/user_model.dart';
 
-  String? getString(String key) => _storage[key] as String?;
+import 'auth_local_data_source_test.mocks.dart';
 
-  Future<bool> setString(String key, String value) async {
-    if (shouldFail) return false;
-    _storage[key] = value;
-    return true;
-  }
+@GenerateMocks([SharedPreferences])
+import 'auth_local_data_source_test.mocks.dart';
 
-  Future<bool> remove(String key) async {
-    _storage.remove(key);
-    return true;
-  }
+void main() {
+  late AuthLocalDataSourceImpl dataSource;
+  late MockSharedPreferences mockPreferences;
 
-  bool containsKey(String key) => _storage.containsKey(key);
+  setUp(() {
+    mockPreferences = MockSharedPreferences();
+    dataSource = AuthLocalDataSourceImpl(preferences: mockPreferences);
+  });
 
-  void clear() {
-    _storage.clear();
-    shouldFail = false;
-  }
+  const tUserModel = UserModel(
+    id: '123',
+    email: 'test@example.com',
+    name: 'John',
+    lastName: 'Doe',
+  );
+
+  group('cacheUser', () {
+    test('should call SharedPreferences.setString', () async {
+      // Arrange
+      when(() => mockPreferences.setString(any, any))
+          .thenAnswer((_) async => true);
+
+      // Act
+      await dataSource.cacheUser(tUserModel);
+
+      // Assert
+      verify(() => mockPreferences.setString(
+        'CACHED_USER',
+        any,
+      )).called(1);
+    });
+
+    test('should throw CacheException when save fails', () async {
+      // Arrange
+      when(() => mockPreferences.setString(any, any))
+          .thenAnswer((_) async => false);
+
+      // Act & Assert
+      expect(
+        () => dataSource.cacheUser(tUserModel),
+        throwsA(isA<CacheException>()),
+      );
+    });
+  });
+
+  group('getUser', () {
+    test('should return UserModel when user is cached', () async {
+      // Arrange
+      when(() => mockPreferences.getString(any))
+          .thenAnswer((_) async => '{"id":"123","email":"test@example.com","name":"John","last_name":"Doe"}');
+
+      // Act
+      final result = await dataSource.getUser();
+
+      // Assert
+      expect(result, isNotNull);
+      expect(result!.id, '123');
+    });
+
+    test('should return null when no user cached', () async {
+      // Arrange
+      when(() => mockPreferences.getString(any))
+          .thenAnswer((_) async => null);
+
+      // Act
+      final result = await dataSource.getUser();
+
+      // Assert
+      expect(result, isNull);
+    });
+  });
+
+  group('clearUser', () {
+    test('should call SharedPreferences.remove', () async {
+      // Arrange
+      when(() => mockPreferences.remove(any))
+          .thenAnswer((_) async => {});
+
+      // Act
+      await dataSource.clearUser();
+
+      // Assert
+      verify(() => mockPreferences.remove('CACHED_USER')).called(1);
+    });
+  });
+
+  group('hasUser', () {
+    test('should return true when user is cached', () async {
+      // Arrange
+      when(() => mockPreferences.containsKey(any))
+          .thenAnswer((_) async => true);
+
+      // Act
+      final result = await dataSource.hasUser();
+
+      // Assert
+      expect(result, true);
+    });
+  });
 }
 ```
 
@@ -659,79 +748,125 @@ class AuthRepositoryImpl implements IAuthRepository {
 }
 ```
 
-### 🧪 Fakes Necesarios
+### 🧪 Mocks Necesarios con Mockito
 
-Para testear el Repository, necesitamos:
-1. **FakeAuthRemoteDataSource** - Simula el servidor
-2. **FakeAuthLocalDataSource** - Simula el cache local
-3. **FakeNetworkInfo** - Simula el estado de red
-
-### 🧪 Tests del Repository
+Para testear el Repository con Mockito:
 
 ```dart
-group('login', () {
-  group('device is online', () {
-    setUp(() {
-      fakeNetwork.isOnline = true;
-    });
+// test/features/auth/data/repositories/auth_repository_impl_test.dart
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
+import 'package:mi_proyecto_flutter/clean/core/network/network_info.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/data/datasources/auth_remote_data_source.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/data/datasources/auth_local_data_source.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/data/models/user_model.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/data/repositories/auth_repository_impl.dart';
 
-    test('should return user when remote call succeeds', () async {
-      // Arrange
-      fakeRemote.userToReturn = tUserModel;
+@GenerateMocks([
+  AuthRemoteDataSource,
+  AuthLocalDataSource,
+  NetworkInfo,
+])
+import 'auth_repository_impl_test.mocks.dart';
 
-      // Act
-      final result = await repository.login(tEmail, tPassword);
+void main() {
+  late AuthRepositoryImpl repository;
+  late MockAuthRemoteDataSource mockRemoteDataSource;
+  late MockAuthLocalDataSource mockLocalDataSource;
+  late MockNetworkInfo mockNetworkInfo;
 
-      // Assert
-      expect(result.isRight(), true);
-    });
-
-    test('should cache user locally when remote call succeeds', () async {
-      // Arrange
-      fakeRemote.userToReturn = tUserModel;
-
-      // Act
-      await repository.login(tEmail, tPassword);
-
-      // Assert
-      expect(fakeLocal.lastCachedUser, isNotNull);
-    });
-
-    test('should return ServerFailure when remote call fails', () async {
-      // Arrange
-      fakeRemote.shouldThrow = true;
-      fakeRemote.exceptionToThrow = const ServerException(message: 'Login failed');
-
-      // Act
-      final result = await repository.login(tEmail, tPassword);
-
-      // Assert
-      expect(result.isLeft(), true);
-    });
+  setUp(() {
+    mockRemoteDataSource = MockAuthRemoteDataSource();
+    mockLocalDataSource = MockAuthLocalDataSource();
+    mockNetworkInfo = MockNetworkInfo();
+    repository = AuthRepositoryImpl(
+      remoteDataSource: mockRemoteDataSource,
+      localDataSource: mockLocalDataSource,
+      networkInfo: mockNetworkInfo,
+    );
   });
 
-  group('device is offline', () {
-    setUp(() {
-      fakeNetwork.isOnline = false;
+  const tEmail = 'test@example.com';
+  const tPassword = 'password123';
+  const tUserModel = UserModel(
+    id: '123',
+    email: tEmail,
+    name: 'John',
+    lastName: 'Doe',
+  );
+
+  group('login', () {
+    group('device is online', () {
+      test('should return user when remote call succeeds', () async {
+        // Arrange
+        when(() => mockNetworkInfo.isConnected).thenAnswer((_) async => true);
+        when(() => mockRemoteDataSource.login(any, any))
+            .thenAnswer((_) async => tUserModel);
+        when(() => mockLocalDataSource.cacheUser(any))
+            .thenAnswer((_) async => {});
+
+        // Act
+        final result = await repository.login(tEmail, tPassword);
+
+        // Assert
+        expect(result.isRight(), true);
+      });
+
+      test('should cache user locally when remote call succeeds', () async {
+        // Arrange
+        when(() => mockNetworkInfo.isConnected).thenAnswer((_) async => true);
+        when(() => mockRemoteDataSource.login(any, any))
+            .thenAnswer((_) async => tUserModel);
+        when(() => mockLocalDataSource.cacheUser(any))
+            .thenAnswer((_) async => {});
+
+        // Act
+        await repository.login(tEmail, tPassword);
+
+        // Assert
+        verify(() => mockLocalDataSource.cacheUser(tUserModel)).called(1);
+      });
+
+      test('should return failure when remote call fails', () async {
+        // Arrange
+        when(() => mockNetworkInfo.isConnected).thenAnswer((_) async => true);
+        when(() => mockRemoteDataSource.login(any, any))
+            .thenThrow(ServerException(message: 'Login failed'));
+
+        // Act
+        final result = await repository.login(tEmail, tPassword);
+
+        // Assert
+        expect(result.isLeft(), true);
+      });
     });
 
-    test('should return NetworkFailure when offline', () async {
-      // Act
-      final result = await repository.login(tEmail, tPassword);
+    group('device is offline', () {
+      test('should return NetworkFailure when offline', () async {
+        // Arrange
+        when(() => mockNetworkInfo.isConnected).thenAnswer((_) async => false);
 
-      // Assert
-      expect(result.isLeft(), true);
-    });
+        // Act
+        final result = await repository.login(tEmail, tPassword);
 
-    test('should not call remote when offline', () async {
-      // Act
-      await repository.login(tEmail, tPassword);
+        // Assert
+        expect(result.isLeft(), true);
+      });
 
-      // Assert
-      expect(fakeRemote.lastEmail, isNull);  // No se llamó
+      test('should not call remote when offline', () async {
+        // Arrange
+        when(() => mockNetworkInfo.isConnected).thenAnswer((_) async => false);
+
+        // Act
+        await repository.login(tEmail, tPassword);
+
+        // Assert
+        verifyNever(() => mockRemoteDataSource.login(any, any));
+      });
     });
   });
-});
+}
 ```
 
 ---
@@ -744,10 +879,10 @@ Antes de pasar a la siguiente parte, asegúrate de:
 - [ ] Crear fixtures JSON reutilizables
 - [ ] Entender el helper fixture_reader
 - [ ] Testear Models (fromJson, toJson, toEntity)
-- [ ] Testear Remote DataSources con HTTP mock
-- [ ] Testear Local DataSources con SharedPreferences mock
-- [ ] Testear Repository (online/offline/fallback)
-- [ ] Verificar interacciones entre DataSources
+- [ ] Testear Remote DataSources con Mock de HTTP Client
+- [ ] Testear Local DataSources con Mock de SharedPreferences
+- [ ] Testear Repository con Mocks (online/offline/fallback)
+- [ ] Verificar interacciones con verify() y verifyNever()
 - [ ] Manejar errores (ServerException, CacheException)
 
 ---
@@ -763,21 +898,26 @@ Antes de pasar a la siguiente parte, asegúrate de:
 
 ## 💡 Tips Adicionales
 
-### Organización
-```dart
-// test/helpers/all_fakes.dart
-export 'fake_repositories.dart';
-export 'fake_datasources.dart';
-export 'fake_network_info.dart';
-export 'fake_http_client.dart';
-export 'fake_shared_preferences.dart';
-```
-
 ### Comandos útiles
 ```bash
+# Generar todos los mocks
+dart run build_runner build --delete-conflicting-outputs
+
 # Tests de data completo
 flutter test test/features/auth/data/
 
 # Con coverage
 flutter test --coverage test/features/auth/data/
+```
+
+### API de Mockito para Data
+
+```dart
+// Stubbing
+when(() => mock.method(any)).thenAnswer((_) async => value);
+when(() => mock.method(any)).thenThrow(Exception('error'));
+
+// Verificación
+verify(() => mock.method(any)).called(1);
+verifyNever(() => mock.method(any));
 ```

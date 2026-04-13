@@ -1,12 +1,12 @@
 # 🏋️ 03c: Práctica - Repository Implementation
 
-> **¿De qué trata esta práctica?** De testear el Repository que es el "cerebro" de la capa Data - decide cuándo usar datos remotos vs locales.
+> **¿De qué trata esta práctica?** De testear el Repository que es el "cerebro" de la capa Data - decide cuándo usar datos remotos vs locales. Usaremos **Mockito** para crear los mocks de los DataSources.
 
 ---
 
 ## 📋 Ejercicios
 
-- [Ejercicio 1: Crear Fakes necesarios](#ejercicio-1-crear-fakes-necesarios)
+- [Ejercicio 1: Configurar Mocks con Mockito](#ejercicio-1-configurar-mocks-con-mockito)
 - [Ejercicio 2: Testear flujo online exitoso](#ejercicio-2-testear-flujo-online-exitoso)
 - [Ejercicio 3: Testear flujo offline](#ejercicio-3-testear-flujo-offline)
 - [Ejercicio 4: Testear manejo de errores](#ejercicio-4-testear-manejo-de-errores)
@@ -16,181 +16,74 @@
 ## 🎬 Antes de Empezar
 
 Necesitas tener:
-1. ✅ Fixtures JSON (del ejercicio anterior)
+1. ✅ Dependencias configuradas (mockito, build_runner)
 2. ✅ UserModel
-3. ✅ Remote DataSource
-4. ✅ Local DataSource
+3. ✅ AuthRemoteDataSource
+4. ✅ AuthLocalDataSource
+5. ✅ NetworkInfo
 
----
+### Dependencias necesarias
 
-## Ejercicio 1: Crear Fakes necesarios
-
-### 📝 Tu Misión
-
-Crear los Fakes que necesita el Repository para testear.
-
-### ✅ Paso 1: Crea el archivo de Fakes
-
-```bash
-touch test/helpers/fake_datasources.dart
-```
-
-### ✅ Paso 2: Implementa FakeAuthRemoteDataSource
-
-```dart
-// test/helpers/fake_datasources.dart
-import 'package:mi_proyecto_flutter/clean/features/auth/data/datasources/auth_remote_data_source.dart';
-import 'package:mi_proyecto_flutter/clean/features/auth/data/datasources/auth_local_data_source.dart';
-import 'package:mi_proyecto_flutter/clean/features/auth/data/models/user_model.dart';
-
-/// Fake Remote DataSource - Simula el servidor
-class FakeAuthRemoteDataSource implements AuthRemoteDataSource {
-  /// Cuando es true, el método lanzará excepción
-  bool shouldThrow = false;
-  
-  /// Usuario a retornar en caso de éxito
-  UserModel? userToReturn;
-  
-  /// Excepción a lanzar
-  Exception? exceptionToThrow;
-  
-  /// Parámetros recibidos
-  String? lastEmail;
-  String? lastPassword;
-
-  @override
-  Future<UserModel> login(String email, String password) async {
-    lastEmail = email;
-    lastPassword = password;
-    
-    if (shouldThrow) {
-      throw exceptionToThrow ?? Exception('Login error');
-    }
-    return userToReturn!;
-  }
-
-  @override
-  Future<UserModel> register({
-    required String email,
-    required String password,
-    required String name,
-    required String lastName,
-  }) async {
-    if (shouldThrow) {
-      throw exceptionToThrow ?? Exception('Register error');
-    }
-    return userToReturn!;
-  }
-
-  @override
-  Future<void> logout() async {
-    if (shouldThrow) {
-      throw exceptionToThrow ?? Exception('Logout error');
-    }
-  }
-}
-
-/// Fake Local DataSource - Simula el cache
-class FakeAuthLocalDataSource implements AuthLocalDataSource {
-  /// Usuario actualmente en cache
-  UserModel? cachedUser;
-  
-  /// Cuando es true, los métodos lanzarán excepción
-  bool shouldThrow = false;
-  
-  /// Último usuario guardado (para verificación)
-  UserModel? lastCachedUser;
-
-  @override
-  Future<UserModel?> getUser() async {
-    if (shouldThrow) throw Exception('Cache error');
-    return cachedUser;
-  }
-
-  @override
-  Future<void> cacheUser(UserModel user) async {
-    if (shouldThrow) throw Exception('Cache error');
-    lastCachedUser = user;
-    cachedUser = user;
-  }
-
-  @override
-  Future<void> clearUser() async {
-    cachedUser = null;
-    lastCachedUser = null;
-  }
-
-  @override
-  Future<bool> hasUser() async {
-    return cachedUser != null;
-  }
-}
-```
-
-### ✅ Paso 3: Crea FakeNetworkInfo
-
-```bash
-touch test/helpers/fake_network_info.dart
-```
-
-```dart
-// test/helpers/fake_network_info.dart
-import 'package:mi_proyecto_flutter/clean/core/network/network_info.dart';
-
-/// Fake NetworkInfo - Simula el estado de conexión
-class FakeNetworkInfo implements NetworkInfo {
-  /// Cuando es true, simula que hay conexión
-  bool isOnline = true;
-
-  @override
-  Future<bool> get isConnected async => isOnline;
-}
+```yaml
+dev_dependencies:
+  mockito: ^5.4.0
+  build_runner: ^2.4.0
 ```
 
 ---
 
-## Ejercicio 2: Testear flujo online exitoso
+## Ejercicio 1: Configurar Mocks con Mockito
 
 ### 📝 Tu Misión
 
-Escribir tests que verifiquen el comportamiento cuando el dispositivo tiene internet.
+Crear los Mocks necesarios para el Repository usando Mockito.
 
-### ✅ Paso 1: Crea el archivo de test
+### ✅ Paso 1: Crea el archivo de test con anotaciones
 
 ```bash
 mkdir -p test/features/auth/data/repositories
 touch test/features/auth/data/repositories/auth_repository_impl_test.dart
 ```
 
-### ✅ Paso 2: Configura el test base
+### ✅ Paso 2: Configura los Mocks
 
 ```dart
 // test/features/auth/data/repositories/auth_repository_impl_test.dart
 import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 import 'package:mi_proyecto_flutter/clean/core/error/exceptions.dart';
 import 'package:mi_proyecto_flutter/clean/core/error/failures.dart';
+import 'package:mi_proyecto_flutter/clean/core/network/network_info.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/data/datasources/auth_remote_data_source.dart';
+import 'package:mi_proyecto_flutter/clean/features/auth/data/datasources/auth_local_data_source.dart';
 import 'package:mi_proyecto_flutter/clean/features/auth/data/models/user_model.dart';
 import 'package:mi_proyecto_flutter/clean/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:mi_proyecto_flutter/clean/features/auth/domain/entities/user.dart';
 
-import '../../../../helpers/fake_datasources.dart';
-import '../../../../helpers/fake_network_info.dart';
+/// Generar mocks para: RemoteDataSource, LocalDataSource, NetworkInfo
+@GenerateMocks([
+  AuthRemoteDataSource,
+  AuthLocalDataSource,
+  NetworkInfo,
+])
+import 'auth_repository_impl_test.mocks.dart';
 
 void main() {
   late AuthRepositoryImpl repository;
-  late FakeAuthRemoteDataSource fakeRemote;
-  late FakeAuthLocalDataSource fakeLocal;
-  late FakeNetworkInfo fakeNetwork;
+  late MockAuthRemoteDataSource mockRemoteDataSource;
+  late MockAuthLocalDataSource mockLocalDataSource;
+  late MockNetworkInfo mockNetworkInfo;
 
   setUp(() {
-    fakeRemote = FakeAuthRemoteDataSource();
-    fakeLocal = FakeAuthLocalDataSource();
-    fakeNetwork = FakeNetworkInfo();
+    mockRemoteDataSource = MockAuthRemoteDataSource();
+    mockLocalDataSource = MockAuthLocalDataSource();
+    mockNetworkInfo = MockNetworkInfo();
     repository = AuthRepositoryImpl(
-      remoteDataSource: fakeRemote,
-      localDataSource: fakeLocal,
-      networkInfo: fakeNetwork,
+      remoteDataSource: mockRemoteDataSource,
+      localDataSource: mockLocalDataSource,
+      networkInfo: mockNetworkInfo,
     );
   });
 
@@ -214,7 +107,33 @@ void main() {
 }
 ```
 
-### ✅ Paso 3: Test - Login exitoso
+### ✅ Paso 3: Genera los Mocks
+
+```bash
+dart run build_runner build --delete-conflicting-outputs
+```
+
+### ✅ Paso 4: Verifica que se generaron
+
+```bash
+ls test/features/auth/data/repositories/
+```
+
+**Resultado esperado:**
+```
+auth_repository_impl_test.dart
+auth_repository_impl_test.mocks.dart  ← ¡Generado!
+```
+
+---
+
+## Ejercicio 2: Testear flujo online exitoso
+
+### 📝 Tu Misión
+
+Escribir tests que verifiquen el comportamiento cuando el dispositivo tiene internet.
+
+### ✅ Paso 1: Test - Login exitoso
 
 ```dart
   group('login', () {
@@ -222,8 +141,9 @@ void main() {
       // ═══════════════════════════════════════════════════════════
       // ARRANGE: Configurar online + éxito
       // ═══════════════════════════════════════════════════════════
-      fakeNetwork.isOnline = true;
-      fakeRemote.userToReturn = tUserModel;
+      when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
+      when(mockRemoteDataSource.login(any, any))
+          .thenAnswer((_) async => tUserModel);
 
       // ═══════════════════════════════════════════════════════════
       // ACT: Llamar al repository
@@ -238,36 +158,39 @@ void main() {
   });
 ```
 
-### ✅ Paso 4: Test - Verificar cache después de login exitoso
+### ✅ Paso 2: Test - Verificar cache después de login exitoso
 
 ```dart
     test('should cache user locally when remote login succeeds', () async {
       // Arrange
-      fakeNetwork.isOnline = true;
-      fakeRemote.userToReturn = tUserModel;
+      when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
+      when(mockRemoteDataSource.login(any, any))
+          .thenAnswer((_) async => tUserModel);
+      when(mockLocalDataSource.cacheUser(any))
+          .thenAnswer((_) async => {});
 
       // Act
       await repository.login(tEmail, tPassword);
 
       // Assert - Verificar que se guardó en cache
-      expect(fakeLocal.lastCachedUser, isNotNull);
-      expect(fakeLocal.lastCachedUser?.id, '123');
+      verify(mockLocalDataSource.cacheUser(tUserModel)).called(1);
     });
 ```
 
-### ✅ Paso 5: Test - Verificar que se usó la red
+### ✅ Paso 3: Test - Verificar que se usó la red
 
 ```dart
     test('should check network connectivity first', () async {
       // Arrange
-      fakeNetwork.isOnline = true;
-      fakeRemote.userToReturn = tUserModel;
+      when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
+      when(mockRemoteDataSource.login(any, any))
+          .thenAnswer((_) async => tUserModel);
 
       // Act
       await repository.login(tEmail, tPassword);
 
-      // Assert - La red se consultó (isOnline es true)
-      expect(fakeNetwork.isOnline, isTrue);
+      // Assert - Se consultó la red
+      verify(mockNetworkInfo.isConnected).called(1);
     });
 ```
 
@@ -284,7 +207,7 @@ Escribir tests que verifiquen el comportamiento cuando el dispositivo no tiene i
 ```dart
     group('device is offline', () {
       setUp(() {
-        fakeNetwork.isOnline = false;
+        when(mockNetworkInfo.isConnected).thenAnswer((_) async => false);
       });
 
       test('should return NetworkFailure when offline', () async {
@@ -304,7 +227,7 @@ Escribir tests que verifiquen el comportamiento cuando el dispositivo no tiene i
         await repository.login(tEmail, tPassword);
 
         // Assert - No se llamó al remote
-        expect(fakeRemote.lastEmail, isNull);
+        verifyNever(mockRemoteDataSource.login(any, any));
       });
 
       test('should not access cache when offline', () async {
@@ -312,8 +235,7 @@ Escribir tests que verifiquen el comportamiento cuando el dispositivo no tiene i
         await repository.login(tEmail, tPassword);
 
         // Assert - No se intentó obtener de cache
-        // (el repository debería retornar NetworkFailure directamente)
-        expect(fakeLocal.cachedUser, isNull);  // Sin cambios
+        verifyNever(mockLocalDataSource.getUser());
       });
     });
 ```
@@ -331,15 +253,16 @@ Escribir tests que verifiquen cómo el Repository maneja diferentes tipos de err
 ```dart
     group('server error handling', () {
       setUp(() {
-        fakeNetwork.isOnline = true;
+        when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       });
 
       test('should return ServerFailure when remote call fails', () async {
         // Arrange
-        fakeRemote.shouldThrow = true;
-        fakeRemote.exceptionToThrow = const ServerException(
-          message: 'Invalid credentials',
-          statusCode: 401,
+        when(mockRemoteDataSource.login(any, any)).thenThrow(
+          const ServerException(
+            message: 'Invalid credentials',
+            statusCode: 401,
+          ),
         );
 
         // Act
@@ -355,13 +278,15 @@ Escribir tests que verifiquen cómo el Repository maneja diferentes tipos de err
 
       test('should not cache user when remote call fails', () async {
         // Arrange
-        fakeRemote.shouldThrow = true;
+        when(mockRemoteDataSource.login(any, any)).thenThrow(
+          ServerException(message: 'Error'),
+        );
 
         // Act
         await repository.login(tEmail, tPassword);
 
         // Assert - No se guardó nada en cache
-        expect(fakeLocal.lastCachedUser, isNull);
+        verifyNever(mockLocalDataSource.cacheUser(any));
       });
     });
 ```
@@ -371,17 +296,17 @@ Escribir tests que verifiquen cómo el Repository maneja diferentes tipos de err
 ```dart
       test('should pass correct parameters to remote data source', () async {
         // Arrange
-        fakeNetwork.isOnline = true;
-        fakeRemote.userToReturn = tUserModel;
+        when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
+        when(mockRemoteDataSource.login(any, any))
+            .thenAnswer((_) async => tUserModel);
         const customEmail = 'custom@example.com';
         const customPassword = 'customPass';
 
         // Act
         await repository.login(customEmail, customPassword);
 
-        // Assert
-        expect(fakeRemote.lastEmail, customEmail);
-        expect(fakeRemote.lastPassword, customPassword);
+        // Assert - Verificar parámetros exactos
+        verify(mockRemoteDataSource.login(customEmail, customPassword)).called(1);
       });
 ```
 
@@ -394,8 +319,13 @@ Escribir tests que verifiquen cómo el Repository maneja diferentes tipos de err
 
     test('should return user when registration succeeds', () async {
       // Arrange
-      fakeNetwork.isOnline = true;
-      fakeRemote.userToReturn = tUserModel;
+      when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
+      when(mockRemoteDataSource.register(
+        email: anyNamed('email'),
+        password: anyNamed('password'),
+        name: anyNamed('name'),
+        lastName: anyNamed('lastName'),
+      )).thenAnswer((_) async => tUserModel);
 
       // Act
       final result = await repository.register(
@@ -411,8 +341,15 @@ Escribir tests que verifiquen cómo el Repository maneja diferentes tipos de err
 
     test('should cache user after successful registration', () async {
       // Arrange
-      fakeNetwork.isOnline = true;
-      fakeRemote.userToReturn = tUserModel;
+      when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
+      when(mockRemoteDataSource.register(
+        email: anyNamed('email'),
+        password: anyNamed('password'),
+        name: anyNamed('name'),
+        lastName: anyNamed('lastName'),
+      )).thenAnswer((_) async => tUserModel);
+      when(mockLocalDataSource.cacheUser(any))
+          .thenAnswer((_) async => {});
 
       // Act
       await repository.register(
@@ -423,7 +360,7 @@ Escribir tests que verifiquen cómo el Repository maneja diferentes tipos de err
       );
 
       // Assert
-      expect(fakeLocal.lastCachedUser, isNotNull);
+      verify(mockLocalDataSource.cacheUser(tUserModel)).called(1);
     });
   });
 ```
@@ -434,13 +371,13 @@ Escribir tests que verifiquen cómo el Repository maneja diferentes tipos de err
   group('logout', () {
     test('should clear local cache on logout', () async {
       // Arrange
-      fakeLocal.cachedUser = tUserModel;
+      when(mockLocalDataSource.clearUser()).thenAnswer((_) async => {});
 
       // Act
       await repository.logout();
 
       // Assert
-      expect(fakeLocal.cachedUser, isNull);
+      verify(mockLocalDataSource.clearUser()).called(1);
     });
   });
 ```
@@ -451,7 +388,8 @@ Escribir tests que verifiquen cómo el Repository maneja diferentes tipos de err
   group('checkAuthStatus', () {
     test('should return user from cache', () async {
       // Arrange
-      fakeLocal.cachedUser = tUserModel;
+      when(mockLocalDataSource.getUser())
+          .thenAnswer((_) async => tUserModel);
 
       // Act
       final result = await repository.checkAuthStatus();
@@ -462,7 +400,8 @@ Escribir tests que verifiquen cómo el Repository maneja diferentes tipos de err
 
     test('should return null when no user cached', () async {
       // Arrange
-      fakeLocal.cachedUser = null;
+      when(mockLocalDataSource.getUser())
+          .thenAnswer((_) async => null);
 
       // Act
       final result = await repository.checkAuthStatus();
@@ -478,6 +417,7 @@ Escribir tests que verifiquen cómo el Repository maneja diferentes tipos de err
 ## 🧪 Ejecuta todos los tests
 
 ```bash
+dart run build_runner build --delete-conflicting-outputs
 flutter test test/features/auth/data/repositories/auth_repository_impl_test.dart
 ```
 
@@ -491,7 +431,7 @@ flutter test test/features/auth/data/repositories/auth_repository_impl_test.dart
 
 ## ✅ Checklist de Ejercicio Completado
 
-- [ ] Ejercicio 1: Fakes de DataSources y NetworkInfo creados
+- [ ] Ejercicio 1: Mocks generados con @GenerateMocks
 - [ ] Ejercicio 2: Tests flujo online exitoso (3 tests)
 - [ ] Ejercicio 3: Tests flujo offline (3 tests)
 - [ ] Ejercicio 4: Tests manejo de errores (6 tests)
@@ -502,11 +442,12 @@ flutter test test/features/auth/data/repositories/auth_repository_impl_test.dart
 ## 🎉 ¡Felicitaciones!
 
 Has aprendido a:
-- ✅ Crear Fakes de Remote y Local DataSources
-- ✅ Crear Fake de NetworkInfo
+- ✅ Crear Mocks de Remote y Local DataSources con Mockito
+- ✅ Crear Mock de NetworkInfo
 - ✅ Testear el flujo completo de login (online/offline)
 - ✅ Testear el manejo de errores del servidor
 - ✅ Testear la coordinación entre DataSources
+- ✅ Verificar llamadas con verify() y verifyNever()
 - ✅ Testear register, logout y checkAuthStatus
 
 ---
