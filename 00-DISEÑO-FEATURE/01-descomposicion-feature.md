@@ -323,6 +323,456 @@ Así se ve una feature completamente descompuesta:
 
 ---
 
+## Técnicas Complementarias
+
+FADER no vive solo. Existen otras técnicas de descomposición que puedes usar dentro de cada paso. No son competencia, son herramientas que enriquecen pasos específicos.
+
+### Event Storming — Alberto Brandolini
+
+**Qué es:** Una dinámica de grupo donde se escriben eventos del negocio en post-its naranjas y se colocan en una línea de tiempo.
+
+**Dónde encaja en FADER:**
+
+| Paso FADER | Cómo ayuda Event Storming |
+|------------|--------------------------|
+| **D**escomponer | Los eventos ("Producto agregado al carrito", "Cupón aplicado") son operaciones atómicas |
+| **R**eglas | Los eventos revelan restricciones ("No se puede agregar si no hay stock") |
+| **E**ntidades | Los objetos que aparecen en los eventos son candidatos a entidad |
+
+**Cómo usarlo individualmente:**
+
+```
+1. Escribe todos los eventos que pueden ocurrir:
+   "Producto agregado al carrito"
+   "Cantidad actualizada"
+   "Cupón aplicado"
+   "Stock validado"
+   "Carrito limpiado después del checkout"
+
+2. Ordénalos en una línea de tiempo:
+   Antes del checkout  → [Agregar → Actualizar → Validar stock → Aplicar cupón]
+   Checkout            → [Calcular total → Procesar pago]
+   Después             → [Limpiar carrito → Confirmar pedido]
+
+3. Cada post-it es una operación atómica → lo pasas a tu [D]escomposición
+```
+
+**Ventaja:** Revela operaciones que no habías considerado (ej: "Carrito abandonado después de 24h" es un evento que no está en los requisitos originales).
+
+---
+
+### User Story Mapping — Jeff Patton
+
+**Qué es:** Técnica para organizar historias de usuario en un mapa de dos dimensiones: actividades principales (eje horizontal) y pasos específicos (eje vertical).
+
+**Dónde encaja en FADER:**
+
+| Paso FADER | Cómo ayuda User Story Mapping |
+|------------|-------------------------------|
+| **F**ormular | Las actividades principales del mapa son tus enunciados "Como... quiero..." |
+| **A**ctorizar | Cada columna del mapa suele corresponder a un actor |
+| **D**escomponer | Los pasos verticales son tus operaciones atómicas |
+
+**Ejemplo para Carrito:**
+
+```
+                   ANTES                      DURANTE                     DESPUES
+                  ┌─────────────┐           ┌──────────────┐          ┌──────────────┐
+                  │ Explorar    │           │ Gestionar    │          │ Finalizar    │
+                  │ productos   │           │ carrito      │          │ compra       │
+                  ├─────────────┤           ├──────────────┤          ├──────────────┤
+                  │ Ver catalogo│           │ Agregar prod │          │ Ir a checkout│
+                  │ Buscar prod │           │ Quitar prod  │          │ Confirmar    │
+                  │ Filtrar     │           │ Actualizar   │          │ Pago         │
+                  │             │           │ Aplicar cupon│          │ Confirmacion │
+                  └─────────────┘           └──────────────┘          └──────────────┘
+```
+
+---
+
+### Example Mapping — Cucumber/BDD
+
+**Qué es:** Técnica para descomponer una historia en ejemplos concretos usando tarjetas de colores.
+
+**Dónde encaja en FADER:**
+
+| Paso FADER | Como ayuda Example Mapping |
+|------------|-----------------------------|
+| **R**eglas | Cada regla se ilustra con un ejemplo concreto de entrada -> salida |
+
+**Formato:**
+
+```
+Historia: Aplicar cupon de descuento
+
+REGLA: Cupon debe estar vigente
+
+  -> Ejemplo valido: Cupon "DESC10", fecha expiracion > hoy
+     Resultado: Descuento aplicado
+
+  -> Ejemplo invalido: Cupon "DESC10", fecha expiracion < hoy
+     Resultado: Error "El cupon ha expirado"
+```
+
+**Ventaja:** Los ejemplos concretos son la mejor manera de validar que entendiste la regla. Si no puedes escribir 3 ejemplos de una regla, no la entiendes bien.
+
+---
+
+## Criterio de Granularidad
+
+Uno de los problemas mas comunes al aplicar FADER es **no saber cuando parar**. Usa el test de la atomicidad.
+
+### El test de la atomicidad
+
+Una operacion atomica debe pasar **las 3 pruebas**:
+
+| # | Prueba | Pregunta | Si falla... |
+|---|--------|----------|-------------|
+| 1 | **Un solo verbo** | La operacion hace una sola cosa? | Dividela |
+| 2 | **Un solo resultado** | Produce un unico cambio en el sistema? | Dividela |
+| 3 | **Valor independiente** | Tiene sentido por si sola para el usuario? | Combinala o eliminala |
+
+**Ejemplos:**
+
+```
+"Gestionar carrito" -> Falla prueba 1 (tiene multiples verbos implicitos)
+   Correcto: "Agregar producto", "Quitar producto", "Actualizar cantidad"
+
+"Agregar producto y aplicar cupon" -> Falla prueba 1 y 2
+   Correcto: "Agregar producto" y "Aplicar cupon" son operaciones separadas
+
+"Validar formato del codigo del cupon" -> Falla prueba 3
+   Sin valor para el usuario por si sola, es parte de "Aplicar cupon"
+```
+
+### Guia por tipo de feature
+
+| Tipo de feature | Tamano tipico de [D]escomposicion | Ejemplo |
+|-----------------|-----------------------------------|---------|
+| Hotfix / bug | 1-2 operaciones | Corregir calculo de impuesto |
+| Feature pequena | 3-6 operaciones | Agregar filtro de busqueda |
+| Feature mediana | 7-15 operaciones | Carrito de compras |
+| Feature grande | 16-30 operaciones | Sistema de facturacion recurrente |
+| Epic | 30+ (dividir en sub-features) | Modulo completo de pagos |
+
+**Regla practica:** Si tu [D]escomposicion supera las 20 operaciones, probablemente no es una feature sino un conjunto de features. Dividelo.
+
+### Senales de granularidad incorrecta
+
+```
+Demasiado grueso:
+  - "Gestionar usuarios" -> no sabes que incluye
+  - "Procesar pedido" -> puede ser 10 operaciones distintas
+
+Demasiado fino:
+  - "Validar que el campo email no este vacio" -> es parte de un UseCase
+  - "Convertir string a mayusculas" -> detalle tecnico, no operacion de negocio
+
+El punto justo:
+  - "Registrar usuario" -> operacion completa con validaciones + persistencia
+  - "Crear pedido" -> operacion que puede fallar pero se entiende como unidad
+```
+
+---
+
+## Antipatrones de FADER
+
+A veces es mas facil reconocer lo que esta mal. Aqui tienes FADER bien hecho vs mal hecho para la misma feature.
+
+### Feature: Filtro de busqueda de productos
+
+**FADER MAL HECHO:**
+
+```
+[F] Como usuario, quiero buscar productos (demasiado vago)
+
+[A] Cliente, Admin (el admin aparecio porque si, no tiene accion real)
+
+[D] - Buscar productos (una sola operacion que lo abarca todo)
+    - Ver resultados (no es una operacion, es el resultado de buscar)
+
+[E] Producto (solo esta entidad, pero faltan Categoria, Marca, etc.)
+
+[R] - El producto debe existir (regla tecnica, no de negocio)
+    - Mostrar resultados (eso no es una regla, es un comportamiento)
+```
+
+**Problemas:**
+- No distingue tipos de busqueda (texto libre, por categoria, por precio)
+- Actor inventado sin proposito
+- Operaciones demasiado gruesas
+- Reglas que no son reglas de negocio
+- Entidades incompletas
+
+---
+
+**FADER BIEN HECHO:**
+
+```
+[F] F1: Como cliente, quiero buscar productos por nombre o categoria
+        para encontrar lo que necesito rapidamente.
+    F2: Como cliente, quiero filtrar productos por rango de precio
+        para ajustarme a mi presupuesto.
+
+[A] 1. Cliente (primario) -> busca, filtra, navega resultados
+    2. Sistema de inventario (interno) -> provee datos de stock
+
+[D] Cliente:
+    - [R] Buscar por texto libre (nombre del producto)
+    - [R] Filtrar por categoria
+    - [R] Filtrar por rango de precio
+    - [R] Ordenar resultados (precio, nombre, popularidad)
+    - [R] Ver paginacion de resultados
+
+[E] Producto (id, nombre, precio, categoriaId, marcaId, stock)
+    Categoria (id, nombre)
+    Marca (id, nombre)
+    FiltroBusqueda (VO: texto, categoriaId?, precioMin?,
+                    precioMax?, ordenarPor?, pagina)
+
+[R] R001: Busqueda por texto libre coincide con nombre o descripcion
+    R002: Los filtros se aplican en AND (categoria Y precio Y texto)
+    R003: Resultados paginados de a 20 items
+    R004: Sin resultados -> mensaje "No se encontraron productos"
+    R005: Producto sin stock aparece al final con marca "Agotado"
+```
+
+**Aciertos:**
+- Dos formulaciones para dos necesidades distintas
+- Actor con proposito claro
+- Operaciones con clasificacion CRUD
+- Value Object explicito para el filtro
+- Reglas especificas y bordes contemplados
+
+---
+
+## Second Pass: Iterar el FADER
+
+El primer FADER nunca es perfecto. La descomposicion es un proceso iterativo.
+
+### Cuando revisitar cada paso
+
+| Paso | Disparador de revision |
+|------|----------------------|
+| **F**ormular | Cuando encuentras un actor que no formulaste. Ej: "Ah, el admin tambien necesita aprobar cupones" |
+| **A**ctorizar | Cuando una operacion no tiene actor claro. Ej: "Quien dispara el calculo de impuestos?" |
+| **D**escomponer | Cuando una regla revela operaciones que faltan. Ej: "R004 dice que el cupon expira... -> falta 'Validar vigencia de cupon'" |
+| **E**ntidades | Cuando una regla menciona conceptos sin entidad. Ej: "R005 habla de 'limite de descuento' -> falta entidad LimiteDescuento" |
+| **R**eglas | Cuando modelas entidades y ves bordes. Ej: "Que pasa si el precio es 0? y si es negativo?" |
+
+### Ciclo de refinamiento recomendado
+
+```
+1er pase: F A D E R (rapido, 15 min)
+    |
+Revisas [D]escomponer -> falta algo?
+    |
+Revisas [R]eglas -> revelan nuevas operaciones o entidades?
+    |
+2do pase: ajustas donde hizo falta (10 min)
+    |
+Revision cruzada: cada regla tiene operacion?
+                  cada operacion tiene actor?
+                  cada entidad se usa en alguna regla?
+```
+
+**Senales de que necesitas un second pass:**
+- Una regla menciona un concepto que no esta en tus entidades
+- Una operacion no tiene a quien asignarle la responsabilidad
+- Descubres que dos actores hacen lo mismo pero con reglas distintas
+- Al escribir el UseCase, te das cuenta de que la operacion deberia ser dos
+
+---
+
+## FADER para Features Grandes vs Pequenas
+
+No todas las features merecen el mismo nivel de descomposicion. Aplicar FADER completo a un hotfix es sobreingenieria. Aplicar solo dos pasos a un epic es negligencia.
+
+### Matriz de esfuerzo
+
+```
+                    Hotfix     Pequena     Mediana     Grande      Epic
+                    (1-2 op)   (3-6 op)    (7-15 op)   (16-30 op)  (30+ op)
+
+[F]ormular            Rapido     Completo   Completo    Completo    Multiples
+[A]ctorizar           Opcional   Rapido     Completo    Completo    Completo
+[D]escomponer         Rapido     Completo   Completo    Completo    Por feature
+[E]ntidades           Opcional   Rapido     Completo    Completo    Completo
+[R]eglas              Las clave  Las clave  Completo    Completo    Completo
+```
+
+**Donde esta el limite?**
+
+- **Hotfix:** Solo formula y las reglas clave. 5 minutos. No hagas una tesis.
+- **Feature pequena:** FADER completo pero rapido. 15-20 minutos.
+- **Feature mediana:** FADER completo con second pass. 30-45 minutos.
+- **Feature grande:** FADER completo mas ADR. 1-2 horas.
+- **Epic:** Divide en features medianas y aplica FADER a cada una.
+
+### Ejemplo: Hotfix vs Feature completa
+
+**Hotfix:** "Corregir que el calculo de IVA use 16% en vez de 21%"
+
+```
+[F] Como sistema, quiero usar la tasa de IVA correcta (16%)
+    para cumplir con la normativa fiscal.
+
+[R] R001: El IVA para productos nacionales es 16%
+    (era 21% por error)
+
+-- Esto es suficiente. No necesitas actores, entidades, ni descomposicion.
+-- Arreglas la constante y listo.
+```
+
+**Feature completa:** "Modulo de configuracion de impuestos por pais"
+
+```
+[F] Como administrador, quiero configurar tasas de impuesto
+    por pais y tipo de producto para cumplir con regulaciones locales.
+
+[A] Admin, Sistema de Facturacion, API de impuestos externa
+
+[D] - [C] Crear configuracion de impuesto
+    - [R] Listar configuraciones
+    - [U] Editar tasa de impuesto
+    - [D] Eliminar configuracion (si no tiene facturas asociadas)
+    - [Validacion] Validar que la tasa este dentro del rango legal
+
+[E] ConfiguracionImpuesto (pais, tipoProducto, porcentaje,
+    fechaInicio, fechaFin, codigoFiscal)
+    HistorialCambio (configuracionId, fecha, usuario, valorAnterior, valorNuevo)
+
+[R] R001: La tasa de IVA no puede ser negativa
+    R002: No se puede eliminar una configuracion con facturas emitidas
+    R003: Los cambios quedan registrados en historial
+```
+
+---
+
+## Conexion con Ceremonias Agiles
+
+FADER no es solo para vos en tu escritorio. Funciona en dinamicas de equipo.
+
+### En Refinement
+
+```
+Antes: "Vamos a ver la historia #42: Carrito de compras"
+       -> discusion vaga de 30 minutos sin conclusion
+
+Con FADER: "Vamos a aplicar FADER a la historia #42"
+   Paso 1: Todos escriben [F]ormular en post-its (5 min)
+   Paso 2: Comparten y consolidan (5 min)
+   Paso 3: [D]escomponer en pizarron (10 min)
+   Paso 4: Identificar [R]eglas dudosas (5 min)
+
+Resultado: 25 minutos, todos alineados, lista de operaciones clara
+```
+
+### En Planning
+
+Usa la [D]escomposicion como fuente de truth para estimar:
+
+```
+Historia: Carrito de compras
+
+Operaciones (de FADER):
+  - Agregar producto       -> 2 puntos
+  - Quitar producto        -> 1 punto
+  - Actualizar cantidad    -> 1 punto
+  - Ver resumen            -> 2 puntos
+  - Aplicar cupon          -> 3 puntos
+  - Calcular total         -> 2 puntos
+  - Validar stock          -> 2 puntos
+  - Limpiar carrito        -> 1 punto
+
+Total: 14 puntos (feature mediana)
+```
+
+Cada operacion se estima individualmente, no la feature entera. Esto elimina las estimaciones "adivinadas".
+
+### En un Spike tecnico
+
+Cuando no sabes si algo es posible, FADER te ayuda a definir el alcance del spike:
+
+```
+[F] Queremos saber si podemos integrar la pasarela de pagos X
+
+[D] Dentro del spike:
+    - Investigar documentacion de la API
+    - Crear prototipo de un pago exitoso
+    - Probar manejo de errores (rechazo, timeout, expirado)
+    - Medir latencia promedio
+
+[R] Reglas del spike:
+    - Maximo 2 dias de investigacion
+    - Al terminar: decision de seguir o no + riesgos identificados
+```
+
+---
+
+## Validacion del FADER
+
+### Checklist de autoevaluacion
+
+Al terminar tu hoja FADER, responde estas preguntas:
+
+**Sobre [F]ormular:**
+- [ ] Cada enunciado sigue "Como [actor], quiero [accion] para [valor]"
+- [ ] No hay dos enunciados que digan lo mismo
+- [ ] Sabes cual es la diferencia entre lo que SI hace la feature y lo que NO hace
+
+**Sobre [A]ctorizar:**
+- [ ] Cada actor tiene al menos una operacion que le pertenece
+- [ ] Ningun actor esta ahi "porque sí"
+- [ ] Los sistemas externos estan identificados
+- [ ] Sabes donde terminan los permisos de cada actor
+
+**Sobre [D]escomponer:**
+- [ ] Cada operacion pasa el test de atomicidad (1 verbo, 1 resultado, valor independiente)
+- [ ] No hay operaciones con "y" en el nombre
+- [ ] Las operaciones estan clasificadas (CRUD, Validacion, Calculo, Transicion)
+- [ ] Las dependencias entre operaciones estan claras
+
+**Sobre [E]ntidades:**
+- [ ] Cada entidad existe en el mundo real del negocio
+- [ ] Los atributos son esenciales, no tecnicos
+- [ ] Las relaciones entre entidades estan definidas
+- [ ] No hay atributos que pertenezcan a otra entidad
+
+**Sobre [R]eglas:**
+- [ ] Cada regla tiene un codigo unico (R001, R002...)
+- [ ] No hay reglas "obvias" sin escribir
+- [ ] Cada regla tiene una categoria (Restriccion, Calculo, Validacion, Flujo, Consistencia)
+- [ ] Las reglas tienen mensaje de error donde aplica
+
+**Revision cruzada:**
+- [ ] Cada regla se relaciona con al menos una operacion
+- [ ] Cada operacion tiene un actor responsable
+- [ ] Cada entidad aparece en al menos una regla
+- [ ] No hay contradicciones entre reglas
+
+### Ejercicio: Autoevaluacion de un FADER real
+
+Toma la hoja FADER del Carrito de Compras y aplica este checklist. Marca lo que cumple y lo que no. Si algo no cumple, revisa si falta ajustar.
+
+```
+Feature: Carrito de Compras
+
+[F] "Como cliente, quiero gestionar productos en un carrito
+     para revisarlos antes de comprar."
+
+  -> Cumple: "Como [cliente], quiero [gestionar productos en un carrito]
+     para [revisarlos antes de comprar]."
+  -> NO cumple: no diferencia entre agregar, quitar, y actualizar
+     (el verbo "gestionar" es muy amplio para [F]ormular)
+
+  Mejora: dividir en 3 enunciados mas especificos
+```
+
+**Nota:** El checklist es para que lo uses, no para que lo cumplas al 100% siempre. Un hotfix no necesita todas las preguntas. Una feature critica sí.
+
+---
+
 ## Errores comunes
 
 | Error | Por qué duele | Cómo evitarlo |
@@ -341,6 +791,6 @@ Ahora que entiendes FADER, ve a la [práctica de descomposición](./01a-practica
 
 ---
 
-**Tiempo estimado de lectura:** 20 minutos  
+**Tiempo estimado de lectura:** 40 minutos  
 **Tiempo estimado de práctica:** 30-40 minutos  
 **Herramientas:** Papel y lápiz
