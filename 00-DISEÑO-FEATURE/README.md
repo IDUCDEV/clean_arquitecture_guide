@@ -17,6 +17,23 @@
 | [04-flujo-datos.md](./04-flujo-datos.md) | Teoría: Flujo de datos entre capas |
 | [04a-practica-carrito-flujo.md](./04a-practica-carrito-flujo.md) | Práctica: Diagramar flujo completo del Carrito |
 | [05-caso-completo-reservas.md](./05-caso-completo-reservas.md) | Caso integral: Sistema de Reservas |
+| [05b-caso-elearning.md](./05b-caso-elearning.md) | Caso integral: Plataforma E-Learning |
+| [05c-caso-facturacion.md](./05c-caso-facturacion.md) | Caso integral: Sistema de Facturación |
+| [05d-caso-delivery.md](./05d-caso-delivery.md) | Caso integral: App de Delivery |
+| [BIBLIOGRAFIA.md](./BIBLIOGRAFIA.md) | Fuentes, libros y referencias |
+
+---
+
+### 📖 Casos integradores
+
+Los casos prácticos te permiten aplicar FADER + Mapeo + Contratos + Flujo en industrias reales:
+
+| Caso | Industria | Complejidad | Lo nuevo que practicas |
+|------|-----------|-------------|------------------------|
+| [Reservas](./05-caso-completo-reservas.md) | Veterinaria | Media | FADER completo + ADR |
+| [E-Learning](./05b-caso-elearning.md) | Educación | Media | Progreso, jerarquías (curso → módulo → lección) |
+| [Facturación](./05c-caso-facturacion.md) | Financiera | Alta | Máquina de estados, transiciones, número secuencial |
+| [Delivery](./05d-caso-delivery.md) | Logística | Alta | Tiempo real (Streams), geolocalización, 3 actores |
 
 ---
 
@@ -88,5 +105,5 @@ Después de este módulo, continúa con [01-CLEAN-ARCHITECTURE](../01-CLEAN-ARCH
 ---
 
 **Nivel:** Principiante a Avanzado  
-**Tiempo estimado:** 6-8 horas  
+**Tiempo estimado:** 15-20 horas (incluyendo casos prácticos)  
 **Herramientas:** Papel, lápiz, tu cabeza. Nada más.
