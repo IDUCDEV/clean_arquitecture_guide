@@ -32,15 +32,35 @@ Clean Architecture es una forma de organizar el código en **capas independiente
 
 ## 📁 Estructura de la Guía
 
-La guía está organizada en **5 secciones numeradas** para seguir un orden de aprendizaje lógico:
+La guía está organizada en **6 secciones numeradas** para seguir un orden de aprendizaje lógico:
 
 ```
+00-DISEÑO-FEATURE/       → Diseño y descomposición de features (¡empieza aquí!)
 01-CLEAN-ARCHITECTURE/    → Fundamentos de arquitectura
 02-TESTING/              → Cómo probar el código
 03-IA-ASSISTANT/         → Cómo usar IA en el desarrollo
 04-NIVEL-EXPERTO/         → Técnicas avanzadas de arquitectura
 05-SUPABASE/             → Backend + automatización
 ```
+
+---
+
+### ✏️ Sección 00: Diseño de Features
+
+| Archivo | Descripción |
+|---------|-------------|
+| [README.md](./00-DISEÑO-FEATURE/README.md) | Filosofía "papel y lápiz" + framework FADER |
+| [01-descomposicion-feature.md](./00-DISEÑO-FEATURE/01-descomposicion-feature.md) | Framework FADER: Formular, Actorizar, Descomponer, Entidades, Reglas |
+| [01a-practica-carrito.md](./00-DISEÑO-FEATURE/01a-practica-carrito.md) | Práctica: descomponer Carrito de Compras |
+| [02-mapeo-capas.md](./00-DISEÑO-FEATURE/02-mapeo-capas.md) | Traducir FADER a las capas de Clean Architecture |
+| [02a-practica-carrito-capas.md](./00-DISEÑO-FEATURE/02a-practica-carrito-capas.md) | Práctica: mapear Carrito a capas |
+| [03-contratos-primero.md](./00-DISEÑO-FEATURE/03-contratos-primero.md) | Contract-First Design y ADRs |
+| [03a-practica-carrito-contratos.md](./00-DISEÑO-FEATURE/03a-practica-carrito-contratos.md) | Práctica: contratos del Carrito |
+| [04-flujo-datos.md](./00-DISEÑO-FEATURE/04-flujo-datos.md) | Flujo de datos entre capas |
+| [04a-practica-carrito-flujo.md](./00-DISEÑO-FEATURE/04a-practica-carrito-flujo.md) | Práctica: flujo del Carrito |
+| [05-caso-completo-reservas.md](./00-DISEÑO-FEATURE/05-caso-completo-reservas.md) | Caso integral: Sistema de Reservas |
+
+**Contenido:** Metodología FADER, descomposición de features, mapeo a capas, contract-first, ADRs, diagramas de flujo.
 
 ---
 
@@ -131,6 +151,8 @@ La guía está organizada en **5 secciones numeradas** para seguir un orden de a
 ## 🚀 Orden de Aprendizaje Sugerido
 
 ```
+00-DISEÑO-FEATURE        → Diseño de features (6-8 horas) — ¡empieza aquí!
+    ↓
 01-CLEAN-ARCHITECTURE    → Fundamentos (4-6 horas)
     ↓
 02-TESTING               → Testing (15-20 horas)
@@ -180,5 +202,5 @@ MIT License - Libre de usar y modificar.
 
 ---
 
-**Última actualización:** 2026-04-01  
-**Versión:** 5.0.0
+**Última actualización:** 2026-05-15  
+**Versión:** 5.1.0
