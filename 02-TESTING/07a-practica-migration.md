@@ -1,13 +1,13 @@
-# 🏋️ 07a: Práctica - Migración a Mockito
+# 🏋️ 07a: Práctica - Migración a Mocktail
 
-> **¿De qué trata esta práctica?** De aprender a migrar de Fakes manuales a Mocks automáticos cuando sea necesario.
+> **¿De qué trata esta práctica?** De aprender a migrar de Fakes manuales a Mocks con Mocktail cuando sea necesario, sin usar build_runner ni generación de código.
 
 ---
 
 ## 📋 Ejercicios
 
 - [Ejercicio 1: Identificar cuándo migrar](#ejercicio-1-identificar-cuándo-migrar)
-- [Ejercicio 2: Generar Mocks con Mockito](#ejercicio-2-generar-mocks-con-mockito)
+- [Ejercicio 2: Generar Mocks con Mocktail](#ejercicio-2-generar-mocks-con-mocktail)
 - [Ejercicio 3: Comparar Fakes vs Mocks](#ejercicio-3-comparar-fakes-vs-mocks)
 
 ---
@@ -18,11 +18,12 @@ Asegúrate de tener las dependencias:
 
 ```yaml
 dev_dependencies:
-  mockito: ^5.4.0
-  build_runner: ^2.10.2
+  mocktail: ^1.0.0
 
 flutter pub get
 ```
+
+Mocktail no requiere `build_runner` ni `build.yaml`.
 
 ---
 
@@ -73,39 +74,29 @@ abstract class IPaymentGateway {
 
 ---
 
-## Ejercicio 2: Generar Mocks con Mockito
+## Ejercicio 2: Generar Mocks con Mocktail
 
 ### 📝 Tu Misión
 
-Crear un Mock usando las anotaciones de Mockito.
+Crear un Mock usando Mocktail sin generación de código.
 
-### ✅ Paso 1: Crear archivo con anotaciones
+### ✅ Paso 1: Crear el archivo de mock
 
 Crea `test/helpers/mock_auth_repository.dart`:
 
 ```dart
 // test/helpers/mock_auth_repository.dart
-import 'package:mockito/annotations.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:mi_proyecto_flutter/clean/features/auth/domain/repositories/auth_repository.dart';
 
-@GenerateMocks([IAuthRepository])
-void main() {
-  // Generate with: dart run build_runner build
-}
+class MockAuthRepository extends Mock implements IAuthRepository {}
 ```
 
-### ✅ Paso 2: Generar el Mock
-
-```bash
-dart run build_runner build --delete-conflicting-outputs
-```
-
-### ✅ Paso 3: Usar el Mock en tests
+### ✅ Paso 2: Usar el Mock en tests
 
 ```dart
-// test/features/auth/domain/usecases/login_usecase_mock_test.dart
-import 'package:mockito/mockito.dart';
-import 'package:mockito/annotations.dart';
+// test/features/auth/domain/usecases/login_usecase_test.dart
+import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mi_proyecto_flutter/clean/core/error/failures.dart';
@@ -113,34 +104,33 @@ import 'package:mi_proyecto_flutter/clean/features/auth/domain/entities/user.dar
 import 'package:mi_proyecto_flutter/clean/features/auth/domain/usecases/login_usecase.dart';
 import 'package:mi_proyecto_flutter/clean/features/auth/domain/repositories/auth_repository.dart';
 
-import 'login_usecase_mock_test.mocks.dart';
+import '../../../../helpers/mock_auth_repository.dart';
 
-@GenerateMocks([IAuthRepository])
 void main() {
   late LoginUseCase useCase;
-  late MockIAuthRepository mockRepository;
+  late MockAuthRepository mockRepository;
 
   setUp(() {
-    mockRepository = MockIAuthRepository();
+    mockRepository = MockAuthRepository();
     useCase = LoginUseCase(repository: mockRepository);
   });
 
   test('should return user when login is successful', () async {
     // Arrange
     const tUser = User(id: '123', email: 'test@example.com', name: 'John', lastName: 'Doe');
-    when(mockRepository.login(any, any)).thenAnswer((_) async => Either.right(tUser));
+    when(() => mockRepository.login(any(), any())).thenAnswer((_) async => Either.right(tUser));
 
     // Act
     final result = await useCase(const LoginParams(email: 'test@example.com', password: 'password'));
 
     // Assert
     expect(result, equals(Either.right(tUser)));
-    verify(mockRepository.login('test@example.com', 'password'));
+    verify(() => mockRepository.login('test@example.com', 'password'));
   });
 
   test('should return failure when login fails', () async {
     // Arrange
-    when(mockRepository.login(any, any)).thenAnswer(
+    when(() => mockRepository.login(any(), any())).thenAnswer(
       (_) async => Either.left(ServerFailure('Invalid credentials')),
     );
 
@@ -149,7 +139,7 @@ void main() {
 
     // Assert
     expect(result.isLeft(), true);
-    verify(mockRepository.login('test@example.com', 'wrong'));
+    verify(() => mockRepository.login('test@example.com', 'wrong'));
   });
 }
 ```
@@ -186,31 +176,32 @@ expect(fake.loginCallCount, 1);  // ✓ Verificación manual
 
 **Con Mock:**
 ```dart
-// test/helpers/mock_auth_repository.dart (generado)
-class MockIAuthRepository extends Mock implements IAuthRepository {}
+// test/helpers/mock_auth_repository.dart
+class MockAuthRepository extends Mock implements IAuthRepository {}
 
 // Uso en test
-when(mock.login(any, any)).thenAnswer((_) async => Either.right(tUser));
+when(() => mock.login(any(), any())).thenAnswer((_) async => Either.right(tUser));
 await useCase(...);
-verify(mock.login('test@example.com', 'password')).called(1);  // ✓ Verificación automática
+verify(() => mock.login('test@example.com', 'password')).called(1);  // ✓ Verificación automática
 ```
 
 ### ✅ Comparación directa
 
 | Aspecto | Fake | Mock |
 |---------|------|------|
-| **Código a escribir** | Más (implementar todo) | Menos (anotaciones) |
-| **Debugging** | Fácil (código visible) | Difícil (código generado) |
-| **Verificación** | Manual (`callCount`) | Automática (`verify`) |
-| **Flexibilidad** | Alta (lógica personalizada) | Limitada (API de mockito) |
-| **Mantenimiento** | Actualizar manualmente | Regenerar con build_runner |
+| **Código a escribir** | Más (implementar todo) | Menos (extends Mock implements) |
+| **Debugging** | Fácil (código visible) | Regular (código en Mocktail) |
+| **Verificación** | Manual (`callCount`) | Automática (`verify()`) |
+| **Flexibilidad** | Alta (lógica personalizada) | Limitada (API de mocktail) |
+| **Mantenimiento** | Actualizar manualmente | Solo añadir/quitar métodos |
+| **build_runner** | No necesita | No necesita |
 
 ---
 
 ## ✅ Checklist de Ejercicio Completado
 
 - [ ] Ejercicio 1: Entiendo cuándo usar Fakes vs Mocks
-- [ ] Ejercicio 2: He generado un Mock con Mockito
+- [ ] Ejercicio 2: He creado un Mock con Mocktail
 - [ ] Ejercicio 3: He comparado ambos enfoques
 
 ---
@@ -219,7 +210,7 @@ verify(mock.login('test@example.com', 'password')).called(1);  // ✓ Verificaci
 
 Has aprendido a:
 - ✅ Identificar cuándo migrar de Fakes a Mocks
-- ✅ Generar Mocks automáticamente con Mockito
+- ✅ Crear Mocks manualmente con Mocktail (sin build_runner)
 - ✅ Comparar ambos enfoques y elegir el correcto
 
 ---
@@ -230,6 +221,7 @@ Has completado todos los ejercicios de la guía de testing. Ahora eres capaz de:
 
 ✅ Escribir tests con patrón AAA  
 ✅ Crear Fakes manuales para cualquier interfaz  
+✅ Crear Mocks con Mocktail (sin build_runner)  
 ✅ Testear Entities, UseCases, Models  
 ✅ Testear DataSources (Remote y Local)  
 ✅ Testear Repositories (lógica online/offline)  
@@ -245,12 +237,12 @@ Has completado todos los ejercicios de la guía de testing. Ahora eres capaz de:
 | Parte | Archivos |
 |-------|----------|
 | Fundamentos | 01-fundamentos.md + 01a-practica-primeros-tests.md |
-| Domain | 02-domain-testing.md + 02a-practica-fakes-manuales.md |
+| Domain | 02-domain-testing.md + 02a-practica-mocktail.md |
 | Data | 03-data-testing.md + 03a-practica-fixtures.md + 03b-practica-datasources.md + 03c-practica-repositories.md |
 | Presentation | 04-presentation-testing.md + 04a-practica-cubits.md + 04b-practica-widgets.md |
 | Core | 05-core-testing.md + 05a-practica-core-services.md |
 | Avanzado | 06-advanced-testing.md + 06a-practica-coverage-ci.md |
-| Migración | 07-migration-to-mockito.md + 07a-practica-migration.md |
+| Migración | 07-migration-to-mocktail.md + 07a-practica-migration.md |
 
 ---
 

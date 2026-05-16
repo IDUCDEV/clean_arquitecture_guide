@@ -1,6 +1,6 @@
 # 🧪 Parte 3: Testing Data (Models, Repositories, DataSources)
 
-> **¿De qué trata esta parte?** De testear la capa **Data** que maneja la comunicación con el exterior: APIs, bases de datos locales, y la lógica de decidir cuándo usar datos remotos vs locales. Usaremos **Mockito** para crear los mocks.
+> **¿De qué trata esta parte?** De testear la capa **Data** que maneja la comunicación con el exterior: APIs, bases de datos locales, y la lógica de decidir cuándo usar datos remotos vs locales. Usaremos **Mocktail** para crear los mocks.
 
 ---
 
@@ -420,24 +420,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 }
 ```
 
-### 🧪 Mock del HTTP Client con Mockito
+### 🧪 Mock del HTTP Client con Mocktail
 
-Para testear el DataSource, usamos Mockito para crear un Mock del HTTP Client:
+Para testear el DataSource, usamos Mocktail para crear un Mock del HTTP Client:
 
 ```dart
 // test/features/auth/data/datasources/auth_remote_data_source_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:mi_proyecto_flutter/clean/core/error/exceptions.dart';
 import 'package:mi_proyecto_flutter/clean/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:mi_proyecto_flutter/clean/features/auth/data/models/user_model.dart';
 
-import 'auth_remote_data_source_test.mocks.dart';
-
-@GenerateMocks([http.Client])
-import 'auth_remote_data_source_test.mocks.dart';
+class MockClient extends Mock implements http.Client {}
 
 void main() {
   late AuthRemoteDataSourceImpl dataSource;
@@ -460,8 +456,8 @@ void main() {
       // Arrange
       when(() => mockClient.post(
         any(),
-        headers: anyNamed('headers'),
-        body: anyNamed('body'),
+        headers: any(named: 'headers'),
+        body: any(named: 'body'),
       )).thenAnswer((_) async => http.Response(
         json.encode(tUserJson),
         200,
@@ -479,8 +475,8 @@ void main() {
       // Arrange
       when(() => mockClient.post(
         any(),
-        headers: anyNamed('headers'),
-        body: anyNamed('body'),
+        headers: any(named: 'headers'),
+        body: any(named: 'body'),
       )).thenAnswer((_) async => http.Response('Unauthorized', 401));
 
       // Act & Assert
@@ -494,8 +490,8 @@ void main() {
       // Arrange
       when(() => mockClient.post(
         any(),
-        headers: anyNamed('headers'),
-        body: anyNamed('body'),
+        headers: any(named: 'headers'),
+        body: any(named: 'body'),
       )).thenAnswer((_) async => http.Response(json.encode(tUserJson), 200));
 
       // Act
@@ -504,8 +500,8 @@ void main() {
       // Assert
       verify(() => mockClient.post(
         Uri.parse('https://api.example.com/auth/login'),
-        headers: anyNamed('headers'),
-        body: anyNamed('body'),
+        headers: any(named: 'headers'),
+        body: any(named: 'body'),
       )).called(1);
     });
   });
@@ -580,24 +576,20 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
 }
 ```
 
-### 🧪 Mock de SharedPreferences con Mockito
+### 🧪 Mock de SharedPreferences con Mocktail
 
-Para testear el Local DataSource, usamos Mockito para crear un Mock de SharedPreferences:
+Para testear el Local DataSource, usamos Mocktail para crear un Mock de SharedPreferences:
 
 ```dart
 // test/features/auth/data/datasources/auth_local_data_source_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mi_proyecto_flutter/clean/core/error/exceptions.dart';
 import 'package:mi_proyecto_flutter/clean/features/auth/data/datasources/auth_local_data_source.dart';
 import 'package:mi_proyecto_flutter/clean/features/auth/data/models/user_model.dart';
 
-import 'auth_local_data_source_test.mocks.dart';
-
-@GenerateMocks([SharedPreferences])
-import 'auth_local_data_source_test.mocks.dart';
+class MockSharedPreferences extends Mock implements SharedPreferences {}
 
 void main() {
   late AuthLocalDataSourceImpl dataSource;
@@ -618,7 +610,7 @@ void main() {
   group('cacheUser', () {
     test('should call SharedPreferences.setString', () async {
       // Arrange
-      when(() => mockPreferences.setString(any, any))
+      when(() => mockPreferences.setString(any(), any()))
           .thenAnswer((_) async => true);
 
       // Act
@@ -627,13 +619,13 @@ void main() {
       // Assert
       verify(() => mockPreferences.setString(
         'CACHED_USER',
-        any,
+        any(),
       )).called(1);
     });
 
     test('should throw CacheException when save fails', () async {
       // Arrange
-      when(() => mockPreferences.setString(any, any))
+      when(() => mockPreferences.setString(any(), any()))
           .thenAnswer((_) async => false);
 
       // Act & Assert
@@ -647,7 +639,7 @@ void main() {
   group('getUser', () {
     test('should return UserModel when user is cached', () async {
       // Arrange
-      when(() => mockPreferences.getString(any))
+      when(() => mockPreferences.getString(any()))
           .thenAnswer((_) async => '{"id":"123","email":"test@example.com","name":"John","last_name":"Doe"}');
 
       // Act
@@ -660,7 +652,7 @@ void main() {
 
     test('should return null when no user cached', () async {
       // Arrange
-      when(() => mockPreferences.getString(any))
+      when(() => mockPreferences.getString(any()))
           .thenAnswer((_) async => null);
 
       // Act
@@ -674,7 +666,7 @@ void main() {
   group('clearUser', () {
     test('should call SharedPreferences.remove', () async {
       // Arrange
-      when(() => mockPreferences.remove(any))
+      when(() => mockPreferences.remove(any()))
           .thenAnswer((_) async => {});
 
       // Act
@@ -688,7 +680,7 @@ void main() {
   group('hasUser', () {
     test('should return true when user is cached', () async {
       // Arrange
-      when(() => mockPreferences.containsKey(any))
+      when(() => mockPreferences.containsKey(any()))
           .thenAnswer((_) async => true);
 
       // Act
@@ -748,27 +740,23 @@ class AuthRepositoryImpl implements IAuthRepository {
 }
 ```
 
-### 🧪 Mocks Necesarios con Mockito
+### 🧪 Mocks Necesarios con Mocktail
 
-Para testear el Repository con Mockito:
+Para testear el Repository con Mocktail:
 
 ```dart
 // test/features/auth/data/repositories/auth_repository_impl_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:mi_proyecto_flutter/clean/core/network/network_info.dart';
 import 'package:mi_proyecto_flutter/clean/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:mi_proyecto_flutter/clean/features/auth/data/datasources/auth_local_data_source.dart';
 import 'package:mi_proyecto_flutter/clean/features/auth/data/models/user_model.dart';
 import 'package:mi_proyecto_flutter/clean/features/auth/data/repositories/auth_repository_impl.dart';
 
-@GenerateMocks([
-  AuthRemoteDataSource,
-  AuthLocalDataSource,
-  NetworkInfo,
-])
-import 'auth_repository_impl_test.mocks.dart';
+class MockAuthRemoteDataSource extends Mock implements AuthRemoteDataSource {}
+class MockAuthLocalDataSource extends Mock implements AuthLocalDataSource {}
+class MockNetworkInfo extends Mock implements NetworkInfo {}
 
 void main() {
   late AuthRepositoryImpl repository;
@@ -801,9 +789,9 @@ void main() {
       test('should return user when remote call succeeds', () async {
         // Arrange
         when(() => mockNetworkInfo.isConnected).thenAnswer((_) async => true);
-        when(() => mockRemoteDataSource.login(any, any))
+        when(() => mockRemoteDataSource.login(any(), any()))
             .thenAnswer((_) async => tUserModel);
-        when(() => mockLocalDataSource.cacheUser(any))
+        when(() => mockLocalDataSource.cacheUser(any()))
             .thenAnswer((_) async => {});
 
         // Act
@@ -816,9 +804,9 @@ void main() {
       test('should cache user locally when remote call succeeds', () async {
         // Arrange
         when(() => mockNetworkInfo.isConnected).thenAnswer((_) async => true);
-        when(() => mockRemoteDataSource.login(any, any))
+        when(() => mockRemoteDataSource.login(any(), any()))
             .thenAnswer((_) async => tUserModel);
-        when(() => mockLocalDataSource.cacheUser(any))
+        when(() => mockLocalDataSource.cacheUser(any()))
             .thenAnswer((_) async => {});
 
         // Act
@@ -831,7 +819,7 @@ void main() {
       test('should return failure when remote call fails', () async {
         // Arrange
         when(() => mockNetworkInfo.isConnected).thenAnswer((_) async => true);
-        when(() => mockRemoteDataSource.login(any, any))
+        when(() => mockRemoteDataSource.login(any(), any()))
             .thenThrow(ServerException(message: 'Login failed'));
 
         // Act
@@ -862,7 +850,7 @@ void main() {
         await repository.login(tEmail, tPassword);
 
         // Assert
-        verifyNever(() => mockRemoteDataSource.login(any, any));
+        verifyNever(() => mockRemoteDataSource.login(any(), any()));
       });
     });
   });
@@ -900,9 +888,6 @@ Antes de pasar a la siguiente parte, asegúrate de:
 
 ### Comandos útiles
 ```bash
-# Generar todos los mocks
-dart run build_runner build --delete-conflicting-outputs
-
 # Tests de data completo
 flutter test test/features/auth/data/
 
@@ -910,14 +895,14 @@ flutter test test/features/auth/data/
 flutter test --coverage test/features/auth/data/
 ```
 
-### API de Mockito para Data
+### API de Mocktail para Data
 
 ```dart
 // Stubbing
-when(() => mock.method(any)).thenAnswer((_) async => value);
-when(() => mock.method(any)).thenThrow(Exception('error'));
+when(() => mock.method(any())).thenAnswer((_) async => value);
+when(() => mock.method(any())).thenThrow(Exception('error'));
 
 // Verificación
-verify(() => mock.method(any)).called(1);
-verifyNever(() => mock.method(any));
+verify(() => mock.method(any())).called(1);
+verifyNever(() => mock.method(any()));
 ```

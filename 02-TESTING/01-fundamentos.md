@@ -133,8 +133,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   bloc_test: ^9.1.0          # Para testear Cubits/Blocs
-  mockito: ^5.4.0            # Para tests avanzados (opcional)
-  build_runner: ^2.10.2      # Solo si usas @GenerateMocks
+  mocktail: ^1.0.4            # Para mocks sin generación de código
 ```
 
 ### 📋 Explicación de Cada Dependencia
@@ -144,8 +143,7 @@ dev_dependencies:
 | `flutter_test` | Framework base de testing en Flutter | **Siempre** |
 | `integration_test` | Tests de flujo completo (E2E) | Para simular usuario real |
 | `bloc_test` | Testing especializado de Cubits/Blocs | Para capa Presentation |
-| `mockito` | Generación automática de mocks | Avanzado (Parte 7) |
-| `build_runner` | Generación de código | Solo con Mockito |
+| `mocktail` | Mocks sin generación de código | Alternativa moderna a Mockito |
 
 ### 🚀 Instalación
 
@@ -327,7 +325,7 @@ test('should return user when login is successful', () async {
   const email = 'test@example.com';
   const password = 'password123';
   final mockRepository = MockIAuthRepository();
-  when(() => mockRepository.login(any, any))
+  when(() => mockRepository.login(any(), any()))
       .thenAnswer((_) async => Either.right(tUser));
   
   // ═══════════════════════════════════════════════════════════
@@ -359,7 +357,7 @@ test('should return user when login is successful', () async {
 ```dart
 // ❌ MALO: Mezclar Arrange y Act
 test('bad example', () {
-  final repo = FakeAuthRepository();  // Arrange
+  final repo = MockIAuthRepository();  // Arrange
   final result = repo.login(...);      // Act - mezclado con arrange
   expect(result, ...);                  // Assert
 });
@@ -368,7 +366,7 @@ test('bad example', () {
 test('good example', () async {
   // Arrange
   final mockRepository = MockIAuthRepository();
-  when(() => mockRepository.login(any, any))
+  when(() => mockRepository.login(any(), any()))
       .thenAnswer((_) async => Either.right(tUser));
   
   // Act

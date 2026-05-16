@@ -1,12 +1,12 @@
 # 🏋️ 04a: Práctica - Cubits con bloc_test
 
-> **¿De qué trata esta práctica?** De testear Cubits usando `bloc_test` + **Mockito** para los UseCases. Esta combinación permite verificar tanto los estados emitidos como las llamadas a los UseCases.
+> **¿De qué trata esta práctica?** De testear Cubits usando `bloc_test` + **Mocktail** para los UseCases. Esta combinación permite verificar tanto los estados emitidos como las llamadas a los UseCases.
 
 ---
 
 ## 📋 Ejercicios
 
-- [Ejercicio 1: Configurar Mocks con Mockito](#ejercicio-1-configurar-mocks-con-mockito)
+- [Ejercicio 1: Configurar Mocks con Mocktail](#ejercicio-1-configurar-mocks-con-mocktail)
 - [Ejercicio 2: Testear estado inicial](#ejercicio-2-testear-estado-inicial)
 - [Ejercicio 3: Testear transición exitosa](#ejercicio-3-testear-transición-exitosa)
 - [Ejercicio 4: Testear transición de error](#ejercicio-4-testear-transición-de-error)
@@ -21,8 +21,7 @@ Asegúrate de tener las dependencias necesarias:
 ```yaml
 dev_dependencies:
   bloc_test: ^9.1.0
-  mockito: ^5.4.0
-  build_runner: ^2.4.0
+  mocktail: ^1.0.0
 ```
 
 ```bash
@@ -31,13 +30,13 @@ flutter pub get
 
 ---
 
-## Ejercicio 1: Configurar Mocks con Mockito
+## Ejercicio 1: Configurar Mocks con Mocktail
 
 ### 📝 Tu Misión
 
-Crear los Mocks de los UseCases usando Mockito.
+Crear los Mocks de los UseCases usando Mocktail.
 
-### ✅ Paso 1: Crear el archivo de test con anotaciones
+### ✅ Paso 1: Crear el archivo de test
 
 ```bash
 mkdir -p test/features/auth/presentation/cubit
@@ -51,8 +50,7 @@ touch test/features/auth/presentation/cubit/auth_cubit_test.dart
 import 'package:bloc_test/bloc_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:mi_proyecto_flutter/clean/core/error/failures.dart';
 import 'package:mi_proyecto_flutter/clean/core/usecases/usecase.dart';
 import 'package:mi_proyecto_flutter/clean/features/auth/domain/entities/user.dart';
@@ -63,14 +61,11 @@ import 'package:mi_proyecto_flutter/clean/features/auth/domain/usecases/check_au
 import 'package:mi_proyecto_flutter/clean/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:mi_proyecto_flutter/clean/features/auth/presentation/cubit/auth_state.dart';
 
-/// Generar mocks para: LoginUseCase, RegisterUseCase, LogoutUseCase, CheckAuthStatusUseCase
-@GenerateMocks([
-  LoginUseCase,
-  RegisterUseCase,
-  LogoutUseCase,
-  CheckAuthStatusUseCase,
-])
-import 'auth_cubit_test.mocks.dart';
+// Mock classes
+class MockLoginUseCase extends Mock implements LoginUseCase {}
+class MockRegisterUseCase extends Mock implements RegisterUseCase {}
+class MockLogoutUseCase extends Mock implements LogoutUseCase {}
+class MockCheckAuthStatusUseCase extends Mock implements CheckAuthStatusUseCase {}
 
 void main() {
   late AuthCubit authCubit;
@@ -109,24 +104,6 @@ void main() {
 
   // Tests van aquí...
 }
-```
-
-### ✅ Paso 3: Genera los Mocks
-
-```bash
-dart run build_runner build --delete-conflicting-outputs
-```
-
-### ✅ Paso 4: Verifica que se generaron
-
-```bash
-ls test/features/auth/presentation/cubit/
-```
-
-**Resultado esperado:**
-```
-auth_cubit_test.dart
-auth_cubit_test.mocks.dart  ← ¡Generado!
 ```
 
 ---
@@ -379,7 +356,7 @@ Verificar que el Cubit llama a los UseCases con los parámetros correctos.
       'debería verificar que se llamaron los UseCases correctos',
       build: () {
         when(() => mockLoginUseCase(any())).thenAnswer(
-          (_) async => Either.right(tUser);
+          (_) async => Either.right(tUser),
         );
         return authCubit;
       },
@@ -399,7 +376,6 @@ Verificar que el Cubit llama a los UseCases con los parámetros correctos.
 ## 🧪 Ejecuta todos los tests
 
 ```bash
-dart run build_runner build --delete-conflicting-outputs
 flutter test test/features/auth/presentation/cubit/auth_cubit_test.dart
 ```
 
@@ -413,7 +389,7 @@ flutter test test/features/auth/presentation/cubit/auth_cubit_test.dart
 
 ## ✅ Checklist de Ejercicio Completado
 
-- [ ] Ejercicio 1: Mocks de UseCases generados con @GenerateMocks
+- [ ] Ejercicio 1: Mocks de UseCases creados con Mocktail
 - [ ] Ejercicio 2: Test estado inicial (2 tests)
 - [ ] Ejercicio 3: Tests transición exitosa (3 tests)
 - [ ] Ejercicio 4: Tests transición de error (4 tests)
@@ -425,8 +401,8 @@ flutter test test/features/auth/presentation/cubit/auth_cubit_test.dart
 ## 🎉 ¡Felicitaciones!
 
 Has aprendido a:
-- ✅ Configurar el entorno de testing con bloc_test + Mockito
-- ✅ Generar Mocks de UseCases con @GenerateMocks
+- ✅ Configurar el entorno de testing con bloc_test + Mocktail
+- ✅ Crear Mocks de UseCases con `extends Mock implements`
 - ✅ Testear el estado inicial del Cubit
 - ✅ Testear transiciones exitosas (Loading → Authenticated)
 - ✅ Testear transiciones de error (Loading → AuthError)
@@ -443,12 +419,12 @@ Has aprendido a:
 
 ---
 
-## 📚 Resumen: bloc_test + Mockito
+## 📚 Resumen: bloc_test + Mocktail
 
 | Herramienta | Uso |
 |------------|-----|
 | **bloc_test** | Verificar estados emitidos por el Cubit |
-| **Mockito** | Mockear los UseCases inyectados |
+| **Mocktail** | Mockear los UseCases inyectados |
 | **verify()** | Verificar que se llamó al UseCase |
 | **verifyNever()** | Verificar que NO se llamó |
 | **verifyNoMoreInteractions()** | Verificar que no hubo llamadas extra |

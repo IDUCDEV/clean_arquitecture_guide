@@ -73,7 +73,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   bloc_test: ^9.1.0
-  mockito: ^5.4.0      # Opcional, para mocks avanzados
+  mocktail: ^1.0.0     # Opcional, para mocks avanzados
 ```
 
 ```bash
@@ -109,7 +109,7 @@ blocTest<AuthCubit, AuthState>(
   
   // Verificaciones adicionales después del test
   verify: (_) {
-    verify(mockRepository.login(any, any)).called(1);
+    verify(() => mockRepository.login(any(), any())).called(1);
   },
   
   // Errores esperados (opcional)

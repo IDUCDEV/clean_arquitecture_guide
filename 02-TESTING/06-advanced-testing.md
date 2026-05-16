@@ -601,11 +601,11 @@ Crea un script que:
 
 ## 🚀 Siguiente Paso
 
-➡️ **Parte 7: Migración a Mockito**
+➡️ **Parte 7: Migración a Mocktail**
 
 Aprenderás a:
 - Cuándo migrar de Fakes a Mocks
-- Configurar @GenerateMocks
+- Configurar Mocktail sin build_runner
 - Comparación lado a lado
 - Pros y contras de cada enfoque
 

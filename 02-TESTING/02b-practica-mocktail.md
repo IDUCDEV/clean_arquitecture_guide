@@ -1,17 +1,17 @@
-# 🏋️ 02b: Práctica - Mockito Paso a Paso
+# 🏋️ 02b: Práctica - Mocktail Paso a Paso
 
-> **¿De qué trata esta práctica?** De crear tu primer Mock con Mockito desde cero. Vamos paso a paso, ejercicios progresivos. Usaremos ejemplos en diferentes capas de Clean Architecture para que veas cómo se aplica en cada una.
+> **¿De qué trata esta práctica?** De crear tu primer Mock con Mocktail desde cero. Vamos paso a paso, ejercicios progresivos. Usaremos ejemplos en diferentes capas de Clean Architecture para que veas cómo se aplica en cada una.
 
 ---
 
-## ⚠️ Nota Importante: ¿Cuándo usar Mockito?
+## ⚠️ Nota Importante: ¿Cuándo usar Mocktail?
 
-| Capa | Herramienta principal | ¿Cuándo usar Mockito? |
+| Capa | Herramienta principal | ¿Cuándo usar Mocktail? |
 |------|---------------------|----------------------|
-| **Domain** | Mockito | ✅ Siempre - para Repository Interfaces |
-| **Data** | Mockito | ✅ Siempre - para DataSources |
-| **Presentation** | **bloc_test** | ⚠️ Para estados + Mockito para UseCases |
-| **Core** | Mockito | ✅ Para servicios como NetworkInfo |
+| **Domain** | Mocktail | ✅ Siempre - para Repository Interfaces |
+| **Data** | Mocktail | ✅ Siempre - para DataSources |
+| **Presentation** | **bloc_test** | ⚠️ Para estados + Mocktail para UseCases |
+| **Core** | Mocktail | ✅ Para servicios como NetworkInfo |
 
 > **La regla:** Mockea las **dependencias externas** de cada capa.
 
@@ -19,18 +19,18 @@
 
 ## 📋 Índice General
 
-### Fundamentos de Mockito
+### Fundamentos de Mocktail
 - [Ejercicio 1: Preparar el entorno](#ejercicio-1-preparar-el-entorno)
 - [Ejercicio 2: Crear la interfaz](#ejercicio-2-crear-la-interfaz)
-- [Ejercicio 3: Generar el primer Mock](#ejercicio-3-generar-el-primer-mock)
+- [Ejercicio 3: Crear el primer Mock](#ejercicio-3-crear-el-primer-mock)
 - [Ejercicio 4: Primer test con thenAnswer](#ejercicio-4-primer-test-con-thenanswer)
 - [Ejercicio 5: Testear caso de error con thenThrow](#ejercicio-5-testear-caso-de-error-con-thenthrow)
 - [Ejercicio 6: Verificación básica con verify](#ejercicio-6-verificación-básica-con-verify)
 
-### Mockito por Capa (Aplicación Real)
+### Mocktail por Capa (Aplicación Real)
 - [CAPA DOMAIN: Repository + UseCase](#capa-domain-repository--usecase)
 - [CAPA DATA: DataSources (Remote/Local)](#capa-data-datasources-remotelocal)
-- [CAPA PRESENTATION: Cubits/BLoCs](#capa-presentation-cubitsblocs) ← bloc_test + Mockito
+- [CAPA PRESENTATION: Cubits/BLoCs](#capa-presentation-cubitsblocs) ← bloc_test + Mocktail
 - [CAPA CORE: Services Compartidos](#capa-core-services-compartidos)
 
 ---
@@ -45,8 +45,7 @@ Asegúrate de tener en tu `pubspec.yaml`:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  mockito: ^5.4.0
-  build_runner: ^2.4.0
+  mocktail: ^1.0.4
   bloc_test: ^9.1.0
 ```
 
@@ -180,11 +179,11 @@ dart analyze test/features/products/domain/
 
 ---
 
-## Ejercicio 3: Generar el primer Mock
+## Ejercicio 3: Crear el primer Mock
 
 ### 📝 Tu Misión
 
-Crear el primer test con la anotación `@GenerateMocks` y generar el código.
+Crear el primer test con un Mock de Mocktail. Sin build_runner, sin generación de código.
 
 ### ✅ Paso 1: Crea el archivo de test
 
@@ -193,14 +192,13 @@ Crea `test/features/products/domain/usecases/get_product_usecase_test.dart`:
 ```dart
 import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:test/features/products/domain/entities/product.dart';
 import 'package:test/features/products/domain/repositories/product_repository.dart';
 import 'package:test/features/products/domain/usecases/get_product_usecase.dart';
 
-@GenerateMocks([IProductRepository])
-import 'get_product_usecase_test.mocks.dart';
+// Una sola línea - sin build_runner, sin @GenerateMocks
+class MockIProductRepository extends Mock implements IProductRepository {}
 
 void main() {
   late MockIProductRepository mockRepository;
@@ -215,22 +213,10 @@ void main() {
 }
 ```
 
-### ✅ Paso 2: Genera el Mock
+### ✅ Paso 2: Verifica que no necesitas generar nada
 
 ```bash
-dart run build_runner build --delete-conflicting-outputs
-```
-
-### ✅ Paso 3: Verifica que se generó
-
-```bash
-ls test/features/products/domain/usecases/
-```
-
-**Resultado esperado:**
-```
-get_product_usecase_test.dart
-get_product_usecase_test.mocks.dart  ← ¡Generado!
+# No necesitas build_runner. ¡El test ya está listo!
 ```
 
 ---
@@ -264,7 +250,7 @@ void main() {
   group('GetProductUseCase', () {
     test('should return Product when repository returns success', () async {
       // ARRANGE: Configurar el mock
-      when(mockRepository.getProduct(any)).thenAnswer(
+      when(() => mockRepository.getProduct(any())).thenAnswer(
         (_) async => Either.right(tProduct),
       );
 
@@ -273,7 +259,7 @@ void main() {
 
       // ASSERT: Verificar resultado
       expect(result, equals(Either.right(tProduct)));
-      verify(mockRepository.getProduct(tProductId)).called(1);
+      verify(() => mockRepository.getProduct(tProductId)).called(1);
     });
   });
 }
@@ -298,7 +284,7 @@ Testear el caso donde el repository lanza una excepción.
 ```dart
 group('GetProductUseCase - error cases', () {
   test('should return Failure when repository throws exception', () async {
-    when(mockRepository.getProduct(any)).thenThrow(
+    when(() => mockRepository.getProduct(any())).thenThrow(
       Exception('Network error'),
     );
 
@@ -308,7 +294,7 @@ group('GetProductUseCase - error cases', () {
   });
 
   test('should return NotFoundFailure when product does not exist', () async {
-    when(mockRepository.getProduct(any)).thenAnswer(
+    when(() => mockRepository.getProduct(any())).thenAnswer(
       (_) async => Either.left(NotFoundFailure('Product not found')),
     );
 
@@ -336,13 +322,13 @@ Aprender a verificar que el UseCase realmente llamó al repository.
 ```dart
 group('Verification', () {
   test('should call repository exactly once', () async {
-    when(mockRepository.getProduct(any)).thenAnswer(
+    when(() => mockRepository.getProduct(any())).thenAnswer(
       (_) async => Either.right(tProduct),
     );
 
     await useCase(tProductId);
 
-    verify(mockRepository.getProduct(tProductId)).called(1);
+    verify(() => mockRepository.getProduct(tProductId)).called(1);
   });
 
   test('should verify zero interactions', () {
@@ -353,9 +339,9 @@ group('Verification', () {
 
 ---
 
-# 🏗️ MOCKITO POR CAPA - Aplicación Real
+# 🏗️ MOCKTAIL POR CAPA - Aplicación Real
 
-Ahora vamos a ver cómo usar Mockito en **cada capa de Clean Architecture** con ejemplos prácticos y reales.
+Ahora vamos a ver cómo usar Mocktail en **cada capa de Clean Architecture** con ejemplos prácticos y reales.
 
 ---
 
@@ -395,14 +381,12 @@ Crea `test/features/products/domain/usecases/get_all_products_usecase_test.dart`
 ```dart
 import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:test/features/products/domain/entities/product.dart';
 import 'package:test/features/products/domain/repositories/product_repository.dart';
 import 'package:test/features/products/domain/usecases/get_all_products_usecase.dart';
 
-@GenerateMocks([IProductRepository])
-import 'get_all_products_usecase_test.mocks.dart';
+class MockIProductRepository extends Mock implements IProductRepository {}
 
 void main() {
   late MockIProductRepository mockRepository;
@@ -419,7 +403,7 @@ void main() {
 
   test('should get all products from repository', () async {
     // Arrange
-    when(mockRepository.getAllProducts()).thenAnswer(
+    when(() => mockRepository.getAllProducts()).thenAnswer(
       (_) async => Either.right(tProducts),
     );
 
@@ -428,12 +412,12 @@ void main() {
 
     // Assert
     expect(result, equals(Either.right(tProducts)));
-    verify(mockRepository.getAllProducts()).called(1);
+    verify(() => mockRepository.getAllProducts()).called(1);
   });
 
   test('should return empty list when no products exist', () async {
     // Arrange
-    when(mockRepository.getAllProducts()).thenAnswer(
+    when(() => mockRepository.getAllProducts()).thenAnswer(
       (_) async => Either.right([]),
     );
 
@@ -450,11 +434,10 @@ void main() {
 }
 ```
 
-### 🔄 Genera y ejecuta
+### Ejecuta
 
 ```bash
-dart run build_runner build --delete-conflicting-outputs
-flutter test test/features/products/domain/usecases/get_all_products_usecase_test.dart
+flutter test test/features/products/domain/usecases/
 ```
 
 ---
@@ -490,14 +473,12 @@ Crea `test/features/products/data/datasources/product_remote_datasource_test.dar
 ```dart
 import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:test/features/products/data/datasources/product_remote_datasource.dart';
 import 'package:test/features/products/domain/entities/product.dart';
 import 'package:test/features/products/domain/repositories/product_repository.dart';
 
-@GenerateMocks([ProductRemoteDataSource])
-import 'product_remote_datasource_test.mocks.dart';
+class MockProductRemoteDataSource extends Mock implements ProductRemoteDataSource {}
 
 void main() {
   late MockProductRemoteDataSource mockDataSource;
@@ -511,7 +492,7 @@ void main() {
   group('ProductRemoteDataSource', () {
     test('should return product when remote call is successful', () async {
       // Arrange - Simulamos que la API responde bien
-      when(mockDataSource.getProduct(any)).thenAnswer(
+      when(() => mockDataSource.getProduct(any())).thenAnswer(
         (_) async => Either.right(tProduct),
       );
 
@@ -520,12 +501,12 @@ void main() {
 
       // Assert
       expect(result, equals(Either.right(tProduct)));
-      verify(mockDataSource.getProduct('1')).called(1);
+      verify(() => mockDataSource.getProduct('1')).called(1);
     });
 
     test('should return ServerFailure when remote call fails', () async {
       // Arrange - Simulamos error de red
-      when(mockDataSource.getProduct(any)).thenAnswer(
+      when(() => mockDataSource.getProduct(any())).thenAnswer(
         (_) async => Either.left(ServerFailure('Network error')),
       );
 
@@ -542,7 +523,7 @@ void main() {
         Product(id: '1', name: 'Product 1', price: 100, stock: 10),
         Product(id: '2', name: 'Product 2', price: 200, stock: 20),
       ];
-      when(mockDataSource.getProducts()).thenAnswer(
+      when(() => mockDataSource.getProducts()).thenAnswer(
         (_) async => Either.right(products),
       );
 
@@ -586,19 +567,16 @@ class ProductRepositoryImpl implements IProductRepository {
 
   @override
   Future<Either<Failure, Product>> createProduct(Product product) async {
-    // Implementación...
     throw UnimplementedError();
   }
 
   @override
   Future<Either<Failure, Product>> updateProduct(Product product) async {
-    // Implementación...
     throw UnimplementedError();
   }
 
   @override
   Future<Either<Failure, void>> deleteProduct(String id) async {
-    // Implementación...
     throw UnimplementedError();
   }
 }
@@ -609,15 +587,13 @@ Crea `test/features/products/data/repositories/product_repository_impl_test.dart
 ```dart
 import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:test/features/products/data/datasources/product_remote_datasource.dart';
 import 'package:test/features/products/data/repositories/product_repository_impl.dart';
 import 'package:test/features/products/domain/entities/product.dart';
 import 'package:test/features/products/domain/repositories/product_repository.dart';
 
-@GenerateMocks([ProductRemoteDataSource])
-import 'product_repository_impl_test.mocks.dart';
+class MockProductRemoteDataSource extends Mock implements ProductRemoteDataSource {}
 
 void main() {
   late ProductRepositoryImpl repository;
@@ -633,7 +609,7 @@ void main() {
   group('ProductRepositoryImpl', () {
     test('should forward call to remote data source', () async {
       // Arrange
-      when(mockRemoteDataSource.getProduct(any)).thenAnswer(
+      when(() => mockRemoteDataSource.getProduct(any())).thenAnswer(
         (_) async => Either.right(tProduct),
       );
 
@@ -642,12 +618,12 @@ void main() {
 
       // Assert
       expect(result, equals(Either.right(tProduct)));
-      verify(mockRemoteDataSource.getProduct('1')).called(1);
+      verify(() => mockRemoteDataSource.getProduct('1')).called(1);
     });
 
     test('should return failure when remote fails', () async {
       // Arrange
-      when(mockRemoteDataSource.getProduct(any)).thenAnswer(
+      when(() => mockRemoteDataSource.getProduct(any())).thenAnswer(
         (_) async => Either.left(ServerFailure('API Error')),
       );
 
@@ -672,13 +648,13 @@ void main() {
 | Herramienta | Para qué sirve |
 |-------------|----------------|
 | **bloc_test** | ✅ Testear los **estados** del Cubit/BLoC |
-| **Mockito** | ✅ Mockear los **UseCases** inyectados |
+| **Mocktail** | ✅ Mockear los **UseCases** inyectados |
 
 ```
 PRESENTATION
 ├── Widgets           → Test con pumpWidget (no mocks)
 ├── States/Events    → No necesitamos mocks
-└── Cubit/BLoC       → bloc_test + Mockito (UseCases)
+└── Cubit/BLoC       → bloc_test + Mocktail (UseCases)
 ```
 
 ### 🎯 Ejemplo: Testeando ProductCubit
@@ -725,23 +701,21 @@ class ProductCubit extends Cubit<ProductState> {
 }
 ```
 
-Ahora el test con la combinación de **bloc_test** + **Mockito**:
+Ahora el test con la combinación de **bloc_test** + **Mocktail**:
 
 ```dart
 // test/features/products/presentation/cubit/product_cubit_test.dart
 import 'package:bloc_test/bloc_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:test/features/products/domain/entities/product.dart';
 import 'package:test/features/products/domain/repositories/product_repository.dart';
 import 'package:test/features/products/domain/usecases/get_product_usecase.dart';
 import 'package:test/features/products/presentation/cubit/product_cubit.dart';
 import 'package:test/features/products/presentation/cubit/product_state.dart';
 
-@GenerateMocks([GetProductUseCase])
-import 'product_cubit_test.mocks.dart';
+class MockGetProductUseCase extends Mock implements GetProductUseCase {}
 
 void main() {
   late ProductCubit cubit;
@@ -771,7 +745,7 @@ void main() {
     blocTest<ProductCubit, ProductState>(
       'emits [ProductLoading, ProductLoaded] when loadProduct succeeds',
       build: () {
-        when(mockGetProductUseCase(any)).thenAnswer(
+        when(() => mockGetProductUseCase(any())).thenAnswer(
           (_) async => Either.right(tProduct),
         );
         return cubit;
@@ -782,14 +756,14 @@ void main() {
         ProductLoaded(tProduct),
       ],
       verify: (_) {
-        verify(mockGetProductUseCase('1')).called(1);
+        verify(() => mockGetProductUseCase('1')).called(1);
       },
     );
 
     blocTest<ProductCubit, ProductState>(
       'emits [ProductLoading, ProductError] when loadProduct fails',
       build: () {
-        when(mockGetProductUseCase(any)).thenAnswer(
+        when(() => mockGetProductUseCase(any())).thenAnswer(
           (_) async => Either.left(ServerFailure('Not found')),
         );
         return cubit;
@@ -804,30 +778,29 @@ void main() {
     blocTest<ProductCubit, ProductState>(
       'calls useCase with correct productId',
       build: () {
-        when(mockGetProductUseCase(any)).thenAnswer(
+        when(() => mockGetProductUseCase(any())).thenAnswer(
           (_) async => Either.right(tProduct),
         );
         return cubit;
       },
       act: (cubit) => cubit.loadProduct('product-123'),
       verify: (_) {
-        verify(mockGetProductUseCase('product-123')).called(1);
+        verify(() => mockGetProductUseCase('product-123')).called(1);
       },
     );
   });
 }
 ```
 
-### 🔄 Genera y ejecuta
+### Ejecuta
 
 ```bash
-dart run build_runner build --delete-conflicting-outputs
 flutter test test/features/products/presentation/cubit/product_cubit_test.dart
 ```
 
 ---
 
-> 📖 **NOTA:** Los ejercicios detallados de bloc_test para Cubits están cubiertos en **[04a-practica-cubits-bloc-test.md](./04a-practica-cubits-bloc-test.md)**. Esta sección solo muestra cómo Mockito se integra con bloc_test.
+> 📖 **NOTA:** Los ejercicios detallados de bloc_test para Cubits están cubiertos en **[04a-practica-cubits-bloc-test.md](./04a-practica-cubits-bloc-test.md)**. Esta sección solo muestra cómo Mocktail se integra con bloc_test.
 
 ---
 
@@ -857,12 +830,10 @@ Crea `test/core/network_info_test.dart`:
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:test/core/network_info.dart';
 
-@GenerateMocks([NetworkInfo])
-import 'network_info_test.mocks.dart';
+class MockNetworkInfo extends Mock implements NetworkInfo {}
 
 void main() {
   late MockNetworkInfo mockNetworkInfo;
@@ -874,7 +845,7 @@ void main() {
   group('NetworkInfo', () {
     test('should return true when device is connected', () async {
       // Arrange
-      when(mockNetworkInfo.isConnected).thenAnswer(
+      when(() => mockNetworkInfo.isConnected).thenAnswer(
         (_) async => true,
       );
 
@@ -883,12 +854,12 @@ void main() {
 
       // Assert
       expect(result, true);
-      verify(mockNetworkInfo.isConnected).called(1);
+      verify(() => mockNetworkInfo.isConnected).called(1);
     });
 
     test('should return false when device is not connected', () async {
       // Arrange
-      when(mockNetworkInfo.isConnected).thenAnswer(
+      when(() => mockNetworkInfo.isConnected).thenAnswer(
         (_) async => false,
       );
 
@@ -928,7 +899,6 @@ class GetProductWithCacheUseCase {
     if (isConnected) {
       return await repository.getProduct(id);
     } else {
-      // Podría retornar de cache local
       return Either.left(ServerFailure('No internet connection'));
     }
   }
@@ -941,15 +911,14 @@ Test con múltiples mocks:
 // test/features/products/domain/usecases/get_product_with_cache_usecase_test.dart
 import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:test/core/network_info.dart';
 import 'package:test/features/products/domain/entities/product.dart';
 import 'package:test/features/products/domain/repositories/product_repository.dart';
 import 'package:test/features/products/domain/usecases/get_product_with_cache_usecase.dart';
 
-@GenerateMocks([IProductRepository, NetworkInfo])
-import 'get_product_with_cache_usecase_test.mocks.dart';
+class MockIProductRepository extends Mock implements IProductRepository {}
+class MockNetworkInfo extends Mock implements NetworkInfo {}
 
 void main() {
   late GetProductWithCacheUseCase useCase;
@@ -970,10 +939,10 @@ void main() {
   group('GetProductWithCacheUseCase', () {
     test('should get product from repository when connected', () async {
       // Arrange - Ambos mocks
-      when(mockNetworkInfo.isConnected).thenAnswer(
+      when(() => mockNetworkInfo.isConnected).thenAnswer(
         (_) async => true,
       );
-      when(mockRepository.getProduct(any)).thenAnswer(
+      when(() => mockRepository.getProduct(any())).thenAnswer(
         (_) async => Either.right(tProduct),
       );
 
@@ -982,13 +951,13 @@ void main() {
 
       // Assert
       expect(result, equals(Either.right(tProduct)));
-      verify(mockNetworkInfo.isConnected).called(1);
-      verify(mockRepository.getProduct('1')).called(1);
+      verify(() => mockNetworkInfo.isConnected).called(1);
+      verify(() => mockRepository.getProduct('1')).called(1);
     });
 
     test('should return failure when not connected', () async {
       // Arrange
-      when(mockNetworkInfo.isConnected).thenAnswer(
+      when(() => mockNetworkInfo.isConnected).thenAnswer(
         (_) async => false,
       );
 
@@ -997,23 +966,22 @@ void main() {
 
       // Assert
       expect(result.isLeft(), true);
-      verify(mockNetworkInfo.isConnected).called(1);
-      verifyNever(mockRepository.getProduct(any));
+      verify(() => mockNetworkInfo.isConnected).called(1);
+      verifyNever(() => mockRepository.getProduct(any()));
     });
   });
 }
 ```
 
-### 🔄 Genera y ejecuta
+### Ejecuta
 
 ```bash
-dart run build_runner build --delete-conflicting-outputs
 flutter test test/features/products/domain/usecases/get_product_with_cache_usecase_test.dart
 ```
 
 ---
 
-# 📊 Resumen: Mockito por Capa
+# 📊 Resumen: Mocktail por Capa
 
 | Capa | Qué Mockear | Ejemplo |
 |------|-------------|---------|
@@ -1029,7 +997,7 @@ flutter test test/features/products/domain/usecases/get_product_with_cache_useca
 ### Fundamentos
 - [ ] Ejercicio 1: Estructura de carpetas
 - [ ] Ejercicio 2: Interfaz y entidades
-- [ ] Ejercicio 3: Generar primer Mock
+- [ ] Ejercicio 3: Crear primer Mock con Mocktail
 - [ ] Ejercicio 4: thenAnswer básico
 - [ ] Ejercicio 5: thenThrow para errores
 - [ ] Ejercicio 6: verify básico
@@ -1044,16 +1012,16 @@ flutter test test/features/products/domain/usecases/get_product_with_cache_useca
 
 ## 🎉 ¡Felicitaciones!
 
-Has completado la práctica completa de Mockito. Ahora dominas:
+Has completado la práctica completa de Mocktail. Ahora dominas:
 
-- ✅ Configurar Mockito con @GenerateMocks
+- ✅ Crear Mocks con Mocktail
 - ✅ Stubbing con when() y thenAnswer()
 - ✅ Manejar errores con thenThrow()
 - ✅ Verificación con verify()
-- ✅ **Mockito en DOMAIN** (Repository + UseCase)
-- ✅ **Mockito en DATA** (DataSources)
-- ✅ **Mockito en PRESENTATION** (Cubits)
-- ✅ **Mockito en CORE** (Services)
+- ✅ **Mocktail en DOMAIN** (Repository + UseCase)
+- ✅ **Mocktail en DATA** (DataSources)
+- ✅ **Mocktail en PRESENTATION** (Cubits)
+- ✅ **Mocktail en CORE** (Services)
 
 ---
 
@@ -1081,4 +1049,4 @@ Esta guía práctica ahora cubre **todas las capas de Clean Architecture** con e
 ---
 
 **Última actualización:** 2026-03-25
-**Versión:** 3.0.0
+**Versión:** 3.1.0

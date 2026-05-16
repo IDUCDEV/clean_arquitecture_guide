@@ -18,7 +18,7 @@
 
 Testear el servicio que verifica la conexión a internet.
 
-### ✅ Paso 1: Crea el Fake del connection checker
+### ✅ Paso 1: Crea el test con Mocktail
 
 ```bash
 mkdir -p test/core/network
@@ -28,24 +28,20 @@ touch test/core/network/network_info_test.dart
 ```dart
 // test/core/network/network_info_test.dart
 import 'package:flutter_test/flutter_test.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:mi_proyecto_flutter/clean/core/network/network_info.dart';
 
-// Fake del connection checker
-class FakeInternetConnectionChecker {
-  bool hasConnectionValue = true;
-  
-  Future<bool> get hasConnection async => hasConnectionValue;
-}
+class MockInternetConnectionChecker extends Mock
+    implements InternetConnectionCheckerPlus {}
 
 void main() {
   late NetworkInfoImpl networkInfo;
-  late FakeInternetConnectionChecker fakeChecker;
+  late MockInternetConnectionChecker mockChecker;
 
   setUp(() {
-    fakeChecker = FakeInternetConnectionChecker();
-    networkInfo = NetworkInfoImpl(
-      connectionChecker: fakeChecker as dynamic,
-    );
+    mockChecker = MockInternetConnectionChecker();
+    networkInfo = NetworkInfoImpl(connectionChecker: mockChecker);
   });
 
   group('isConnected', () {
@@ -53,7 +49,7 @@ void main() {
       // ═══════════════════════════════════════════════════════════
       // ARRANGE: Configurar conexión
       // ═══════════════════════════════════════════════════════════
-      fakeChecker.hasConnectionValue = true;
+      when(() => mockChecker.hasConnection).thenAnswer((_) async => true);
 
       // ═══════════════════════════════════════════════════════════
       // ACT: Verificar conexión
@@ -68,7 +64,7 @@ void main() {
 
     test('should return false when not connected', () async {
       // Arrange
-      fakeChecker.hasConnectionValue = false;
+      when(() => mockChecker.hasConnection).thenAnswer((_) async => false);
 
       // Act
       final result = await networkInfo.isConnected;

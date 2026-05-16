@@ -70,30 +70,26 @@ class NetworkInfoImpl implements NetworkInfo {
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:mi_proyecto_flutter/clean/core/network/network_info.dart';
 
-// Fake del connection checker
-class FakeInternetConnectionChecker {
-  bool hasConnectionValue = true;
-  
-  Future<bool> get hasConnection async => hasConnectionValue;
-}
+class MockInternetConnectionChecker extends Mock
+    implements InternetConnectionCheckerPlus {}
 
 void main() {
   late NetworkInfoImpl networkInfo;
-  late FakeInternetConnectionChecker fakeChecker;
+  late MockInternetConnectionChecker mockChecker;
 
   setUp(() {
-    fakeChecker = FakeInternetConnectionChecker();
-    networkInfo = NetworkInfoImpl(
-      connectionChecker: fakeChecker as dynamic,
-    );
+    mockChecker = MockInternetConnectionChecker();
+    networkInfo = NetworkInfoImpl(connectionChecker: mockChecker);
   });
 
   group('isConnected', () {
     test('should return true when connected', () async {
       // ARRANGE
-      fakeChecker.hasConnectionValue = true;
+      when(() => mockChecker.hasConnection).thenAnswer((_) async => true);
 
       // ACT
       final result = await networkInfo.isConnected;
@@ -104,7 +100,7 @@ void main() {
 
     test('should return false when not connected', () async {
       // ARRANGE
-      fakeChecker.hasConnectionValue = false;
+      when(() => mockChecker.hasConnection).thenAnswer((_) async => false);
 
       // ACT
       final result = await networkInfo.isConnected;
@@ -115,15 +111,13 @@ void main() {
 
     test('should call connection checker', () async {
       // ARRANGE
-      var wasCalled = false;
-      fakeChecker.hasConnectionValue = true;
+      when(() => mockChecker.hasConnection).thenAnswer((_) async => true);
 
       // ACT
       await networkInfo.isConnected;
-      wasCalled = true;
 
       // ASSERT
-      expect(wasCalled, isTrue);
+      verify(() => mockChecker.hasConnection).called(1);
     });
   });
 }
@@ -358,41 +352,19 @@ class StorageServiceImpl implements StorageService {
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mi_proyecto_flutter/clean/core/storage/storage_service.dart';
 
-// Fake de SharedPreferences
-class FakeSharedPreferences {
-  final Map<String, Object> _storage = {};
-
-  Future<bool> setString(String key, String value) async {
-    _storage[key] = value;
-    return true;
-  }
-
-  String? getString(String key) {
-    return _storage[key] as String?;
-  }
-
-  Future<bool> remove(String key) async {
-    _storage.remove(key);
-    return true;
-  }
-
-  Future<bool> clear() async {
-    _storage.clear();
-    return true;
-  }
-}
+class MockSharedPreferences extends Mock implements SharedPreferences {}
 
 void main() {
   late StorageServiceImpl storage;
-  late FakeSharedPreferences fakePrefs;
+  late MockSharedPreferences mockPrefs;
 
   setUp(() {
-    fakePrefs = FakeSharedPreferences();
-    storage = StorageServiceImpl(
-      preferences: fakePrefs as dynamic,
-    );
+    mockPrefs = MockSharedPreferences();
+    storage = StorageServiceImpl(preferences: mockPrefs);
   });
 
   group('setString & getString', () {
@@ -400,6 +372,9 @@ void main() {
       // ARRANGE
       const key = 'test_key';
       const value = 'test_value';
+      when(() => mockPrefs.setString(key, value))
+          .thenAnswer((_) async => true);
+      when(() => mockPrefs.getString(key)).thenReturn(value);
 
       // ACT
       await storage.setString(key, value);
@@ -410,6 +385,9 @@ void main() {
     });
 
     test('should return null for non-existent key', () {
+      // ARRANGE
+      when(() => mockPrefs.getString('non_existent')).thenReturn(null);
+
       // ACT
       final result = storage.getString('non_existent');
 
@@ -420,9 +398,14 @@ void main() {
     test('should overwrite existing value', () async {
       // ARRANGE
       const key = 'test_key';
-      await storage.setString(key, 'old_value');
+      when(() => mockPrefs.setString(key, 'old_value'))
+          .thenAnswer((_) async => true);
+      when(() => mockPrefs.setString(key, 'new_value'))
+          .thenAnswer((_) async => true);
+      when(() => mockPrefs.getString(key)).thenReturn('new_value');
 
       // ACT
+      await storage.setString(key, 'old_value');
       await storage.setString(key, 'new_value');
       final result = storage.getString(key);
 
@@ -440,6 +423,10 @@ void main() {
         'name': 'John',
         'email': 'john@example.com',
       };
+      final encoded = '{"id":"123","name":"John","email":"john@example.com"}';
+      when(() => mockPrefs.setString(key, encoded))
+          .thenAnswer((_) async => true);
+      when(() => mockPrefs.getString(key)).thenReturn(encoded);
 
       // ACT
       await storage.setObject(key, value);
@@ -464,6 +451,10 @@ void main() {
           'theme': 'dark',
         },
       };
+      final encoded = '{"user":{"id":"123","profile":{"age":25,"country":"US"}},"settings":{"theme":"dark"}}';
+      when(() => mockPrefs.setString(key, encoded))
+          .thenAnswer((_) async => true);
+      when(() => mockPrefs.getString(key)).thenReturn(encoded);
 
       // ACT
       await storage.setObject(key, value);
@@ -478,7 +469,8 @@ void main() {
     test('should remove key from storage', () async {
       // ARRANGE
       const key = 'to_remove';
-      await storage.setString(key, 'value');
+      when(() => mockPrefs.remove(key)).thenAnswer((_) async => true);
+      when(() => mockPrefs.getString(key)).thenReturn(null);
 
       // ACT
       await storage.remove(key);
@@ -492,8 +484,9 @@ void main() {
   group('clear', () {
     test('should remove all keys', () async {
       // ARRANGE
-      await storage.setString('key1', 'value1');
-      await storage.setString('key2', 'value2');
+      when(() => mockPrefs.getString('key1')).thenReturn(null);
+      when(() => mockPrefs.getString('key2')).thenReturn(null);
+      when(() => mockPrefs.clear()).thenAnswer((_) async => true);
 
       // ACT
       await storage.clear();

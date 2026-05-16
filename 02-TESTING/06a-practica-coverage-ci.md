@@ -246,7 +246,7 @@ Has aprendido a:
 
 ## 🚀 Siguiente Paso
 
-**Teoría:** [Parte 7: Migración a Mockito](./07-migration-to-mockito.md)
+**Teoría:** [Parte 7: Migración a Mocktail](./07-migration-to-mocktail.md)
 
 **Práctica:** [07a-practica-migration.md](./07a-practica-migration.md)
 
