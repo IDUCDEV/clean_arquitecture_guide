@@ -30,8 +30,7 @@ test/
 │       └── empty_list.json
 ├── helpers/
 │   ├── fixtures/               ← Utilidades de fixtures
-│   │   ├── fixture_reader.dart
-│   │   └── fixture_builder.dart
+│   │   └── fixture_reader.dart
 │   └── fakes/                  ← Todos los Fakes
 │       ├── fake_repositories.dart
 │       ├── fake_datasources.dart
@@ -39,113 +38,7 @@ test/
 └── features/
 ```
 
-### 📝 Fixture Builder Avanzado
-
-**`test/helpers/fixtures/fixture_builder.dart`**
-
-```dart
-import 'dart:convert';
-
-/// Builder pattern para crear fixtures dinámicos
-class FixtureBuilder {
-  final Map<String, dynamic> _data = {};
-
-  FixtureBuilder withId(String id) {
-    _data['id'] = id;
-    return this;
-  }
-
-  FixtureBuilder withEmail(String email) {
-    _data['email'] = email;
-    return this;
-  }
-
-  FixtureBuilder withName(String name) {
-    _data['name'] = name;
-    return this;
-  }
-
-  FixtureBuilder withLastName(String lastName) {
-    _data['last_name'] = lastName;
-    return this;
-  }
-
-  FixtureBuilder withField(String key, dynamic value) {
-    _data[key] = value;
-    return this;
-  }
-
-  Map<String, dynamic> build() {
-    return Map<String, dynamic>.from(_data);
-  }
-
-  String buildJson() {
-    return json.encode(_data);
-  }
-}
-
-/// Factory methods predefinidos
-class Fixtures {
-  static Map<String, dynamic> user({
-    String id = '123',
-    String email = 'test@example.com',
-    String name = 'John',
-    String lastName = 'Doe',
-  }) {
-    return {
-      'id': id,
-      'email': email,
-      'name': name,
-      'last_name': lastName,
-    };
-  }
-
-  static Map<String, dynamic> errorResponse({
-    int statusCode = 400,
-    String message = 'Error occurred',
-    String? code,
-  }) {
-    return {
-      'status_code': statusCode,
-      'message': message,
-      if (code != null) 'error_code': code,
-    };
-  }
-
-  static Map<String, dynamic> paginatedResponse({
-    required List<Map<String, dynamic>> data,
-    int page = 1,
-    int perPage = 10,
-    int total = 0,
-  }) {
-    return {
-      'data': data,
-      'pagination': {
-        'page': page,
-        'per_page': perPage,
-        'total': total,
-        'total_pages': (total / perPage).ceil(),
-      },
-    };
-  }
-}
-```
-
-### 🧪 Uso del Fixture Builder
-
-```dart
-// En tus tests
-import '../../helpers/fixtures/fixture_builder.dart';
-
-test('should handle user with custom data', () {
-  // ARRANGE
-  final customUser = FixtureBuilder()
-    .withId('custom-123')
-    .withEmail('custom@example.com')
-    .withName('Custom')
-    .withLastName('User')
-    .withField('avatar_url', 'https://example.com/avatar.jpg')
-    .build();
+> 💡 **Fixtures**: Si buscas el helper `fixture_builder.dart` o cómo leer archivos JSON de prueba, revisa la sección de Fixtures en [03-data-testing.md](./03-data-testing.md).
 
   // ACT & ASSERT...
 });
@@ -166,6 +59,10 @@ test('should use predefined fixture', () {
 ## Integration Tests (E2E)
 
 Los **Integration Tests** prueban flujos completos de usuario.
+
+> 📖 Para tests de integración específicos con Supabase (auth, CRUD, Realtime, errores), consulta:
+> - **Teoría:** [06b-intro-integration-tests.md](./06b-intro-integration-tests.md)
+> - **Práctica:** [06c-practica-flujos-completos.md](./06c-practica-flujos-completos.md)
 
 ### 📁 Estructura
 

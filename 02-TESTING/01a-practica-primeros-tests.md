@@ -548,6 +548,6 @@ Has completado tu primera práctica de testing. Ahora sabes:
 
 **Teoría:** [Parte 2: Testing Domain](./02-domain-testing.md)
 
-**Práctica:** [02a-practica-mocktail.md](./02a-practica-mocktail.md)
+**Práctica:** [02b-mocktail-guia-completa.md](./02b-mocktail-guia-completa.md)
 
-> En la siguiente práctica aprenderás a crear **Fakes Manuales** para testear UseCases con dependencias.
+> En la siguiente guía completa aprenderás a crear **Mocks con Mocktail** para testear UseCases y más.

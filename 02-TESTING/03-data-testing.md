@@ -881,6 +881,7 @@ Antes de pasar a la siguiente parte, asegúrate de:
 - [03a-practica-fixtures-models.md](./03a-practica-fixtures-models.md) ← Fixtures y Models
 - [03b-practica-datasources.md](./03b-practica-datasources.md) ← DataSources
 - [03c-practica-repositories.md](./03c-practica-repositories.md) ← Repositories
+- [03d-practica-notificaciones-email.md](./03d-practica-notificaciones-email.md) ← Notificaciones y Email
 
 ---
 

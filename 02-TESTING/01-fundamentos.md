@@ -134,6 +134,9 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   bloc_test: ^9.1.0          # Para testear Cubits/Blocs
   mocktail: ^1.0.4            # Para mocks sin generación de código
+  fpdart: ^1.1.0              # Either, Option - programación funcional
+  internet_connection_checker_plus: ^2.5.0  # Detectar conectividad
+  supabase_flutter: ^2.5.0    # Cliente Supabase (para tests de integración)
 ```
 
 ### 📋 Explicación de Cada Dependencia
@@ -144,6 +147,9 @@ dev_dependencies:
 | `integration_test` | Tests de flujo completo (E2E) | Para simular usuario real |
 | `bloc_test` | Testing especializado de Cubits/Blocs | Para capa Presentation |
 | `mocktail` | Mocks sin generación de código | Alternativa moderna a Mockito |
+| `fpdart` | Either, Option para manejo funcional de errores | Domain y Data layers |
+| `internet_connection_checker_plus` | Detectar conectividad en tiempo real | Capa Core |
+| `supabase_flutter` | Cliente oficial de Supabase | Tests de integración |
 
 ### 🚀 Instalación
 

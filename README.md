@@ -80,14 +80,14 @@ La guía está organizada en **6 secciones numeradas** para seguir un orden de a
 | Área | Archivos |
 |------|-----------|
 | Fundamentos | 01-fundamentos.md, 01a-practica-primeros-tests.md |
-| Domain | 02-domain-testing.md, 02a-practica-fakes-manuales.md, 02b-intro-mockito.md, 02b-practica-mockito.md |
-| Data | 03-data-testing.md, 03a-practica-fixtures-models.md, 03b-practica-datasources.md, 03c-practica-repositories.md |
+| Domain | 02-domain-testing.md, 02b-mocktail-guia-completa.md |
+| Data | 03-data-testing.md, 03a-practica-fixtures-models.md, 03b-practica-datasources.md, 03c-practica-repositories.md, 03d-practica-notificaciones-email.md |
 | Presentation | 04-presentation-testing.md, 04a-practica-cubits-bloc-test.md, 04b-practica-widgets.md |
 | Core | 05-core-testing.md, 05a-practica-core-services.md |
-| Avanzado | 06-advanced-testing.md, 06a-practica-coverage-ci.md |
-| Migración | 07-migration-to-mockito.md, 07a-practica-migration.md |
+| Avanzado | 06-advanced-testing.md, 06a-practica-coverage-ci.md, 06b-intro-integration-tests.md, 06c-practica-flujos-completos.md |
+| Mocktail | 02b-mocktail-guia-completa.md (incluye teoría, práctica y migración) |
 
-**Contenido:** Testing por capas, Fakes vs Mocks, Widget tests, Coverage, CI/CD.
+**Contenido:** Testing por capas, Mocktail, Widget tests, Coverage, CI/CD, tests de integración con Supabase.
 
 ---
 

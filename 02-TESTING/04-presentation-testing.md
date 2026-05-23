@@ -86,7 +86,7 @@ flutter pub get
 
 `blocTest` es una función especializada que facilita el testing de Cubits y Blocs. Proporciona una API declarativa para definir tests.
 
-#### 📝 Sintaxis completa de blocTest:
+### 📝 Sintaxis completa de blocTest:
 
 ```dart
 blocTest<AuthCubit, AuthState>(
@@ -122,7 +122,7 @@ blocTest<AuthCubit, AuthState>(
 );
 ```
 
-#### 🎓 Parámetros de blocTest explicados:
+### 🎓 Parámetros de blocTest explicados:
 
 | Parámetro | Tipo | Descripción | Requerido |
 |-----------|------|-------------|-----------|
@@ -179,7 +179,7 @@ group('Estado Inicial', () {
 
 El test más común es verificar que el Cubit emite los estados correctos en secuencia.
 
-#### ✅ Transición exitosa (Loading → Success):
+### ✅ Transición exitosa (Loading → Success):
 
 ```dart
 group('Login', () {
@@ -221,7 +221,7 @@ group('Login', () {
 });
 ```
 
-#### 🔄 Múltiples transiciones en secuencia:
+### 🔄 Múltiples transiciones en secuencia:
 
 ```dart
 group('CheckAuthStatus - Múltiples escenarios', () {
@@ -654,7 +654,7 @@ void main() {
 
 Los **widget tests** prueban la UI en aislamiento. Son más rápidos que los integration tests pero más lentos que los unit tests.
 
-#### 🎯 ¿Qué podemos testear?
+### 🎯 ¿Qué podemos testear?
 
 - Renderizado de widgets
 - Interacciones de usuario (tap, scroll, input)
@@ -664,7 +664,7 @@ Los **widget tests** prueban la UI en aislamiento. Son más rápidos que los int
 - Formularios y validaciones
 - Animaciones
 
-#### 🛠️ Herramientas principales:
+### 🛠️ Herramientas principales:
 
 | Herramienta | Uso |
 |-------------|-----|
@@ -682,7 +682,7 @@ Los **widget tests** prueban la UI en aislamiento. Son más rápidos que los int
 
 ### Testing de renderizado
 
-#### Renderizado básico:
+### Renderizado básico:
 
 ```dart
 // test/features/auth/presentation/widgets/auth_button_test.dart
@@ -706,7 +706,7 @@ testWidgets('debería renderizar el botón correctamente', (WidgetTester tester)
 });
 ```
 
-#### Renderizado con estado:
+### Renderizado con estado:
 
 ```dart
 testWidgets('debería mostrar indicador de carga cuando isLoading es true', 
@@ -728,7 +728,7 @@ testWidgets('debería mostrar indicador de carga cuando isLoading es true',
 });
 ```
 
-#### Renderizado condicional:
+### Renderizado condicional:
 
 ```dart
 testWidgets('debería mostrar ícono cuando se proporciona', (WidgetTester tester) async {
@@ -753,7 +753,7 @@ testWidgets('debería mostrar ícono cuando se proporciona', (WidgetTester teste
 
 ### Testing de interacciones de usuario
 
-#### Taps y clicks:
+### Taps y clicks:
 
 ```dart
 testWidgets('debería llamar onPressed cuando se presiona el botón', 
@@ -805,7 +805,7 @@ testWidgets('no debería llamar onPressed cuando está deshabilitado',
 });
 ```
 
-#### Entrada de texto:
+### Entrada de texto:
 
 ```dart
 testWidgets('debería actualizar el valor cuando se ingresa texto', 
@@ -833,7 +833,7 @@ testWidgets('debería actualizar el valor cuando se ingresa texto',
 });
 ```
 
-#### Múltiples interacciones:
+### Múltiples interacciones:
 
 ```dart
 testWidgets('debería manejar secuencia de interacciones', (WidgetTester tester) async {

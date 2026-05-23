@@ -8,8 +8,8 @@
 
 1. [Introducción a la Capa Domain](#introducción-a-la-capa-domain)
 2. [Testing de Entities](#testing-de-entities)
-3. [Creando Mocks con Mocktail](#creando-mocks-con-mocktail)
-4. [Testing de UseCases](#testing-de-usecases)
+3. [Testing de UseCases con Mocktail](#3-testing-de-usecases-con-mocktail)
+4. [Testing de Failures](#4-testing-de-failures)
 5. [Testing de Failures](#testing-de-failures)
 6. [ Checklist](#-checklist)
 
@@ -236,93 +236,13 @@ group('copyWith', () {
 
 ---
 
-## 3. Creando Mocks con Mocktail
+## 3. Testing de UseCases con Mocktail
 
-### 🤔 ¿Por qué necesitamos Mocks?
+> 🎭 **Mocktail** es la biblioteca que usaremos para crear mocks sin generación de código. Una sola línea crea un mock: `class MockIAuthRepository extends Mock implements IAuthRepository {}`.
+>
+> 📖 Para una guía completa de Mocktail (setup completo, stubbing, verify, matchers, práctica por capa y migración), ve a [02b-mocktail-guia-completa.md](./02b-mocktail-guia-completa.md).
 
-Imagina que quieres testear un `LoginUseCase`:
-
-```dart
-class LoginUseCase {
-  final IAuthRepository repository;
-  
-  LoginUseCase({required this.repository});
-  
-  Future<Either<Failure, User>> call(LoginParams params) async {
-    return await repository.login(params.email, params.password);
-  }
-}
-```
-
-**Problema:** `LoginUseCase` depende de `IAuthRepository`. No podemos llamarlo directamente porque necesitamos una implementación.
-
-**Solución:** Usar **Mocktail** para crear mocks sin generación de código.
-
-### 🎬 La Analogía del Director
-
-Con Mocktail, es como tener un **director de cine** que entrena actores:
-
-| Concepto | Analogía del Director |
-|----------|----------------------|
-| `when()` | "Cuando te pregunten X, responde Y" |
-| `verify()` | "¿Realmente llamaste a ese método?" |
-| `any()` | "No me importa el valor, solo responde" |
-
-### 📁 Estructura con Mocktail Paso a Paso
-
-#### Paso 1: Añadir dependencias
-
-En tu `pubspec.yaml`:
-
-```yaml
-dev_dependencies:
-  mocktail: ^1.0.4
-```
-
-#### Paso 2: Crear el test con Mocktail
-
-```dart
-// test/features/auth/domain/usecases/login_usecase_test.dart
-import 'package:fpdart/fpdart.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
-import 'package:mi_proyecto_flutter/clean/core/error/failures.dart';
-import 'package:mi_proyecto_flutter/clean/features/auth/domain/entities/user.dart';
-import 'package:mi_proyecto_flutter/clean/features/auth/domain/repositories/auth_repository.dart';
-import 'package:mi_proyecto_flutter/clean/features/auth/domain/usecases/login_usecase.dart';
-
-// Creamos el Mock manualmente (una sola línea, sin build_runner)
-class MockIAuthRepository extends Mock implements IAuthRepository {}
-
-void main() {
-  late LoginUseCase useCase;
-  late MockIAuthRepository mockRepository;
-
-  setUp(() {
-    // Crear el mock directamente
-    mockRepository = MockIAuthRepository();
-    // Inyectar el mock en el UseCase
-    useCase = LoginUseCase(repository: mockRepository);
-  });
-
-  // Tests van aquí...
-}
-```
-
-> **Nota:** Con Mocktail no necesitas `build_runner`, ni `@GenerateMocks`, ni archivos `.mocks.dart` generados. Simplemente declaras la clase mock con `extends Mock implements`.
-
-### 🎓 ¿Por qué usar Mocktail?
-
-| Aspecto | Sin mocks | Con Mocktail |
-|---------|----------|-------------|
-| **Código a escribir** | Mucho (implementar toda la clase) | Poco (solo `extends Mock implements`) |
-| **Verificación** | Manual (contadores) | Automática (verify) |
-| **Mantenimiento** | Actualizar manualmente | Sin cambios (refleja la interfaz) |
-| **Verificación de argumentos** | Manual (guardar last*) | Automática (captureAny) |
-
----
-
-## 4. Testing de UseCases
+### 🤔 ¿Qué es un UseCase?
 
 ### 🤔 ¿Qué es un UseCase?
 
@@ -491,7 +411,7 @@ group('LoginUseCase', () {
 
 ---
 
-## 5. Testing de Failures
+## 4. Testing de Failures
 
 ### 🤔 ¿Qué es un Failure?
 
@@ -610,7 +530,7 @@ Antes de pasar a la siguiente parte, asegúrate de:
 
 **Teoría:** [Parte 3: Testing Data](./03-data-testing.md)
 
-**Práctica:** [02a-practica-mocktail.md](./02a-practica-mocktail.md) ← ¡Practica con Mocktail!
+**Práctica:** [02b-mocktail-guia-completa.md](./02b-mocktail-guia-completa.md) ← Guía completa de Mocktail
 
 ---
 
@@ -628,22 +548,4 @@ flutter test --coverage test/features/auth/domain/
 genhtml coverage/lcov.info -o coverage/html
 ```
 
-### API de Mocktail resumida
-
-```dart
-// Stubbing
-when(() => mock.method(any())).thenAnswer((_) async => value);
-when(() => mock.method(any())).thenThrow(Exception('error'));
-
-// Verificación
-verify(() => mock.method(args)).called(1);
-verifyNever(() => mock.method(any()));
-verifyZeroInteractions(mock);
-verifyNoMoreInteractions(mock);
-
-// Matchers
-any(), any(named: 'param'), any(that: matcher)
-
-// Captura
-verify(() => mock.method(captureAny())).captured;
-```
+> 📖 Para la API completa de Mocktail (stubbing, verify, matchers, capture), ve a la [sección Cheatsheet de 02b-mocktail-guia-completa.md](./02b-mocktail-guia-completa.md#11-resumen-cheatsheet).

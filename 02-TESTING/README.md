@@ -11,22 +11,21 @@
 | [01-fundamentos.md](./01-fundamentos.md) | Teoría: Conceptos, AAA, setup |
 | [01a-practica-primeros-tests.md](./01a-practica-primeros-tests.md) | Práctica: Primeros tests |
 | [02-domain-testing.md](./02-domain-testing.md) | Teoría: Entities, UseCases, Fakes |
-| [02a-practica-mocktail.md](./02a-practica-mocktail.md) | Práctica: Crear Mocks con Mocktail paso a paso |
-| [02b-intro-mocktail.md](./02b-intro-mocktail.md) | Teoría: Introducción a Mocktail |
-| [02b-practica-mocktail.md](./02b-practica-mocktail.md) | Práctica: Tests con Mocktail |
+| [02b-mocktail-guia-completa.md](./02b-mocktail-guia-completa.md) | Guía completa de Mocktail (stubbing, verify, práctica, migración) |
 | [03-data-testing.md](./03-data-testing.md) | Teoría: Models, DataSources, Repos |
 | [03a-practica-fixtures-models.md](./03a-practica-fixtures-models.md) | Práctica: Fixtures JSON |
 | [03b-practica-datasources.md](./03b-practica-datasources.md) | Práctica: Remote/Local DataSources |
 | [03c-practica-repositories.md](./03c-practica-repositories.md) | Práctica: Repository Implementation |
+| [03d-practica-notificaciones-email.md](./03d-practica-notificaciones-email.md) | Práctica: Notificaciones y Email |
 | [04-presentation-testing.md](./04-presentation-testing.md) | Teoría: Cubits, Widgets |
 | [04a-practica-cubits-bloc-test.md](./04a-practica-cubits-bloc-test.md) | Práctica: Tests con bloc_test |
 | [04b-practica-widgets.md](./04b-practica-widgets.md) | Práctica: Widget tests |
 | [05-core-testing.md](./05-core-testing.md) | Teoría: NetworkInfo, Services |
 | [05a-practica-core-services.md](./05a-practica-core-services.md) | Práctica: Services |
-| [06-advanced-testing.md](./06-advanced-testing.md) | Teoría: Coverage, CI/CD |
+| [06-advanced-testing.md](./06-advanced-testing.md) | Teoría: Coverage, CI/CD, Integration tests |
 | [06a-practica-coverage-ci.md](./06a-practica-coverage-ci.md) | Práctica: GitHub Actions |
-| [07-migration-to-mocktail.md](./07-migration-to-mocktail.md) | Teoría: Cuándo usar Mocktail |
-| [07a-practica-migration.md](./07a-practica-migration.md) | Práctica: Migrar Fakes a Mocks |
+| [06b-intro-integration-tests.md](./06b-intro-integration-tests.md) | Teoría: Tests de Integración con Supabase |
+| [06c-practica-flujos-completos.md](./06c-practica-flujos-completos.md) | Práctica: Flujos completos con Supabase |
 
 ---
 
@@ -46,6 +45,7 @@
 - Testing de Models
 - Testing de DataSources
 - Testing de Repositories
+- Testing de Notificaciones y Email
 
 ### PARTE 4: PRESENTATION
 - Testing de Cubits/BLoCs
@@ -58,8 +58,9 @@
 ### PARTE 6: AVANZADO
 - Coverage
 - CI/CD con GitHub Actions
+- Tests de Integración con Supabase
 
-### PARTE 7: MIGRACIÓN
+### PARTE 7: MIGRACIÓN (contenido fusionado en [02b-mocktail-guia-completa.md](./02b-mocktail-guia-completa.md))
 - De Fakes a Mocks con Mocktail
 
 ---

@@ -246,8 +246,4 @@ Has aprendido a:
 
 ## 🚀 Siguiente Paso
 
-**Teoría:** [Parte 7: Migración a Mocktail](./07-migration-to-mocktail.md)
-
-**Práctica:** [07a-practica-migration.md](./07a-practica-migration.md)
-
-> En esta práctica aprenderás cuándo y cómo migrar de Fakes a Mocks.
+**Guía:** [Mocktail - Guía Completa](./02b-mocktail-guia-completa.md) (incluye sección de migración)
