@@ -1,6 +1,6 @@
-# 🧪 4. Testing de Local DataSource con Isar
+# 🧪 03e — Práctica: Local DataSources con Isar Community
 
-> **¿De qué trata esta guía?** De aprender a testear Local DataSources que usan Isar, con instancias reales de la base de datos en memoria, sin mocks. Cubre setup, patrones, manejo de errores, y ejercicios prácticos basados en `AuthLocalDataSourceImpl`, `ProfileLocalDataSourceImpl` y `PaymentMethodLocalDataSourceImpl`.
+> **¿De qué trata esta práctica?** De aprender a testear Local DataSources que usan Isar, con instancias reales de la base de datos en memoria, sin mocks. Cubre setup, patrones, manejo de errores, y ejercicios prácticos basados en `AuthLocalDataSourceImpl`, `ProfileLocalDataSourceImpl` y `PaymentMethodLocalDataSourceImpl`.
 
 ---
 
@@ -23,7 +23,7 @@
 
 ### 🤔 La decisión: ¿Mock o real?
 
-En la [Parte 3](../02-TESTING/03-data-testing.md) de la guía de testing, los Local DataSources con SharedPreferences se testean con **Mocks de Mocktail**:
+En la [Parte 3](./03-data-testing.md) de la guía de testing, los Local DataSources con SharedPreferences se testean con **Mocks de Mocktail**:
 
 ```dart
 class MockSharedPreferences extends Mock implements SharedPreferences {}
@@ -1234,4 +1234,4 @@ El último test (`should be synchronous`) no es un test funcional sino estructur
 
 **Nivel:** Avanzado  
 **Tiempo estimado:** 3-4 horas  
-**Anterior:** [03-implementacion-local-datasource.md](./03-implementacion-local-datasource.md)
+**Anterior:** [03-implementacion-local-datasource.md](../06-ALMACENAMIENTO-LOCAL/03-implementacion-local-datasource.md)

@@ -1,4 +1,4 @@
-# 🏋️ 07a: Práctica - DataSources con Supabase (Mocktail + Fakes)
+# 🏋️ 03g: Práctica - DataSources con Supabase (Mocktail + Fakes)
 
 > **¿De qué trata esta práctica?** De testear DataSources que usan Supabase, usando **Mocktail** para los mocks y **Fakes** para los `PostgrestTransformBuilder` que implementan `Future<T>`.
 

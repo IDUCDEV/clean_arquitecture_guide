@@ -10,8 +10,7 @@
 |---------|-------------|
 | [01-isar-introduccion.md](./01-isar-introduccion.md) | ¿Qué es Isar? Diferencias entre `isar`, `isar_community` y `isar v4`. Setup y code generation |
 | [02-modelos-operaciones.md](./02-modelos-operaciones.md) | Colecciones, anotaciones, CRUD, queries, filtros, TTL pattern con ejemplos reales |
-| [03-implementacion-local-datasource.md](./03-implementacion-local-datasource.md) | IsarService singleton, LocalDataSource pattern, CacheManager, UserSessionImpl |
-| [04-testing-local-datasource.md](./04-testing-local-datasource.md) | Testing con Isar real, setup, patrones, ejercicios prácticos |
+ | [03-implementacion-local-datasource.md](./03-implementacion-local-datasource.md) | IsarService singleton, LocalDataSource pattern, CacheManager, UserSessionImpl |
 
 ---
 
@@ -38,13 +37,6 @@
 - `CacheManager`: registro centralizado de funciones de limpieza
 - `UserSessionImpl`: acceso síncrono al usuario autenticado desde Isar
 
-### 4. Testing de Local DataSource
-- Setup: `Isar.open` con `Directory.systemTemp`, esquemas necesarios
-- `setUp` / `tearDownAll`: limpiar datos, cerrar Isar al final con `deleteFromDisk: true`
-- Error testing: cerrar Isar y recrear para simular fallos
-- Patrones: `findFirstSync()` para asserts, `writeTxn` para seed de datos
-- Ejercicios prácticos con `AuthLocalDataSourceImpl`, `ProfileLocalDataSourceImpl`, `PaymentMethodLocalDataSourceImpl`
-
 ---
 
 ## 🚀 Siguiente paso
@@ -54,4 +46,4 @@ Continue with [01-isar-introduccion.md](./01-isar-introduccion.md) to understand
 ---
 
 **Nivel:** Intermedio  
-**Tiempo estimado:** 4-6 horas
+**Tiempo estimado:** 3-4 horas

@@ -210,7 +210,7 @@ MIT License - Libre de usar y modificar.
 | [01-isar-introduccion.md](./06-ALMACENAMIENTO-LOCAL/01-isar-introduccion.md) | ¿Qué es Isar? Diferencias entre variantes, setup |
 | [02-modelos-operaciones.md](./06-ALMACENAMIENTO-LOCAL/02-modelos-operaciones.md) | Colecciones, CRUD, Queries, TTL |
 | [03-implementacion-local-datasource.md](./06-ALMACENAMIENTO-LOCAL/03-implementacion-local-datasource.md) | IsarService, LocalDataSource, CacheManager, UserSessionImpl |
-| [04-testing-local-datasource.md](./06-ALMACENAMIENTO-LOCAL/04-testing-local-datasource.md) | Testing con Isar real, ejercicios completos |
+| [03e-practica-local-datasource-isar.md](./02-TESTING/03e-practica-local-datasource-isar.md) | Testing con Isar real, ejercicios completos (en sección 02-TESTING) |
 
 **Contenido:** Isar Community como base de datos local embebida, patrón LocalDataSource, TTL, CacheManager, testing con instancias reales.
 

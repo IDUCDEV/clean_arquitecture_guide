@@ -93,7 +93,7 @@ App close → IsarService.close()
 
 ### 🧪 En tests
 
-En tests no se usa `IsarService`. Se crea una instancia de Isar directamente con `Directory.systemTemp` y un nombre único. Esto se cubre en detalle en [04-testing-local-datasource.md](./04-testing-local-datasource.md).
+En tests no se usa `IsarService`. Se crea una instancia de Isar directamente con `Directory.systemTemp` y un nombre único. Esto se cubre en detalle en [03e-practica-local-datasource-isar.md](../02-TESTING/03e-practica-local-datasource-isar.md).
 
 ---
 
@@ -777,4 +777,4 @@ class AuthRepositoryImpl implements AuthRepository {
 ---
 
 **Nivel:** Avanzado  
-**Siguiente:** [04-testing-local-datasource.md](./04-testing-local-datasource.md)
+**Siguiente:** [03e-practica-local-datasource-isar.md](../02-TESTING/03e-practica-local-datasource-isar.md)

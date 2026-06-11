@@ -1,4 +1,4 @@
-# 🏋️ 07b: Bonus - mock_supabase_http_client (Paquete Oficial)
+# 🏋️ 03h: Bonus - mock_supabase_http_client (Paquete Oficial)
 
 > **¿De qué trata este bonus?** Del paquete oficial de Supabase community para mockear el cliente HTTP de Supabase en tests, y cómo se compara con el enfoque Mocktail + Fakes.
 
