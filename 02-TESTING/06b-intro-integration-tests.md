@@ -9,10 +9,15 @@
 1. [¿Qué son los Tests de Integración?](#1-qué-son-los-tests-de-integración)
 2. [Unit Tests vs Integration Tests](#2-unit-tests-vs-integration-tests)
 3. [Flutter Driver vs integration_test](#3-flutter-driver-vs-integration_test)
-4. [Configuración](#4-configuración)
-5. [Estrategia de Testing con Supabase](#5-estrategia-de-testing-con-supabase)
-6. [Organización del Código](#6-organización-del-código)
-7. [Buenas Prácticas](#7-buenas-prácticas)
+4. [Patrol: alternativa para UI nativa](#4-patrol-alternativa-para-ui-nativa)
+5. [Configuración](#5-configuración)
+6. [Estrategia de Testing con Supabase](#6-estrategia-de-testing-con-supabase)
+7. [Organización del Código](#7-organización-del-código)
+8. [Buenas Prácticas](#8-buenas-prácticas)
+9. [Performance Profiling](#9-performance-profiling)
+10. [Firebase Test Lab](#10-firebase-test-lab)
+11. [Setup por Plataforma](#11-setup-por-plataforma)
+12. [Migración desde flutter_driver](#12-migración-desde-flutter_driver)
 
 ---
 
@@ -122,7 +127,64 @@ void main() {
 
 ---
 
-## 4. Configuración
+## 4. Patrol: alternativa para UI nativa
+
+> La documentación oficial de Flutter recomienda `patrol` como alternativa cuando necesitas interactuar con UI nativa (diálogos de permisos, notificaciones push, platform views).
+
+### 📊 integration_test vs patrol
+
+| Aspecto | `integration_test` | `patrol` |
+|---------|-------------------|----------|
+| **UI Flutter** | ✅ Completo | ✅ Completo |
+| **Diálogos nativos (permisos)** | ❌ No | ✅ Sí |
+| **Notificaciones push** | ❌ No | ✅ Sí |
+| **Platform Views** | ❌ No | ✅ Sí |
+| **Setup** | Mínimo | Requiere configuración nativa |
+| **CI/CD** | `flutter test` | `patrol test` |
+
+### 📝 ¿Cuándo usar cada uno?
+
+- **Usa `integration_test`** si tu app solo interactúa con widgets Flutter y servicios como Supabase.
+- **Usa `patrol`** si necesitas aceptar diálogos de permisos (cámara, ubicación), verificar notificaciones push, o interactuar con vistas nativas.
+
+### 📦 Dependencia
+
+```yaml
+dev_dependencies:
+  patrol: ^3.0.0
+```
+
+```bash
+patrol init  # Configura proyecto para patrol
+```
+
+### 📝 Ejemplo básico con patrol
+
+```dart
+import 'package:patrol/patrol.dart';
+
+void main() {
+  patrolTest('login flow with permission', ($) async {
+    await $.pumpWidgetAndSettle(const MyApp());
+
+    // Interactuar con UI Flutter
+    await $(#email_input).enterText('email@test.com');
+    await $(#login_button).tap();
+
+    // Aceptar diálogo nativo de permiso
+    await $.native.handlePermission();
+    await $.native.grantPermissionWhenInUse();
+
+    expect($(#welcome_text), findsOneWidget);
+  });
+}
+```
+
+> Si tu app solo usa Supabase sin funcionalidades nativas complejas, `integration_test` es suficiente. `patrol` es útil cuando agregas features como cámara, notificaciones o mapas.
+
+---
+
+## 5. Configuración
 
 ### 📦 pubspec.yaml
 
@@ -138,43 +200,46 @@ dev_dependencies:
 ### 🗂️ Estructura de carpetas
 
 ```
+integration_test/            # Raíz estándar para integration tests
+├── auth/
+│   ├── login_test.dart
+│   └── register_test.dart
+├── tasks/
+│   ├── create_task_test.dart
+│   └── sync_tasks_test.dart
+└── helpers/
+    ├── test_app.dart        # App wrapper para tests
+    ├── supabase_test_helper.dart  # Setup/teardown Supabase
+    └── test_data.dart       # Datos de prueba
+
 test/
 ├── unit/                    # Tests unitarios (los que ya tienes)
 │   ├── features/
 │   └── helpers/
-├── integration/             # Tests de integración
-│   ├── auth/
-│   │   ├── login_test.dart
-│   │   └── register_test.dart
-│   ├── tasks/
-│   │   ├── create_task_test.dart
-│   │   └── sync_tasks_test.dart
-│   └── helpers/
-│       ├── test_app.dart    # App wrapper para tests
-│       └── supabase_test_helper.dart  # Setup/teardown Supabase
-└── integration_test/        # (alternativa: entrada única)
-    └── app_test.dart
+└── widget/                  # Widget tests
 ```
+
+> **Convención oficial de Flutter**: los integration tests se colocan en `integration_test/` (raíz del proyecto), no dentro de `test/`. Esto permite usar `flutter test integration_test/` directamente.
 
 ### 🚀 Scripts de ejecución
 
 ```bash
 # Todos los tests de integración
-flutter test test/integration/
+flutter test integration_test/
 
 # Test específico
-flutter test test/integration/auth/login_test.dart
+flutter test integration_test/auth/login_test.dart
 
 # Con coverage (unit + integration)
-flutter test --coverage test/ && flutter test --coverage test/integration/
+flutter test --coverage
 
 # En dispositivo/emulador específico
-flutter test -d chrome test/integration/
+flutter test -d chrome integration_test/
 ```
 
 ---
 
-## 5. Estrategia de Testing con Supabase
+## 6. Estrategia de Testing con Supabase
 
 ### 🎯 Enfoque: Test Mode + Base de Datos de Prueba
 
@@ -189,7 +254,7 @@ Supabase Project
 ### 📝 Helper para Supabase en tests
 
 ```dart
-// test/integration/helpers/supabase_test_helper.dart
+// integration_test/helpers/supabase_test_helper.dart
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseTestHelper {
@@ -224,7 +289,7 @@ class SupabaseTestHelper {
 ### 📝 Test App Wrapper
 
 ```dart
-// test/integration/helpers/test_app.dart
+// integration_test/helpers/test_app.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -264,7 +329,7 @@ class TestApp extends StatelessWidget {
 ### 📝 Flujo completo de un test de integración
 
 ```dart
-// test/integration/auth/login_test.dart
+// integration_test/auth/login_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -312,35 +377,36 @@ void main() {
 
 ---
 
-## 6. Organización del Código
+## 7. Organización del Código
 
 ### 📁 Estructura recomendada
 
 ```
+integration_test/            # Integration tests (estándar oficial)
+├── helpers/
+│   ├── supabase_test_helper.dart
+│   ├── test_app.dart
+│   └── test_data.dart
+├── auth/
+│   ├── login_test.dart
+│   ├── register_test.dart
+│   └── password_reset_test.dart
+├── tasks/
+│   ├── create_task_test.dart
+│   ├── list_tasks_test.dart
+│   └── update_task_test.dart
+└── supabase/
+    ├── realtime_test.dart
+    └── storage_test.dart
+
 test/
-├── integration/
-│   ├── helpers/
-│   │   ├── supabase_test_helper.dart
-│   │   ├── test_app.dart
-│   │   └── test_data.dart
-│   ├── auth/
-│   │   ├── login_test.dart
-│   │   ├── register_test.dart
-│   │   └── password_reset_test.dart
-│   ├── tasks/
-│   │   ├── create_task_test.dart
-│   │   ├── list_tasks_test.dart
-│   │   └── update_task_test.dart
-│   └── supabase/
-│       ├── realtime_test.dart
-│       └── storage_test.dart
 └── unit/                  # Tests unitarios existentes
 ```
 
 ### 📝 Helper: Test Data
 
 ```dart
-// test/integration/helpers/test_data.dart
+// integration_test/helpers/test_data.dart
 class TestData {
   static const testUser = (
     email: 'integration-test@example.com',
@@ -372,7 +438,7 @@ class TestData {
 
 ---
 
-## 7. Buenas Prácticas
+## 8. Buenas Prácticas
 
 ### 📝 Reglas de oro
 
@@ -420,6 +486,373 @@ await supabase.from('tasks').insert(testTask);
 final tasks = await supabase.from('tasks').select().eq('title', testTask.title);
 expect(tasks.length, 1);
 ```
+
+---
+
+## 9. Performance Profiling
+
+> La documentación oficial de Flutter incluye una guía completa para medir rendimiento con integration tests: [Measure performance with an integration test](https://docs.flutter.dev/cookbook/testing/integration/profiling)
+
+### 🎯 ¿Por qué medir rendimiento?
+
+Los integration tests no solo verifican funcionalidad, también pueden capturar **métricas de rendimiento** como frames perdidos (jank), tiempos de build y painted frames.
+
+### 📝 Uso de traceAction
+
+```dart
+import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
+
+void main() {
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  testWidgets('scroll performance', (tester) async {
+    await tester.pumpWidget(const MyApp());
+
+    final listFinder = find.byType(ListView);
+    final itemFinder = find.text('Item 50');
+
+    await binding.traceAction(
+      () async {
+        await tester.scrollUntilVisible(
+          itemFinder,
+          500,
+          scrollable: listFinder,
+        );
+      },
+      reportKey: 'scrolling_timeline',
+    );
+  });
+}
+```
+
+### 📊 TimelineSummary
+
+Para analizar los resultados, usa `TimelineSummary`:
+
+```dart
+// integration_test/helpers/performance_helper.dart
+Future<void> savePerformanceData(Map<String, dynamic>? data) async {
+  if (data == null) return;
+
+  final timeline = Timeline.fromJson(
+    data['scrolling_timeline'] as Map<String, dynamic>,
+  );
+  final summary = TimelineSummary.summarize(timeline);
+
+  // Guarda el timeline completo para chrome://tracing
+  await summary.writeTimelineToFile(
+    'scrolling_timeline',
+    pretty: true,
+    includeSummary: true,
+  );
+}
+```
+
+### 🚀 Ejecutar con profile mode
+
+```bash
+# Ejecutar con profile mode para mediciones realistas
+flutter drive \
+  --driver=test_driver/perf_driver.dart \
+  --target=integration_test/scrolling_test.dart \
+  --profile
+
+# En dispositivo móvil, desactivar DDS
+flutter drive \
+  --driver=test_driver/perf_driver.dart \
+  --target=integration_test/scrolling_test.dart \
+  --profile --no-dds
+```
+
+La flag `--profile` compila la app en **profile mode**, que tiene un rendimiento más cercano al de producción que debug mode.
+
+### 📈 Métricas clave
+
+| Métrica | Descripción |
+|---------|-------------|
+| **average_frame_build_time** | Tiempo promedio de build por frame |
+| **90th_percentile_frame_build_time** | Percentil 90 (identifica picos) |
+| **99th_percentile_frame_rasterizer_time** | Percentil 99 de rasterización |
+| **frame_count** | Total de frames renderizados |
+| **frame_build_count** | Frames construidos (debe ser ≈ total) |
+
+---
+
+## 10. Firebase Test Lab
+
+> Firebase Test Lab permite ejecutar integration tests en una matriz de **dispositivos reales y virtuales** en la nube. Ideal para CI/CD.
+
+### 🎯 Beneficios
+
+- Pruebas en múltiples dispositivos simultáneamente
+- Cobertura de versiones de SO
+- Captura de logs, screenshots y video
+- Integración nativa con GitHub Actions
+
+### 📝 Configuración para Android
+
+1. **Agregar dependencia** en `android/app/build.gradle`:
+
+```groovy
+android {
+  defaultConfig {
+    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+  }
+}
+```
+
+2. **Crear el runner de prueba** `android/app/src/androidTest/java/com/example/app/MainActivityTest.java`:
+
+```java
+package com.example.app;
+
+import androidx.test.rule.ActivityTestRule;
+import dev.flutter.plugins.integration_test.FlutterTestRunner;
+import org.junit.Rule;
+import org.junit.runner.RunWith;
+
+@RunWith(FlutterTestRunner.class)
+public class MainActivityTest {
+  @Rule
+  public ActivityTestRule<MainActivity> rule = new ActivityTestRule<>(MainActivity.class);
+}
+```
+
+3. **Compilar el APK de prueba**:
+
+```bash
+# APK de la app
+flutter build apk --debug
+
+# APK de test
+./gradlew app:assembleAndroidTest
+./gradlew app:assembleDebug -Ptarget=integration_test/app_test.dart
+```
+
+### 📝 Configuración para iOS
+
+1. **Crear el runner** en `ios/Runner/AppTest.swift`:
+
+```swift
+import Flutter
+import UIKit
+import XCTest
+
+@testable import app
+
+class AppTest: FlutterTestRunner {
+  func testApp() {
+    let app = XCUIApplication()
+    app.launch()
+  }
+}
+```
+
+2. **Compilar para Test Lab**:
+
+```bash
+flutter build ios --debug --no-codesign
+cd ios
+xcodebuild -workspace Runner.xcworkspace \
+  -scheme Runner \
+  -sdk iphoneos \
+  -destination 'platform=iOS,name=Any iOS Device' \
+  build-for-testing
+```
+
+### 🤖 CI/CD con Firebase Test Lab
+
+```yaml
+# .github/workflows/test_lab.yml
+name: Firebase Test Lab
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  test_lab:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+      - run: flutter pub get
+
+      - name: Build Android APK
+        run: flutter build apk --debug
+
+      - name: Build Android Test APK
+        run: cd android && ./gradlew app:assembleAndroidTest
+
+      - name: Run on Firebase Test Lab
+        uses: google-github-actions/firebase-test-lab@v3
+        with:
+          project: ${{ secrets.FIREBASE_PROJECT_ID }}
+          devices: |
+            - model: Pixel4
+              version: 30
+              locale: es
+            - model: Pixel6
+              version: 33
+              locale: es
+          type: instrumentation
+          app: build/app/outputs/apk/debug/app-debug.apk
+          test: android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+```
+
+### ⚠️ Limitaciones de Test Lab
+
+- **No hay tiempo individual por test case**: la duración se reporta por suite completa
+- **Robo tests no soportan Flutter nativamente**: usa Robo scripts con clics por texto
+- **Timeouts**: máximo 30 minutos por test en dispositivos físicos
+
+---
+
+## 11. Setup por Plataforma
+
+Según la documentación oficial de Flutter, cada plataforma requiere configuración específica para ejecutar integration tests.
+
+### 🖥️ Desktop (Linux, macOS, Windows)
+
+```bash
+# Ejecutar directamente (sin configuración adicional)
+flutter test integration_test/
+```
+
+Los tests de escritorio se ejecutan en el mismo entorno, no requieren configuración especial.
+
+### 📱 Android
+
+1. Asegúrate de tener un emulador corriendo o dispositivo conectado:
+
+```bash
+flutter devices
+```
+
+2. Ejecutar:
+
+```bash
+flutter test integration_test/ -d android
+```
+
+3. Para dispositivos físicos, configura `android/app/build.gradle`:
+
+```groovy
+android {
+  defaultConfig {
+    minSdkVersion 21
+    targetSdkVersion 34
+    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+  }
+}
+```
+
+### 📱 iOS
+
+1. Asegúrate de tener un simulador corriendo:
+
+```bash
+open -a Simulator
+flutter devices
+```
+
+2. Ejecutar:
+
+```bash
+flutter test integration_test/ -d ios
+```
+
+3. Si usas Firebase Test Lab, necesitas configurar el runner en `ios/Runner/`.
+
+### 🌐 Web
+
+```bash
+# Chrome
+flutter test integration_test/ -d chrome
+
+# Sin interfaz gráfica (CI)
+flutter test integration_test/ -d web-server --release
+```
+
+> **Nota**: Performance profiling no está soportado en web.
+
+---
+
+## 12. Migración desde flutter_driver
+
+Si ya tienes tests escritos con `flutter_driver`, la migración a `integration_test` es sencilla.
+
+### 📊 Cambios principales
+
+| flutter_driver | integration_test |
+|---------------|------------------|
+| `FlutterDriver.connect()` | `IntegrationTestWidgetsFlutterBinding.ensureInitialized()` |
+| `driver.tap(find.byValueKey('key'))` | `await tester.tap(find.byKey(const Key('key')))` |
+| `driver.getText(find.byValueKey('text'))` | `expect(find.text('Hello'), findsOneWidget)` |
+| `driver.scrollUntilVisible(...)` | `await tester.scrollUntilVisible(...)` |
+| App separada en `test_driver/` | Misma app en `integration_test/` |
+| `flutter drive` | `flutter test integration_test/` |
+
+### 📝 Ejemplo de migración
+
+**Antes (flutter_driver)**:
+```dart
+// test_driver/app_test.dart
+import 'package:flutter_driver/flutter_driver.dart';
+
+void main() {
+  group('App', () {
+    late FlutterDriver driver;
+
+    setUpAll(() async {
+      driver = await FlutterDriver.connect();
+    });
+
+    tearDownAll(() async {
+      driver.close();
+    });
+
+    test('shows counter', () async {
+      final counter = find.byValueKey('counter');
+      expect(await driver.getText(counter), '0');
+    });
+  });
+}
+```
+
+**Después (integration_test)**:
+```dart
+// integration_test/app_test.dart
+import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
+
+void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  testWidgets('shows counter', (tester) async {
+    await tester.pumpWidget(const MyApp());
+    expect(find.text('0'), findsOneWidget);
+  });
+}
+```
+
+### 🗑️ Limpieza post-migración
+
+```bash
+# Eliminar archivos antiguos
+rm -rf test_driver/
+
+# Eliminar dependencia del pubspec.yaml
+# flutter_driver: sdk: flutter  ← eliminar
+
+# Agregar integration_test
+# flutter pub add dev:integration_test
+```
+
+> La guía oficial de migración está en: [Migrating from flutter_driver](https://docs.flutter.dev/release/breaking-changes/flutter-driver-migration)
 
 ---
 

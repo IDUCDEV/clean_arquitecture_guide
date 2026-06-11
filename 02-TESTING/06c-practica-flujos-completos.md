@@ -36,22 +36,23 @@ flutter pub get
 ### 🗂️ Estructura
 
 ```
+integration_test/            # Raíz estándar (oficial Flutter)
+├── helpers/
+│   ├── supabase_test_helper.dart
+│   └── test_data.dart
+├── auth_test.dart
+├── tasks_crud_test.dart
+├── realtime_test.dart
+├── error_handling_test.dart
+└── full_flow_test.dart
+
 test/
-├── integration/
-│   ├── helpers/
-│   │   ├── supabase_test_helper.dart
-│   │   └── test_data.dart
-│   ├── auth_test.dart
-│   ├── tasks_crud_test.dart
-│   ├── realtime_test.dart
-│   ├── error_handling_test.dart
-│   └── full_flow_test.dart
 └── unit/
 ```
 
 ### 📝 Helpers Base
 
-**`test/integration/helpers/supabase_test_helper.dart`**:
+**`integration_test/helpers/supabase_test_helper.dart`**:
 
 ```dart
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -92,7 +93,7 @@ class SupabaseTestHelper {
 }
 ```
 
-**`test/integration/helpers/test_data.dart`**:
+**`integration_test/helpers/test_data.dart`**:
 
 ```dart
 class TestData {
@@ -127,7 +128,7 @@ Probar el flujo completo de autenticación: registro, inicio de sesión, cierre 
 
 ### 🧪 Código
 
-**`test/integration/auth_test.dart`**:
+**`integration_test/auth_test.dart`**:
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
@@ -212,7 +213,7 @@ void main() {
 ### 🖥️ Ejecución
 
 ```bash
-flutter test test/integration/auth_test.dart \
+flutter test integration_test/auth_test.dart \
   --dart-define=SUPABASE_URL=https://tu-proyecto.supabase.co \
   --dart-define=SUPABASE_ANON_KEY=tu-anon-key
 ```
@@ -227,7 +228,7 @@ Probar las operaciones básicas de base de datos: insertar, leer, actualizar y e
 
 ### 🧪 Código
 
-**`test/integration/tasks_crud_test.dart`**:
+**`integration_test/tasks_crud_test.dart`**:
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
@@ -356,7 +357,7 @@ Probar que las suscripciones Realtime reciben cambios en tiempo real.
 
 ### 🧪 Código
 
-**`test/integration/realtime_test.dart`**:
+**`integration_test/realtime_test.dart`**:
 
 ```dart
 import 'dart:async';
@@ -468,7 +469,7 @@ Probar que la app maneja correctamente errores de red, autenticación y validaci
 
 ### 🧪 Código
 
-**`test/integration/error_handling_test.dart`**:
+**`integration_test/error_handling_test.dart`**:
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
@@ -542,7 +543,7 @@ Probar un flujo de usuario completo: registro → login → crear tarea → actu
 
 ### 🧪 Código
 
-**`test/integration/full_flow_test.dart`**:
+**`integration_test/full_flow_test.dart`**:
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
@@ -642,17 +643,17 @@ void main() {
 
 ```bash
 # Un test específico
-flutter test test/integration/auth_test.dart \
+flutter test integration_test/auth_test.dart \
   --dart-define=SUPABASE_URL=$SUPABASE_URL \
   --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
 
 # Todos los tests de integración
-flutter test test/integration/ \
+flutter test integration_test/ \
   --dart-define=SUPABASE_URL=$SUPABASE_URL \
   --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
 
 # Con cobertura
-flutter test test/integration/ --coverage \
+flutter test integration_test/ --coverage \
   --dart-define=SUPABASE_URL=$SUPABASE_URL \
   --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
 ```
@@ -680,7 +681,7 @@ jobs:
           flutter-version: '3.x'
       - run: flutter pub get
       - run: |
-          flutter test test/integration/ \
+          flutter test integration_test/ \
             --dart-define=SUPABASE_URL=$SUPABASE_URL \
             --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
 ```

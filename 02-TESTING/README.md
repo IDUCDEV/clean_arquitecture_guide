@@ -24,7 +24,7 @@
 | [05a-practica-core-services.md](./05a-practica-core-services.md) | Práctica: Services |
 | [06-advanced-testing.md](./06-advanced-testing.md) | Teoría: Coverage, CI/CD, Integration tests |
 | [06a-practica-coverage-ci.md](./06a-practica-coverage-ci.md) | Práctica: GitHub Actions |
-| [06b-intro-integration-tests.md](./06b-intro-integration-tests.md) | Teoría: Tests de Integración con Supabase |
+| [06b-intro-integration-tests.md](./06b-intro-integration-tests.md) | Teoría: Tests de Integración, patrol, performance profiling, Firebase Test Lab, migración desde flutter_driver |
 | [06c-practica-flujos-completos.md](./06c-practica-flujos-completos.md) | Práctica: Flujos completos con Supabase |
 
 ---
@@ -59,6 +59,10 @@
 - Coverage
 - CI/CD con GitHub Actions
 - Tests de Integración con Supabase
+- Performance profiling con traceAction y TimelineSummary
+- Firebase Test Lab (Android e iOS)
+- Setup por plataforma (desktop, Android, iOS, web)
+- Migración desde flutter_driver a integration_test
 
 ### PARTE 7: MIGRACIÓN (contenido fusionado en [02b-mocktail-guia-completa.md](./02b-mocktail-guia-completa.md))
 - De Fakes a Mocks con Mocktail
