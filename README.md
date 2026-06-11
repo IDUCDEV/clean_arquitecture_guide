@@ -32,15 +32,16 @@ Clean Architecture es una forma de organizar el código en **capas independiente
 
 ## 📁 Estructura de la Guía
 
-La guía está organizada en **6 secciones numeradas** para seguir un orden de aprendizaje lógico:
+La guía está organizada en **7 secciones numeradas** para seguir un orden de aprendizaje lógico:
 
 ```
-00-DISEÑO-FEATURE/       → Diseño y descomposición de features (¡empieza aquí!)
-01-CLEAN-ARCHITECTURE/    → Fundamentos de arquitectura
-02-TESTING/              → Cómo probar el código
-03-IA-ASSISTANT/         → Cómo usar IA en el desarrollo
-04-NIVEL-EXPERTO/         → Técnicas avanzadas de arquitectura
-05-SUPABASE/             → Backend + automatización
+00-DISEÑO-FEATURE/            → Diseño y descomposición de features (¡empieza aquí!)
+01-CLEAN-ARCHITECTURE/         → Fundamentos de arquitectura
+02-TESTING/                   → Cómo probar el código
+03-IA-ASSISTANT/              → Cómo usar IA en el desarrollo
+04-NIVEL-EXPERTO/              → Técnicas avanzadas de arquitectura
+05-SUPABASE/                  → Backend + automatización
+06-ALMACENAMIENTO-LOCAL/      → Almacenamiento local con Isar
 ```
 
 ---
@@ -151,17 +152,19 @@ La guía está organizada en **6 secciones numeradas** para seguir un orden de a
 ## 🚀 Orden de Aprendizaje Sugerido
 
 ```
-00-DISEÑO-FEATURE        → Diseño de features (6-8 horas) — ¡empieza aquí!
+00-DISEÑO-FEATURE            → Diseño de features (6-8 horas) — ¡empieza aquí!
     ↓
-01-CLEAN-ARCHITECTURE    → Fundamentos (4-6 horas)
+01-CLEAN-ARCHITECTURE        → Fundamentos (4-6 horas)
     ↓
-02-TESTING               → Testing (15-20 horas)
+02-TESTING                   → Testing (15-20 horas)
     ↓
-03-IA-ASSISTANT          → IA en desarrollo (2-3 horas)
+03-IA-ASSISTANT              → IA en desarrollo (2-3 horas)
     ↓
-04-NIVEL-EXPERTO         → Técnicas avanzadas (6-8 horas)
+04-NIVEL-EXPERTO             → Técnicas avanzadas (6-8 horas)
     ↓
-05-SUPABASE              → Backend + automatización (10-15 horas)
+05-SUPABASE                  → Backend + automatización (10-15 horas)
+    ↓
+06-ALMACENAMIENTO-LOCAL      → Almacenamiento local con Isar (4-6 horas)
 ```
 
 ---
@@ -200,7 +203,18 @@ Esta guía es de código abierto. Si quieres mejorarla:
 
 MIT License - Libre de usar y modificar.
 
+### 🗄️ Sección 06: Almacenamiento Local con Isar
+
+| Archivo | Descripción |
+|---------|-------------|
+| [01-isar-introduccion.md](./06-ALMACENAMIENTO-LOCAL/01-isar-introduccion.md) | ¿Qué es Isar? Diferencias entre variantes, setup |
+| [02-modelos-operaciones.md](./06-ALMACENAMIENTO-LOCAL/02-modelos-operaciones.md) | Colecciones, CRUD, Queries, TTL |
+| [03-implementacion-local-datasource.md](./06-ALMACENAMIENTO-LOCAL/03-implementacion-local-datasource.md) | IsarService, LocalDataSource, CacheManager, UserSessionImpl |
+| [04-testing-local-datasource.md](./06-ALMACENAMIENTO-LOCAL/04-testing-local-datasource.md) | Testing con Isar real, ejercicios completos |
+
+**Contenido:** Isar Community como base de datos local embebida, patrón LocalDataSource, TTL, CacheManager, testing con instancias reales.
+
 ---
 
-**Última actualización:** 2026-05-15  
-**Versión:** 5.1.0
+**Última actualización:** 2026-06-11  
+**Versión:** 6.0.0

@@ -26,6 +26,10 @@
 | [06a-practica-coverage-ci.md](./06a-practica-coverage-ci.md) | Práctica: GitHub Actions |
 | [06b-intro-integration-tests.md](./06b-intro-integration-tests.md) | Teoría: Tests de Integración, patrol, performance profiling, Firebase Test Lab, migración desde flutter_driver |
 | [06c-practica-flujos-completos.md](./06c-practica-flujos-completos.md) | Práctica: Flujos completos con Supabase |
+| [07-supabase-testing.md](./07-supabase-testing.md) | Teoría: Testing de Remote DataSources con Supabase (cadena de builders, Fakes, estrategias) |
+| [07a-practica-supabase-datasources.md](./07a-practica-supabase-datasources.md) | Práctica: DataSources con Supabase usando Mocktail + Fakes (Auth, DB, Storage) |
+| [07b-practica-supabase-mock-http-client.md](./07b-practica-supabase-mock-http-client.md) | Bonus: mock_supabase_http_client - paquete oficial de Supabase community |
+| [07c-practica-local-datasource-isar.md](./07c-practica-local-datasource-isar.md) | Práctica: Local DataSources con Isar Community (bridge a [06-ALMACENAMIENTO-LOCAL](../06-ALMACENAMIENTO-LOCAL/)) |
 
 ---
 
@@ -64,16 +68,27 @@
 - Setup por plataforma (desktop, Android, iOS, web)
 - Migración desde flutter_driver a integration_test
 
-### PARTE 7: MIGRACIÓN (contenido fusionado en [02b-mocktail-guia-completa.md](./02b-mocktail-guia-completa.md))
+### PARTE 7: SUPABASE TESTING (NUEVO)
+- **Teoría:** Por qué testear Supabase es distinto, la cadena de builders, el patrón Fake para PostgrestTransformBuilder, jerarquía de mocks, `registerFallbackValue`, manejo de errores
+- **Práctica:** Ejercicios paso a paso con Mocktail + Fakes para Auth, Database (SELECT, INSERT, UPDATE, DELETE), Storage, y ejemplos completos (Profile, PaymentMethod)
+- **Bonus:** `mock_supabase_http_client` - paquete oficial de Supabase community para tests de integración ligeros
+
+### PARTE 8: MIGRACIÓN (contenido fusionado en [02b-mocktail-guia-completa.md](./02b-mocktail-guia-completa.md))
 - De Fakes a Mocks con Mocktail
+
+### PARTE 9: ALMACENAMIENTO LOCAL CON ISAR
+- **Teoría:** Introducción a Isar, setup, code generation — ver [01-isar-introduccion.md](../06-ALMACENAMIENTO-LOCAL/01-isar-introduccion.md)
+- **Modelos y operaciones:** Colecciones, anotaciones, CRUD, queries, filtros, patrón TTL — ver [02-modelos-operaciones.md](../06-ALMACENAMIENTO-LOCAL/02-modelos-operaciones.md)
+- **Implementación:** IsarService singleton, LocalDataSource pattern, CacheManager, UserSessionImpl — ver [03-implementacion-local-datasource.md](../06-ALMACENAMIENTO-LOCAL/03-implementacion-local-datasource.md)
+- **Práctica:** Testing de Local DataSources con Isar real (Auth, Profile, PaymentMethod, CacheManager, UserSessionImpl) — [07c-practica-local-datasource-isar.md](./07c-practica-local-datasource-isar.md) → [04-testing-local-datasource.md](../06-ALMACENAMIENTO-LOCAL/04-testing-local-datasource.md)
 
 ---
 
 ## 🚀 Siguiente paso
 
-Continue with [03-IA-ASSISTANT](../03-IA-ASSISTANT/) to learn how to use AI in your development workflow.
+Continue with [03-IA-ASSISTANT](../03-IA-ASSISTANT/) to learn how to use AI in your development workflow, or dive into [06-ALMACENAMIENTO-LOCAL](../06-ALMACENAMIENTO-LOCAL/) for Local Storage with Isar.
 
 ---
 
 **Nivel:** Intermedio  
-**Tiempo estimado:** 15-20 horas
+**Tiempo estimado:** 22-28 horas
