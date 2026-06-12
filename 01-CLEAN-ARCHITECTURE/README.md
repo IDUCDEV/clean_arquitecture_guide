@@ -8,7 +8,20 @@
 
 | Archivo | Descripción |
 |---------|-------------|
-| [01-guia-completa.md](./01-guia-completa.md) | Guía completa de Clean Architecture con implementación práctica |
+| [01-introduccion-y-filosofia.md](./01-introduccion-y-filosofia.md) | Introducción, analogías, por qué Clean Architecture |
+| [02-las-4-capas.md](./02-las-4-capas.md) | Las 4 capas en detalle (Domain, Data, Presentation, UI) |
+| [03-estructura-de-carpetas.md](./03-estructura-de-carpetas.md) | Estructura de carpetas base y reglas de organización |
+| [04-flujo-de-datos.md](./04-flujo-de-datos.md) | Flujo de datos, diagramas Mermaid, regla de dependencia |
+| [05-implementacion-crud-intro.md](./05-implementacion-crud-intro.md) | CRUD: Requerimientos y estructura de archivos |
+| [05a-domain-layer.md](./05a-domain-layer.md) | CRUD: Domain Layer (Entity, Repository, UseCases) |
+| [05b-data-layer.md](./05b-data-layer.md) | CRUD: Data Layer (Model, DataSources, Repository Impl) |
+| [05c-presentation-ui-layer.md](./05c-presentation-ui-layer.md) | CRUD: Presentation (States, Cubit) y UI (Widgets) |
+| [06-inyeccion-de-dependencias.md](./06-inyeccion-de-dependencias.md) | Inyección de dependencias con GetIt |
+| [07-testing-por-capas.md](./07-testing-por-capas.md) | Testing por capas (Domain, UseCases, Repository, Cubit) |
+| [08-templates-universales.md](./08-templates-universales.md) | Templates universales (Entity, Repository, UseCase, Cubit, State) |
+| [09-decisiones-de-arquitectura.md](./09-decisiones-de-arquitectura.md) | Decisiones: Cubit vs BLoC, FAQ, ¿dónde va cada cosa? |
+| [10-migracion-codigo-espagueti.md](./10-migracion-codigo-espagueti.md) | Migración desde código espagueti |
+| [99-apendice-dependencias.md](./99-apendice-dependencias.md) | Apéndice: resumen de flujo, dependencias, notas |
 
 ---
 
@@ -28,7 +41,7 @@
 
 ## 🚀 Siguiente paso
 
-After this section, continue with [02-TESTING](../02-TESTING/) to learn how to test your code.
+Continúa con [05-TESTING](../05-TESTING/) para aprender a probar tu código, o si prefieres diseñar primero, ve a [02-DISENIO-FEATURE](../02-DISENIO-FEATURE/).
 
 ---
 
