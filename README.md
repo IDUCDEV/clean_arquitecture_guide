@@ -42,6 +42,7 @@ La guía está organizada en **7 secciones numeradas** para seguir un orden de a
 05-TESTING/                    → Cómo probar el código
 06-NIVEL-EXPERTO/              → Técnicas avanzadas de arquitectura
 07-IA-ASSISTANT/               → Cómo usar IA en el desarrollo
+08-PENCIL/                     → Diseño visual con Pencil
 ```
 
 ---
@@ -190,6 +191,21 @@ La guía está organizada en **7 secciones numeradas** para seguir un orden de a
 
 ---
 
+### 🖊️ Sección 08: Pencil — Diseño Visual
+
+| Archivo | Descripción |
+|---------|-------------|
+| [README.md](./08-PENCIL/README.md) | Índice de la sección |
+| [06-pencil-diseno-visual.md](./08-PENCIL/06-pencil-diseno-visual.md) | La interfaz de Pencil: toolbar, paneles, componentes, atajos |
+| [06a-practica-login.md](./08-PENCIL/06a-practica-login.md) | Práctica: diseñar pantalla de Login |
+| [06b-practica-dashboard.md](./08-PENCIL/06b-practica-dashboard.md) | Práctica: Dashboard de Ventas con variables |
+| [06c-practica-design-system.md](./08-PENCIL/06c-practica-design-system.md) | Práctica: Sistema de Diseño (componentes, slots, librerías) |
+| [06d-practica-componentes-ui.md](./08-PENCIL/06d-practica-componentes-ui.md) | Práctica: Biblioteca de componentes UI estándar |
+
+**Contenido:** Pencil como herramienta de diseño vectorial en el IDE. Uso manual sin IA — solo mouse, teclado y paneles.
+
+---
+
 ## 🚀 Orden de Aprendizaje Sugerido
 
 ```
@@ -200,6 +216,8 @@ La guía está organizada en **7 secciones numeradas** para seguir un orden de a
 05-TESTING                   → Testing (15-20 horas)
     ↓
 07-IA-ASSISTANT              → IA en desarrollo (2-3 horas)
+    ↓
+08-PENCIL                    → Diseño visual con Pencil (4-6 horas)
     ↓
 06-NIVEL-EXPERTO             → Técnicas avanzadas (6-8 horas)
     ↓
