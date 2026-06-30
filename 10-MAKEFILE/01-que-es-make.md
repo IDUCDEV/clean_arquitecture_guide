@@ -1,0 +1,68 @@
+# 01 — ¿Qué es Make y por qué lo usamos?
+
+---
+
+## 1. ¿Qué es Make?
+
+Make es una herramienta de automatización de los años 70 (sí, anterior a internet) que **sigue siendo el estándar** para gestionar proyectos de software. Lee un archivo llamado `Makefile` y ejecuta comandos según reglas que tú defines.
+
+### La analogía
+
+```
+Makefile = una lista de recetas de cocina
+
+make setup     → "Prepara los ingredientes" (instalar dependencias)
+make test      → "Prueba que la sopa no esté salada" (ejecutar tests)
+make build-apk → "Cocina el plato final" (compilar APK)
+```
+
+---
+
+## 2. ¿Por qué Makefile y no scripts sueltos?
+
+| Aspecto | Scripts sueltos (`setup.sh`, `test.sh`, etc.) | Makefile |
+|---------|----------------------------------------------|----------|
+| **Número de archivos** | 10+ scripts | 1 archivo |
+| **Dependencias entre comandos** | Manual (tú encadenas) | Automático (`target: dependency`) |
+| **Documentación** | La escribes aparte | `make help` genera la lista |
+| **Variables** | Variables de shell | Variables de Make + shell |
+| **Solo ejecutar lo necesario** | No | Sí (solo si cambió la dependencia) |
+| **Estándar** | Depende del proyecto | Universal en DevOps |
+
+### Ejemplo: sin Makefile
+
+```bash
+# Tienes que recordar:
+cd apps/mobile && flutter pub get
+cd apps/mobile && dart run build_runner build --delete-conflicting-outputs
+cd apps/mobile && flutter test
+cd supabase && supabase start
+```
+
+### Con Makefile
+
+```bash
+make setup   # hace todo lo de arriba
+```
+
+---
+
+## 3. ¿Qué hace el Makefile en tu proyecto?
+
+El Makefile del monorepo rifa-gestion-app organiza los comandos en:
+
+| Sección | Propósito |
+|---------|-----------|
+| **Desarrollo** | Iniciar/Detener Supabase, correr app, regenerar código |
+| **Calidad** | Formatear, analizar, testear |
+| **Dependencias** | Instalar, actualizar |
+| **Supabase** | Migraciones, tests de BD, deploy |
+| **Build** | APK, AAB, web, Linux |
+| **Utilidades** | Cambiar entorno (.env), validar, limpiar |
+| **Git** | Conventional commits, hooks |
+
+> **🎯 Objetivo final**: Cuando termines este módulo, podrás leer el Makefile de tu proyecto y entender **qué hace cada línea, por qué está ahí y cómo modificarla**.
+
+---
+
+**Siguiente**: [02-sintaxis-basica.md](./02-sintaxis-basica.md) — Targets, dependencias y recipes

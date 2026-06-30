@@ -43,6 +43,9 @@ La guía está organizada en **7 secciones numeradas** para seguir un orden de a
 06-NIVEL-EXPERTO/              → Técnicas avanzadas de arquitectura
 07-IA-ASSISTANT/               → Cómo usar IA en el desarrollo
 08-PENCIL/                     → Diseño visual con Pencil
+09-ESTRUCTURA-DATOS-OOP/       → Estructuras de datos con OOP en Dart
+10-MAKEFILE/                   → Dominio de Makefiles para Flutter
+11-GITHUB-ACTIONS/             → Automatización y CI/CD
 ```
 
 ---
@@ -206,6 +209,61 @@ La guía está organizada en **7 secciones numeradas** para seguir un orden de a
 
 ---
 
+### 📊 Sección 09: Estructuras de Datos con OOP
+
+| Archivo | Descripción |
+|---------|-------------|
+| [README.md](./09-ESTRUCTURA-DATOS-OOP/README.md) | Índice de la sección |
+| [01-sistema-tipos.md](./09-ESTRUCTURA-DATOS-OOP/01-sistema-tipos.md) | Sistema de tipos en Dart (null safety, genéricos, `var`/`final`/`const`) |
+| [02-colecciones-fundamentos.md](./09-ESTRUCTURA-DATOS-OOP/02-colecciones-fundamentos.md) | `List`, `Set`, `Map` — constructores, operaciones, performance |
+| [03-metodos-funcionales-listas.md](./09-ESTRUCTURA-DATOS-OOP/03-metodos-funcionales-listas.md) | `map`, `where`, `reduce`, `fold`, `expand`, encadenamiento |
+| [04-manipulacion-mapas.md](./09-ESTRUCTURA-DATOS-OOP/04-manipulacion-mapas.md) | `Map.fromIterable`, `putIfAbsent`, `update`, group-by, merge |
+| [05-algoritmos-colecciones.md](./09-ESTRUCTURA-DATOS-OOP/05-algoritmos-colecciones.md) | `sort`, `Comparable`, `Comparator`, búsqueda, paginación |
+| [06-oop-modelado-datos.md](./09-ESTRUCTURA-DATOS-OOP/06-oop-modelado-datos.md) | Entidades, Value Objects, `Equatable`, `copyWith`, `fromJson`/`toJson` |
+| [07-patrones-manipulacion.md](./09-ESTRUCTURA-DATOS-OOP/07-patrones-manipulacion.md) | Patrones reales: fetch → filter → transform → aggregate |
+| [08-ejercicios-basicos.md](./09-ESTRUCTURA-DATOS-OOP/08-ejercicios-basicos.md) | 10 ejercicios de fundamentos |
+| [09-ejercicios-intermedios.md](./09-ESTRUCTURA-DATOS-OOP/09-ejercicios-intermedios.md) | 10 ejercicios con datos estructurados |
+| [10-ejercicios-avanzados.md](./09-ESTRUCTURA-DATOS-OOP/10-ejercicios-avanzados.md) | 5 ejercicios integradores (mini-pipeline) |
+| [11-recursos-practica.md](./09-ESTRUCTURA-DATOS-OOP/11-recursos-practica.md) | Dartpad, Codewars, Exercism, LeetCode — recursos para practicar |
+
+**Contenido:** Sistema de tipos, colecciones, métodos funcionales, manipulación de mapas, algoritmos, modelado OOP, 25+ ejercicios prácticos con casos del dominio real, guía de recursos externos.
+
+---
+
+### 🛠️ Sección 10: Makefile Mastery
+
+| Archivo | Descripción |
+|---------|-------------|
+| [README.md](./10-MAKEFILE/README.md) | Índice de la sección |
+| [01-que-es-make.md](./10-MAKEFILE/01-que-es-make.md) | ¿Qué es Make? ¿Por qué Makefile y no solo scripts? |
+| [02-sintaxis-basica.md](./10-MAKEFILE/02-sintaxis-basica.md) | Targets, prerequisites, recipes, `.PHONY`, variables |
+| [03-variables-y-shell.md](./10-MAKEFILE/03-variables-y-shell.md) | `$(shell ...)`, `awk`, `sed`, debugging |
+| [04-analisis-makefile-real.md](./10-MAKEFILE/04-analisis-makefile-real.md) | Recorrido línea por línea del Makefile del monorepo |
+| [05-creacion-personalizada.md](./10-MAKEFILE/05-creacion-personalizada.md) | Template limpio para nuevos proyectos |
+| [06-make-en-ci.md](./10-MAKEFILE/06-make-en-ci.md) | Cómo se invoca Make desde GitHub Actions |
+| [07-ejercicios.md](./10-MAKEFILE/07-ejercicios.md) | Práctica: leer, modificar y crear Makefiles |
+
+**Contenido:** Fundamentos de Make, sintaxis, variables, funciones shell, análisis del Makefile real del proyecto, creación personalizada, integración con CI.
+
+---
+
+### 🤖 Sección 11: GitHub Actions + Automatización
+
+| Archivo | Descripción |
+|---------|-------------|
+| [README.md](./11-GITHUB-ACTIONS/README.md) | Índice de la sección |
+| [01-conceptos.md](./11-GITHUB-ACTIONS/01-conceptos.md) | Workflows, jobs, steps, runners, eventos trigger |
+| [02-sintaxis-yaml.md](./11-GITHUB-ACTIONS/02-sintaxis-yaml.md) | Anatomía de un workflow: `on:`, `jobs:`, `steps:`, `uses:`, `run:` |
+| [03-actions-esenciales.md](./11-GITHUB-ACTIONS/03-actions-esenciales.md) | `subosito/flutter-action`, `supabase/setup-cli`, `actions/cache` |
+| [04-workflows-analisis.md](./11-GITHUB-ACTIONS/04-workflows-analisis.md) | Recorrido de los 6 workflows reales del proyecto |
+| [05-secrets-envs-matrix.md](./11-GITHUB-ACTIONS/05-secrets-envs-matrix.md) | Secrets, entornos, matrix builds, path filtering |
+| [06-monorepo-avanzado.md](./11-GITHUB-ACTIONS/06-monorepo-avanzado.md) | Estrategias para monorepo, reutilización, caching |
+| [07-ejercicios.md](./11-GITHUB-ACTIONS/07-ejercicios.md) | Práctica: crear workflows desde cero |
+
+**Contenido:** Conceptos de CI/CD, sintaxis YAML, actions esenciales, análisis de workflows reales, secrets, matrix builds, estrategias para monorepo.
+
+---
+
 ## 🚀 Orden de Aprendizaje Sugerido
 
 ```
@@ -221,7 +279,13 @@ La guía está organizada en **7 secciones numeradas** para seguir un orden de a
     ↓
 06-NIVEL-EXPERTO             → Técnicas avanzadas (6-8 horas)
     ↓
+09-ESTRUCTURA-DATOS-OOP      → Estructuras de datos con OOP (10-15 horas)
+    ↓
 03-SUPABASE                  → Backend + automatización (10-15 horas)
+    ↓
+10-MAKEFILE                  → Makefile Mastery (3-5 horas)
+    ↓
+11-GITHUB-ACTIONS            → Automatización y CI/CD (4-6 horas)
     ↓
 04-ALMACENAMIENTO-LOCAL      → Almacenamiento local con Isar (4-6 horas)
 ```

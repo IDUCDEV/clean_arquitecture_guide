@@ -1,64 +1,6 @@
 {
-  "version": "2.13",
+  "version": "2.14",
   "children": [
-    {
-      "type": "frame",
-      "id": "vTTKX",
-      "x": 3800,
-      "y": 2085,
-      "name": "dashboard-revenue",
-      "theme": {
-        "Mode": "Light"
-      },
-      "clip": true,
-      "width": 1440,
-      "height": "fit_content(717)",
-      "fill": "$--background"
-    },
-    {
-      "type": "frame",
-      "id": "at1aA",
-      "x": 3800,
-      "y": 374,
-      "name": "dashboard-utility",
-      "theme": {
-        "Mode": "Light"
-      },
-      "clip": true,
-      "width": 1440,
-      "height": "fit_content(900)",
-      "fill": "$--background"
-    },
-    {
-      "type": "prompt",
-      "id": "qambF",
-      "x": 3800,
-      "y": 1700,
-      "model": "cursor-composer",
-      "width": 400,
-      "height": 219,
-      "content": "Design a dashboard into \"dashboard-revenue\" frame for a revenue tracking app with a sidebar, showing revenue stats, history in the content."
-    },
-    {
-      "type": "prompt",
-      "id": "IiDbb",
-      "x": 3800,
-      "y": 0,
-      "model": "cursor-composer",
-      "width": 400,
-      "height": 219,
-      "content": "Design a dashboard with a sidebar on the left into \"dashboard-utility\" frame for a utility company showing current usage and a history in a table."
-    },
-    {
-      "type": "prompt",
-      "id": "SreTo",
-      "x": 3800,
-      "y": 3509,
-      "model": "cursor-composer",
-      "width": 400,
-      "height": 219,
-      "content": "Design a dashboard into \"dashboard-football\" frame with a table ranking UEFA teams. Show goal counts, captain name, etc. Put stats on the top."
-    },
     {
       "type": "frame",
       "id": "jnEWB",
@@ -2904,6 +2846,21 @@
           "children": [
             {
               "type": "frame",
+              "id": "GPSLK",
+              "x": 0,
+              "y": 80,
+              "name": "Card Content",
+              "enabled": false,
+              "clip": true,
+              "width": "fill_container(480)",
+              "height": 80,
+              "layout": "vertical",
+              "gap": 8,
+              "padding": 40,
+              "justifyContent": "center"
+            },
+            {
+              "type": "frame",
               "id": "a6uAMc",
               "name": "Card Header",
               "clip": true,
@@ -2942,21 +2899,6 @@
                   "fontWeight": "normal"
                 }
               ]
-            },
-            {
-              "type": "frame",
-              "id": "GPSLK",
-              "x": 0,
-              "y": 80,
-              "name": "Card Content",
-              "enabled": false,
-              "clip": true,
-              "width": "fill_container(480)",
-              "height": 80,
-              "layout": "vertical",
-              "gap": 8,
-              "padding": 40,
-              "justifyContent": "center"
             },
             {
               "type": "frame",
@@ -7535,99 +7477,6 @@
           ]
         }
       ]
-    },
-    {
-      "type": "frame",
-      "id": "qtwKP",
-      "x": 3800,
-      "y": 3841,
-      "name": "dashboard-football",
-      "theme": {
-        "Mode": "Light"
-      },
-      "clip": true,
-      "width": 1440,
-      "height": 933,
-      "fill": "$--background",
-      "layout": "vertical",
-      "gap": 24,
-      "padding": 32
-    },
-    {
-      "type": "frame",
-      "id": "qjW4A",
-      "x": 293.8169220598391,
-      "y": 5867.106318980082,
-      "name": "Iphon 14 pro max",
-      "clip": true,
-      "width": 390,
-      "height": 844,
-      "fill": "#FFFFFF",
-      "layout": "none",
-      "children": [
-        {
-          "type": "rectangle",
-          "id": "CuKXh",
-          "x": 97,
-          "y": 140,
-          "fill": "#CCCCCC",
-          "width": 120,
-          "height": 114
-        },
-        {
-          "type": "ellipse",
-          "id": "OF421",
-          "x": 98,
-          "y": 351,
-          "fill": "#CCCCCC",
-          "width": 175,
-          "height": 176
-        },
-        {
-          "type": "text",
-          "id": "P7y42h",
-          "x": 111.27468048143112,
-          "y": 595.2288091313785,
-          "fill": "#000000",
-          "content": "Est es un diseño Mobile",
-          "fontFamily": "Inter",
-          "fontSize": 16,
-          "fontWeight": "normal"
-        }
-      ]
-    },
-    {
-      "type": "frame",
-      "id": "hJdGn",
-      "x": 887.816922059839,
-      "y": 5874.106318980082,
-      "name": "Dsktop",
-      "clip": true,
-      "width": 1440,
-      "height": 900,
-      "fill": "#FFFFFF",
-      "layout": "none"
-    },
-    {
-      "type": "frame",
-      "id": "TqQap",
-      "x": 2844.8169220598393,
-      "y": 5919.106318980082,
-      "name": "tablet",
-      "clip": true,
-      "width": 768,
-      "height": 1024,
-      "fill": "#FFFFFF",
-      "layout": "none"
-    },
-    {
-      "type": "prompt",
-      "id": "nPo4m",
-      "x": 0,
-      "y": 5864,
-      "width": 250,
-      "height": 219,
-      "content": "st es un diseño mobile\n"
     }
   ],
   "themes": {
@@ -8285,5 +8134,6 @@
         }
       ]
     }
-  }
+  },
+  "fileToken": "98a8b8f8-d450-4e4a-9938-ffd03c330b8f"
 }
