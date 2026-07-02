@@ -32,7 +32,7 @@ Clean Architecture es una forma de organizar el código en **capas independiente
 
 ## 📁 Estructura de la Guía
 
-La guía está organizada en **7 secciones numeradas** para seguir un orden de aprendizaje lógico:
+La guía está organizada en **16 módulos numerados** para seguir un orden de aprendizaje lógico:
 
 ```
 01-CLEAN-ARCHITECTURE/         → Fundamentos de arquitectura
@@ -46,6 +46,11 @@ La guía está organizada en **7 secciones numeradas** para seguir un orden de a
 09-ESTRUCTURA-DATOS-OOP/       → Estructuras de datos con OOP en Dart
 10-MAKEFILE/                   → Dominio de Makefiles para Flutter
 11-GITHUB-ACTIONS/             → Automatización y CI/CD
+12-GIT-FLOW-CONVENTIONAL-COMMITS/ → Git flow, conventional commits, husky
+13-EDGE-FUNCTIONS-DENO/        → Edge Functions con Deno + Supabase
+14-GOOGLE-PLAY-RELEASE/        → Publicación en Play Store y CI/CD
+15-WIDGETS-FLUTTER/            → Widgets de Flutter (sin state management)
+16-BLOC-CUBIT/                 → State management con BLoC/Cubit
 ```
 
 ---
@@ -264,30 +269,130 @@ La guía está organizada en **7 secciones numeradas** para seguir un orden de a
 
 ---
 
+### 🔀 Sección 12: Git Flow + Conventional Commits
+
+| Archivo | Descripción |
+|---------|-------------|
+| [01-conventional-commits.md](./12-GIT-FLOW-CONVENTIONAL-COMMITS/01-conventional-commits.md) | Conventional Commits: formato, tipos, ejemplos por escenario |
+| [02-husky-lint-staged.md](./12-GIT-FLOW-CONVENTIONAL-COMMITS/02-husky-lint-staged.md) | Husky + lint-staged: automatización antes del commit |
+| [03-commitizen-commitlint.md](./12-GIT-FLOW-CONVENTIONAL-COMMITS/03-commitizen-commitlint.md) | Commitizen + commitlint: asistentes interactivos |
+| [04-fvm-version-management.md](./12-GIT-FLOW-CONVENTIONAL-COMMITS/04-fvm-version-management.md) | FVM: gestión de versiones de Flutter |
+| [05-flujo-ramas-estrategias.md](./12-GIT-FLOW-CONVENTIONAL-COMMITS/05-flujo-ramas-estrategias.md) | Estrategias de ramas, Git Flow, Trunk-based |
+
+**Contenido:** Conventional Commits, automatización con Husky/lint-staged, commitizen, FVM, estrategias de ramas.
+
+---
+
+### ⚡ Sección 13: Edge Functions con Deno
+
+| Archivo | Descripción |
+|---------|-------------|
+| [01-edge-functions-fundamentos.md](./13-EDGE-FUNCTIONS-DENO/01-edge-functions-fundamentos.md) | Deno, Supabase Edge Functions, despliegue local |
+| [02-cron-triggers.md](./13-EDGE-FUNCTIONS-DENO/02-cron-triggers.md) | Cron jobs programados con Edge Functions |
+| [03-rpc-postgresql.md](./13-EDGE-FUNCTIONS-DENO/03-rpc-postgresql.md) | Llamadas RPC a PostgreSQL desde Edge Functions |
+| [04-integracion-flutter-supabase.md](./13-EDGE-FUNCTIONS-DENO/04-integracion-flutter-supabase.md) | Consumir Edge Functions desde Flutter |
+
+**Contenido:** Deno, Edge Functions, cron triggers, RPC, integración Flutter.
+
+---
+
+### 📱 Sección 14: Google Play Release
+
+| Archivo | Descripción |
+|---------|-------------|
+| [01-generar-aab-keystore.md](./14-GOOGLE-PLAY-RELEASE/01-generar-aab-keystore.md) | Generar AAB, keystore, signing config |
+| [02-play-console-listing.md](./14-GOOGLE-PLAY-RELEASE/02-play-console-listing.md) | Play Console: listing, assets, calificaciones |
+| [03-release-tracks.md](./14-GOOGLE-PLAY-RELEASE/03-release-tracks.md) | Internal, closed, open testing, production tracks |
+| [04-play-signing-inapp-updates.md](./14-GOOGLE-PLAY-RELEASE/04-play-signing-inapp-updates.md) | Play App Signing, actualizaciones in-app |
+| [05-ci-cd-automatizado.md](./14-GOOGLE-PLAY-RELEASE/05-ci-cd-automatizado.md) | CI/CD automatizado hasta Play Store |
+
+**Contenido:** Generación de AAB, Play Console, release tracks, Play Signing, in-app updates, CI/CD.
+
+---
+
+### 🧩 Sección 15: Widgets de Flutter
+
+| Archivo | Descripción |
+|---------|-------------|
+| [README.md](./15-WIDGETS-FLUTTER/README.md) | Índice del módulo |
+| [01-fundamentos-widgets.md](./15-WIDGETS-FLUTTER/01-fundamentos-widgets.md) | Widget, Element, RenderObject, BuildContext, keys |
+| [02-widgets-basicos-y-atomizacion.md](./15-WIDGETS-FLUTTER/02-widgets-basicos-y-atomizacion.md) | Text, Image, Icon, Button, Chip, Avatares, atomización |
+| [03-layout-y-navegacion.md](./15-WIDGETS-FLUTTER/03-layout-y-navegacion.md) | Row, Column, Stack, Expanded, Navigator, GoRouter |
+| [04-interaccion-y-formularios.md](./15-WIDGETS-FLUTTER/04-interaccion-y-formularios.md) | TextField, Form, validación, FocusNode, debounce |
+| [05-listas-y-scroll.md](./15-WIDGETS-FLUTTER/05-listas-y-scroll.md) | ListView, GridView, CustomScrollView, Slivers, pull-to-refresh |
+| [06-datos-estados-y-ciclo-de-vida.md](./15-WIDGETS-FLUTTER/06-datos-estados-y-ciclo-de-vida.md) | StatefulWidget, initState, dispose, StreamBuilder |
+| [07-animaciones.md](./15-WIDGETS-FLUTTER/07-animaciones.md) | AnimatedContainer, Hero, TweenAnimationBuilder |
+| [08-estrategias-composicion.md](./15-WIDGETS-FLUTTER/08-estrategias-composicion.md) | Composición vs herencia, patrones slot, builder, child |
+| [09-patrones-renderizacion.md](./15-WIDGETS-FLUTTER/09-patrones-renderizacion.md) | Conditional rendering, loading/error/data pattern |
+| [10-perf-y-buenas-practicas.md](./15-WIDGETS-FLUTTER/10-perf-y-buenas-practicas.md) | const constructors, RepaintBoundary, keys, evitar rebuilds |
+| [11-arsenal-completo-widgets.md](./15-WIDGETS-FLUTTER/11-arsenal-completo-widgets.md) | +150 widgets organizados por categoría |
+
+**Contenido:** Widgets puros de Flutter (sin state management). Fundamentos, layout, formularios, scroll, animaciones, composición, performance.
+
+---
+
+### 🔷 Sección 16: BLoC / Cubit — State Management
+
+| Archivo | Descripción |
+|---------|-------------|
+| [README.md](./16-BLOC-CUBIT/README.md) | Índice, dependencias, relaciones entre módulos |
+| [01-conceptos-bloc-cubit.md](./16-BLOC-CUBIT/01-conceptos-bloc-cubit.md) | Bloc vs Cubit, streams, transiciones, flow diagram |
+| [02-vs-otros-state-management.md](./16-BLOC-CUBIT/02-vs-otros-state-management.md) | setState, Provider, Riverpod, GetX, BLoC |
+| [03-cubit-basico.md](./16-BLOC-CUBIT/03-cubit-basico.md) | ContadorCubit, LoginCubit, pantalla completa |
+| [04-bloc-eventos.md](./16-BLOC-CUBIT/04-bloc-eventos.md) | ProductoBloc, eventos, paginación, debounce |
+| [05-widgets-flutter-bloc-p1.md](./16-BLOC-CUBIT/05-widgets-flutter-bloc-p1.md) | BlocProvider, BlocBuilder, context.read/watch |
+| [06-widgets-flutter-bloc-p2.md](./16-BLOC-CUBIT/06-widgets-flutter-bloc-p2.md) | BlocListener, BlocConsumer, BlocSelector |
+| [07-ejemplo-login.md](./16-BLOC-CUBIT/07-ejemplo-login.md) | Login con validación + tests |
+| [08-ejemplo-lista-filtros.md](./16-BLOC-CUBIT/08-ejemplo-lista-filtros.md) | Lista con búsqueda, filtros, infinite scroll |
+| [09-ejemplo-favoritos-persistidos.md](./16-BLOC-CUBIT/09-ejemplo-favoritos-persistidos.md) | HydratedCubit, animación favorito |
+| [10-ejemplo-multi-bloc.md](./16-BLOC-CUBIT/10-ejemplo-multi-bloc.md) | Dashboard Multi-Bloc con orquestación |
+| [11-ejemplo-formulario-multipaso.md](./16-BLOC-CUBIT/11-ejemplo-formulario-multipaso.md) | Wizard de registro con stepper |
+| [12-ejemplo-chat-stream.md](./16-BLOC-CUBIT/12-ejemplo-chat-stream.md) | Chat real-time con StreamSubscription |
+| [13-concurrencia-eventos.md](./16-BLOC-CUBIT/13-concurrencia-eventos.md) | droppable, restartable, debounce, sequential |
+| [14-testing-bloc.md](./16-BLOC-CUBIT/14-testing-bloc.md) | blocTest, seed, skip, verify, errors, wait |
+| [15-hydrated-bloc.md](./16-BLOC-CUBIT/15-hydrated-bloc.md) | Persistencia automática de estado |
+| [16-buenas-practicas.md](./16-BLOC-CUBIT/16-buenas-practicas.md) | BlocObserver, anti-patrones, naming, arquitectura |
+| [17-proyecto-integrador.md](./16-BLOC-CUBIT/17-proyecto-integrador.md) | App e-commerce completa con 5 features |
+| [18-patron-lista-avanzada.md](./16-BLOC-CUBIT/18-patron-lista-avanzada.md) | previousState, PullToRefreshWrapper, slivers, ValueKey |
+
+**Contenido:** BLoC/Cubit completo: fundamentos, widgets flutter_bloc, 6 ejemplos con pantalla completa, concurrencia, testing con blocTest, HydratedBloc, buenas prácticas, proyecto integrador, patrón avanzado de listas.
+
+---
+
 ## 🚀 Orden de Aprendizaje Sugerido
 
 ```
-02-DISENIO-FEATURE            → Diseño de features (6-8 horas) — ¡empieza aquí!
+02-DISENIO-FEATURE            → Diseño de features (6-8 h) — ¡empieza aquí!
     ↓
-01-CLEAN-ARCHITECTURE        → Fundamentos (4-6 horas)
+01-CLEAN-ARCHITECTURE        → Fundamentos (4-6 h)
     ↓
-05-TESTING                   → Testing (15-20 horas)
+05-TESTING                   → Testing (15-20 h)
     ↓
-07-IA-ASSISTANT              → IA en desarrollo (2-3 horas)
+07-IA-ASSISTANT              → IA en desarrollo (2-3 h)
     ↓
-08-PENCIL                    → Diseño visual con Pencil (4-6 horas)
+08-PENCIL                    → Diseño visual con Pencil (4-6 h)
     ↓
-06-NIVEL-EXPERTO             → Técnicas avanzadas (6-8 horas)
+06-NIVEL-EXPERTO             → Técnicas avanzadas (6-8 h)
     ↓
-09-ESTRUCTURA-DATOS-OOP      → Estructuras de datos con OOP (10-15 horas)
+09-ESTRUCTURA-DATOS-OOP      → Estructuras de datos con OOP (10-15 h)
     ↓
-03-SUPABASE                  → Backend + automatización (10-15 horas)
+15-WIDGETS-FLUTTER           → Widgets puros (6-10 h)
     ↓
-10-MAKEFILE                  → Makefile Mastery (3-5 horas)
+16-BLOC-CUBIT                → State management (10-15 h)
     ↓
-11-GITHUB-ACTIONS            → Automatización y CI/CD (4-6 horas)
+03-SUPABASE                  → Backend + automatización (10-15 h)
     ↓
-04-ALMACENAMIENTO-LOCAL      → Almacenamiento local con Isar (4-6 horas)
+12-GIT-FLOW                  → Git flow, commits (3-5 h)
+    ↓
+13-EDGE-FUNCTIONS            → Edge Functions + Deno (4-6 h)
+    ↓
+10-MAKEFILE                  → Makefile Mastery (3-5 h)
+    ↓
+11-GITHUB-ACTIONS            → CI/CD (4-6 h)
+    ↓
+04-ALMACENAMIENTO-LOCAL      → Isar (4-6 h)
+    ↓
+14-GOOGLE-PLAY-RELEASE       → Publicación (4-6 h)
 ```
 
 ---
@@ -296,18 +401,21 @@ La guía está organizada en **7 secciones numeradas** para seguir un orden de a
 
 ```yaml
 dependencies:
-  flutter_bloc: ^8.1.3
-  equatable: ^2.0.5
-  get_it: ^7.6.4
+  flutter_bloc: ^9.1.0
+  bloc: ^9.0.0
+  equatable: ^2.0.7
+  get_it: ^8.0.0
   fpdart: ^1.2.0
-  dio: ^5.3.3
-  supabase_flutter: ^2.5.0
-  go_router: ^12.1.3
+  dio: ^5.4.0
+  supabase_flutter: ^2.6.0
+  go_router: ^14.0.0
+  hydrated_bloc: ^10.0.0
+  bloc_concurrency: ^0.3.0
 
 dev_dependencies:
-  bloc_test: ^9.1.0
-  mockito: ^5.4.0
-  build_runner: ^2.4.7
+  bloc_test: ^10.0.0
+  mocktail: ^1.0.0
+  build_runner: ^2.4.9
 ```
 
 ---

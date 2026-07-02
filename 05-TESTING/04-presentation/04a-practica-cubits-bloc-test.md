@@ -20,7 +20,7 @@ Asegúrate de tener las dependencias necesarias:
 
 ```yaml
 dev_dependencies:
-  bloc_test: ^9.1.0
+  bloc_test: ^10.0.0
   mocktail: ^1.0.0
 ```
 

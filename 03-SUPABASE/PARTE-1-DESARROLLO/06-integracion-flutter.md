@@ -28,7 +28,7 @@ dependencies:
   supabase_flutter: ^2.5.0
   
   # Opcionales (recomendados para Clean Architecture)
-  flutter_bloc: ^8.1.3
+  flutter_bloc: ^9.1.0
   equatable: ^2.0.5
   fpdart: ^1.2.0
   go_router: ^12.1.3

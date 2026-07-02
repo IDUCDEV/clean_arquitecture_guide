@@ -72,7 +72,7 @@ User Action → Widget → Cubit → UseCase → Repository → Resultado
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  bloc_test: ^9.1.0
+  bloc_test: ^10.0.0
   mocktail: ^1.0.0     # Opcional, para mocks avanzados
 ```
 

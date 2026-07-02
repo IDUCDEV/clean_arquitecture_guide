@@ -60,7 +60,7 @@ dependencies:
     sdk: flutter
   
   # Core
-  flutter_bloc: ^8.1.3
+  flutter_bloc: ^9.1.0
   get_it: ^7.6.4
   equatable: ^2.0.5
   fpdart: ^1.2.0

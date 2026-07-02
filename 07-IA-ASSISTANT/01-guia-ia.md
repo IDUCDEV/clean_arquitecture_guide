@@ -983,7 +983,7 @@ Bad state: No element
 
 Contexto:
 - Versión de Flutter: 3.19.0
-- Paquetes: flutter_bloc 8.1.3, fpdart ^1.2.0
+- Paquetes: flutter_bloc 9.1.0, fpdart ^1.2.0
 - El error ocurre cuando intento crear una reserva a las 10:00 AM
 
 ¿Puedes ayudarme a entender:

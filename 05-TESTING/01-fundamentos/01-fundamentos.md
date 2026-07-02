@@ -132,7 +132,7 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  bloc_test: ^9.1.0          # Para testear Cubits/Blocs
+  bloc_test: ^10.0.0          # Para testear Cubits/Blocs
   mocktail: ^1.0.4            # Para mocks sin generación de código
   fpdart: ^1.1.0              # Either, Option - programación funcional
   internet_connection_checker_plus: ^2.5.0  # Detectar conectividad
