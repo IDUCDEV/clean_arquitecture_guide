@@ -139,6 +139,8 @@ class UserCubit extends Cubit<UserState> {
 
 ---
 
+> 📖 **Para una guía completa de BLoC/Cubit** (widgets, concurrencia, hydrated, testing, buenas prácticas, proyecto integrador): módulo [`16-BLOC-CUBIT/`](../16-BLOC-CUBIT/).
+
 ### 5.4 UI Layer (El Cliente)
 
 #### Users List Page

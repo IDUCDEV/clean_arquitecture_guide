@@ -146,3 +146,6 @@ class {Feature}Error extends {Feature}State {
 ```
 
 ---
+
+> 📖 **Buenas prácticas de BLoC/Cubit** (naming, BlocObserver, anti-patrones, arquitectura): [`16-BLOC-CUBIT/16-buenas-practicas.md`](../16-BLOC-CUBIT/16-buenas-practicas.md).
+

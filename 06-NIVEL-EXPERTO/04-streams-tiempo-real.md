@@ -1501,6 +1501,8 @@ Stream<Either<Failure, T>> withRetry(Stream<Either<Failure, T>> stream) {
 
 ---
 
+> 📖 **Ejemplo de chat en tiempo real con Bloc + UI completa**: [`16-BLOC-CUBIT/12-ejemplo-chat-stream.md`](../16-BLOC-CUBIT/12-ejemplo-chat-stream.md) — burbujas de chat, scroll automático, indicador "escribiendo...", blocTest con Stream.
+
 ## Recursos Adicionales
 
 - [Documentación Streams Dart](https://dart.dev/tutorials/language/streams)

@@ -1075,6 +1075,9 @@ Cubit → DeviceService (interfaz) → DeviceServiceImpl → Platform Channels
 
 ---
 
+> 📖 **Ejemplo de orquestación Multi-Bloc desde la UI**: [`16-BLOC-CUBIT/10-ejemplo-multi-bloc.md`](../16-BLOC-CUBIT/10-ejemplo-multi-bloc.md) — DashboardCubit coordinando 3 cubits con MultiBlocProvider y MultiBlocListener.
+> **Concurrencia de eventos**: [`16-BLOC-CUBIT/13-concurrencia-eventos.md`](../16-BLOC-CUBIT/13-concurrencia-eventos.md) — droppable, restartable, debounce, sequential.
+
 ## Recursos Adicionales
 
 - [The Power of Event Bus](https://blog.novoda.com/the-power-of-event-bus/)
