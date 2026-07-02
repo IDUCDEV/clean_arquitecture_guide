@@ -175,7 +175,7 @@ set -e
 ENV_FILE=$${1:-.env}
 [ -f "$ENV_FILE" ] || { echo "❌ $ENV_FILE no existe"; exit 1; }
 grep -q "^SUPABASE_URL=" "$ENV_FILE" || { echo "❌ Falta SUPABASE_URL"; exit 1; }
-grep -q "^SUPABASE_ANON_KEY=" "$ENV_FILE" || { echo "❌ Falta SUPABASE_ANON_KEY"; exit 1; }
+grep -q "^SUPABASE_PUBLISHABLE_KEY=" "$ENV_FILE" || { echo "❌ Falta SUPABASE_PUBLISHABLE_KEY"; exit 1; }
 echo "✅ $ENV_FILE válido"
 ```
 

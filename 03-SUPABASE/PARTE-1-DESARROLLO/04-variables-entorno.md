@@ -43,8 +43,9 @@
 # URL del proyecto Supabase (obtener de Supabase Dashboard)
 SUPABASE_URL=http://127.0.0.1:54321
 
-# Anon Key pública (obtener de Supabase Dashboard → Settings → API)
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+# Publishable Key (nuevo formato: sb_publishable_xxx)
+# Hasta finales de 2026 también funciona la legacy anon key (eyJ...)
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 ```
 
 ### Variables opcionales
@@ -53,19 +54,34 @@ SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 # URL de API REST personalizada (si usas Edge Functions o REST API)
 REST_API_BASE_URL=http://192.168.0.127:3000
 
-# Service Role Key (solo para backend/server-side, NUNCA en Flutter)
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+# Secret Key (nuevo formato: sb_secret_xxx).
+# Reemplaza la legacy service_role key. Solo para backend/server-side, NUNCA en Flutter.
+SUPABASE_SECRET_KEY=sb_secret_...
 
 # Para producción
 SUPABASE_DB_PASSWORD=...  # Password de la base de datos
 ```
+
+### ⚠️ Migración de API Keys (importante)
+
+Supabase está migrando de keys legacy `anon`/`service_role` (formato `eyJ...`) a un nuevo formato:
+
+| Legacy (eyJ...) | Nuevo formato | Cuándo usar |
+|----------------|---------------|-------------|
+| `SUPABASE_ANON_KEY` | `SUPABASE_PUBLISHABLE_KEY` (`sb_publishable_xxx`) | Cliente (Flutter, frontend) |
+| `SUPABASE_SERVICE_ROLE_KEY` | `SUPABASE_SECRET_KEY` (`sb_secret_xxx`) | Servidor (backend, Edge Functions) |
+
+- Las keys legacy **funcionan hasta finales de 2026**
+- Se recomienda migrar a las nuevas keys cuanto antes
+- Las nuevas keys se obtienen en **Dashboard → Settings → API → API Keys** (botón "Create new API Keys")
+- El parámetro de `Supabase.initialize()` cambió de `anonKey:` a `publishableKey:`
 
 ### Cómo obtener las variables desde Supabase
 
 1. Ve a **Supabase Dashboard**
 2. Selecciona tu proyecto
 3. Ve a **Settings** (icono de engranaje)
-4. **API**: Copia `Project URL` y `anon public` key
+4. **API**: Copia `Project URL` y la `publishable` key (o `anon public` si sigues usando legacy)
 5. **Database**: Copia las credenciales de conexión
 
 ---
@@ -82,14 +98,18 @@ Este archivo debe ser commitado y sirve como referencia:
 # URL del proyecto (obtener de Supabase Dashboard → Settings → General)
 SUPABASE_URL=
 
-# Anon Key pública (obtener de Supabase Dashboard → Settings → API → anon key)
-SUPABASE_ANON_KEY=
+# Publishable Key (nuevo formato: sb_publishable_xxx)
+# O legacy anon key (eyJ...) si aún no migraste
+SUPABASE_PUBLISHABLE_KEY=
 
 # ==============================================================================
 # CONFIGURACIÓN ADICIONAL (OPCIONAL)
 # ==============================================================================
 
-# URL de API REST personalizada (si usas Edge Functions)
+# Secret Key (sb_secret_xxx) — solo para backend/Edge Functions
+# SUPABASE_SECRET_KEY=
+
+# URL de API REST personalizada (si usas Edge Functions desde otro host)
 # REST_API_BASE_URL=
 
 # ==============================================================================
@@ -99,6 +119,7 @@ SUPABASE_ANON_KEY=
 # 2. NUNCA commitear .env al repositorio (ya está en .gitignore)
 # 3. Para producción, usa los secrets de GitHub o tu proveedor de hosting
 # 4. Las variables aquí son para desarrollo local
+# 5. Las keys legacy (anon/service_role) funcionan hasta finales de 2026
 ```
 
 ---
@@ -116,6 +137,8 @@ REST_API_BASE_URL=http://192.168.0.127:3000
 
 ### Cómo configuran las apps Flutter las variables
 
+**Importante:** El parámetro `anonKey:` fue renombrado a `publishableKey:` en versiones recientes de `supabase_flutter`. Si usas keys legacy, ambos nombres funcionan; si usas el nuevo formato `sb_publishable_xxx`, debes usar `publishableKey:`.
+
 ```dart
 // lib/main.dart o lib/core/config/supabase_config.dart
 
@@ -124,7 +147,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 Future<void> initializeSupabase() async {
   await Supabase.initialize(
     url: const String.fromEnvironment('SUPABASE_URL'),
-    anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY'),
+    publishableKey: const String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY'),
     // Para desarrollo local
     debug: true,
   );
@@ -147,11 +170,11 @@ Future<void> main() async {
   await dotenv.load(fileName: ".env");
   
   final supabaseUrl = dotenv.env['SUPABASE_URL'];
-  final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'];
+  final supabaseKey = dotenv.env['SUPABASE_PUBLISHABLE_KEY'];
   
   await Supabase.initialize(
     url: supabaseUrl!,
-    anonKey: supabaseAnonKey!,
+    publishableKey: supabaseKey!,
   );
   
   runApp(const MyApp());
@@ -166,14 +189,14 @@ Future<void> main() async {
 
 ```bash
 SUPABASE_URL=http://127.0.0.1:54321
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_PUBLISHABLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 ### Testing (.env.test)
 
 ```bash
 SUPABASE_URL=http://127.0.0.1:54321
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_PUBLISHABLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 # Mismas keys que desarrollo para tests locales
 ```
 
@@ -182,7 +205,7 @@ SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```bash
 # Valores reales de Supabase Cloud o tu instancia self-hosted
 SUPABASE_URL=https://tu-proyecto.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 ```
 
 ---
@@ -216,10 +239,15 @@ if ! grep -q "^SUPABASE_URL=" "$ENV_FILE"; then
     exit 1
 fi
 
-# Verificar SUPABASE_ANON_KEY
-if ! grep -q "^SUPABASE_ANON_KEY=" "$ENV_FILE"; then
-    echo "Error: Missing SUPABASE_ANON_KEY in $ENV_FILE"
+# Verificar SUPABASE_PUBLISHABLE_KEY
+if ! grep -q "^SUPABASE_PUBLISHABLE_KEY=" "$ENV_FILE"; then
+    echo "Error: Missing SUPABASE_PUBLISHABLE_KEY in $ENV_FILE"
     exit 1
+fi
+
+# También aceptar SUPABASE_ANON_KEY legacy
+if grep -q "^SUPABASE_ANON_KEY=" "$ENV_FILE"; then
+    echo "Info: Usando SUPABASE_ANON_KEY legacy. Migrar a SUPABASE_PUBLISHABLE_KEY"
 fi
 
 # Verificar variable opcional
@@ -261,7 +289,7 @@ En GitHub, ve a **Settings → Secrets and variables → Actions** y añade:
 | Secret | Descripción |
 |--------|-------------|
 | `SUPABASE_URL` | URL de producción |
-| `SUPABASE_ANON_KEY` | Anon key de producción |
+| `SUPABASE_PUBLISHABLE_KEY` | Publishable key de producción |
 | `SUPABASE_ACCESS_TOKEN` | Token de Supabase CLI |
 | `SUPABASE_PROJECT_ID` | ID del proyecto |
 | `SUPABASE_DB_PASSWORD` | Password de la base de datos |
@@ -273,7 +301,7 @@ En GitHub, ve a **Settings → Secrets and variables → Actions** y añade:
   run: |
     flutter build apk --release \
       --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
-      --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+      --dart-define=SUPABASE_PUBLISHABLE_KEY=${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
 ```
 
 ---

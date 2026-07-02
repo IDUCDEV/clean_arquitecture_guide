@@ -462,6 +462,85 @@ DROP TABLE IF EXISTS public.users;
 
 ---
 
+## 10. RLS Avanzado
+
+### 10.1 Optimización de rendimiento
+
+Envuelve `auth.uid()` en un `SELECT` para que Postgres la evalúe una vez por sentencia (initPlan) en vez de una vez por fila:
+
+```sql
+-- ❌ Lento: se ejecuta por cada fila
+CREATE POLICY "users_select_own" ON public.users
+    FOR SELECT USING (auth.uid() = id);
+
+-- ✅ Rápido: se ejecuta una vez (hasta 95% más rápido)
+CREATE POLICY "users_select_own" ON public.users
+    FOR SELECT USING ((SELECT auth.uid()) = id);
+```
+
+### 10.2 Políticas por rol
+
+```sql
+-- Solo para usuarios autenticados
+CREATE POLICY "authenticated_access" ON public.users
+    FOR SELECT TO authenticated USING (true);
+
+-- Solo para anónimos (ej. landing pages)
+CREATE POLICY "anon_access" ON public.products
+    FOR SELECT TO anon USING (true);
+
+-- Role service_role (bypass RLS)
+-- No necesita políticas, usa la secret key
+```
+
+### 10.3 Column Level Security
+
+```sql
+-- Restringir columnas específicas (ej. ocultar email)
+-- Opción 1: No incluir columna en SELECT de Flutter
+-- Opción 2: Revocar permiso de columna
+REVOKE SELECT ON public.users (email) FROM anon;
+
+-- Opción 3 (recomendada): tabla separada con RLS
+CREATE TABLE public.profiles (
+    id UUID PRIMARY KEY REFERENCES auth.users(id),
+    display_name TEXT,
+    avatar_url TEXT
+);
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+```
+
+### 10.4 Storage RLS
+
+Las políticas de Storage se crean en la tabla `storage.objects`:
+
+```sql
+-- Bucket privado: solo el dueño
+CREATE POLICY "private_bucket" ON storage.objects
+    FOR SELECT TO authenticated
+    USING (
+        bucket_id = 'documentos' AND
+        (SELECT auth.jwt() ->> 'sub') = owner_id
+    );
+
+-- Bucket público: cualquier autenticado
+CREATE POLICY "public_bucket" ON storage.objects
+    FOR SELECT TO authenticated
+    USING (bucket_id = 'public-files');
+```
+
+### 10.5 Lint de migraciones
+
+```bash
+# Verificar migraciones localmente
+supabase db lint --local
+
+# Verificar en CI
+supabase db lint --project-ref tu-proyecto
+```
+
+---
+
 ## ✅ Checklist de migraciones
 
 - [ ] Nueva migración creada con nombre descriptivo

@@ -62,7 +62,7 @@ FLUTTER_SDK := flutter  # o 'fvm flutter'
 ```yaml
 # Secrets en GitHub → Settings → Secrets
 SUPABASE_URL: "https://tu-proyecto.supabase.co"
-SUPABASE_ANON_KEY: "eyJ..."
+SUPABASE_PUBLISHABLE_KEY: "sb_publishable_..."
 SUPABASE_PROJECT_ID: "abc123"
 ```
 

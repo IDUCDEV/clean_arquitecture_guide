@@ -43,11 +43,18 @@
 ## 🎯 Contenido
 
 ### PARTE 1: Desarrollo Local
-- Configurar Supabase desde cero
+- Configurar Supabase desde cero (Docker + CLI)
+- Edge Functions (Deno + TypeScript)
 - Makefile de desarrollo
-- Variables de entorno
-- Migraciones y seeds
-- Integración con Flutter
+- Variables de entorno (API keys legacy y nuevo formato)
+- Migraciones, seeds y RLS avanzado
+- Integración con Flutter:
+  - Auth (email, OAuth, Magic Link, teléfono, sesiones)
+  - CRUD con Clean Architecture
+  - Realtime (Broadcast, Presence, Postgres Changes)
+  - Storage (upload, download, RLS en buckets)
+  - Edge Functions desde Flutter
+- Testing con pgTAP y basejump helpers
 
 ### PARTE 2: Auto-hospedaje
 - Elegir hosting (DigitalOcean, Hetzner, etc.)

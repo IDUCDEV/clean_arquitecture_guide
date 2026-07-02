@@ -8,8 +8,11 @@
 
 - Instalar y configurar supabase_flutter
 - Inicializar el cliente de Supabase
-- Implementar autenticación
+- Implementar autenticación (email, OAuth, Magic Link, MFA)
 - Realizar operaciones CRUD con la base de datos
+- Suscripciones Realtime (Broadcast, Presence, Postgres Changes)
+- Storage (upload, download, RLS)
+- Edge Functions (invocar desde Flutter)
 - Manejar estado y errores correctamente
 
 ---
@@ -25,7 +28,7 @@ dependencies:
     sdk: flutter
   
   # Supabase
-  supabase_flutter: ^2.5.0
+  supabase_flutter: ^2.10.0
   
   # Opcionales (recomendados para Clean Architecture)
   flutter_bloc: ^9.1.0
@@ -47,6 +50,8 @@ flutter pub get
 
 ### Método 1: Variables de entorno (recomendado)
 
+**Nota sobre API keys:** El parámetro `anonKey:` fue renombrado a `publishableKey:` en versiones recientes. Usa `publishableKey:` con el nuevo formato de keys (`sb_publishable_xxx`). Si aún usas keys legacy (`eyJ...`), ambos nombres funcionan.
+
 ```dart
 // lib/main.dart
 import 'package:flutter/material.dart';
@@ -57,7 +62,7 @@ void main() async {
   
   await Supabase.initialize(
     url: const String.fromEnvironment('SUPABASE_URL'),
-    anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY'),
+    publishableKey: const String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY'),
     debug: true, // Solo en desarrollo
   );
   
@@ -87,7 +92,7 @@ void main() async {
   
   await Supabase.initialize(
     url: dotenv.env['SUPABASE_URL']!,
-    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
+    publishableKey: dotenv.env['SUPABASE_PUBLISHABLE_KEY']!,
   );
   
   runApp(const MyApp());
@@ -100,7 +105,7 @@ void main() async {
 # En terminal o CI/CD
 flutter build apk --release \
   --dart-define=SUPABASE_URL=https://tu-proyecto.supabase.co \
-  --dart-define=SUPABASE_ANON_KEY=tu-anon-key
+  --dart-define=SUPABASE_PUBLISHABLE_KEY=tu-publishable-key
 ```
 
 ---
@@ -115,7 +120,7 @@ final supabase = Supabase.instance.client;
 
 // Verificar conexión
 final url = supabase.supabaseUrl;
-final anonKey = supabase.supabaseAnonKey;
+final publishableKey = supabase.supabaseAnonKey; // propiedad mantiene nombre legacy
 ```
 
 ---
@@ -288,10 +293,90 @@ class AuthError extends AuthState {
 }
 ```
 
+### Métodos adicionales de autenticación
+
+#### Magic Link (passwordless)
+
+```dart
+// Enviar magic link al email
+await _client.auth.signInWithOtp(
+  email: 'user@example.com',
+  emailRedirectTo: 'miapp://login-callback',
+);
+
+// El usuario hace clic en el enlace → la sesión se crea automáticamente
+// Escuchar en onAuthStateChange para detectar el nuevo session
+```
+
+#### Autenticación por teléfono + SMS
+
+```dart
+// Enviar OTP por SMS
+await _client.auth.signInWithOtp(
+  phone: '+580000000000',
+);
+
+// Verificar OTP
+final response = await _client.auth.verifyOTP(
+  phone: '+580000000000',
+  token: '123456',
+  type: OtpType.sms,
+);
+```
+
+#### Manejo de sesiones
+
+```dart
+// Obtener sesión actual
+final session = _client.auth.currentSession;
+print('Expires at: ${session?.expiresAt}');
+
+// Refrescar token manualmente
+await _client.auth.refreshSession();
+
+// Obtener usuario actual
+final user = await _client.auth.getUser();
+```
+
+#### Deep Links (necesarios para Magic Link y OAuth)
+
+```yaml
+# iOS - ios/Runner/Info.plist
+# Agregar CFBundleURLTypes
+<key>CFBundleURLTypes</key>
+<array>
+  <dict>
+    <key>CFBundleURLSchemes</key>
+    <array>
+      <string>miapp</string>
+    </array>
+  </dict>
+</array>
+```
+
+```xml
+<!-- Android - android/app/src/main/AndroidManifest.xml -->
+<intent-filter>
+  <action android:name="android.intent.action.VIEW" />
+  <category android:name="android.intent.category.DEFAULT" />
+  <category android:name="android.intent.category.BROWSABLE" />
+  <data android:scheme="miapp" android:host="login-callback" />
+</intent-filter>
+```
+
+```dart
+// Web - usar path url strategy
+import 'package:flutter_web_plugins/url_strategy.dart';
+
+void main() {
+  usePathUrlStrategy(); // rutas limpias sin #
+  runApp(MyApp());
+}
+```
+
 ---
 
 ## 5. Operaciones de Base de Datos
-
 ### Conceptos clave
 
 | Concepto | Descripción |
@@ -496,16 +581,71 @@ class UserRepositoryImpl implements UserRepository {
 
 ### Cómo funciona
 
-Supabase usa RLS para controlar el acceso a las tablas. Las políticas se definen en SQL:
+Supabase usa RLS para controlar el acceso a las tablas. Las políticas se definen en SQL. Hay **dos capas de seguridad**: los Grants (qué roles pueden tocar una tabla) y las RLS policies (qué filas pueden ver).
 
 ```sql
--- Solo el propio usuario puede ver su perfil
+-- Grants: qué roles acceden a la tabla
+GRANT SELECT ON public.users TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.users TO authenticated;
+
+-- Habilitar RLS
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+
+-- Políticas: qué filas puede ver cada rol
 CREATE POLICY "users_select_own" ON public.users
     FOR SELECT USING (auth.uid() = id);
 
--- Solo el propio usuario puede actualizar su perfil
 CREATE POLICY "users_update_own" ON public.users
     FOR UPDATE USING (auth.uid() = id);
+```
+
+### Buenas prácticas de rendimiento
+
+Para mejorar el rendimiento de las policies, envuelve `auth.uid()` en un `SELECT`:
+
+```sql
+-- ❌ Lento: auth.uid() se ejecuta por cada fila
+USING (auth.uid() = user_id);
+
+-- ✅ Rápido: auth.uid() se ejecuta una vez por sentencia (initPlan)
+USING ((SELECT auth.uid()) = user_id);
+```
+
+Esto puede dar hasta un **95% de mejora** en tablas grandes.
+
+### Funciones helper de RLS
+
+| Función | Descripción |
+|---------|-------------|
+| `auth.uid()` | ID del usuario autenticado (o null) |
+| `auth.jwt()` | JWT completo del usuario |
+| `auth.email()` | Email del usuario |
+| `auth.role()` | Rol del usuario (authenticated, anon) |
+
+### Patrones comunes
+
+```sql
+-- Solo usuarios autenticados
+CREATE POLICY "authenticated_access" ON public.users
+    FOR SELECT TO authenticated USING (true);
+
+-- Acceso basado en equipo (vía JWT app_metadata)
+CREATE POLICY "team_access" ON public.projects
+    FOR SELECT USING (
+        team_id IN (SELECT auth.jwt() -> 'app_metadata' -> 'teams')
+    );
+
+-- Requerir MFA (AAL2)
+CREATE POLICY "mfa_required" ON public.settings
+    FOR UPDATE TO authenticated
+    USING ((SELECT auth.jwt() ->> 'aal') = 'aal2');
+
+-- Acceso por cliente OAuth
+CREATE POLICY "mobile_only" ON public.profiles
+    USING (
+        auth.uid() = user_id AND
+        (auth.jwt() ->> 'client_id') = 'mobile-app'
+    );
 ```
 
 ### Desde Flutter (sin autenticación)
@@ -519,7 +659,11 @@ final response = await supabase.from('users').select();
 
 ## 8. Realtime (Tiempo Real)
 
-### Suscribirse a cambios
+Supabase Realtime ofrece tres funcionalidades: **Broadcast** (mensajería entre clientes), **Presence** (estado de usuarios en línea) y **Postgres Changes** (cambios en la base de datos).
+
+### 8.1 Postgres Changes (cambios en BD)
+
+Es el método más simple: escuchar cambios en una tabla.
 
 ```dart
 // lib/features/chat/data/datasources/chat_realtime_datasource.dart
@@ -538,18 +682,126 @@ class ChatRealtimeDataSource {
 }
 ```
 
-### Usar en Cubit
+### 8.2 Broadcast (mensajería entre clientes)
+
+Para enviar y recibir mensajes en tiempo real sin depender de la BD:
+
+```dart
+// Crear canal con opciones
+final channel = supabase.channel(
+  'room:lobby:messages',
+  opts: const RealtimeChannelConfig(
+    self: true,   // recibir los propios mensajes
+    ack: true,    // esperar confirmación del server
+    private: true,// requiere autenticación + RLS
+  ),
+);
+
+// Escuchar eventos broadcast
+channel.onBroadcast(
+  event: 'message_sent',
+  callback: (payload) {
+    print('Nuevo mensaje: ${payload['text']}');
+  },
+).subscribe();
+
+// Enviar mensaje
+await channel.sendBroadcastMessage(
+  event: 'message_sent',
+  payload: {
+    'text': 'Hola desde Flutter!',
+    'user': 'user-123',
+    'timestamp': DateTime.now().toIso8601String(),
+  },
+);
+```
+
+### 8.3 Presence (estado de usuarios)
+
+Para saber quién está en línea:
+
+```dart
+final channel = supabase.channel('room_01');
+
+// Escuchar eventos de presencia
+channel
+  .onPresenceSync((_) {
+    final state = channel.presenceState();
+    print('Usuarios en línea: $state');
+  })
+  .onPresenceJoin((payload) {
+    print('Usuario se conectó: $payload');
+  })
+  .onPresenceLeave((payload) {
+    print('Usuario se desconectó: $payload');
+  })
+  .subscribe();
+
+// Publicar estado propio
+await channel.track({
+  'user': 'user-123',
+  'name': 'Juan',
+  'online_at': DateTime.now().toIso8601String(),
+});
+
+// Dejar de publicar
+await channel.untrack();
+```
+
+### 8.4 Ciclo de vida en widgets Flutter
+
+```dart
+class ChatScreen extends StatefulWidget {
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  RealtimeChannel? _channel;
+
+  @override
+  void initState() {
+    super.initState();
+    _channel = supabase.channel('room:123:messages');
+    _channel.onBroadcast(event: 'message', callback: (p) {
+      setState(() { /* actualizar UI */ });
+    }).subscribe();
+  }
+
+  @override
+  void dispose() {
+    _channel?.unsubscribe(); // siempre cancelar suscripción
+    super.dispose();
+  }
+}
+```
+
+### 8.5 Usar en Cubit
 
 ```dart
 class ChatCubit extends Cubit<ChatState> {
-  final ChatRealtimeDataSource _realtimeDataSource;
+  final RealtimeChannel _channel;
   
-  ChatCubit(this._realtimeDataSource) : super(ChatInitial());
+  ChatCubit(this._channel) : super(ChatInitial()) {
+    _channel.onBroadcast(event: 'message_sent', callback: (payload) {
+      if (state is ChatLoaded) {
+        final messages = [...(state as ChatLoaded).messages, payload];
+        emit(ChatLoaded(messages));
+      }
+    }).subscribe();
+  }
   
-  void watchMessages(String chatId) {
-    _realtimeDataSource.watchMessages(chatId).listen((messages) {
-      emit(ChatLoaded(messages));
-    });
+  void sendMessage(String text) {
+    _channel.sendBroadcastMessage(
+      event: 'message_sent',
+      payload: {'text': text},
+    );
+  }
+  
+  @override
+  Future<void> close() {
+    _channel.unsubscribe();
+    return super.close();
   }
 }
 ```
@@ -558,7 +810,14 @@ class ChatCubit extends Cubit<ChatState> {
 
 ## 9. Storage
 
-### Subir archivos
+### 9.1 Buckets públicos vs privados
+
+| Tipo | Acceso | Uso típico |
+|------|--------|------------|
+| **Público** | Cualquiera con la URL | Avatares, imágenes de perfil |
+| **Privado** | Requiere RLS policies | Documentos, archivos sensibles |
+
+### 9.2 Subir archivos
 
 ```dart
 // Subir imagen
@@ -572,11 +831,17 @@ await supabase.storage
     .from('avatars')
     .upload('user-id/avatar.jpg', file, fileOptions: const FileOptions(
       cacheControl: '3600',
-      upsert: false,
+      upsert: false, // true para sobrescribir
     ));
+
+// Subir datos desde memoria (ej. desde cámara)
+final bytes = await http.get(Uri.parse('https://ejemplo.com/foto.jpg'));
+await supabase.storage
+    .from('images')
+    .upload('fotos/nueva.jpg', bytes.bodyBytes);
 ```
 
-### Descargar archivos
+### 9.3 Descargar y listar archivos
 
 ```dart
 // Obtener URL pública
@@ -584,15 +849,125 @@ final url = supabase.storage
     .from('avatars')
     .getPublicUrl('user-id/avatar.jpg');
 
-// Descargar archivo
+// Descargar archivo como bytes
 final data = await supabase.storage
     .from('avatars')
     .download('user-id/avatar.jpg');
+
+// Listar archivos en una carpeta
+final files = await supabase.storage
+    .from('avatars')
+    .list(path: 'user-id/');
+
+// Eliminar archivos
+await supabase.storage
+    .from('avatars')
+    .remove(['user-id/avatar.jpg']);
+```
+
+### 9.4 RLS en Storage
+
+El control de acceso a Storage se hace con políticas RLS en la tabla `storage.objects`:
+
+```sql
+-- Bucket público: cualquiera puede leer
+CREATE POLICY "public_read" ON storage.objects
+    FOR SELECT USING (bucket_id = 'avatars');
+
+-- Bucket privado: solo el dueño puede leer
+CREATE POLICY "individual_access" ON storage.objects
+    FOR SELECT TO authenticated
+    USING (
+        bucket_id = 'documentos' AND
+        (SELECT auth.jwt() ->> 'sub') = owner_id
+    );
+
+-- Subida autenticada a carpeta específica
+CREATE POLICY "auth_upload" ON storage.objects
+    FOR INSERT TO authenticated
+    WITH CHECK (
+        bucket_id = 'avatars' AND
+        (storage.foldername(name))[1] = (SELECT auth.jwt() ->> 'sub')
+    );
+```
+
+### 9.5 Operaciones avanzadas
+
+```dart
+// TUS Resumable Upload (ideal para archivos grandes)
+// Usar con el paquete tus_client o uppy
+final upload = supabase.storage
+    .from('videos')
+    .upload('intro.mp4', file);
+
+// S3 API compatible (usar SDK de AWS S3 apuntando a Supabase)
+// Endpoint: https://<project>.supabase.co/storage/v1/s3
+
+// Image Transformation (redimensionar desde URL)
+// https://<project>.supabase.co/storage/v1/render/image/public/avatars/user.jpg?width=200&height=200
 ```
 
 ---
 
-## 10. Errores comunes
+## 10. Edge Functions
+
+Las Edge Functions son funciones serverless TypeScript que corren en el edge de Supabase (Deno). Se invocan desde Flutter mediante el SDK.
+
+### 10.1 Invocar una función desde Flutter
+
+```dart
+// Invocar función sin autenticación
+final response = await supabase.functions.invoke('hello-world');
+print(response.data);
+
+// Con cuerpo (body)
+final response = await supabase.functions.invoke('procesar-pago', body: {
+  'amount': 100,
+  'currency': 'USD',
+});
+
+// Con autenticación (el token JWT se envía automáticamente)
+final response = await supabase.functions.invoke('perfil-usuario');
+```
+
+### 10.2 Manejo de errores
+
+```dart
+try {
+  final response = await supabase.functions.invoke('mi-funcion');
+  if (response.error != null) {
+    print('Error de función: ${response.error}');
+  }
+} on FunctionsException catch (e) {
+  print('Error al invocar: ${e.message}');
+}
+```
+
+### 10.3 Desarrollo local
+
+```bash
+# Las Edge Functions se sirven automáticamente con supabase start
+# http://localhost:54321/functions/v1/mi-funcion
+
+# Para desarrollo con hot reload
+supabase functions serve mi-funcion
+```
+
+### 10.4 Estructura de una Edge Function
+
+```
+supabase/
+└── functions/
+    └── mi-funcion/
+        ├── index.ts          # entrypoint
+        ├── deno.json         # configuración Deno
+        └── _shared/          # código compartido entre funciones
+            └── supabase.ts   # cliente Supabase para Deno
+```
+
+---
+
+## 11. Errores comunes
 
 ### "Row Level Security Error"
 
@@ -602,6 +977,9 @@ final session = supabase.auth.currentSession;
 if (session == null) {
   // Redirigir a login
 }
+
+// Verificar que las políticas RLS cubren el caso de uso
+// Revisar los GRANTs: ¿el rol anon/authenticated tiene permiso?
 ```
 
 ### "Connection refused"
@@ -609,6 +987,9 @@ if (session == null) {
 ```bash
 # Verificar que Supabase local esté corriendo
 supabase status
+
+# Verificar que Docker esté corriendo
+docker info
 ```
 
 ### "Invalid JWT"
@@ -616,6 +997,31 @@ supabase status
 ```dart
 // El token puede haber expirado, intentar refresh
 await supabase.auth.refreshSession();
+
+// Si el refresh falla, redirigir a login
+try {
+  await supabase.auth.refreshSession();
+} catch (e) {
+  // Sesión expirada, redirigir a login
+  supabase.auth.signOut();
+}
+```
+
+### "Functions HTTP error"
+
+```dart
+// Verificar que la Edge Function existe y está desplegada
+// Probar local: supabase functions serve nombre-funcion
+// Verificar logs: supabase functions list
+```
+
+### "Storage permission denied"
+
+```sql
+-- Verificar políticas RLS en storage.objects
+-- ¿El bucket existe? ¿El usuario autenticado tiene permisos?
+SELECT * FROM storage.buckets;
+SELECT * FROM storage.objects LIMIT 5;
 ```
 
 ---
@@ -623,11 +1029,16 @@ await supabase.auth.refreshSession();
 ## ✅ Checklist de integración con Flutter
 
 - [ ] `supabase_flutter` añadido en pubspec.yaml
-- [ ] Supabase inicializado en main.dart
+- [ ] Supabase inicializado en main.dart con `publishableKey:`
 - [ ] Cliente accesible desde cualquier parte de la app
 - [ ] Autenticación implementada con Cubit/BLoC
+- [ ] Magic Link / OAuth con deep links configurados (iOS/Android/Web)
+- [ ] Manejo de sesiones (refresh, expiración)
 - [ ] Repository implementa operaciones CRUD
-- [ ] RLS configurado en la base de datos
+- [ ] RLS configurado en la base de datos (con óptimo `SELECT auth.uid()`)
+- [ ] Realtime: Postgres Changes y/o Broadcast según el caso
+- [ ] Storage: políticas RLS en `storage.objects`
+- [ ] Edge Functions: invocación y manejo de errores
 - [ ] Variables de entorno configuradas
 - [ ] Tests de integración funcionando
 
@@ -635,9 +1046,13 @@ await supabase.auth.refreshSession();
 
 ## 📚 Recursos
 
-- [Supabase Flutter SDK](https://supabase.com/docs/reference/flutter/initializing)
-- [Supabase Flutter Examples](https://github.com/supabase-community/supabase-flutter)
-- [Flutter Clean Architecture con Supabase](https://example.com)
+- [Supabase Flutter SDK (referencia)](https://supabase.com/docs/reference/dart/initializing)
+- [Tutorial: User Management App con Flutter](https://supabase.com/docs/guides/getting-started/tutorials/with-flutter)
+- [Supabase Auth (guía)](https://supabase.com/docs/guides/auth)
+- [Supabase Realtime (guía)](https://supabase.com/docs/guides/realtime)
+- [Supabase Storage (guía)](https://supabase.com/docs/guides/storage)
+- [Edge Functions (guía)](https://supabase.com/docs/guides/functions)
+- [Row Level Security (guía)](https://supabase.com/docs/guides/database/postgres/row-level-security)
 
 ---
 

@@ -172,7 +172,7 @@ jobs:
         run: |
           flutter build apk --release \
             --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
-            --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+            --dart-define=SUPABASE_PUBLISHABLE_KEY=${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
       
       - name: Build AAB
         run: flutter build appbundle --release
@@ -211,7 +211,7 @@ jobs:
 | Secret | Dónde obtenerlo |
 |--------|-----------------|
 | `SUPABASE_URL` | Dashboard → Settings → General |
-| `SUPABASE_ANON_KEY` | Dashboard → Settings → API |
+| `SUPABASE_PUBLISHABLE_KEY` | Dashboard → Settings → API → Publishable Key (antes `anon key`) |
 | `SUPABASE_ACCESS_TOKEN` | `supabase auth token` |
 | `SUPABASE_PROJECT_ID` | Dashboard → Settings → General |
 | `SUPABASE_DB_PASSWORD` | Al crear proyecto |

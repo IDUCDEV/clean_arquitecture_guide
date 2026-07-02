@@ -74,8 +74,9 @@ docker compose version
 ### Método recomendado: Binary release
 
 ```bash
-# Linux/macOS
-sudo curl -fsSL "https://github.com/supabase/cli/releases/download/v1.220.0/supabase_1.220.0_linux_amd64.tar.gz" -o /tmp/supabase.tar.gz
+# Linux/macOS - ver última versión en https://github.com/supabase/cli/releases
+# Reemplazar v2.109.0 por la última versión disponible
+sudo curl -fsSL "https://github.com/supabase/cli/releases/download/v2.109.0/supabase_2.109.0_linux_amd64.tar.gz" -o /tmp/supabase.tar.gz
 sudo tar xzf /tmp/supabase.tar.gz -C /usr/local/bin
 
 # Verificar instalación
@@ -240,7 +241,33 @@ Este comando:
 
 ---
 
-## 6. Scripts de automatización
+## 6. Edge Functions (opcional pero recomendado)
+
+Si planeas usar Edge Functions, instala Deno para tener LSP:
+
+```bash
+# Instalar Deno (https://deno.com)
+curl -fsSL https://deno.land/install.sh | sh
+
+# Verificar
+deno --version
+
+# Configurar VS Code para Deno (solo en carpeta supabase/functions)
+code supabase/functions/.vscode/settings.json
+```
+
+```json
+{
+  "deno.enable": true,
+  "deno.unstable": true,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "denoland.vscode-deno"
+}
+```
+
+---
+
+## 7. Scripts de automatización
 
 ### Script para verificar entorno
 
@@ -325,6 +352,7 @@ port = 54325  # Cambiar a otro puerto
 - [ ] Entorno iniciado (`supabase start`)
 - [ ] Estado verificado (`supabase status`)
 - [ ] Primera migración aplicada (`supabase db reset`)
+- [ ] Migraciones linted (`supabase db lint --local`)
 
 ---
 

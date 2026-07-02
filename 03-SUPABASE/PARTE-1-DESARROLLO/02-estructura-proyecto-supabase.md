@@ -345,6 +345,27 @@ migrations/
         └── 20251201000000_wellness_tables.sql
 ```
 
+### Volúmenes locales (datos persistentes)
+
+Para no perder la BD local al hacer `supabase stop`:
+
+```toml
+# config.toml
+[db]
+port = 54322
+major_version = 17
+
+[db.volumes]
+enabled = true
+path = "./volumes/db"
+```
+
+```gitignore
+# .gitignore — ignorar datos locales pero no la carpeta
+supabase/volumes/
+!supabase/volumes/.gitkeep
+```
+
 ---
 
 ## ✅ Checklist de estructura
@@ -353,6 +374,8 @@ migrations/
 - [ ] Primera migración creada
 - [ ] Seeds básicos definidos
 - [ ] Tests de base de datos iniciados
+- [ ] Edge Functions scaffolded (si aplica)
+- [ ] Volúmenes configurados para persistencia local
 - [ ] `.gitignore` configurado
 
 ---

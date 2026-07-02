@@ -369,6 +369,55 @@ SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ---
 
+## 9 (BIS). Testing avanzado de RLS con basejump
+
+Para probar políticas RLS con diferentes roles, instala el paquete `basejump-supabase_test_helpers`:
+
+```bash
+# Instalar desde dbdev (gestor de paquetes pgTAP)
+supabase db start
+SELECT dbdev.install('basejump-supabase_test_helpers');
+```
+
+### Test de RLS con roles simulados
+
+```sql
+BEGIN;
+SELECT plan(3);
+
+-- Configurar como usuario autenticado
+SELECT tests.create_supabase_user('test-user', 'test@example.com');
+SELECT tests.authenticate_as('test-user');
+
+-- Test: debe poder ver su propio perfil
+SELECT is(
+    (SELECT COUNT(*) FROM public.users WHERE id = auth.uid()),
+    1,
+    'Usuario autenticado debe ver su perfil'
+);
+
+-- Test: debe poder insertar su perfil
+SELECT lives_ok(
+    $$INSERT INTO public.users (id, email) VALUES (auth.uid(), 'test@example.com')$$,
+    'Usuario autenticado debe poder insertar su perfil'
+);
+
+-- Volver a anon
+SELECT tests.clear_authentication();
+
+-- Test: anon no debe ver usuarios
+SELECT is(
+    (SELECT COUNT(*) FROM public.users),
+    0::bigint,
+    'Anon no debe ver ningún usuario'
+);
+
+SELECT * FROM finish();
+ROLLBACK;
+```
+
+---
+
 ## 10. Estructura de archivos de test
 
 ### Organización recomendada
@@ -429,7 +478,42 @@ ROLLBACK;
 
 ---
 
-## 11. Errores comunes
+## 11. Testing de Edge Functions
+
+Las Edge Functions se pueden probar localmente con `supabase functions serve`:
+
+```bash
+# Iniciar servidor local de funciones
+supabase functions serve mi-funcion
+
+# Probar con curl
+curl http://localhost:54321/functions/v1/mi-funcion \
+  -H "Content-Type: application/json" \
+  -d '{"test": true}'
+```
+
+### Tests de integración en CI
+
+```yaml
+# .github/workflows/edge-functions.yml
+jobs:
+  edge-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+      - run: supabase start
+      - run: |
+          for func in supabase/functions/*/; do
+            name=$(basename "$func")
+            echo "Testing $name..."
+            curl -s "http://localhost:54321/functions/v1/$name" | grep -q "ok"
+          done
+```
+
+---
+
+## 12. Errores comunes
 
 ### "test did not pass"
 
@@ -457,7 +541,7 @@ ROLLBACK;
 
 ---
 
-## 12. Buenas prácticas
+## 13. Buenas prácticas
 
 ### 1. Tests pequeños y específicos
 
