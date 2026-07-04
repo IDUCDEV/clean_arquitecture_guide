@@ -631,28 +631,42 @@ Muchos componentes necesitan saber el ID del usuario autenticado: para filtrar d
 ```dart
 // lib/core/session/user_session.dart
 abstract class UserSession {
+  /// ID del usuario autenticado (síncrono, lee de Isar).
   String? get userId;
+
+  /// Indica si hay un usuario autenticado (síncrono).
+  bool get isAuthenticated;
 }
 ```
 
 ```dart
 // lib/core/session/user_session_impl.dart
 import 'package:isar_community/isar.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:mobile/core/data/local/isar_models/cached_user.dart';
 import 'package:mobile/core/session/user_session.dart';
 
 class UserSessionImpl implements UserSession {
   final Isar _isar;
+  final SupabaseClient? _supabase;
 
-  UserSessionImpl(this._isar);
+  UserSessionImpl(this._isar, {SupabaseClient? supabase})
+      : _supabase = supabase;
 
   @override
   String? get userId {
     final cached = _isar.cachedUsers.where().findFirstSync();
     return cached?.userId;
   }
+
+  @override
+  bool get isAuthenticated {
+    return _isar.cachedUsers.where().countSync() > 0;
+  }
 }
 ```
+
+> El parámetro `supabase` es opcional. Su propósito es estar disponible para cuando se necesite acceder a `SupabaseClient` desde el `UserSessionImpl`, pero la lectura del userId sigue siendo síncrona desde Isar. El supabase puede inyectarse para futuras validaciones (ej: verificar que el userId de Isar coincida con el de Supabase).
 
 ### 🔑 ¿Por qué funciona?
 

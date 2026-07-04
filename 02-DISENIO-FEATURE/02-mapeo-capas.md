@@ -90,11 +90,15 @@ Todo lo que es **regla de negocio** o **concepto del mundo real** va a DOMAIN. E
 │  services/  ← INTERFACES (contratos)                │
 │  └── payment_service.dart                            │
 │                                                      │
-│  core/                                               │
-│  └── failures.dart   ← Errores del dominio           │
+│  core/  ← Dependencias transversales del dominio     │
+│  ├── failures.dart   ← Errores del dominio           │
+│  └── session/        ← Interfaz UserSession          │
+│       └── user_session.dart                          │
 │                                                      │
 └─────────────────────────────────────────────────────┘
 ```
+
+> **UserSession** es una dependencia transversal. Su interface vive en `domain/core/session/` (o `core/session/` a nivel de proyecto) y es inyectada en los repositorios que necesitan saber quién es el usuario autenticado. Ej: `CartRepositoryImpl` recibe `UserSession` para obtener el `userId` del carrito sin que el UseCase tenga que pasarlo como parámetro.
 
 **Pregunta de validación:** ¿Podría este código vivir en un proyecto Dart sin Flutter?
 - ✅ Sí → Va en DOMAIN
@@ -214,6 +218,7 @@ PRESENTATION
 | Estado del Cubit que contiene widgets | `buttonEnabled`, `showSuccessDialog` en Estado | El estado describe datos, no widgets |
 | Regla de negocio en el Widget | if(product.stock == 0) dentro de un Text | Las reglas van en UseCase, no en UI |
 | Interfaz de Repository en DATA | `abstract class CartRepository` en DATA | La interface pertenece a DOMAIN |
+| Pasar userId como parámetro en cada método | `getCart(String userId)`, `addProduct(String userId, ...)`, etc. | Inyectar `UserSession` en el RepositoryImpl; el UseCase no necesita saber de dónde viene el userId |
 
 ---
 

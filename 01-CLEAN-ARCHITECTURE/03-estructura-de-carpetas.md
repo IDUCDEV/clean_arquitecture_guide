@@ -9,17 +9,23 @@ lib/
 │   │   └── usecase.dart
 │   ├── data/                       # Configuración de datos global
 │   │   └── local/
-│   │       └── database_initializer.dart
+│   │       ├── dashboard_initializer.dart
+│   │       └── isar_service.dart
 │   ├── di/                         # Inyección de dependencias
-│   │   └── injection_container.dart
+│   │   ├── injection_container.dart
+│   │   └── service_locator.dart
 │   ├── error/                      # Manejo de errores
 │   │   ├── exceptions.dart
 │   │   └── failures.dart
-│   ├── network/                    # Configuración de red
-│   │   ├── network_info.dart
-│   │   └── dio_client.dart
+│   ├── network/                    # Monitoreo de conectividad
+│   │   └── network_info.dart
 │   ├── routing/                    # Navegación
 │   │   └── app_router.dart
+│   ├── services/                   # Servicios globales (CacheManager, etc.)
+│   │   └── cache_manager.dart
+│   ├── session/                    # Sesión del usuario autenticado
+│   │   ├── user_session.dart
+│   │   └── user_session_impl.dart
 │   ├── theme/                      # Tema y estilos
 │   │   └── app_theme.dart
 │   └── utils/                      # Utilidades

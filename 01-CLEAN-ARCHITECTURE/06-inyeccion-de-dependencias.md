@@ -35,7 +35,7 @@ void main() {
 
 ### Solución: GetIt (Service Locator)
 
-**GetIt** es un paquete que implementa el patrón **Service Locator**.
+**GetIt** es un paquete que implementa el patrón **Service Locator**. Hay dos estilos: **manual** (cascade notation) y **automático** (con `injectable`). Ambos son válidos; el manual es más explícito y el automático reduce boilerplate.
 
 ### Conceptos clave de GetIt
 
@@ -45,16 +45,24 @@ void main() {
 | `registerLazySingleton()` | Crea la instancia la primera vez que se use | Para objetos pesados que quizás no se usen (recomendado) |
 | `registerFactory()` | Crea una nueva instancia CADA vez que se pida | Para objetos que no deben compartir estado (como Cubits) |
 
-### Implementación
+### Estilo 1: Manual con cascade notation (recomendado)
 
-**Archivo**: `lib/core/di/injection_container.dart`
+> Cada dependencia se registra explícitamente con `sl.registerLazySingleton<T>(() => T(...))`, usando cascade (`..`) para agrupar por capa.
+
+**Archivo**: `lib/core/di/service_locator.dart`
 
 ```dart
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
-import 'package:isar_community/isar_community.dart';
-import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:isar_community/isar.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:my_app/core/data/local/isar_service.dart';
 import 'package:my_app/core/network/network_info.dart';
+import 'package:my_app/core/services/cache_manager.dart';
+import 'package:my_app/core/session/user_session.dart';
+import 'package:my_app/core/session/user_session_impl.dart';
 import 'package:my_app/features/user/data/datasources/user_local_data_source.dart';
 import 'package:my_app/features/user/data/datasources/user_remote_data_source.dart';
 import 'package:my_app/features/user/data/models/user_model.dart';
@@ -65,89 +73,178 @@ import 'package:my_app/features/user/domain/usecases/delete_user.dart';
 import 'package:my_app/features/user/domain/usecases/get_user.dart';
 import 'package:my_app/features/user/domain/usecases/get_users.dart';
 import 'package:my_app/features/user/presentation/cubit/user_cubit.dart';
-import 'package:path_provider/path_provider.dart';
 
-final GetIt sl = GetIt.instance;
+final sl = GetIt.instance;
 
-Future<void> init() async {
-  // ╔════════════════════════════════════════════════════════════╗
-  // ║  CAPA EXTERNA - Librerías de terceros                    ║
-  // ╚════════════════════════════════════════════════════════════╝
+Future<void> initDependencies() async {
+  await IsarService.initialize();
 
-  // Dio - Cliente HTTP
-  sl.registerLazySingleton<Dio>(() {
-    final dio = Dio(BaseOptions(
-      connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 30),
-      headers: {'Content-Type': 'application/json'},
+  sl
+    // ╔══════════════════════════════════════════════════════════╗
+    // ║  CAPA EXTERNA - Librerías de terceros                   ║
+    // ╚══════════════════════════════════════════════════════════╝
+    ..registerLazySingleton<Isar>(() => IsarService.instance)
+    ..registerLazySingleton<InternetConnection>(
+      InternetConnection.createInstance,
+    )
+    ..registerLazySingleton<Dio>(() {
+      final dio = Dio(BaseOptions(
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
+        headers: {'Content-Type': 'application/json'},
+      ));
+      dio.interceptors.add(LogInterceptor(
+        requestBody: true,
+        responseBody: true,
+      ));
+      return dio;
+    })
+
+    // ╔══════════════════════════════════════════════════════════╗
+    // ║  CORE - Network, Session, Cache                         ║
+    // ╚══════════════════════════════════════════════════════════╝
+    ..registerLazySingleton<NetworkInfo>(
+      () => NetworkInfoImpl(sl<InternetConnection>()),
+    )
+    ..registerLazySingleton<UserSession>(
+      () => UserSessionImpl(sl<Isar>(), supabase: Supabase.instance.client),
+    )
+    ..registerLazySingleton<CacheManager>(CacheManager.new)
+
+    // ╔══════════════════════════════════════════════════════════╗
+    // ║  CAPA DE DATOS - DataSources                            ║
+    // ╚══════════════════════════════════════════════════════════╝
+    ..registerLazySingleton<UserRemoteDataSource>(
+      () => UserRemoteDataSourceImpl(client: sl<Dio>()),
+    )
+    ..registerLazySingleton<UserLocalDataSource>(
+      () => UserLocalDataSourceImpl(sl<Isar>()),
+    )
+
+    // ╔══════════════════════════════════════════════════════════╗
+    // ║  CAPA DE REPOSITORIO                                    ║
+    // ╚══════════════════════════════════════════════════════════╝
+    ..registerLazySingleton<UserRepository>(
+      () => UserRepositoryImpl(
+        remoteDataSource: sl<UserRemoteDataSource>(),
+        localDataSource: sl<UserLocalDataSource>(),
+        networkInfo: sl<NetworkInfo>(),
+        userSession: sl<UserSession>(),
+      ),
+    )
+
+    // ╔══════════════════════════════════════════════════════════╗
+    // ║  CAPA DE DOMINIO - UseCases                             ║
+    // ╚══════════════════════════════════════════════════════════╝
+    ..registerLazySingleton(() => GetUsers(sl()))
+    ..registerLazySingleton(() => GetUser(sl()))
+    ..registerLazySingleton(() => CreateUser(sl()))
+    ..registerLazySingleton(() => DeleteUser(sl()))
+
+    // ╔══════════════════════════════════════════════════════════╗
+    // ║  CAPA DE PRESENTACIÓN - Cubit                           ║
+    // ╚══════════════════════════════════════════════════════════╝
+    ..registerFactory(() => UserCubit(
+      getUsers: sl(),
+      getUser: sl(),
+      createUser: sl(),
+      deleteUser: sl(),
     ));
-    dio.interceptors.add(LogInterceptor(
-      requestBody: true,
-      responseBody: true,
-    ));
-    return dio;
-  });
 
-  // Internet Connection Checker
-  sl.registerLazySingleton(() => InternetConnectionChecker());
-
-  // NetworkInfo
-  sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
-
-  // Isar - Base de datos local (caché)
-  final dir = await getApplicationDocumentsDirectory();
-  final isar = await Isar.open(
-    [UserModelSchema],
-    directory: dir.path,
-    name: 'my_app_db',
-  );
-  sl.registerLazySingleton<Isar>(() => isar);
-
-  // ╔════════════════════════════════════════════════════════════╗
-  // ║  CAPA DE DATOS - DataSources                             ║
-  // ╚════════════════════════════════════════════════════════════╝
-
-  // Remote DataSource (API REST)
-  sl.registerLazySingleton<UserRemoteDataSource>(
-    () => UserRemoteDataSourceImpl(client: sl()),
-  );
-
-  // Local DataSource (Caché Isar)
-  sl.registerLazySingleton<UserLocalDataSource>(
-    () => UserLocalDataSourceImpl(sl()),
-  );
-
-  // ╔════════════════════════════════════════════════════════════╗
-  // ║  CAPA DE REPOSITORIO                                      ║
-  // ╚════════════════════════════════════════════════════════════╝
-  sl.registerLazySingleton<UserRepository>(
-    () => UserRepositoryImpl(
-      remoteDataSource: sl(),
-      localDataSource: sl(),
-      networkInfo: sl(),
-    ),
-  );
-
-  // ╔════════════════════════════════════════════════════════════╗
-  // ║  CAPA DE DOMINIO - UseCases                              ║
-  // ╚════════════════════════════════════════════════════════════╝
-  sl.registerLazySingleton(() => GetUsers(sl()));
-  sl.registerLazySingleton(() => GetUser(sl()));
-  sl.registerLazySingleton(() => CreateUser(sl()));
-  sl.registerLazySingleton(() => DeleteUser(sl()));
-
-  // ╔════════════════════════════════════════════════════════════╗
-  // ║  CAPA DE PRESENTACIÓN - Cubit                             ║
-  // ╚════════════════════════════════════════════════════════════╝
-  // registerFactory porque cada pantalla necesita su PROPIO Cubit
-  sl.registerFactory(() => UserCubit(
-    getUsers: sl(),
-    getUser: sl(),
-    createUser: sl(),
-    deleteUser: sl(),
-  ));
+  // Registrar limpieza de cachés en CacheManager
+  sl<CacheManager>()
+    ..register(() => sl<UserLocalDataSource>().clearCache());
 }
 ```
+
+> **Cascade notation** (`..`): permite llamar múltiples métodos sobre el mismo objeto sin repetir `sl.` cada vez. Cada `..registerLazySingleton` opera sobre el mismo `sl`.
+
+#### Registro de repositorios con UserSession
+
+Cuando el repositorio requiere `UserSession`, se pasa explícitamente:
+
+```dart
+..registerLazySingleton<ProfileRepository>(
+  () => ProfileRepositoryImpl(
+    remoteDataSource: sl<ProfileRemoteDataSource>(),
+    localDataSource: sl<ProfileLocalDataSource>(),
+    networkInfo: sl<NetworkInfo>(),
+    userSession: sl<UserSession>(),
+  ),
+)
+```
+
+### Estilo 2: Automático con injectable (para proyectos grandes)
+
+> Usa código generado para reducir boilerplate. Ideal cuando tienes 20+ features. Tus clases se anotan y `injectable` genera el registro automático. **Requiere `build_runner`**.
+
+```yaml
+# pubspec.yaml
+dependencies:
+  get_it: ^8.0.3
+  injectable: ^2.5.0
+
+dev_dependencies:
+  injectable_generator: ^2.7.0
+  build_runner: ^2.4.15
+```
+
+**Archivo**: `lib/core/di/injection_container.dart`
+
+```dart
+import 'package:get_it/get_it.dart';
+import 'package:injectable/injectable.dart';
+import 'package:my_app/core/di/injection_container.config.dart';
+
+final getIt = GetIt.instance;
+
+@InjectableInit(
+  initializerName: r'$initGetIt',
+  preferRelativeImports: true,
+  asExtension: false,
+)
+Future<void> configureDependencies() async {
+  await $initGetIt(getIt);
+}
+```
+
+Luego cada clase se anota:
+
+```dart
+@lazySingleton
+class UserRemoteDataSourceImpl implements UserRemoteDataSource {
+  final Dio client;
+  UserRemoteDataSourceImpl(this.client);
+  // ...
+}
+
+@lazySingleton
+class UserRepositoryImpl implements UserRepository {
+  final UserRemoteDataSource remoteDataSource;
+  final UserLocalDataSource localDataSource;
+  final NetworkInfo networkInfo;
+  final UserSession userSession;
+
+  UserRepositoryImpl(
+    this.remoteDataSource,
+    this.localDataSource,
+    this.networkInfo,
+    this.userSession,
+  );
+  // ...
+}
+```
+
+### ¿Cuál elegir?
+
+| Criterio | Manual | Injectable |
+|----------|--------|------------|
+| Boilerplate | Más código escrito | Menos código (generado) |
+| Visibilidad | Explícito, fácil de debuggear | Oculto tras código generado |
+| Dependencia extra | No | `injectable` + generator + build_runner |
+| Ideal para | Proyectos pequeños/medios (< 15 features) | Proyectos grandes (20+ features) |
+| Control fino | Total | Limitado por anotaciones |
+| Tiempo de compilación | Sin impacto | build_runner en cada cambio |
 
 > **Nota**: Si usas **solo** base de datos local sin API, el `remoteDataSource` no es necesario. En ese caso, el `UserRepositoryImpl` solo usaría `localDataSource`.
 

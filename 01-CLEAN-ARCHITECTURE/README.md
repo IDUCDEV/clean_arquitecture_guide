@@ -17,11 +17,10 @@
 | [05b-data-layer.md](./05b-data-layer.md) | CRUD: Data Layer (Model, DataSources, Repository Impl) |
 | [05c-presentation-ui-layer.md](./05c-presentation-ui-layer.md) | CRUD: Presentation (States, Cubit) y UI (Widgets) |
 | [06-inyeccion-de-dependencias.md](./06-inyeccion-de-dependencias.md) | Inyección de dependencias con GetIt |
-| [07-testing-por-capas.md](./07-testing-por-capas.md) | Testing por capas (Domain, UseCases, Repository, Cubit) |
-| [08-templates-universales.md](./08-templates-universales.md) | Templates universales (Entity, Repository, UseCase, Cubit, State) |
-| [09-decisiones-de-arquitectura.md](./09-decisiones-de-arquitectura.md) | Decisiones: Cubit vs BLoC, FAQ, ¿dónde va cada cosa? |
-| [10-migracion-codigo-espagueti.md](./10-migracion-codigo-espagueti.md) | Migración desde código espagueti |
-| [99-apendice-dependencias.md](./99-apendice-dependencias.md) | Apéndice: resumen de flujo, dependencias, notas |
+| [07-templates-universales.md](./07-templates-universales.md) | Templates universales (Entity, Repository, UseCase, Cubit, State) |
+| [08-decisiones-de-arquitectura.md](./08-decisiones-de-arquitectura.md) | Decisiones: Cubit vs BLoC, FAQ, ¿dónde va cada cosa? |
+| [09-migracion-codigo-espagueti.md](./09-migracion-codigo-espagueti.md) | Migración desde código espagueti |
+| [10-apendice-dependencias.md](./10-apendice-dependencias.md) | Apéndice: resumen de flujo, dependencias, notas |
 
 ---
 

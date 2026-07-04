@@ -1026,6 +1026,197 @@ SELECT * FROM storage.objects LIMIT 5;
 
 ---
 
+## 12. SupabaseClient vs Dio en Remote DataSources
+
+### ¿Cuándo usar cada uno?
+
+En Clean Architecture con Supabase, el Remote DataSource puede usar **SupabaseClient** o **Dio** dependiendo del caso:
+
+| Criterio | SupabaseClient | Dio |
+|----------|---------------|-----|
+| **Autenticación** | ✅ Built-in (sesiones, refresh, RLS) | ❌ Manual (JWT, interceptors) |
+| **Realtime** | ✅ Postgres Changes, Broadcast, Presence | ❌ No |
+| **Storage** | ✅ Upload, download, gestión | ❌ No |
+| **Edge Functions** | ✅ Invocación directa | ❌ No |
+| **APIs externas** | ❌ No (solo Supabase) | ✅ Cualquier REST API |
+| **Interceptors** | ❌ Limitado | ✅ Logging, retry, auth, cache |
+| **Control HTTP** | ❌ Abstracted | ✅ Timeouts, headers, cancel tokens |
+| **Mock/Test** | ❌ Depende de Supabase | ✅ Fácil (mocktail/DioMock) |
+
+### Regla práctica
+
+```
+SupabaseClient → Para operaciones CRUD contra tablas de Supabase
+                 (con RLS y autenticación automática)
+
+Dio            → Para APIs externas (pasarelas de pago, servicios de terceros)
+                 O cuando necesitas control total sobre las peticiones HTTP
+```
+
+### Remote DataSource con SupabaseClient
+
+```dart
+// lib/features/user/data/datasources/user_remote_data_source.dart
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/error/exceptions.dart';
+import '../models/user_model.dart';
+
+abstract class UserRemoteDataSource {
+  Future<List<UserModel>> getUsers();
+  Future<UserModel> getUser(String id);
+  Future<void> createUser(UserModel user);
+  Future<void> updateUser(UserModel user);
+  Future<void> deleteUser(String id);
+}
+
+class UserRemoteDataSourceImpl implements UserRemoteDataSource {
+  final SupabaseClient _supabase;
+
+  UserRemoteDataSourceImpl(this._supabase);
+
+  @override
+  Future<List<UserModel>> getUsers() async {
+    try {
+      final response = await _supabase
+          .from('users')
+          .select()
+          .order('created_at', ascending: false);
+      return response.map((json) => UserModel.fromJson(json)).toList();
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<UserModel> getUser(String id) async {
+    try {
+      final response = await _supabase
+          .from('users')
+          .select()
+          .eq('id', id)
+          .maybeSingle();
+      if (response == null) {
+        throw ServerException(message: 'User not found', statusCode: 404);
+      }
+      return UserModel.fromJson(response);
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<void> createUser(UserModel user) async {
+    try {
+      await _supabase.from('users').insert(user.toJson());
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<void> updateUser(UserModel user) async {
+    try {
+      await _supabase
+          .from('users')
+          .update(user.toJson())
+          .eq('id', user.id);
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<void> deleteUser(String id) async {
+    try {
+      await _supabase.from('users').delete().eq('id', id);
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+}
+```
+
+### Remote DataSource con Dio (para APIs externas)
+
+```dart
+// lib/features/payment/data/datasources/payment_remote_data_source.dart
+import 'package:dio/dio.dart';
+import '../../../../core/error/exceptions.dart';
+import '../models/payment_model.dart';
+
+abstract class PaymentRemoteDataSource {
+  Future<PaymentModel> createPayment(PaymentModel payment);
+  Future<PaymentModel> getPaymentStatus(String paymentId);
+}
+
+class PaymentRemoteDataSourceImpl implements PaymentRemoteDataSource {
+  final Dio _client;
+
+  PaymentRemoteDataSourceImpl(this._client);
+
+  @override
+  Future<PaymentModel> createPayment(PaymentModel payment) async {
+    try {
+      final response = await _client.post(
+        '/payments',
+        data: payment.toJson(),
+      );
+      return PaymentModel.fromJson(response.data);
+    } on DioException catch (e) {
+      throw ServerException(
+        message: e.message ?? 'Payment failed',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+
+  @override
+  Future<PaymentModel> getPaymentStatus(String paymentId) async {
+    try {
+      final response = await _client.get('/payments/$paymentId');
+      return PaymentModel.fromJson(response.data);
+    } on DioException catch (e) {
+      throw ServerException(
+        message: e.message ?? 'Failed to get payment status',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+}
+```
+
+### Inyección en el contenedor de DI
+
+```dart
+// lib/core/di/injection_container.dart
+// SupabaseClient — Singleton global
+sl.registerLazySingleton<SupabaseClient>(() => Supabase.instance.client);
+
+// Dio — Cliente HTTP para APIs externas
+sl.registerLazySingleton<Dio>(() {
+  final dio = Dio(BaseOptions(
+    baseUrl: 'https://api.externa.com',
+    connectTimeout: const Duration(seconds: 30),
+    receiveTimeout: const Duration(seconds: 30),
+  ));
+  dio.interceptors.add(LogInterceptor(
+    requestBody: true,
+    responseBody: true,
+  ));
+  return dio;
+});
+
+// Remote DataSources
+sl.registerLazySingleton<UserRemoteDataSource>(
+  () => UserRemoteDataSourceImpl(sl<SupabaseClient>()),
+);
+sl.registerLazySingleton<PaymentRemoteDataSource>(
+  () => PaymentRemoteDataSourceImpl(sl<Dio>()),
+);
+```
+
+---
+
 ## ✅ Checklist de integración con Flutter
 
 - [ ] `supabase_flutter` añadido en pubspec.yaml
@@ -1041,6 +1232,7 @@ SELECT * FROM storage.objects LIMIT 5;
 - [ ] Edge Functions: invocación y manejo de errores
 - [ ] Variables de entorno configuradas
 - [ ] Tests de integración funcionando
+- [ ] Definido qué DataSource usa SupabaseClient vs Dio según el caso
 
 ---
 

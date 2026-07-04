@@ -69,13 +69,12 @@ La guía está organizada en **16 módulos numerados** para seguir un orden de a
 | [05b-data-layer.md](./01-CLEAN-ARCHITECTURE/05b-data-layer.md) | CRUD: Data Layer |
 | [05c-presentation-ui-layer.md](./01-CLEAN-ARCHITECTURE/05c-presentation-ui-layer.md) | CRUD: Presentation y UI |
 | [06-inyeccion-de-dependencias.md](./01-CLEAN-ARCHITECTURE/06-inyeccion-de-dependencias.md) | Inyección de dependencias con GetIt |
-| [07-testing-por-capas.md](./01-CLEAN-ARCHITECTURE/07-testing-por-capas.md) | Testing por capas |
-| [08-templates-universales.md](./01-CLEAN-ARCHITECTURE/08-templates-universales.md) | Templates universales |
-| [09-decisiones-de-arquitectura.md](./01-CLEAN-ARCHITECTURE/09-decisiones-de-arquitectura.md) | Decisiones de arquitectura |
-| [10-migracion-codigo-espagueti.md](./01-CLEAN-ARCHITECTURE/10-migracion-codigo-espagueti.md) | Migración desde código espagueti |
-| [99-apendice-dependencias.md](./01-CLEAN-ARCHITECTURE/99-apendice-dependencias.md) | Apéndice: dependencias y resumen |
+| [07-templates-universales.md](./01-CLEAN-ARCHITECTURE/07-templates-universales.md) | Templates universales |
+| [08-decisiones-de-arquitectura.md](./01-CLEAN-ARCHITECTURE/08-decisiones-de-arquitectura.md) | Decisiones de arquitectura |
+| [09-migracion-codigo-espagueti.md](./01-CLEAN-ARCHITECTURE/09-migracion-codigo-espagueti.md) | Migración desde código espagueti |
+| [10-apendice-dependencias.md](./01-CLEAN-ARCHITECTURE/10-apendice-dependencias.md) | Apéndice: dependencias y resumen |
 
-**Contenido:** Las 4 capas, estructura de carpetas, flujo de datos, sistema CRUD completo (domain, data, presentation), inyección de dependencias con GetIt, templates universales, migración desde código espagueti.
+**Contenido:** Las 4 capas, estructura de carpetas, flujo de datos, sistema CRUD completo (domain, data, presentation), inyección de dependencias con GetIt, templates universales, decisiones de arquitectura, migración desde código espagueti.
 
 ---
 

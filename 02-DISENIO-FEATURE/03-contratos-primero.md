@@ -59,6 +59,8 @@ abstract class CartRepository {
 }
 ```
 
+> **Alternativa con UserSession:** Inyectando `UserSession` en `CartRepositoryImpl`, el contrato puede omitir `userId` — el repository lo obtiene internamente: `getCart()` en vez de `getCart(String userId)`. Esto simplifica el contrato cuando el userId pertenece siempre al usuario autenticado. La contraparte: los tests deben asegurar que `UserSession` retorne el userId correcto.
+
 **Preguntas para diseñar este contrato:**
 
 | Pregunta | Decisión de diseño |
@@ -66,7 +68,7 @@ abstract class CartRepository {
 | ¿El método retorna el `Cart` completo o solo el cambio? | Retornar el Cart completo mantiene la UI consistente |
 | ¿Parámetros individuales o un objeto ValueObject? | Para 3+ parámetros, usa named parameters |
 | ¿Manejo de errores con excepciones o Either? | Either es más explícito (como se usa en fpdart) |
-| ¿El userId se pasa siempre o se obtiene del contexto? | Pasarlo explícitamente mantiene el contrato puro |
+| ¿El userId se pasa siempre o se obtiene del contexto? | Depende: si el userId lo necesita el contrato (Domain), inyecta `UserSession` en el RepositoryImpl y el contrato no lo recibe. Si el userId lo necesita el negocio (UseCase), pásalo como parámetro. En general, el contrato del Repository no debe recibir userId porque es un detalle de implementación — el RepositoryImpl lo obtiene de `UserSession`. |
 
 ### 2. Contrato de DataSource (Data → API/DB)
 

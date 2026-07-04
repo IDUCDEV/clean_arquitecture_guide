@@ -471,40 +471,44 @@ class NetworkInfoImpl implements NetworkInfo {
 }
 ```
 
-### 3.5 `lib/core/auth/user_session.dart`
+### 3.5 `lib/core/session/user_session.dart`
 
 ```dart
 abstract class UserSession {
   /// Returns the current authenticated user's ID, or null if not authenticated.
   String? get userId;
 
-  /// Returns the current authenticated user's email, or null if not authenticated.
-  String? get userEmail;
-
-  /// Whether the user is currently authenticated.
+  /// Synchronous — reads from local cache without await.
   bool get isAuthenticated;
 }
 ```
 
-### 3.6 `lib/core/auth/user_session_impl.dart`
+### 3.6 `lib/core/session/user_session_impl.dart`
 
 ```dart
+import 'package:isar_community/isar.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'user_session.dart';
+// Importar el esquema Isar de CachedUser
+// import '../data/local/isar_models/cached_user.dart';
 
-class SupabaseUserSession implements UserSession {
-  final SupabaseClient _supabase;
+class UserSessionImpl implements UserSession {
+  final Isar _isar;
+  final SupabaseClient? _supabase;
 
-  SupabaseUserSession(this._supabase);
-
-  @override
-  String? get userId => _supabase.auth.currentUser?.id;
-
-  @override
-  String? get userEmail => _supabase.auth.currentUser?.email;
+  UserSessionImpl(this._isar, {SupabaseClient? supabase})
+      : _supabase = supabase;
 
   @override
-  bool get isAuthenticated => _supabase.auth.currentUser != null;
+  String? get userId {
+    final cached = _isar.cachedUsers.where().findFirstSync();
+    return cached?.userId;
+  }
+
+  @override
+  bool get isAuthenticated {
+    return _isar.cachedUsers.where().countSync() > 0;
+  }
 }
 ```
 
@@ -527,71 +531,24 @@ Future<void> configureDependencies() async {
 }
 ```
 
+<-- Opción manual (sin injectable):
+    Crea `lib/core/di/injection_container.dart` y registra manualmente
+    cada dependencia usando cascade notation (`..registerLazySingleton`).
+    Ver `01-CLEAN-ARCHITECTURE/06-inyeccion-de-dependencias.md` para el ejemplo completo.
+-->
+
 ### 3.8 `lib/core/services/cache_manager.dart`
 
 ```dart
-abstract class CacheManager {
-  Future<void> register<T>({
-    required String key,
-    required T Function(Map<String, dynamic>) fromJson,
-    required Map<String, dynamic> Function(T) toJson,
-  });
+class CacheManager {
+  final List<Future<void> Function()> _clearFns = [];
 
-  Future<void> put<T>(String key, T value);
-  Future<T?> get<T>(String key);
-  Future<void> remove(String key);
-  Future<void> clearAll();
-}
-```
-
-### 3.9 `lib/core/services/cache_manager_impl.dart`
-
-```dart
-import 'package:isar_community/isar.dart';
-import 'cache_manager.dart';
-
-class IsarCacheManager implements CacheManager {
-  final Isar _isar;
-
-  IsarCacheManager(this._isar);
-
-  final _stores = <String, dynamic>{};
-
-  @override
-  Future<void> register<T>({
-    required String key,
-    required T Function(Map<String, dynamic>) fromJson,
-    required Map<String, dynamic> Function(T) toJson,
-  }) async {
-    // Isar schema registration happens at compile time via isar_generator.
-    // This method provides a uniform interface for runtime cache operations.
-    _stores[key] = {'fromJson': fromJson, 'toJson': toJson};
+  void register(Future<void> Function() clearFn) {
+    _clearFns.add(clearFn);
   }
 
-  @override
-  Future<void> put<T>(String key, T value) async {
-    final isarCollection = _isar.collection<T>();
-    await isarCollection.put(value as dynamic);
-  }
-
-  @override
-  Future<T?> get<T>(String key) async {
-    final isarCollection = _isar.collection<T>();
-    final results = await isarCollection.where().findAll();
-    return results.isNotEmpty ? results.first as T : null;
-  }
-
-  @override
-  Future<void> remove(String key) async {
-    // Implement based on specific Isar model
-    await Future.value();
-  }
-
-  @override
   Future<void> clearAll() async {
-    await _isar.write((isar) {
-      isar.clear();
-    });
+    await Future.wait(_clearFns.map((fn) => fn()));
   }
 }
 ```
@@ -1151,18 +1108,27 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
 ```dart
 import 'package:fpdart/src/either.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
+import '../../../../core/services/cache_manager.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../datasources/auth_local_data_source.dart';
 import '../datasources/auth_remote_data_source.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource _remoteDataSource;
-  final InternetConnection _networkInfo;
+  final AuthLocalDataSource _localDataSource;
+  final CacheManager _cacheManager;
 
-  AuthRepositoryImpl(this._remoteDataSource, this._networkInfo);
+  AuthRepositoryImpl(
+    this._remoteDataSource,
+    this._localDataSource,
+    this._cacheManager,
+  );
+
+  @override
+  bool get isLoggedIn => _localDataSource.hasCachedUser;
 
   @override
   Future<Either<Failure, User>> signInWithEmailAndPassword({
@@ -1174,6 +1140,7 @@ class AuthRepositoryImpl implements AuthRepository {
         email: email,
         password: password,
       );
+      await _localDataSource.cacheUser(userModel);
       return Right(userModel.toEntity());
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message, statusCode: e.statusCode));
@@ -1194,6 +1161,7 @@ class AuthRepositoryImpl implements AuthRepository {
         email: email,
         password: password,
       );
+      await _localDataSource.cacheUser(userModel);
       return Right(userModel.toEntity());
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message, statusCode: e.statusCode));
@@ -1207,6 +1175,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, void>> signOut() async {
     try {
+      await _cacheManager.clearAll();
       await _remoteDataSource.signOut();
       return const Right(null);
     } on AuthException catch (e) {
@@ -1220,6 +1189,9 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, User?>> getCurrentUser() async {
     try {
       final userModel = await _remoteDataSource.getCurrentUser();
+      if (userModel != null) {
+        await _localDataSource.cacheUser(userModel);
+      }
       return Right(userModel?.toEntity());
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message, statusCode: e.statusCode));
@@ -1229,11 +1201,53 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, UserModel?>> getCachedUser() async {
+    try {
+      final user = await _localDataSource.getCachedUser();
+      if (user != null) return Right(user);
+      return Left(CacheFailure(message: 'No cached user'));
+    } on CacheException catch (e) {
+      return Left(CacheFailure(message: e.message));
+    }
+  }
+
+  @override
   Stream<User?> get authStateChanges {
     return _remoteDataSource.authStateChanges.map(
       (userModel) => userModel?.toEntity(),
     );
   }
+}
+```
+
+Also update the `auth_repository.dart` interface (4.2) to include `getCachedUser` and `isLoggedIn`:
+
+```dart
+// lib/features/auth/domain/repositories/auth_repository.dart
+import 'package:fpdart/src/either.dart';
+import '../../../../core/error/failures.dart';
+import '../entities/user.dart';
+
+abstract class AuthRepository {
+  bool get isLoggedIn;  // Síncrono
+
+  Future<Either<Failure, User>> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  });
+
+  Future<Either<Failure, User>> signUp({
+    required String email,
+    required String password,
+  });
+
+  Future<Either<Failure, void>> signOut();
+
+  Future<Either<Failure, User?>> getCurrentUser();
+
+  Future<Either<Failure, UserModel?>> getCachedUser();
+
+  Stream<User?> get authStateChanges;
 }
 ```
 

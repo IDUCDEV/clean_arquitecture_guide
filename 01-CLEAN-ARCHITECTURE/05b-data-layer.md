@@ -155,7 +155,11 @@ class UserModel extends User {
 | Queries | Rich query language con índices | Limitado a endpoints del servidor |
 | Reactivo | Streams para cambios | Polling o websockets |
 
-#### Remote DataSource (API REST)
+#### Remote DataSource — Dos opciones
+
+> El RemoteDataSource se implementa según el backend. Usa **Dio** para APIs REST externas, **SupabaseClient** cuando el backend es Supabase. El patrón es el mismo: el repositorio recibe un `remoteDataSource` y no sabe ni le importa cuál usa.
+
+##### Opción 1: Dio (APIs REST externas)
 
 **Archivo**: `lib/features/user/data/datasources/user_remote_data_source.dart`
 
@@ -184,7 +188,6 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
   Future<List<UserModel>> getUsers() async {
     try {
       final response = await client.get('$baseUrl/users');
-
       if (response.statusCode == 200) {
         final List<dynamic> jsonList = response.data;
         return jsonList.map((json) => UserModel.fromJson(json)).toList();
@@ -200,7 +203,6 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
   Future<UserModel> getUser(String id) async {
     try {
       final response = await client.get('$baseUrl/users/$id');
-
       if (response.statusCode == 200) {
         return UserModel.fromJson(response.data);
       } else {
@@ -218,7 +220,6 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
         '$baseUrl/users',
         data: user.toJson(),
       );
-
       if (response.statusCode == 201) {
         return UserModel.fromJson(response.data);
       } else {
@@ -232,17 +233,100 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
   @override
   Future<void> deleteUser(String id) async {
     try {
-      final response = await client.delete('$baseUrl/users/$id');
-
-      if (response.statusCode != 200 && response.statusCode != 204) {
-        throw ServerException('Failed to delete user');
-      }
+      await client.delete('$baseUrl/users/$id');
     } on DioException catch (e) {
       throw ServerException('Network error: ${e.message}');
     }
   }
 }
 ```
+
+##### Opción 2: SupabaseClient (backend Supabase)
+
+**Archivo**: `lib/features/user/data/datasources/user_remote_data_source.dart`
+
+```dart
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:my_app/core/error/exceptions.dart';
+import 'package:my_app/features/user/data/models/user_model.dart';
+
+abstract class UserRemoteDataSource {
+  Future<List<UserModel>> getUsers();
+  Future<UserModel> getUser(String id);
+  Future<UserModel> createUser(UserModel user);
+  Future<void> deleteUser(String id);
+}
+
+class UserRemoteDataSourceImpl implements UserRemoteDataSource {
+  final SupabaseClient supabase;
+
+  UserRemoteDataSourceImpl({required this.supabase});
+
+  @override
+  Future<List<UserModel>> getUsers() async {
+    try {
+      final response = await supabase
+          .from('users')
+          .select()
+          .order('created_at', ascending: false);
+      return (response as List)
+          .map((json) => UserModel.fromJson(json))
+          .toList();
+    } on PostgrestException catch (e) {
+      throw ServerException(e.message);
+    }
+  }
+
+  @override
+  Future<UserModel> getUser(String id) async {
+    try {
+      final response = await supabase
+          .from('users')
+          .select()
+          .eq('id', id)
+          .maybeSingle();
+      if (response == null) throw ServerException('User not found');
+      return UserModel.fromJson(response);
+    } on PostgrestException catch (e) {
+      throw ServerException(e.message);
+    }
+  }
+
+  @override
+  Future<UserModel> createUser(UserModel user) async {
+    try {
+      final response = await supabase
+          .from('users')
+          .insert(user.toJson())
+          .select()
+          .single();
+      return UserModel.fromJson(response);
+    } on PostgrestException catch (e) {
+      throw ServerException(e.message);
+    }
+  }
+
+  @override
+  Future<void> deleteUser(String id) async {
+    try {
+      await supabase.from('users').delete().eq('id', id);
+    } on PostgrestException catch (e) {
+      throw ServerException(e.message);
+    }
+  }
+}
+```
+
+**¿Cuál usar?**
+
+| Criterio | Dio | SupabaseClient |
+|----------|-----|----------------|
+| Backend propio (REST API) | ✅ | ❌ |
+| Backend Supabase | ❌ | ✅ |
+| Microservicios externos | ✅ | ❌ |
+| Auth + DB + Storage + Realtime | ❌ | ✅ |
+| Control fino de headers/cache | ✅ | ⚠️ Limitado |
+| Testeo con mocks | Dio Mock | supabase mocks |
 
 #### NetworkInfo
 
@@ -251,21 +335,25 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
 **Archivo**: `lib/core/network/network_info.dart`
 
 ```dart
-import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 abstract class NetworkInfo {
   Future<bool> get isConnected;
 }
 
 class NetworkInfoImpl implements NetworkInfo {
-  final InternetConnectionChecker connectionChecker;
+  final InternetConnection connectionChecker;
 
   NetworkInfoImpl(this.connectionChecker);
 
   @override
-  Future<bool> get isConnected async {
-    return await connectionChecker.hasConnection;
-  }
+  Future<bool> get isConnected => connectionChecker.hasInternetAccess;
+
+  @override
+  Stream<bool> get onConnectivityChanged =>
+      connectionChecker.onStatusChange.map(
+        (status) => status == InternetStatus.connected,
+      );
 }
 ```
 
@@ -288,6 +376,16 @@ class CacheException implements Exception {
 
   @override
   String toString() => message;
+}
+
+class AuthException implements Exception {
+  final String message;
+  final int? statusCode;
+
+  AuthException({required this.message, this.statusCode});
+
+  @override
+  String toString() => 'AuthException: $message (status: $statusCode)';
 }
 ```
 
@@ -349,7 +447,7 @@ class UserLocalDataSourceImpl implements UserLocalDataSource {
 
 #### Repository Implementation (con lógica Online/Offline)
 
-> Este repository decide automáticamente si usar datos remotos (API) o locales (caché) según la conexión.
+> Este repository decide automáticamente si usar datos remotos (API) o locales (caché) según la conexión. Recibe **4 dependencias estándar**: `remoteDataSource`, `localDataSource`, `networkInfo` y `userSession`.
 
 **Archivo**: `lib/features/user/data/repositories/user_repository_impl.dart`
 
@@ -358,42 +456,24 @@ import 'package:fpdart/fpdart.dart';
 import 'package:my_app/core/error/exceptions.dart';
 import 'package:my_app/core/error/failures.dart';
 import 'package:my_app/core/network/network_info.dart';
+import 'package:my_app/core/session/user_session.dart';
 import 'package:my_app/features/user/data/datasources/user_local_data_source.dart';
 import 'package:my_app/features/user/data/datasources/user_remote_data_source.dart';
 import 'package:my_app/features/user/data/models/user_model.dart';
 import 'package:my_app/features/user/domain/entities/user.dart';
 import 'package:my_app/features/user/domain/repositories/user_repository.dart';
 
-abstract class UserRepositoryImplBase implements UserRepository {
-  Future<Either<Failure, List<User>>> getUsers() async {
-    if (await networkInfo.isConnected) {
-      try {
-        final remoteUsers = await remoteDataSource.getUsers();
-        await localDataSource.cacheUsers(remoteUsers);
-        return Either.right(remoteUsers.map((m) => m.toEntity()).toList());
-      } on ServerException {
-        return Either.left(ServerFailure('Error loading from server'));
-      }
-    } else {
-      try {
-        final localUsers = await localDataSource.getUsers();
-        return Either.right(localUsers.map((m) => m.toEntity()).toList());
-      } catch (e) {
-        return Either.left(CacheFailure('No cached data available'));
-      }
-    }
-  }
-}
-
 class UserRepositoryImpl implements UserRepository {
   final UserRemoteDataSource remoteDataSource;
   final UserLocalDataSource localDataSource;
   final NetworkInfo networkInfo;
+  final UserSession userSession;
 
   UserRepositoryImpl({
     required this.remoteDataSource,
     required this.localDataSource,
     required this.networkInfo,
+    required this.userSession,
   });
 
   @override
@@ -402,21 +482,21 @@ class UserRepositoryImpl implements UserRepository {
       try {
         final remoteUsers = await remoteDataSource.getUsers();
         await _cacheUsers(remoteUsers);
-        return Either.right(remoteUsers.map((m) => m.toEntity()).toList());
+        return Right(remoteUsers.map((m) => m.toEntity()).toList());
       } on ServerException catch (e) {
-        return Either.left(ServerFailure(e.message));
+        return Left(ServerFailure(e.message));
       }
     } else {
-      return await _getUsersFromCache();
+      return _getUsersFromCache();
     }
   }
 
   Future<Either<Failure, List<User>>> _getUsersFromCache() async {
     try {
       final localUsers = await localDataSource.getUsers();
-      return Either.right(localUsers.map((m) => m.toEntity()).toList());
+      return Right(localUsers.map((m) => m.toEntity()).toList());
     } catch (e) {
-      return Either.left(CacheFailure('No cached data available'));
+      return Left(CacheFailure('No cached data available'));
     }
   }
 
@@ -432,19 +512,19 @@ class UserRepositoryImpl implements UserRepository {
       try {
         final remoteUser = await remoteDataSource.getUser(id);
         await localDataSource.saveUser(remoteUser);
-        return Either.right(remoteUser);
+        return Right(remoteUser);
       } on ServerException catch (e) {
-        return Either.left(ServerFailure(e.message));
+        return Left(ServerFailure(e.message));
       }
     } else {
       try {
         final localUser = await localDataSource.getUser(id);
         if (localUser == null) {
-          return Either.left(CacheFailure('User not found in cache'));
+          return Left(CacheFailure('User not found in cache'));
         }
-        return Either.right(localUser);
+        return Right(localUser);
       } catch (e) {
-        return Either.left(CacheFailure(e.toString()));
+        return Left(CacheFailure(e.toString()));
       }
     }
   }
@@ -456,28 +536,12 @@ class UserRepositoryImpl implements UserRepository {
         final userModel = UserModel.fromEntity(user);
         await remoteDataSource.createUser(userModel);
         await localDataSource.saveUser(userModel);
-        return Either.right(null);
+        return Right(null);
       } on ServerException catch (e) {
-        return Either.left(ServerFailure(e.message));
+        return Left(ServerFailure(e.message));
       }
     } else {
-      return Either.left(NetworkFailure('Cannot create user offline'));
-    }
-  }
-
-  @override
-  Future<Either<Failure, void>> updateUser(User user) async {
-    if (await networkInfo.isConnected) {
-      try {
-        final userModel = UserModel.fromEntity(user);
-        await remoteDataSource.createUser(userModel);
-        await localDataSource.saveUser(userModel);
-        return Either.right(null);
-      } on ServerException catch (e) {
-        return Either.left(ServerFailure(e.message));
-      }
-    } else {
-      return Either.left(NetworkFailure('Cannot update user offline'));
+      return Left(NetworkFailure('Cannot create user offline'));
     }
   }
 
@@ -487,16 +551,82 @@ class UserRepositoryImpl implements UserRepository {
       try {
         await remoteDataSource.deleteUser(id);
         await localDataSource.deleteUser(id);
-        return Either.right(null);
+        return Right(null);
       } on ServerException catch (e) {
-        return Either.left(ServerFailure(e.message));
+        return Left(ServerFailure(e.message));
       }
     } else {
-      return Either.left(NetworkFailure('Cannot delete user offline'));
+      return Left(NetworkFailure('Cannot delete user offline'));
     }
   }
 }
 ```
+
+> **Uso de `userSession`**: El `userId` se usa para filtrar datos del usuario autenticado. Ejemplo: `final userId = userSession.userId;` (síncrono).
+
+##### Variante: Repositorio con múltiples Remote DataSources
+
+> A veces un repositorio necesita combinar **dos o más** fuentes remotas. Por ejemplo, un repositorio de sorteos que necesita datos de `RaffleRemoteDataSource` y `TicketRemoteDataSource`:
+
+```dart
+class RaffleRepositoryImpl implements RaffleRepository {
+  final RaffleRemoteDataSource remoteDataSource;
+  final TicketRemoteDataSource ticketRemoteDataSource;
+  final NetworkInfo networkInfo;
+  final UserSession userSession;
+
+  RaffleRepositoryImpl({
+    required this.remoteDataSource,
+    required this.ticketRemoteDataSource,
+    required this.networkInfo,
+    required this.userSession,
+  });
+
+  @override
+  Future<Either<Failure, Raffle>> createRaffle(Raffle raffle) async {
+    final userId = userSession.userId;
+    if (userId == null) return Left(AuthFailure());
+
+    if (await networkInfo.isConnected) {
+      try {
+        final model = await remoteDataSource.createRaffle(
+          RaffleModel.fromEntity(raffle),
+        );
+        return Right(model.toEntity());
+      } on ServerException catch (e) {
+        return Left(ServerFailure(e.message));
+      }
+    } else {
+      return Left(NetworkFailure('Cannot create raffle offline'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Ticket>>> getTickets(String raffleId) async {
+    if (await networkInfo.isConnected) {
+      try {
+        final tickets = await ticketRemoteDataSource.getTickets(raffleId);
+        return Right(tickets.map((m) => m.toEntity()).toList());
+      } on ServerException catch (e) {
+        return Left(ServerFailure(e.message));
+      }
+    } else {
+      return Left(NetworkFailure('Cannot load tickets offline'));
+    }
+  }
+}
+```
+
+##### ¿Cuándo incluir `UserSession`?
+
+| Repositorio | ¿Necesita UserSession? | Motivo |
+|-------------|----------------------|--------|
+| User/Profile | ✅ Sí | Filtra datos por `userId` |
+| PaymentMethod | ✅ Sí | Asocia métodos de pago al usuario |
+| Raffle (sorteo) | ✅ Sí | Crea recursos pertenecientes al usuario |
+| Ticket | ✅ Sí | Reserva/compra asociada al usuario |
+| Auth | ❌ No | Usa `localDataSource.hasCachedUser` directamente |
+| Winner (público) | ❌ No | Consulta pública sin dueño |
 
 **Lógica de decisión del Repository:**
 

@@ -1,7 +1,6 @@
 # 14. Testing de BLoC / Cubit
 
 > **Ver también**: `05-TESTING/04a-practica-cubits-bloc-test.md` — ejercicio hands-on de blocTest con AuthCubit + Mocktail (complemento práctico).
-> `01-CLEAN-ARCHITECTURE/07-testing-por-capas.md` — testing de Cubit en contexto de Clean Architecture.
 
 > Referencia oficial: [bloclibrary.dev/testing/](https://bloclibrary.dev/testing/)
 > API: [blocTest](https://pub.dev/documentation/bloc_test/latest/bloc_test/blocTest.html)
