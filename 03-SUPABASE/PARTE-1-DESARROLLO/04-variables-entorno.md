@@ -401,6 +401,16 @@ supabase status
 - [Flutter Dotenv](https://pub.dev/packages/flutter_dotenv)
 - [GitHub Secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets)
 
+
 ---
 
-**Siguiente**: [05-migraciones-y-seeds.md](./05-migraciones-y-seeds.md)
+## 📚 Referencias
+
+- [Supabase | Documentación oficial](https://supabase.com/docs) — Guías, API reference y arquitectura
+- [Supabase | CLI reference](https://supabase.com/docs/reference/cli) — Comandos de la CLI de Supabase
+- [Supabase | Flutter SDK](https://pub.dev/packages/supabase_flutter) — SDK oficial para Flutter
+- [Supabase | Migraciones](https://supabase.com/docs/guides/local-development/migrations) — Gestión de migraciones locales
+
+---
+
+> 📖 **Siguiente:** [05-migraciones-y-seeds.md](./05-migraciones-y-seeds.md)

@@ -232,4 +232,12 @@ for (final n in datos) {
 
 ---
 
+## 📚 Referencias
+
+- [Dart | Language tour](https://dart.dev/language) — Recorrido completo por el lenguaje Dart
+- [Dart | Collections](https://dart.dev/language/collections) — Documentación de List, Set, Map
+- [Dart | Records y patterns](https://dart.dev/language/records) — Features modernos de Dart 3
+
+---
+
 **Siguiente**: [03-metodos-funcionales-listas.md](./03-metodos-funcionales-listas.md) — El corazón de la manipulación de datos

@@ -165,4 +165,12 @@ build ──> (independiente, paralelo)
 
 ---
 
+## 📚 Referencias
+
+- [GitHub | Actions documentation](https://docs.github.com/en/actions) — Guías y referencia de GitHub Actions
+- [GitHub | Workflow syntax](https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions) — Sintaxis YAML de workflows
+- [GitHub | Security hardening](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions) — Buenas prácticas de seguridad en Actions
+
+---
+
 **Siguiente**: [02-sintaxis-yaml.md](./02-sintaxis-yaml.md) — Anatomía de un workflow

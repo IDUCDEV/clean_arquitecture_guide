@@ -511,6 +511,16 @@ jobs:
 - [Flutter Makefile Best Practices](https://example.com)
 - [Supabase CLI Commands](https://supabase.com/docs/reference/cli/overview)
 
+
 ---
 
-**Siguiente**: [04-variables-entorno.md](./04-variables-entorno.md)
+## 📚 Referencias
+
+- [Supabase | Documentación oficial](https://supabase.com/docs) — Guías, API reference y arquitectura
+- [Supabase | CLI reference](https://supabase.com/docs/reference/cli) — Comandos de la CLI de Supabase
+- [Supabase | Flutter SDK](https://pub.dev/packages/supabase_flutter) — SDK oficial para Flutter
+- [Supabase | Migraciones](https://supabase.com/docs/guides/local-development/migrations) — Gestión de migraciones locales
+
+---
+
+> 📖 **Siguiente:** [04-variables-entorno.md](./04-variables-entorno.md)

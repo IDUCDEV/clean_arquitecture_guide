@@ -277,3 +277,13 @@ Verifica que tu app se está ejecutando en un dispositivo Android legítimo y no
 - [In-app Updates](https://developer.android.com/guide/playcore/in-app-updates)
 - [flutter_inappupdate pub.dev](https://pub.dev/packages/flutter_inappupdate)
 - [Play Integrity API](https://developer.android.com/google/play/integrity)
+
+---
+
+## 📚 Referencias
+
+- [Flutter | Android deployment](https://docs.flutter.dev/deployment/android) — Guía oficial para publicar en Play Store
+- [Google Play | Console Help](https://support.google.com/googleplay/android-developer) — Centro de ayuda de Google Play Console
+- [Flutter | Build and release](https://docs.flutter.dev/deployment) — Compilación para múltiples plataformas
+
+---

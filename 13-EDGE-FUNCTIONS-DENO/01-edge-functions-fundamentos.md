@@ -287,3 +287,13 @@ Deno.serve(async (req: Request) => {
 - [Supabase Edge Functions Docs](https://supabase.com/docs/guides/functions)
 - [Deno Runtime](https://deno.com/runtime)
 - [Supabase CLI Reference](https://supabase.com/docs/reference/cli)
+
+---
+
+## 📚 Referencias
+
+- [Supabase | Edge Functions](https://supabase.com/docs/guides/functions) — Documentación oficial de Edge Functions
+- [Deno | Manual](https://deno.land/manual) — Documentación oficial de Deno
+- [Supabase | Cron jobs](https://supabase.com/docs/guides/functions/cron) — Programación de tareas cron
+
+---

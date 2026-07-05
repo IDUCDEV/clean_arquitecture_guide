@@ -591,17 +591,16 @@ make db-test
 - [Supabase Testing Guide](https://supabase.com/docs/guides/testing)
 - [PostgreSQL Extensions](https://www.postgresql.org/docs/17/contrib.html)
 
+
 ---
 
-## 🎯 Fin de la Parte 1
+## 📚 Referencias
 
-Has completado la sección de Supabase Local. Ahora sabes:
-- ✅ Configurar Supabase desde cero
-- ✅ Estructurar el proyecto
-- ✅ Usar el Makefile
-- ✅ Gestionar variables de entorno
-- ✅ Crear y aplicar migraciones
-- ✅ Integrar Supabase con Flutter
-- ✅ Escribir tests de base de datos
+- [Supabase | Documentación oficial](https://supabase.com/docs) — Guías, API reference y arquitectura
+- [Supabase | CLI reference](https://supabase.com/docs/reference/cli) — Comandos de la CLI de Supabase
+- [Supabase | Flutter SDK](https://pub.dev/packages/supabase_flutter) — SDK oficial para Flutter
+- [Supabase | Migraciones](https://supabase.com/docs/guides/local-development/migrations) — Gestión de migraciones locales
 
-**Siguiente**: [Parte 2: Producción](./../PARTE-2-PRODUCTION/01-opciones-hosting.md)
+---
+
+> 📖 **Siguiente:** [Parte 2: Producción](./../PARTE-2-PRODUCTION/01-opciones-hosting.md)

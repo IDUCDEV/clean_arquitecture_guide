@@ -217,6 +217,16 @@ jobs:
 | `SUPABASE_DB_PASSWORD` | Al crear proyecto |
 | `SONAR_TOKEN` | SonarCloud |
 
+
 ---
 
-**Siguiente**: [03-patrones-extrapolables.md](./03-patrones-extrapolables.md)
+## 📚 Referencias
+
+- [Supabase | Documentación oficial](https://supabase.com/docs) — Guías, API reference y arquitectura
+- [Supabase | CLI reference](https://supabase.com/docs/reference/cli) — Comandos de la CLI de Supabase
+- [Supabase | Flutter SDK](https://pub.dev/packages/supabase_flutter) — SDK oficial para Flutter
+- [Supabase | Migraciones](https://supabase.com/docs/guides/local-development/migrations) — Gestión de migraciones locales
+
+---
+
+> 📖 **Siguiente:** [03-patrones-extrapolables.md](./03-patrones-extrapolables.md)

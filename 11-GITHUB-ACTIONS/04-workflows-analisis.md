@@ -147,4 +147,12 @@ Usa `amannn/action-semantic-pull-request` para validar que el título del PR sig
 
 ---
 
+## 📚 Referencias
+
+- [GitHub | Actions documentation](https://docs.github.com/en/actions) — Guías y referencia de GitHub Actions
+- [GitHub | Workflow syntax](https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions) — Sintaxis YAML de workflows
+- [GitHub | Security hardening](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions) — Buenas prácticas de seguridad en Actions
+
+---
+
 **Siguiente**: [05-secrets-envs-matrix.md](./05-secrets-envs-matrix.md) — Secrets, entornos y matrix builds

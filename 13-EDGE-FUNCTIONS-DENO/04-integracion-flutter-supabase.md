@@ -418,3 +418,13 @@ Future<Either<Failure, void>> purchaseTicket({
 - [Supabase Flutter Client - Functions](https://supabase.com/docs/reference/dart/functions-invoke)
 - [Supabase Flutter SDK](https://pub.dev/packages/supabase_flutter)
 - [Edge Functions Examples](https://github.com/supabase/supabase/tree/master/examples/edge-functions)
+
+---
+
+## 📚 Referencias
+
+- [Supabase | Edge Functions](https://supabase.com/docs/guides/functions) — Documentación oficial de Edge Functions
+- [Deno | Manual](https://deno.land/manual) — Documentación oficial de Deno
+- [Supabase | Cron jobs](https://supabase.com/docs/guides/functions/cron) — Programación de tareas cron
+
+---

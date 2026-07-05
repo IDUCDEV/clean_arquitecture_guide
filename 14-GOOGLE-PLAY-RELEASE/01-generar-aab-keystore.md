@@ -251,3 +251,13 @@ version: 1.2.0+3
 - [Android App Bundle](https://developer.android.com/platform/technology/app-bundle)
 - [Flutter Build Guide](https://docs.flutter.dev/deployment/android)
 - [keytool documentation](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/keytool.html)
+
+---
+
+## 📚 Referencias
+
+- [Flutter | Android deployment](https://docs.flutter.dev/deployment/android) — Guía oficial para publicar en Play Store
+- [Google Play | Console Help](https://support.google.com/googleplay/android-developer) — Centro de ayuda de Google Play Console
+- [Flutter | Build and release](https://docs.flutter.dev/deployment) — Compilación para múltiples plataformas
+
+---

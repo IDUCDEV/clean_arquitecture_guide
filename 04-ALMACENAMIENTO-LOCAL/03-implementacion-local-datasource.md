@@ -790,5 +790,12 @@ class AuthRepositoryImpl implements AuthRepository {
 
 ---
 
+## 📚 Referencias
+
+- [isar_community | pub.dev](https://pub.dev/packages/isar_community) — Paquete activo de Isar para Dart/Flutter
+- [Isar | Documentación original](https://isar.dev) — Referencia de operaciones y queries (legacy)
+
+---
+
 **Nivel:** Avanzado  
 **Siguiente:** [03e-practica-local-datasource-isar.md](../05-TESTING/03-data/03e-practica-local-datasource-isar.md)

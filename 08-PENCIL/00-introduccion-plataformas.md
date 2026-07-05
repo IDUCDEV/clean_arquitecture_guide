@@ -153,4 +153,11 @@ CLI (generación y exportación automatizada)
 
 ---
 
-**Siguiente:** [Canvas y Toolbar](./01-canvas-toolbar.md) — Empieza a diseñar desde cero.
+## 📚 Referencias
+
+- [Pencil | Documentación oficial](https://pencil.design/docs) — Guías de uso y referencia
+- [Pencil | Ayuda](https://help.pencil.design) — Centro de ayuda y tutoriales
+
+---
+
+> 📖 **Siguiente:** [Canvas y Toolbar](./01-canvas-toolbar.md) — Empieza a diseñar desde cero.

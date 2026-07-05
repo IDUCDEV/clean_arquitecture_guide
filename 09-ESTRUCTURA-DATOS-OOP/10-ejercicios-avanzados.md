@@ -411,6 +411,14 @@ List<Map<String, dynamic>> topVendedoresDelMes(List<Venta> ventas, List<Vendedor
 
 ---
 
+## 📚 Referencias
+
+- [Dart | Language tour](https://dart.dev/language) — Recorrido completo por el lenguaje Dart
+- [Dart | Collections](https://dart.dev/language/collections) — Documentación de List, Set, Map
+- [Dart | Records y patterns](https://dart.dev/language/records) — Features modernos de Dart 3
+
+---
+
 ## 🏁 Fin del módulo
 
 🎉 **Completaste los 25+ ejercicios.** Ya no necesitas que la IA escriba tu lógica de manipulación de datos. Pasa a [11-recursos-practica.md](./11-recursos-practica.md) para seguir mejorando.

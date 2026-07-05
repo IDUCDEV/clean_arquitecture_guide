@@ -167,4 +167,10 @@ despedir:
 
 ---
 
+## 📚 Referencias
+
+- [GNU | Make manual](https://www.gnu.org/software/make/manual/) — Documentación oficial de GNU Make
+
+---
+
 **Siguiente**: [03-variables-y-shell.md](./03-variables-y-shell.md) — Variables avanzadas y funciones shell

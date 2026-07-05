@@ -153,4 +153,10 @@ deploy-cleanup     → deploy-storage + functions deploy
 
 ---
 
+## 📚 Referencias
+
+- [GNU | Make manual](https://www.gnu.org/software/make/manual/) — Documentación oficial de GNU Make
+
+---
+
 **Siguiente**: [05-creacion-personalizada.md](./05-creacion-personalizada.md) — Crear Makefiles desde cero

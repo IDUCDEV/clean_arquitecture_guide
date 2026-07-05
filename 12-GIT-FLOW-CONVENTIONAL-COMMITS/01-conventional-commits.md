@@ -230,3 +230,14 @@ module.exports = {
 - [Conventional Commits especificación](https://www.conventionalcommits.org/)
 - [Gitmoji](https://gitmoji.dev/)
 - [Semantic Versioning](https://semver.org/)
+
+---
+
+## 📚 Referencias
+
+- [Conventional Commits](https://www.conventionalcommits.org/) — Especificación de mensajes de commit
+- [Husky](https://typicode.github.io/husky/) — Git hooks modernos para Node.js
+- [Commitlint](https://commitlint.js.org/) — Linter para mensajes de commit
+- [Git | Documentation](https://git-scm.com/doc) — Documentación oficial de Git
+
+---

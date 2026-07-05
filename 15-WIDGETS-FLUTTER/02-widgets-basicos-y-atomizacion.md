@@ -186,6 +186,17 @@ class AppText extends StatelessWidget {
 }
 ```
 
+
+---
+
+## 📚 Referencias
+
+- [Flutter | Widget catalog](https://docs.flutter.dev/ui/widgets) — Catálogo completo de widgets por categoría
+- [Flutter | API reference](https://api.flutter.dev/) — Documentación de la API de Flutter
+- [Flutter | Layouts](https://docs.flutter.dev/ui/layout) — Guía de layouts en Flutter
+
+---
+
 ## Lo que sigue
 
 Ahora que conoces los bloques básicos, el siguiente capítulo cubre cómo organizarlos en layouts y sistemas de navegación.

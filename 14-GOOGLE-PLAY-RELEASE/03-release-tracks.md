@@ -261,3 +261,13 @@ git tag -a v1.2.0 -m "Release 1.2.0"
 - [Play Console Release Tracks](https://support.google.com/googleplay/android-developer/answer/9859152)
 - [Staged Rollouts](https://support.google.com/googleplay/android-developer/answer/6346149)
 - [Testing Best Practices](https://developer.android.com/distribute/best-practices/launch/test-tracks)
+
+---
+
+## 📚 Referencias
+
+- [Flutter | Android deployment](https://docs.flutter.dev/deployment/android) — Guía oficial para publicar en Play Store
+- [Google Play | Console Help](https://support.google.com/googleplay/android-developer) — Centro de ayuda de Google Play Console
+- [Flutter | Build and release](https://docs.flutter.dev/deployment) — Compilación para múltiples plataformas
+
+---

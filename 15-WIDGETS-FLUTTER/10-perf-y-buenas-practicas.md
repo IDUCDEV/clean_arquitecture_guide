@@ -200,6 +200,17 @@ Future.wait(
 - [ ] ¿RepaintBoundary en mapas/videos/canvas?
 - [ ] ¿Keys correctas en listas dinámicas?
 
+
+---
+
+## 📚 Referencias
+
+- [Flutter | Widget catalog](https://docs.flutter.dev/ui/widgets) — Catálogo completo de widgets por categoría
+- [Flutter | API reference](https://api.flutter.dev/) — Documentación de la API de Flutter
+- [Flutter | Layouts](https://docs.flutter.dev/ui/layout) — Guía de layouts en Flutter
+
+---
+
 ## Lo que sigue
 
 El próximo capítulo es un arsenal de referencia rápida con todos los widgets vistos y más.

@@ -168,4 +168,12 @@ jobs:
 
 ---
 
+## 📚 Referencias
+
+- [GitHub | Actions documentation](https://docs.github.com/en/actions) — Guías y referencia de GitHub Actions
+- [GitHub | Workflow syntax](https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions) — Sintaxis YAML de workflows
+- [GitHub | Security hardening](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions) — Buenas prácticas de seguridad en Actions
+
+---
+
 **Siguiente**: Vuelve al [README de la guía](../README.md) para ver el índice completo.

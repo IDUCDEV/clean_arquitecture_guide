@@ -408,3 +408,13 @@ class _Lista extends StatelessWidget {
   }
 }
 ```
+
+---
+
+## 📚 Referencias
+
+- [bloc | Documentación oficial](https://bloclibrary.dev/) — Guías, tutoriales y API reference
+- [flutter_bloc | pub.dev](https://pub.dev/packages/flutter_bloc) — Paquete Flutter de BLoC
+- [Bloc Concurrency](https://pub.dev/packages/bloc_concurrency) — Event transformers y concurrencia
+
+---

@@ -130,4 +130,10 @@ run-prod: ## Ejecutar en modo producción
 
 ---
 
+## 📚 Referencias
+
+- [GNU | Make manual](https://www.gnu.org/software/make/manual/) — Documentación oficial de GNU Make
+
+---
+
 **Siguiente**: [06-make-en-ci.md](./06-make-en-ci.md) — Make en GitHub Actions

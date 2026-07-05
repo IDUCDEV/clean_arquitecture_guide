@@ -280,3 +280,13 @@ Deno.serve(async (req: Request) => {
 - [Supabase Cron Jobs](https://supabase.com/docs/guides/functions/cron)
 - [Cron Expression Generator](https://crontab.guru/)
 - [Supabase config.toml](https://supabase.com/docs/reference/config/introduction)
+
+---
+
+## 📚 Referencias
+
+- [Supabase | Edge Functions](https://supabase.com/docs/guides/functions) — Documentación oficial de Edge Functions
+- [Deno | Manual](https://deno.land/manual) — Documentación oficial de Deno
+- [Supabase | Cron jobs](https://supabase.com/docs/guides/functions/cron) — Programación de tareas cron
+
+---

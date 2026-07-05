@@ -246,6 +246,16 @@ DIFÍCIL  ───────► Caprover               AWS/K8s
 - [DigitalOcean Marketplace](https://marketplace.digitalocean.com/)
 - [Hetzner Cloud](https://hetzner.cloud/)
 
+
 ---
 
-**Siguiente**: [02-supabase-self-hosted-docker.md](./02-supabase-self-hosted-docker.md)
+## 📚 Referencias
+
+- [Supabase | Documentación oficial](https://supabase.com/docs) — Guías, API reference y arquitectura
+- [Supabase | CLI reference](https://supabase.com/docs/reference/cli) — Comandos de la CLI de Supabase
+- [Supabase | Flutter SDK](https://pub.dev/packages/supabase_flutter) — SDK oficial para Flutter
+- [Supabase | Migraciones](https://supabase.com/docs/guides/local-development/migrations) — Gestión de migraciones locales
+
+---
+
+> 📖 **Siguiente:** [02-supabase-self-hosted-docker.md](./02-supabase-self-hosted-docker.md)

@@ -260,4 +260,11 @@ Para mantener diseño y código sincronizados manualmente:
 
 ---
 
-**Siguiente:** [Import y Export](./07-import-export.md)
+## 📚 Referencias
+
+- [Pencil | Documentación oficial](https://pencil.design/docs) — Guías de uso y referencia
+- [Pencil | Ayuda](https://help.pencil.design) — Centro de ayuda y tutoriales
+
+---
+
+> 📖 **Siguiente:** [Import y Export](./07-import-export.md)

@@ -90,4 +90,12 @@ Días 31+:    Alterna entre proyecto personal y Advent of Code
 
 ---
 
+## 📚 Referencias
+
+- [Dart | Language tour](https://dart.dev/language) — Recorrido completo por el lenguaje Dart
+- [Dart | Collections](https://dart.dev/language/collections) — Documentación de List, Set, Map
+- [Dart | Records y patterns](https://dart.dev/language/records) — Features modernos de Dart 3
+
+---
+
 > **Recuerda**: La IA puede escribirte el código, pero **tú** necesitas entenderlo para debuggear, optimizar y mantenerlo. ¡Sigue practicando!

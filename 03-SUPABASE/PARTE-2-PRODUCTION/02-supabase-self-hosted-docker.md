@@ -1084,6 +1084,16 @@ O usa Watchtower para actualización automática de contenedores:
 - [PgBouncer Documentation](https://www.pgbouncer.org/config.html)
 - [Let's Encrypt](https://letsencrypt.org)
 
+
 ---
 
-**Siguiente**: [03-configuracion-produccion.md](./03-configuracion-produccion.md)
+## 📚 Referencias
+
+- [Supabase | Documentación oficial](https://supabase.com/docs) — Guías, API reference y arquitectura
+- [Supabase | CLI reference](https://supabase.com/docs/reference/cli) — Comandos de la CLI de Supabase
+- [Supabase | Flutter SDK](https://pub.dev/packages/supabase_flutter) — SDK oficial para Flutter
+- [Supabase | Migraciones](https://supabase.com/docs/guides/local-development/migrations) — Gestión de migraciones locales
+
+---
+
+> 📖 **Siguiente:** [03-configuracion-produccion.md](./03-configuracion-produccion.md)

@@ -65,4 +65,10 @@ El Makefile del monorepo rifa-gestion-app organiza los comandos en:
 
 ---
 
+## 📚 Referencias
+
+- [GNU | Make manual](https://www.gnu.org/software/make/manual/) — Documentación oficial de GNU Make
+
+---
+
 **Siguiente**: [02-sintaxis-basica.md](./02-sintaxis-basica.md) — Targets, dependencias y recipes

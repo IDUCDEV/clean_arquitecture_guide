@@ -288,5 +288,12 @@ lib/core/data/local/isar_models/
 
 ---
 
+## 📚 Referencias
+
+- [isar_community | pub.dev](https://pub.dev/packages/isar_community) — Paquete activo de Isar para Dart/Flutter
+- [Isar | Documentación original](https://isar.dev) — Referencia de operaciones y queries (legacy)
+
+---
+
 **Nivel:** Principiante  
 **Siguiente:** [02-modelos-operaciones.md](./02-modelos-operaciones.md)

@@ -244,3 +244,13 @@ Play Console permite agregar traducciones automáticas o manuales:
 - [Play Console](https://play.google.com/console)
 - [Política de privacidad template](https://privacypolicytemplate.net/)
 - [Android App Quality Guidelines](https://developer.android.com/docs/quality-guidelines)
+
+---
+
+## 📚 Referencias
+
+- [Flutter | Android deployment](https://docs.flutter.dev/deployment/android) — Guía oficial para publicar en Play Store
+- [Google Play | Console Help](https://support.google.com/googleplay/android-developer) — Centro de ayuda de Google Play Console
+- [Flutter | Build and release](https://docs.flutter.dev/deployment) — Compilación para múltiples plataformas
+
+---

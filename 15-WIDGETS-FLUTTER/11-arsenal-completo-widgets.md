@@ -249,3 +249,13 @@ Referencia rápida de todos los widgets útiles para apps móviles. Cada entrada
 | `CupertinoTimerPicker` | Timer picker iOS |
 
 Nota: No es necesario usar Cupertino widgets. Puedes usar Material 3 con platform adaptivity.
+
+---
+
+## 📚 Referencias
+
+- [Flutter | Widget catalog](https://docs.flutter.dev/ui/widgets) — Catálogo completo de widgets por categoría
+- [Flutter | API reference](https://api.flutter.dev/) — Documentación de la API de Flutter
+- [Flutter | Layouts](https://docs.flutter.dev/ui/layout) — Guía de layouts en Flutter
+
+---

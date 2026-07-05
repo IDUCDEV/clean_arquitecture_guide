@@ -184,6 +184,14 @@ items.add(42);             // ✅ o ❌?
 
 ---
 
+## 📚 Referencias
+
+- [Dart | Language tour](https://dart.dev/language) — Recorrido completo por el lenguaje Dart
+- [Dart | Collections](https://dart.dev/language/collections) — Documentación de List, Set, Map
+- [Dart | Records y patterns](https://dart.dev/language/records) — Features modernos de Dart 3
+
+---
+
 **Siguiente**: [02-colecciones-fundamentos.md](./02-colecciones-fundamentos.md) — List, Set, Map
 
 **Práctica extra**: Abre [Dartpad](https://dartpad.dev) y escribe 5 ejemplos combinando `?`, `!`, `??`.

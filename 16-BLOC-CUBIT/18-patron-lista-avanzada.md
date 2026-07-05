@@ -811,3 +811,13 @@ void main() {
 | `ValueKey` en chips | Preservar estado interno en scroll horizontal |
 | Widgets extraídos | `_SummaryBar`, `_FilterChips`, `_RaffleCard` |
 | Widgets core | `AppCard`, `ErrorView`, `EmptyState`, `LoadingIndicator` |
+
+---
+
+## 📚 Referencias
+
+- [bloc | Documentación oficial](https://bloclibrary.dev/) — Guías, tutoriales y API reference
+- [flutter_bloc | pub.dev](https://pub.dev/packages/flutter_bloc) — Paquete Flutter de BLoC
+- [Bloc Concurrency](https://pub.dev/packages/bloc_concurrency) — Event transformers y concurrencia
+
+---

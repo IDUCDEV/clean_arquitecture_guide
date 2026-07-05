@@ -386,4 +386,12 @@ final porRol = usuarios.fold<Map<String, List<_User>>>(
 
 ---
 
+## 📚 Referencias
+
+- [Dart | Language tour](https://dart.dev/language) — Recorrido completo por el lenguaje Dart
+- [Dart | Collections](https://dart.dev/language/collections) — Documentación de List, Set, Map
+- [Dart | Records y patterns](https://dart.dev/language/records) — Features modernos de Dart 3
+
+---
+
 **Siguiente**: [04-manipulacion-mapas.md](./04-manipulacion-mapas.md) — Manipulación avanzada de Mapas

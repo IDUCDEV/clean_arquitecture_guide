@@ -337,4 +337,11 @@ Ya puedes diseñar cualquier interfaz en Pencil sin depender de IA — solo con 
 
 ---
 
+## 📚 Referencias
+
+- [Pencil | Documentación oficial](https://pencil.design/docs) — Guías de uso y referencia
+- [Pencil | Ayuda](https://help.pencil.design) — Centro de ayuda y tutoriales
+
+---
+
 **Referencia:** [Componentes y Slots](./05-componentes-slots.md)

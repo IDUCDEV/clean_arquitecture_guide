@@ -279,6 +279,17 @@ _listKey.currentState!.removeItem(
 );
 ```
 
+
+---
+
+## 📚 Referencias
+
+- [Flutter | Widget catalog](https://docs.flutter.dev/ui/widgets) — Catálogo completo de widgets por categoría
+- [Flutter | API reference](https://api.flutter.dev/) — Documentación de la API de Flutter
+- [Flutter | Layouts](https://docs.flutter.dev/ui/layout) — Guía de layouts en Flutter
+
+---
+
 ## Lo que sigue
 
 El capítulo 6 cubre datos, estados y ciclo de vida: cómo fluye la información en una app Flutter.

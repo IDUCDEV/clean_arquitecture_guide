@@ -518,5 +518,12 @@ Ahora puedes importar esta biblioteca en cualquier otro diseño y arrastrar los 
 
 ---
 
+## 📚 Referencias
+
+- [Pencil | Documentación oficial](https://pencil.design/docs) — Guías de uso y referencia
+- [Pencil | Ayuda](https://help.pencil.design) — Centro de ayuda y tutoriales
+
+---
+
 **Anterior:** [Práctica 3: Sistema de Diseño](./06c-practica-design-system.md)  
 **Referencia:** [Canvas y Toolbar](./01-canvas-toolbar.md)

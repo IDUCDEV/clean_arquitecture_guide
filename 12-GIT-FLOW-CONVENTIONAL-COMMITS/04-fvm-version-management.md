@@ -229,3 +229,14 @@ Se ignora el **SDK** pero NO la **configuración** (`.fvm/flutter_sdk_version`).
 
 - [FVM GitHub](https://github.com/leoafarias/fvm)
 - [FVM Documentation](https://fvm.app/)
+
+---
+
+## 📚 Referencias
+
+- [Conventional Commits](https://www.conventionalcommits.org/) — Especificación de mensajes de commit
+- [Husky](https://typicode.github.io/husky/) — Git hooks modernos para Node.js
+- [Commitlint](https://commitlint.js.org/) — Linter para mensajes de commit
+- [Git | Documentation](https://git-scm.com/doc) — Documentación oficial de Git
+
+---

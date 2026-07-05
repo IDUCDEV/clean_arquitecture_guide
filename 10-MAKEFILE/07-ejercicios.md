@@ -185,3 +185,11 @@ clean: ## Limpiar
 - [ ] Puedo añadir un nuevo target
 - [ ] Puedo crear un Makefile desde cero
 - [ ] Entiendo cómo Make se integra con GitHub Actions
+
+---
+
+## 📚 Referencias
+
+- [GNU | Make manual](https://www.gnu.org/software/make/manual/) — Documentación oficial de GNU Make
+
+---

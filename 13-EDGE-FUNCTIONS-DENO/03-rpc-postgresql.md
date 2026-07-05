@@ -372,3 +372,13 @@ AS $$ ... $$;
 - [Supabase RPC Guide](https://supabase.com/docs/guides/database/functions)
 - [PostgreSQL Functions](https://www.postgresql.org/docs/current/sql-createfunction.html)
 - [PL/pgSQL Guide](https://www.postgresql.org/docs/current/plpgsql.html)
+
+---
+
+## 📚 Referencias
+
+- [Supabase | Edge Functions](https://supabase.com/docs/guides/functions) — Documentación oficial de Edge Functions
+- [Deno | Manual](https://deno.land/manual) — Documentación oficial de Deno
+- [Supabase | Cron jobs](https://supabase.com/docs/guides/functions/cron) — Programación de tareas cron
+
+---

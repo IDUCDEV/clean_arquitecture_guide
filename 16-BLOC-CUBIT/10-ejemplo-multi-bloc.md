@@ -329,3 +329,13 @@ Los Cubits **no se conocen entre sí**. La comunicación se da a través de:
 3. **StreamSubscription** dentro de un Cubit (avanzado)
 
 Esto mantiene cada Cubit desacoplado y testeable por separado.
+
+---
+
+## 📚 Referencias
+
+- [bloc | Documentación oficial](https://bloclibrary.dev/) — Guías, tutoriales y API reference
+- [flutter_bloc | pub.dev](https://pub.dev/packages/flutter_bloc) — Paquete Flutter de BLoC
+- [Bloc Concurrency](https://pub.dev/packages/bloc_concurrency) — Event transformers y concurrencia
+
+---

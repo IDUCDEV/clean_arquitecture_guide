@@ -289,4 +289,11 @@ Cuando un slot tiene suggested components:
 
 ---
 
-**Siguiente:** [Code on Canvas, Libraries y Design↔Code](./06-code-libraries.md)
+## 📚 Referencias
+
+- [Pencil | Documentación oficial](https://pencil.design/docs) — Guías de uso y referencia
+- [Pencil | Ayuda](https://help.pencil.design) — Centro de ayuda y tutoriales
+
+---
+
+> 📖 **Siguiente:** [Code on Canvas, Libraries y Design↔Code](./06-code-libraries.md)

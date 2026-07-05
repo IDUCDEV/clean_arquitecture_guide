@@ -216,4 +216,11 @@ Completa estos retos para reforzar lo aprendido:
 
 ---
 
-**Siguiente:** [Práctica 2: Dashboard de Ventas](./06b-practica-dashboard.md)
+## 📚 Referencias
+
+- [Pencil | Documentación oficial](https://pencil.design/docs) — Guías de uso y referencia
+- [Pencil | Ayuda](https://help.pencil.design) — Centro de ayuda y tutoriales
+
+---
+
+> 📖 **Siguiente:** [Práctica 2: Dashboard de Ventas](./06b-practica-dashboard.md)

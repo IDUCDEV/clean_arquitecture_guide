@@ -559,6 +559,16 @@ supabase db lint --project-ref tu-proyecto
 - [PostgreSQL Documentation](https://www.postgresql.org/docs/)
 - [pgTAP Testing](https://pgtap.org/)
 
+
 ---
 
-**Siguiente**: [06-integracion-flutter.md](./06-integracion-flutter.md)
+## 📚 Referencias
+
+- [Supabase | Documentación oficial](https://supabase.com/docs) — Guías, API reference y arquitectura
+- [Supabase | CLI reference](https://supabase.com/docs/reference/cli) — Comandos de la CLI de Supabase
+- [Supabase | Flutter SDK](https://pub.dev/packages/supabase_flutter) — SDK oficial para Flutter
+- [Supabase | Migraciones](https://supabase.com/docs/guides/local-development/migrations) — Gestión de migraciones locales
+
+---
+
+> 📖 **Siguiente:** [06-integracion-flutter.md](./06-integracion-flutter.md)

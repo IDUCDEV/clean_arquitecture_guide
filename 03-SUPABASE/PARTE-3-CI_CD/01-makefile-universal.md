@@ -191,6 +191,16 @@ chmod +x scripts/check_env.sh
 2. Cambiar `PROJECT_NAME`
 3. Ajustar `FLUTTER_SDK` si usas FVM
 
+
 ---
 
-**Siguiente**: [02-workflows-github-actions.md](./02-workflows-github-actions.md)
+## 📚 Referencias
+
+- [Supabase | Documentación oficial](https://supabase.com/docs) — Guías, API reference y arquitectura
+- [Supabase | CLI reference](https://supabase.com/docs/reference/cli) — Comandos de la CLI de Supabase
+- [Supabase | Flutter SDK](https://pub.dev/packages/supabase_flutter) — SDK oficial para Flutter
+- [Supabase | Migraciones](https://supabase.com/docs/guides/local-development/migrations) — Gestión de migraciones locales
+
+---
+
+> 📖 **Siguiente:** [02-workflows-github-actions.md](./02-workflows-github-actions.md)

@@ -388,4 +388,11 @@ Las constraints controlan cómo se comporta un elemento cuando su padre se redim
 
 ---
 
-**Siguiente:** [Variables y Themes](./04-variables-themes.md)
+## 📚 Referencias
+
+- [Pencil | Documentación oficial](https://pencil.design/docs) — Guías de uso y referencia
+- [Pencil | Ayuda](https://help.pencil.design) — Centro de ayuda y tutoriales
+
+---
+
+> 📖 **Siguiente:** [Variables y Themes](./04-variables-themes.md)

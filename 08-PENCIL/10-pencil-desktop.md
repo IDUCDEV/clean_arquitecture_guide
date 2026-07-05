@@ -357,5 +357,12 @@ Si tienes Pencil Extension instalada:
 
 ---
 
+## 📚 Referencias
+
+- [Pencil | Documentación oficial](https://pencil.design/docs) — Guías de uso y referencia
+- [Pencil | Ayuda](https://help.pencil.design) — Centro de ayuda y tutoriales
+
+---
+
 **Anterior:** [Introducción a las Plataformas](./00-introduccion-plataformas.md)
-**Siguiente:** [Canvas y Toolbar](./01-canvas-toolbar.md)
+> 📖 **Siguiente:** [Canvas y Toolbar](./01-canvas-toolbar.md)

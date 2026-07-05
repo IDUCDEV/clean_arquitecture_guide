@@ -105,4 +105,12 @@ La action más básica. Descarga el repositorio en el runner. Sin esto no hay na
 
 ---
 
+## 📚 Referencias
+
+- [GitHub | Actions documentation](https://docs.github.com/en/actions) — Guías y referencia de GitHub Actions
+- [GitHub | Workflow syntax](https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions) — Sintaxis YAML de workflows
+- [GitHub | Security hardening](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions) — Buenas prácticas de seguridad en Actions
+
+---
+
 **Siguiente**: [04-workflows-analisis.md](./04-workflows-analisis.md) — Análisis de los workflows del proyecto

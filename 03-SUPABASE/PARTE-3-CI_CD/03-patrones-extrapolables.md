@@ -103,6 +103,16 @@ Cuando encuentres mejoras, actualiza la guía:
 # Añadir nuevos patrones
 ```
 
+
 ---
 
-**Siguiente**: [04-git-hooks-y-commits.md](./04-git-hooks-y-commits.md)
+## 📚 Referencias
+
+- [Supabase | Documentación oficial](https://supabase.com/docs) — Guías, API reference y arquitectura
+- [Supabase | CLI reference](https://supabase.com/docs/reference/cli) — Comandos de la CLI de Supabase
+- [Supabase | Flutter SDK](https://pub.dev/packages/supabase_flutter) — SDK oficial para Flutter
+- [Supabase | Migraciones](https://supabase.com/docs/guides/local-development/migrations) — Gestión de migraciones locales
+
+---
+
+> 📖 **Siguiente:** [04-git-hooks-y-commits.md](./04-git-hooks-y-commits.md)

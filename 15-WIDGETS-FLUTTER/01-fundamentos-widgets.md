@@ -164,6 +164,17 @@ Usa `ValueKey` para identificar elementos únicos. Usa `ObjectKey` cuando el ide
 > - Sí, pero solo por datos externos → `StatelessWidget` + BLoC / Stream
 > - Sí, y necesita estado interno efímero → `StatefulWidget`
 
+
+---
+
+## 📚 Referencias
+
+- [Flutter | Widget catalog](https://docs.flutter.dev/ui/widgets) — Catálogo completo de widgets por categoría
+- [Flutter | API reference](https://api.flutter.dev/) — Documentación de la API de Flutter
+- [Flutter | Layouts](https://docs.flutter.dev/ui/layout) — Guía de layouts en Flutter
+
+---
+
 ## Lo que sigue
 
 En el próximo capítulo veremos los widgets básicos de UI, cómo se agrupan en componentes reutilizables y el patrón de atomización.

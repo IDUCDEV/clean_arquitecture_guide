@@ -445,6 +445,16 @@ POST-RELEASE (1h después)
 - [ ] Release en fases (schema → app → cleanup)
 - [ ] Monitoreo post-deploy activo
 
+
 ---
 
-**Siguiente**: [05-backup-y-mantenimiento.md](./05-backup-y-mantenimiento.md)
+## 📚 Referencias
+
+- [Supabase | Documentación oficial](https://supabase.com/docs) — Guías, API reference y arquitectura
+- [Supabase | CLI reference](https://supabase.com/docs/reference/cli) — Comandos de la CLI de Supabase
+- [Supabase | Flutter SDK](https://pub.dev/packages/supabase_flutter) — SDK oficial para Flutter
+- [Supabase | Migraciones](https://supabase.com/docs/guides/local-development/migrations) — Gestión de migraciones locales
+
+---
+
+> 📖 **Siguiente:** [05-backup-y-mantenimiento.md](./05-backup-y-mantenimiento.md)

@@ -147,4 +147,10 @@ DEFAULT_ANDROID = $(shell flutter devices 2>/dev/null | awk -F "•" '/android/ 
 
 ---
 
+## 📚 Referencias
+
+- [GNU | Make manual](https://www.gnu.org/software/make/manual/) — Documentación oficial de GNU Make
+
+---
+
 **Siguiente**: [04-analisis-makefile-real.md](./04-analisis-makefile-real.md) — Análisis del Makefile del proyecto

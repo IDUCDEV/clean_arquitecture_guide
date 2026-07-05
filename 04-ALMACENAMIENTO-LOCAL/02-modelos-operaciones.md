@@ -467,5 +467,12 @@ class CachedPaymentMethod {
 
 ---
 
+## 📚 Referencias
+
+- [isar_community | pub.dev](https://pub.dev/packages/isar_community) — Paquete activo de Isar para Dart/Flutter
+- [Isar | Documentación original](https://isar.dev) — Referencia de operaciones y queries (legacy)
+
+---
+
 **Nivel:** Intermedio  
 **Siguiente:** [03-implementacion-local-datasource.md](./03-implementacion-local-datasource.md)

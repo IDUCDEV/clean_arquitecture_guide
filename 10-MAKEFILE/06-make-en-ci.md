@@ -124,4 +124,10 @@ steps:
 
 ---
 
+## 📚 Referencias
+
+- [GNU | Make manual](https://www.gnu.org/software/make/manual/) — Documentación oficial de GNU Make
+
+---
+
 **Siguiente**: [07-ejercicios.md](./07-ejercicios.md) — Práctica con Makefiles

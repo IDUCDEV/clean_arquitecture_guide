@@ -120,3 +120,13 @@ Esto permite herramientas como `BlocObserver` y `BlocDevTools` para depuración.
 ```
 
 En los próximos capítulos veremos cada pieza en detalle con ejemplos prácticos.
+
+---
+
+## 📚 Referencias
+
+- [bloc | Documentación oficial](https://bloclibrary.dev/) — Guías, tutoriales y API reference
+- [flutter_bloc | pub.dev](https://pub.dev/packages/flutter_bloc) — Paquete Flutter de BLoC
+- [Bloc Concurrency](https://pub.dev/packages/bloc_concurrency) — Event transformers y concurrencia
+
+---

@@ -279,4 +279,11 @@ Flujo recomendado:
 
 ---
 
-**Siguiente:** [Componentes y Slots](./05-componentes-slots.md)
+## 📚 Referencias
+
+- [Pencil | Documentación oficial](https://pencil.design/docs) — Guías de uso y referencia
+- [Pencil | Ayuda](https://help.pencil.design) — Centro de ayuda y tutoriales
+
+---
+
+> 📖 **Siguiente:** [Componentes y Slots](./05-componentes-slots.md)

@@ -153,5 +153,12 @@ Vuelve aquí cuando necesites recordar un atajo.
 
 ---
 
+## 📚 Referencias
+
+- [Pencil | Documentación oficial](https://pencil.design/docs) — Guías de uso y referencia
+- [Pencil | Ayuda](https://help.pencil.design) — Centro de ayuda y tutoriales
+
+---
+
 **Anterior:** [CLI y .pen Format](./08-cli-pen-format.md)
-**Siguiente:** [Pencil Desktop](./10-pencil-desktop.md)
+> 📖 **Siguiente:** [Pencil Desktop](./10-pencil-desktop.md)
