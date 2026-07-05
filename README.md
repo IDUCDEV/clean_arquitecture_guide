@@ -32,7 +32,7 @@ Clean Architecture es una forma de organizar el código en **capas independiente
 
 ## 📁 Estructura de la Guía
 
-La guía está organizada en **16 módulos numerados** para seguir un orden de aprendizaje lógico:
+La guía está organizada en **17 módulos numerados** para seguir un orden de aprendizaje lógico:
 
 ```
 01-CLEAN-ARCHITECTURE/         → Fundamentos de arquitectura
@@ -51,6 +51,7 @@ La guía está organizada en **16 módulos numerados** para seguir un orden de a
 14-GOOGLE-PLAY-RELEASE/        → Publicación en Play Store y CI/CD
 15-WIDGETS-FLUTTER/            → Widgets de Flutter (sin state management)
 16-BLOC-CUBIT/                 → State management con BLoC/Cubit
+17-MANTENIMIENTO-DEPENDENCIAS/ → Mantenimiento de dependencias y ciclo de vida
 ```
 
 ---
@@ -72,8 +73,6 @@ La guía está organizada en **16 módulos numerados** para seguir un orden de a
 | [07-templates-universales.md](./01-CLEAN-ARCHITECTURE/07-templates-universales.md) | Templates universales |
 | [08-decisiones-de-arquitectura.md](./01-CLEAN-ARCHITECTURE/08-decisiones-de-arquitectura.md) | Decisiones de arquitectura |
 | [09-migracion-codigo-espagueti.md](./01-CLEAN-ARCHITECTURE/09-migracion-codigo-espagueti.md) | Migración desde código espagueti |
-| [10-apendice-dependencias.md](./01-CLEAN-ARCHITECTURE/10-apendice-dependencias.md) | Apéndice: dependencias y resumen |
-
 **Contenido:** Las 4 capas, estructura de carpetas, flujo de datos, sistema CRUD completo (domain, data, presentation), inyección de dependencias con GetIt, templates universales, decisiones de arquitectura, migración desde código espagueti.
 
 ---
@@ -358,6 +357,23 @@ La guía está organizada en **16 módulos numerados** para seguir un orden de a
 
 ---
 
+### 🔧 Sección 17: Mantenimiento de Dependencias
+
+| Archivo | Descripción | Nivel |
+|---------|-------------|-------|
+| [README.md](./17-MANTENIMIENTO-DEPENDENCIAS/README.md) | Índice del módulo | 🔤 Básico |
+| [01-fundamentos-dependencias.md](./17-MANTENIMIENTO-DEPENDENCIAS/01-fundamentos-dependencias.md) | Rangos caret, pinning exacto, lockfile, resolución de conflictos | 🔤 Básico |
+| [02-flujo-actualizacion.md](./17-MANTENIMIENTO-DEPENDENCIAS/02-flujo-actualizacion.md) | `pub outdated`, `pub upgrade`, breaking changes, `dart fix` | 📦 Medio |
+| [03-automatizacion-dependabot-renovate.md](./17-MANTENIMIENTO-DEPENDENCIAS/03-automatizacion-dependabot-renovate.md) | Dependabot, Renovate, CI con auditorías semanales | 🤖 Medio |
+| [04-mantenimiento-sdk-ecosistema.md](./17-MANTENIMIENTO-DEPENDENCIAS/04-mantenimiento-sdk-ecosistema.md) | Flutter SDK, Supabase CLI, Node.js: versionado y actualización | 📦 Medio |
+| [05-seguridad-auditoria.md](./17-MANTENIMIENTO-DEPENDENCIAS/05-seguridad-auditoria.md) | `dart pub deps`, OSV, npm audit, CVSS, Dependabot security | 🔐 Medio |
+| [06-deprecacion-eol-migraciones.md](./17-MANTENIMIENTO-DEPENDENCIAS/06-deprecacion-eol-migraciones.md) | Señales de deprecación, proceso de migración, EOL | 🏗️ Alto |
+| [07-makefile-ci-objetivos.md](./17-MANTENIMIENTO-DEPENDENCIAS/07-makefile-ci-objetivos.md) | Targets de Makefile, workflows CI de monitoreo continuo | 🛠️ Alto |
+
+**Contenido:** Estrategia de versionado, flujo de actualización, Dependabot/Renovate, mantenimiento de SDK, seguridad y auditoría, deprecación y EOL, automatización en Makefile y CI.
+
+---
+
 ## 🚀 Orden de Aprendizaje Sugerido
 
 ```
@@ -392,6 +408,8 @@ La guía está organizada en **16 módulos numerados** para seguir un orden de a
 04-ALMACENAMIENTO-LOCAL      → Isar (4-6 h)
     ↓
 14-GOOGLE-PLAY-RELEASE       → Publicación (4-6 h)
+    ↓
+17-MANTENIMIENTO-DEPENDENCIAS → Mantenimiento (6-8 h)
 ```
 
 ---

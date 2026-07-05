@@ -20,7 +20,6 @@
 | [07-templates-universales.md](./07-templates-universales.md) | Templates universales (Entity, Repository, UseCase, Cubit, State) |
 | [08-decisiones-de-arquitectura.md](./08-decisiones-de-arquitectura.md) | Decisiones: Cubit vs BLoC, FAQ, ¿dónde va cada cosa? |
 | [09-migracion-codigo-espagueti.md](./09-migracion-codigo-espagueti.md) | Migración desde código espagueti |
-| [10-apendice-dependencias.md](./10-apendice-dependencias.md) | Apéndice: resumen de flujo, dependencias, notas |
 
 ---
 

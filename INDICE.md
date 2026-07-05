@@ -1,6 +1,6 @@
 # Índice General
 
-Mapa de navegación cruzada entre los 16 módulos de la guía.
+Mapa de navegación cruzada entre los 17 módulos de la guía.
 
 ---
 
@@ -17,6 +17,7 @@ Mapa de navegación cruzada entre los 16 módulos de la guía.
 | Isar (local storage) | [04-ALMACENAMIENTO-LOCAL](./04-ALMACENAMIENTO-LOCAL/) | [05-TESTING/03e](./05-TESTING/03-data/03e-practica-local-datasource-isar.md) (testing Isar) |
 | Git y automatización | [12-GIT-FLOW-CONVENTIONAL-COMMITS](./12-GIT-FLOW-CONVENTIONAL-COMMITS/) | [10-MAKEFILE](./10-MAKEFILE/) (Make + Git hooks), [11-GITHUB-ACTIONS](./11-GITHUB-ACTIONS/) (CI/CD) |
 | CI/CD | [11-GITHUB-ACTIONS](./11-GITHUB-ACTIONS/) | [10-MAKEFILE](./10-MAKEFILE/) (Make en CI), [14-GOOGLE-PLAY-RELEASE/05](./14-GOOGLE-PLAY-RELEASE/05-ci-cd-automatizado.md) (deploy automático) |
+| Mantenimiento de dependencias | [17-MANTENIMIENTO-DEPENDENCIAS](./17-MANTENIMIENTO-DEPENDENCIAS/) | [12-GIT-FLOW](./12-GIT-FLOW-CONVENTIONAL-COMMITS/) (FVM), [10-MAKEFILE](./10-MAKEFILE/) (targets), [11-GITHUB-ACTIONS](./11-GITHUB-ACTIONS/) (CI/CD) |
 | Edge Functions | [13-EDGE-FUNCTIONS-DENO](./13-EDGE-FUNCTIONS-DENO/) | [03-SUPABASE](./03-SUPABASE/) (backend Supabase) |
 | Publicación Play Store | [14-GOOGLE-PLAY-RELEASE](./14-GOOGLE-PLAY-RELEASE/) | [11-GITHUB-ACTIONS](./11-GITHUB-ACTIONS/) (CI/CD para release) |
 | IA Assistant | [07-IA-ASSISTANT](./07-IA-ASSISTANT/) | [16-BLOC-CUBIT](./16-BLOC-CUBIT/) (prompts para BLoC), [01-CLEAN-ARCHITECTURE](./01-CLEAN-ARCHITECTURE/) (prompts por capa) |
@@ -48,7 +49,7 @@ Mapa de navegación cruzada entre los 16 módulos de la guía.
 | **Principiante** | 02 (Diseño), 01 (Clean Arch), 09 (OOP básico) | 20-30 h |
 | **Intermedio** | 15 (Widgets), 16/01-09 (BLoC básico), 05 (Testing), 03 (Supabase) | 40-60 h |
 | **Avanzado** | 16/10-18 (BLoC avanzado), 06 (Nivel experto), 07 (IA) | 20-30 h |
-| **DevOps** | 10 (Make), 11 (Actions), 12 (Git flow), 13 (Edge), 14 (Play Store) | 20-30 h |
+| **DevOps** | 10 (Make), 11 (Actions), 12 (Git flow), 13 (Edge), 14 (Play Store), 17 (Mantenimiento) | 25-35 h |
 
 ---
 
@@ -72,6 +73,7 @@ Mapa de navegación cruzada entre los 16 módulos de la guía.
 | 14-GOOGLE-PLAY-RELEASE | `README.md` | `05-ci-cd-automatizado.md` |
 | 15-WIDGETS-FLUTTER | `README.md` | `11-arsenal-completo-widgets.md` |
 | 16-BLOC-CUBIT | `README.md` | `17-proyecto-integrador.md` (integrador) |
+| 17-MANTENIMIENTO-DEPENDENCIAS | `README.md` | `03-automatizacion-dependabot-renovate.md` |
 
 ---
 
