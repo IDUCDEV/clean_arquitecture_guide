@@ -1,6 +1,6 @@
 # Índice General
 
-Mapa de navegación cruzada entre los 17 módulos de la guía.
+Mapa de navegación cruzada entre los 18 módulos de la guía.
 
 ---
 
@@ -8,6 +8,7 @@ Mapa de navegación cruzada entre los 17 módulos de la guía.
 
 | Concepto | Módulo principal | Módulos relacionados |
 |---|---|---|
+| Diseño de producto (MVP) | [00-DISENIO-PRODUCTO-MVP](./00-DISENIO-PRODUCTO-MVP/) | [01-CLEAN-ARCHITECTURE](./01-CLEAN-ARCHITECTURE/) (implementación), [08-PENCIL](./08-PENCIL/) (diseño visual) |
 | Clean Architecture (capas) | [01-CLEAN-ARCHITECTURE](./01-CLEAN-ARCHITECTURE/) | [02-DISENIO-FEATURE](./02-DISENIO-FEATURE/) (mapeo a capas), [06-NIVEL-EXPERTO/04](./06-NIVEL-EXPERTO/04-streams-tiempo-real.md) (StreamUseCase) |
 | Diseño de features (FADER) | [02-DISENIO-FEATURE](./02-DISENIO-FEATURE/) | [01-CLEAN-ARCHITECTURE/03](./01-CLEAN-ARCHITECTURE/03-estructura-de-carpetas.md) (carpetas) |
 | State management (BLoC/Cubit) | [16-BLOC-CUBIT](./16-BLOC-CUBIT/) | [15-WIDGETS-FLUTTER](./15-WIDGETS-FLUTTER/) (widgets puros), [06-NIVEL-EXPERTO/03](./06-NIVEL-EXPERTO/03-comunicacion-features.md) (cross-feature), [06-NIVEL-EXPERTO/04](./06-NIVEL-EXPERTO/04-streams-tiempo-real.md) (streams) |
@@ -57,6 +58,7 @@ Mapa de navegación cruzada entre los 17 módulos de la guía.
 
 | Módulo | Archivo de entrada | Archivo más importante |
 |---|---|---|
+| 00-DISENIO-PRODUCTO-MVP | `README.md` | `09-caso-completo-mvp.md` (integrador) |
 | 01-CLEAN-ARCHITECTURE | `README.md` | `05c-presentation-ui-layer.md` (CRUD completo) |
 | 02-DISENIO-FEATURE | `README.md` | `05-caso-completo-reservas.md` (caso integrador) |
 | 03-SUPABASE | `README.md` | `PARTE-1-DESARROLLO/05-migraciones-y-seeds.md` |
