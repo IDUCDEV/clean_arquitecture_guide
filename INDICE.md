@@ -19,6 +19,7 @@ Mapa de navegación cruzada entre los 18 módulos de la guía.
 | Git y automatización | [12-GIT-FLOW-CONVENTIONAL-COMMITS](./12-GIT-FLOW-CONVENTIONAL-COMMITS/) | [10-MAKEFILE](./10-MAKEFILE/) (Make + Git hooks), [11-GITHUB-ACTIONS](./11-GITHUB-ACTIONS/) (CI/CD) |
 | CI/CD | [11-GITHUB-ACTIONS](./11-GITHUB-ACTIONS/) | [10-MAKEFILE](./10-MAKEFILE/) (Make en CI), [14-GOOGLE-PLAY-RELEASE/05](./14-GOOGLE-PLAY-RELEASE/05-ci-cd-automatizado.md) (deploy automático) |
 | Mantenimiento de dependencias | [17-MANTENIMIENTO-DEPENDENCIAS](./17-MANTENIMIENTO-DEPENDENCIAS/) | [12-GIT-FLOW](./12-GIT-FLOW-CONVENTIONAL-COMMITS/) (FVM), [10-MAKEFILE](./10-MAKEFILE/) (targets), [11-GITHUB-ACTIONS](./11-GITHUB-ACTIONS/) (CI/CD) |
+| Debugging Flutter | [18-DEBUGGING-FLUTTER](./18-DEBUGGING-FLUTTER/) | [05-TESTING](./05-TESTING/) (testing), [16-BLOC-CUBIT](./16-BLOC-CUBIT/) (debug BLoC), [17-MANTENIMIENTO-DEPENDENCIAS](./17-MANTENIMIENTO-DEPENDENCIAS/) (dep debug) |
 | Edge Functions | [13-EDGE-FUNCTIONS-DENO](./13-EDGE-FUNCTIONS-DENO/) | [03-SUPABASE](./03-SUPABASE/) (backend Supabase) |
 | Publicación Play Store | [14-GOOGLE-PLAY-RELEASE](./14-GOOGLE-PLAY-RELEASE/) | [11-GITHUB-ACTIONS](./11-GITHUB-ACTIONS/) (CI/CD para release) |
 | IA Assistant | [07-IA-ASSISTANT](./07-IA-ASSISTANT/) | [16-BLOC-CUBIT](./16-BLOC-CUBIT/) (prompts para BLoC), [01-CLEAN-ARCHITECTURE](./01-CLEAN-ARCHITECTURE/) (prompts por capa) |
@@ -37,9 +38,10 @@ Mapa de navegación cruzada entre los 18 módulos de la guía.
 | **Ejemplos con código** | 01/05a-c (CRUD), 02/05a-d (casos reales), 16/07-12,18 (BLoC) |
 | **Ejercicios prácticos** | 02/01a-04a (Carrito), 05/01a-06c (Testing), 09/08-10 (OOP), 10/07 (Make), 11/07 (Actions) |
 | **Casos integradores** | 02/05 (Reservas), 02/05b (E-learning), 02/05c (Facturación), 02/05d (Delivery), 16/17 (E-commerce) |
-| **Referencia rápida** | 15/11 (arsenal de widgets), 01/08 (templates), 03/PARTE-3-CI_CD/01 (Makefile universal) |
+| **Referencia rápida** | 15/11 (arsenal de widgets), 01/08 (templates), 03/PARTE-3-CI_CD/01 (Makefile universal), 18/01-06 (cheatsheet debugging), 18/02-10 (cheatsheet DevTools) |
 | **CI/CD / Automatización** | 03/PARTE-3-CI_CD, 10, 11, 14/05 |
 | **Prompts para IA** | 07/01 (framework AIDR), 07/02 (caso reservas) |
+| **Debugging / Diagnóstico** | 18/01 (VSCode debugging), 18/02 (DevTools), 18/01-06 (cheatsheets), 18/02-10 (cheatsheets) |
 
 ---
 
@@ -48,8 +50,8 @@ Mapa de navegación cruzada entre los 18 módulos de la guía.
 | Nivel | Módulos | Tiempo estimado |
 |---|---|---|
 | **Principiante** | 02 (Diseño), 01 (Clean Arch), 09 (OOP básico) | 20-30 h |
-| **Intermedio** | 15 (Widgets), 16/01-09 (BLoC básico), 05 (Testing), 03 (Supabase) | 40-60 h |
-| **Avanzado** | 16/10-18 (BLoC avanzado), 06 (Nivel experto), 07 (IA) | 20-30 h |
+| **Intermedio** | 15 (Widgets), 16/01-09 (BLoC básico), 05 (Testing), 03 (Supabase), 18/01 (VSCode debugging) | 40-60 h |
+| **Avanzado** | 16/10-18 (BLoC avanzado), 06 (Nivel experto), 07 (IA), 18/02 (DevTools avanzado) | 20-30 h |
 | **DevOps** | 10 (Make), 11 (Actions), 12 (Git flow), 13 (Edge), 14 (Play Store), 17 (Mantenimiento) | 25-35 h |
 
 ---
@@ -76,6 +78,7 @@ Mapa de navegación cruzada entre los 18 módulos de la guía.
 | 15-WIDGETS-FLUTTER | `README.md` | `11-arsenal-completo-widgets.md` |
 | 16-BLOC-CUBIT | `README.md` | `17-proyecto-integrador.md` (integrador) |
 | 17-MANTENIMIENTO-DEPENDENCIAS | `README.md` | `03-automatizacion-dependabot-renovate.md` |
+| 18-DEBUGGING-FLUTTER | `README.md` | `01-debugging-vscode/07-practicas-vscode.md` (prácticas VSCode), `02-flutter-devtools/11-practicas-devtools.md` (prácticas DevTools) |
 
 ---
 
