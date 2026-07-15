@@ -1,6 +1,6 @@
 # Índice General
 
-Mapa de navegación cruzada entre los 18 módulos de la guía.
+Mapa de navegación cruzada entre los 19 módulos de la guía.
 
 ---
 
@@ -20,6 +20,7 @@ Mapa de navegación cruzada entre los 18 módulos de la guía.
 | CI/CD | [11-GITHUB-ACTIONS](./11-GITHUB-ACTIONS/) | [10-MAKEFILE](./10-MAKEFILE/) (Make en CI), [14-GOOGLE-PLAY-RELEASE/05](./14-GOOGLE-PLAY-RELEASE/05-ci-cd-automatizado.md) (deploy automático) |
 | Mantenimiento de dependencias | [17-MANTENIMIENTO-DEPENDENCIAS](./17-MANTENIMIENTO-DEPENDENCIAS/) | [12-GIT-FLOW](./12-GIT-FLOW-CONVENTIONAL-COMMITS/) (FVM), [10-MAKEFILE](./10-MAKEFILE/) (targets), [11-GITHUB-ACTIONS](./11-GITHUB-ACTIONS/) (CI/CD) |
 | Debugging Flutter | [18-DEBUGGING-FLUTTER](./18-DEBUGGING-FLUTTER/) | [05-TESTING](./05-TESTING/) (testing), [16-BLOC-CUBIT](./16-BLOC-CUBIT/) (debug BLoC), [17-MANTENIMIENTO-DEPENDENCIAS](./17-MANTENIMIENTO-DEPENDENCIAS/) (dep debug) |
+| Monitoreo en producción | [19-MONITOREO-PRODUCCION](./19-MONITOREO-PRODUCCION/) | [18-DEBUGGING-FLUTTER](./18-DEBUGGING-FLUTTER/) (debugging), [11-GITHUB-ACTIONS](./11-GITHUB-ACTIONS/) (CI/CD para uploads de symbols), [16-BLOC-CUBIT](./16-BLOC-CUBIT/) (errores en state management) |
 | Edge Functions | [13-EDGE-FUNCTIONS-DENO](./13-EDGE-FUNCTIONS-DENO/) | [03-SUPABASE](./03-SUPABASE/) (backend Supabase) |
 | Publicación Play Store | [14-GOOGLE-PLAY-RELEASE](./14-GOOGLE-PLAY-RELEASE/) | [11-GITHUB-ACTIONS](./11-GITHUB-ACTIONS/) (CI/CD para release) |
 | IA Assistant | [07-IA-ASSISTANT](./07-IA-ASSISTANT/) | [16-BLOC-CUBIT](./16-BLOC-CUBIT/) (prompts para BLoC), [01-CLEAN-ARCHITECTURE](./01-CLEAN-ARCHITECTURE/) (prompts por capa) |
@@ -42,6 +43,7 @@ Mapa de navegación cruzada entre los 18 módulos de la guía.
 | **CI/CD / Automatización** | 03/PARTE-3-CI_CD, 10, 11, 14/05 |
 | **Prompts para IA** | 07/01 (framework AIDR), 07/02 (caso reservas) |
 | **Debugging / Diagnóstico** | 18/01 (VSCode debugging), 18/02 (DevTools), 18/01-06 (cheatsheets), 18/02-10 (cheatsheets) |
+| **Monitoreo en producción** | 19/01 (Crashlytics), 19/02 (Sentry), 19/03 (Comparación), 19/01-07 (cheatsheet Crashlytics), 19/02-08 (cheatsheet Sentry) |
 
 ---
 
@@ -79,6 +81,7 @@ Mapa de navegación cruzada entre los 18 módulos de la guía.
 | 16-BLOC-CUBIT | `README.md` | `17-proyecto-integrador.md` (integrador) |
 | 17-MANTENIMIENTO-DEPENDENCIAS | `README.md` | `03-automatizacion-dependabot-renovate.md` |
 | 18-DEBUGGING-FLUTTER | `README.md` | `01-debugging-vscode/07-practicas-vscode.md` (prácticas VSCode), `02-flutter-devtools/11-practicas-devtools.md` (prácticas DevTools) |
+| 19-MONITOREO-PRODUCCION | `README.md` | `01-firebase-crashlytics/08-practicas-crashlytics.md` (prácticas Crashlytics), `02-sentry/09-practicas-sentry.md` (prácticas Sentry) |
 
 ---
 
