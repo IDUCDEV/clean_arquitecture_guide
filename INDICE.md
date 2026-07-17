@@ -1,6 +1,6 @@
 # Índice General
 
-Mapa de navegación cruzada entre los 19 módulos de la guía.
+Mapa de navegación cruzada entre los 21 módulos de la guía.
 
 ---
 
@@ -25,6 +25,7 @@ Mapa de navegación cruzada entre los 19 módulos de la guía.
 | Publicación Play Store | [14-GOOGLE-PLAY-RELEASE](./14-GOOGLE-PLAY-RELEASE/) | [11-GITHUB-ACTIONS](./11-GITHUB-ACTIONS/) (CI/CD para release) |
 | IA Assistant | [07-IA-ASSISTANT](./07-IA-ASSISTANT/) | [16-BLOC-CUBIT](./16-BLOC-CUBIT/) (prompts para BLoC), [01-CLEAN-ARCHITECTURE](./01-CLEAN-ARCHITECTURE/) (prompts por capa) |
 | Dart 3 / OOP | [09-ESTRUCTURA-DATOS-OOP](./09-ESTRUCTURA-DATOS-OOP/) | [16-BLOC-CUBIT/03](./16-BLOC-CUBIT/03-cubit-basico.md) (sealed + Equatable en estados), [06-NIVEL-EXPERTO/06](./06-NIVEL-EXPERTO/06-json-serializable-freezed.md) (freezed) |
+| Resolución de problemas algorítmicos | [20-RESOLUCION-PROBLEMAS-ALGORITMOS](./20-RESOLUCION-PROBLEMAS-ALGORITMOS/) | [09-ESTRUCTURA-DATOS-OOP](./09-ESTRUCTURA-DATOS-OOP/) (estructuras de datos en Dart), [06-NIVEL-EXPERTO/01](./06-NIVEL-EXPERTO/01-fpdart-result-pattern.md) (pensamiento funcional) |
 | Makefile | [10-MAKEFILE](./10-MAKEFILE/) | [03-SUPABASE/PARTE-3-CI_CD/01](./03-SUPABASE/PARTE-3-CI_CD/01-makefile-universal.md) (Makefile universal Supabase) |
 | Pencil (diseño) | [08-PENCIL](./08-PENCIL/) | [15-WIDGETS-FLUTTER](./15-WIDGETS-FLUTTER/) (de diseño a implementación) |
 | Programación funcional | [06-NIVEL-EXPERTO/01](./06-NIVEL-EXPERTO/01-fpdart-result-pattern.md) | [01-CLEAN-ARCHITECTURE/05a-b](./01-CLEAN-ARCHITECTURE/05a-domain-layer.md) (Either en UseCases), [09-ESTRUCTURA-DATOS-OOP/03](./09-ESTRUCTURA-DATOS-OOP/03-metodos-funcionales-listas.md) (map, where, fold) |
@@ -36,8 +37,8 @@ Mapa de navegación cruzada entre los 19 módulos de la guía.
 | Tipo | Dónde encontrarlo |
 |---|---|
 | **Teoría / Conceptos** | 01 (Clean Arch), 02 (Diseño), 09 (OOP), 10 (Make), 11 (GitHub Actions), 12 (Git flow), 15 (Widgets), 16/01-02 (BLoC) |
-| **Ejemplos con código** | 01/05a-c (CRUD), 02/05a-d (casos reales), 16/07-12,18 (BLoC) |
-| **Ejercicios prácticos** | 02/01a-04a (Carrito), 05/01a-06c (Testing), 09/08-10 (OOP), 10/07 (Make), 11/07 (Actions) |
+| **Ejemplos con código** | 01/05a-c (CRUD), 02/05a-d (casos reales), 16/07-12,18 (BLoC), 20/05 (patrones con template Dart) |
+| **Ejercicios prácticos** | 02/01a-04a (Carrito), 05/01a-06c (Testing), 09/08-10 (OOP), 10/07 (Make), 11/07 (Actions), 20/07 (10 ejercicios algorítmicos) |
 | **Casos integradores** | 02/05 (Reservas), 02/05b (E-learning), 02/05c (Facturación), 02/05d (Delivery), 16/17 (E-commerce) |
 | **Referencia rápida** | 15/11 (arsenal de widgets), 01/08 (templates), 03/PARTE-3-CI_CD/01 (Makefile universal), 18/01-06 (cheatsheet debugging), 18/02-10 (cheatsheet DevTools) |
 | **CI/CD / Automatización** | 03/PARTE-3-CI_CD, 10, 11, 14/05 |
@@ -52,7 +53,7 @@ Mapa de navegación cruzada entre los 19 módulos de la guía.
 | Nivel | Módulos | Tiempo estimado |
 |---|---|---|
 | **Principiante** | 02 (Diseño), 01 (Clean Arch), 09 (OOP básico) | 20-30 h |
-| **Intermedio** | 15 (Widgets), 16/01-09 (BLoC básico), 05 (Testing), 03 (Supabase), 18/01 (VSCode debugging) | 40-60 h |
+| **Intermedio** | 15 (Widgets), 16/01-09 (BLoC básico), 05 (Testing), 03 (Supabase), 18/01 (VSCode debugging), 20 (Resolución problemas) | 40-60 h |
 | **Avanzado** | 16/10-18 (BLoC avanzado), 06 (Nivel experto), 07 (IA), 18/02 (DevTools avanzado) | 20-30 h |
 | **DevOps** | 10 (Make), 11 (Actions), 12 (Git flow), 13 (Edge), 14 (Play Store), 17 (Mantenimiento) | 25-35 h |
 
@@ -82,6 +83,7 @@ Mapa de navegación cruzada entre los 19 módulos de la guía.
 | 17-MANTENIMIENTO-DEPENDENCIAS | `README.md` | `03-automatizacion-dependabot-renovate.md` |
 | 18-DEBUGGING-FLUTTER | `README.md` | `01-debugging-vscode/07-practicas-vscode.md` (prácticas VSCode), `02-flutter-devtools/11-practicas-devtools.md` (prácticas DevTools) |
 | 19-MONITOREO-PRODUCCION | `README.md` | `01-firebase-crashlytics/08-practicas-crashlytics.md` (prácticas Crashlytics), `02-sentry/09-practicas-sentry.md` (prácticas Sentry) |
+| 20-RESOLUCION-PROBLEMAS-ALGORITMOS | `README.md` | `03-reconocimiento-patrones.md` (corazón de la guía), `05-patrones-avanzados.md` (templates Dart) |
 
 ---
 

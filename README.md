@@ -32,9 +32,10 @@ Clean Architecture es una forma de organizar el código en **capas independiente
 
 ## 📁 Estructura de la Guía
 
-La guía está organizada en **17 módulos numerados** para seguir un orden de aprendizaje lógico:
+La guía está organizada en **21 módulos numerados** para seguir un orden de aprendizaje lógico:
 
 ```
+00-DISENIO-PRODUCTO-MVP/       → Diseño de producto y Design Sprint
 01-CLEAN-ARCHITECTURE/         → Fundamentos de arquitectura
 02-DISENIO-FEATURE/            → Diseño y descomposición de features (¡empieza aquí!)
 03-SUPABASE/                   → Backend + automatización
@@ -52,6 +53,9 @@ La guía está organizada en **17 módulos numerados** para seguir un orden de a
 15-WIDGETS-FLUTTER/            → Widgets de Flutter (sin state management)
 16-BLOC-CUBIT/                 → State management con BLoC/Cubit
 17-MANTENIMIENTO-DEPENDENCIAS/ → Mantenimiento de dependencias y ciclo de vida
+18-DEBUGGING-FLUTTER/          → Debugging con VSCode y Flutter DevTools
+19-MONITOREO-PRODUCCION/       → Crashlytics, Sentry y monitoreo
+20-RESOLUCION-PROBLEMAS-ALGORITMOS/ → Protocolo de resolución de problemas algorítmicos
 ```
 
 ---
@@ -374,6 +378,24 @@ La guía está organizada en **17 módulos numerados** para seguir un orden de a
 
 ---
 
+### 🧠 Sección 20: Resolución de Problemas Algorítmicos
+
+| Archivo | Descripción |
+|---------|-------------|
+| [README.md](./20-RESOLUCION-PROBLEMAS-ALGORITMOS/README.md) | Índice de la sección |
+| [01-metodologia-general.md](./20-RESOLUCION-PROBLEMAS-ALGORITMOS/01-metodologia-general.md) | Framework de 6 pasos universal para resolver cualquier problema |
+| [02-analisis-complejidad.md](./20-RESOLUCION-PROBLEMAS-ALGORITMOS/02-analisis-complejidad.md) | Big-O, tabla de constraints vs complejidad esperada |
+| [03-reconocimiento-patrones.md](./20-RESOLUCION-PROBLEMAS-ALGORITMOS/03-reconocimiento-patrones.md) | Mapa señales→patrón, árbol de decisión, keywords del enunciado |
+| [04-estructuras-datos-referencia.md](./20-RESOLUCION-PROBLEMAS-ALGORITMOS/04-estructuras-datos-referencia.md) | Tipo de input→estructura recomendada con complejidades |
+| [05-patrones-avanzados.md](./20-RESOLUCION-PROBLEMAS-ALGORITMOS/05-patrones-avanzados.md) | 8 patrones con template Dart: Sliding Window, BFS, DFS, Binary Search, Greedy, DP, Backtracking, Two Pointers |
+| [06-comunicacion-y-pseudocodigo.md](./20-RESOLUCION-PROBLEMAS-ALGORITMOS/06-comunicacion-y-pseudocodigo.md) | Cómo escribir pseudocódigo y comunicar soluciones en entrevistas |
+| [07-ejercicios-practica.md](./20-RESOLUCION-PROBLEMAS-ALGORITMOS/07-ejercicios-practica.md) | 10 ejercicios progresivos (easy→medium→hard) con solución en Dart |
+| [08-recursos-externos.md](./20-RESOLUCION-PROBLEMAS-ALGORITMOS/08-recursos-externos.md) | Libros, plataformas, repositorios y canales de YouTube |
+
+**Contenido:** Framework de 6 pasos, análisis de complejidad, reconocimiento de patrones (señales→patrón), referencia de estructuras de datos, 8 patrones con template Dart, pseudocódigo y comunicación en entrevistas, 10 ejercicios progresivos, recursos externos.
+
+---
+
 ## 🚀 Orden de Aprendizaje Sugerido
 
 ```
@@ -390,6 +412,8 @@ La guía está organizada en **17 módulos numerados** para seguir un orden de a
 06-NIVEL-EXPERTO             → Técnicas avanzadas (6-8 h)
     ↓
 09-ESTRUCTURA-DATOS-OOP      → Estructuras de datos con OOP (10-15 h)
+    ↓
+20-RESOLUCION-PROBLEMAS     → Resolución de problemas algorítmicos (15-20 h)
     ↓
 15-WIDGETS-FLUTTER           → Widgets puros (6-10 h)
     ↓
