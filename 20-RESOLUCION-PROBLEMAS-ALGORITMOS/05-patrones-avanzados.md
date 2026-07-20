@@ -10,6 +10,7 @@
 
 **Template:**
 ```dart
+// Tiempo: O(n) | Espacio: O(1) fijo, O(k) variable
 // Sliding Window de tamaño variable
 int slidingWindow(List<int> arr, int k) {
   int windowSum = 0;
@@ -59,6 +60,7 @@ int longestWithCondition(List<int> arr) {
 
 **Template:**
 ```dart
+// Tiempo: O(n) | Espacio: O(1)
 // Two pointers desde ambos extremos
 List<int> twoSumSorted(List<int> arr, int target) {
   int left = 0;
@@ -107,6 +109,8 @@ void partitionColors(List<int> arr) {
 
 **Template:**
 ```dart
+// Tiempo: O(V + E) | Espacio: O(V)
+// V = vértices/nodos, E = aristas/conexiones
 import 'dart:collection';
 
 int bfs(List<List<int>> graph, int start, int target) {
@@ -176,6 +180,7 @@ int bfsGrid(List<String> grid, int startX, int startY, int goalX, int goalY) {
 
 **Template:**
 ```dart
+// Tiempo: O(V + E) | Espacio: O(V)
 // DFS recursivo en graph
 void dfs(List<List<int>> graph, int node, Set<int> visited) {
   visited.add(node);
@@ -223,6 +228,7 @@ void dfsGrid(List<List<int>> grid, int r, int c, int rows, int cols) {
 
 **Template:**
 ```dart
+// Tiempo: O(log n) | Espacio: O(1)
 // Binary Search clásico
 int binarySearch(List<int> arr, int target) {
   int left = 0, right = arr.length - 1;
@@ -274,6 +280,7 @@ int searchAnswer(List<int> arr) {
 
 **Template:**
 ```dart
+// Tiempo: O(n log n) por sorting | Espacio: O(1)
 // Greedy con sorting
 int greedySchedule(List<(int start, int end)> intervals) {
   intervals.sortBy((a, b) => a.$2.compareTo(b.$2)); // sort by end time
@@ -317,6 +324,7 @@ int findStart(List<(int petrol, int distance)> pumps) {
 
 **Template:**
 ```dart
+// Tiempo: O(n) a O(n*m) según subproblemas | Espacio: O(n) a O(n*m)
 // DP bottom-up (tabulation)
 int climbStairs(int n) {
   if (n <= 2) return n;
@@ -376,6 +384,7 @@ int knapsack(List<int> weights, List<int> values, int capacity) {
 
 **Template:**
 ```dart
+// Tiempo: O(2^n) o O(n!) | Espacio: O(n)
 // Backtracking base
 void backtrack(List<int> candidates, List<int> current, int start) {
   // procesar current (es solución válida)
@@ -421,15 +430,4 @@ void permute(List<int> nums) {
 
 ---
 
-## Resumen de Patrones
-
-```
-¿Input contiguo?        → Sliding Window
-¿Input ordenado?        → Two Pointers / Binary Search
-¿Camino más corto?      → BFS
-¿Explorar todo?         → DFS
-¿K-th element?          → Heap
-¿Subproblemas overlap?  → DP
-¿Todas las combinaciones? → Backtracking
-¿Elección local = global? → Greedy
-```
+> Para el árbol de decisión completo de patrones, ver [03-reconocimiento-patrones.md](./03-reconocimiento-patrones.md).

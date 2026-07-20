@@ -47,17 +47,15 @@ Lee el enunciado **dos veces**. No asumas nada. Responde estas preguntas:
 
 Las constraints son la **señal más fuerte** para elegir algoritmo. Lées **antes** de pensar en la solución.
 
-| Si las constraints dicen... | Entonces la complejidad debe ser... |
-|---|---|
-| `n ≤ 10` | O(n!) o O(2ⁿ) — brute force, backtracking |
-| `n ≤ 20` | O(2ⁿ · n) — bitmask DP, backtracking podado |
-| `n ≤ 400` | O(n³) — Floyd-Warshall, DP con dimensión extra |
-| `n ≤ 5.000` | O(n²) — dos loops anidados, DP cuadrático |
-| `n ≤ 10⁵` | O(n log n) — sorting, binary search, heap |
-| `n ≤ 10⁶` | O(n) — two pointers, sliding window, hashing |
-| `n ≤ 10¹⁸` | O(log n) o O(1) — binary search sobre respuesta, fórmula matemática |
+La regla clave: un ordenador ejecuta ~10⁸ operaciones por segundo. Si tu algoritmo hará más de eso, será demasiado lento.
 
-**La regla de los 10⁸:** Un ordenador moderno ejecuta ~10⁸ operaciones por segundo. Si tu algoritmo hará 10¹⁰ operaciones, será demasiado lento para un time limit de 1 segundo.
+**Tabla completa de constraints → complejidad:** Ver [02-analisis-complejidad.md](./02-analisis-complejidad.md#regla-práctica-qué-complejidad-necesito).
+
+**En resumen:**
+- `n ≤ 10` → backtracking completo
+- `n ≤ 5.000` → dos loops anidados (O(n²))
+- `n ≤ 10⁵` → sorting o binary search (O(n log n))
+- `n ≤ 10⁶` → un solo recorrido (O(n))
 
 ---
 
@@ -106,20 +104,19 @@ Nunca saltes directamente al código. Escribe pseudocódigo primero. Esto te per
 ### Ejemplo de pseudocódigo
 
 ```
-PROBLEMA: Encontrar el mínimo número de pasos en un grid
+PROBLEMA: Validar que los paréntesis están balanceados
 
-PATRÓN: BFS (camino mínimo en grafo no ponderado)
+PATRÓN: Stack (LIFO) — el último abierto debe ser el primero en cerrarse
 
-1. Cola = [(startX, startY, 0)]
-2. Visited = {(startX, startY)}
-3. Mientras cola no esté vacía:
-   a. Extraer (x, y, pasos) de la cola
-   b. Si (x, y) == goal, retornar pasos
-   c. Para cada dirección (arriba, abajo, izquierda, derecha):
-      - Mientras la celda siguiente sea válida y no visitada:
-        - Marcar como visitada
-        - Agregar a la cola con pasos + 1
-4. Retornar -1 (no hay camino)
+1. Crear un stack vacío
+2. Para cada carácter en el string:
+   a. Si es '(' o '[', agregar al stack
+   b. Si es ')' o ']', verificar que el stack no esté vacío
+      - Si está vacío → retorno false (cerrar sin abrir)
+      - Si el tope del stack no coincide → retorno false
+      - Si coincide → sacar del stack
+3. Si el stack está vacío → retorno true (todo balanceado)
+   Si no → retorno false (quedaron abiertos sin cerrar)
 ```
 
 ---
@@ -156,26 +153,28 @@ NO hagas:
 
 ---
 
-## Ejemplo rápido: Two Sum
+## Ejemplo rápido: Valid Parentheses
 
-**Problema:** Dado un array de enteros y un target, encontrar dos índices cuya suma sea igual al target.
+**Problema:** Dado un string con solo `(`, `)`, `{`, `}`, `[` y `]`, determinar si los paréntesis están balanceados.
 
-**Paso 1:** Entrada: array + target. Salida: dos índices.
+**Paso 1:** Entrada: string de paréntesis. Salida: booleano.
 
-**Paso 2:** n ≤ 10⁴ → necesitamos O(n) o O(n log n).
+**Paso 2:** n ≤ 10⁴ → necesitamos O(n). Un solo recorrido es suficiente.
 
-**Paso 3:** Edge cases: array de 2 elementos, todos iguales, negativos.
+**Paso 3:** Edge cases: string vacío → true, solo un carácter → false, `((` → false.
 
-**Paso 4:** "Par que suma X" + n ≤ 10⁴ → **HashMap** (complemento en O(1)).
+**Paso 4:** "Paréntesis balanceados" + "el último abierto debe ser el primero en cerrar" → **Stack** (LIFO).
 
 **Paso 5:**
 ```
-1. HashMap = {}
-2. Para cada (i, num) en array:
-   a. complemento = target - num
-   b. Si complemento en HashMap, retornar [HashMap[complemento], i]
-   c. HashMap[num] = i
-3. Retornar []
+1. Stack = []
+2. Para cada char en el string:
+   a. Si es apertura '(', '{', '[' → agregar al stack
+   b. Si es cierre ')', '}', ']':
+      - Si stack vacío → return false
+      - Si tope del stack no coincide → return false
+      - Si coincide → sacar del stack
+3. Return stack.isEmpty
 ```
 
-**Paso 6:** Implementar, testear con [2,7,11,15] target=9 → [0,1] ✓
+**Paso 6:** Implementar, testear con "(]" → false ✓, "([])" → true ✓

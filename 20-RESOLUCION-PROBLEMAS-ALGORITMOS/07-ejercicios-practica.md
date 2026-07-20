@@ -70,7 +70,7 @@ bool isAnagram(String s, String t) {
 ---
 
 ### Ejercicio 3: Maximum Subarray (Kadane's Algorithm)
-**Patrón:** DP lineal | **Plataforma:** LeetCode #53
+**Patrón:** DP lineal | **Plataforma:** LeetCode #53 | **Plantilla:** Ver [DP en 05-patrones-avanzados.md](./05-patrones-avanzados.md#7-dynamic-programming-dp)
 
 **Enunciado:** Dado un array de enteros, encuentra el subarray contiguo con la mayor suma.
 
@@ -131,7 +131,7 @@ int maxProfit(List<int> prices) {
 ---
 
 ### Ejercicio 5: Number of Islands
-**Patrón:** DFS/BFS en grid | **Plataforma:** LeetCode #200
+**Patrón:** DFS/BFS en grid | **Plataforma:** LeetCode #200 | **Plantilla:** Ver [DFS en 05-patrones-avanzados.md](./05-patrones-avanzados.md#4-dfs-depth-first-search)
 
 **Enunciado:** Dado un grid de `'1'` (tierra) y `'0'` (agua), cuenta el número de islas. Una isla es formada por `'1'`s conectados horizontal o verticalmente.
 
@@ -172,7 +172,7 @@ void dfs(List<List<String>> grid, int r, int c, int rows, int cols) {
 ---
 
 ### Ejercicio 6: Coin Change
-**Patrón:** Dynamic Programming | **Plataforma:** LeetCode #322
+**Patrón:** Dynamic Programming | **Plataforma:** LeetCode #322 | **Plantilla:** Ver [DP en 05-patrones-avanzados.md](./05-patrones-avanzados.md#7-dynamic-programming-dp)
 
 **Enunciado:** Dado un array de denominaciones de monedas `coins` y un `amount`, retorna el número mínimo de monedas para llegar a ese monto. Si no es posible, retorna -1.
 
@@ -286,7 +286,7 @@ ListNode? mergeKLists(List<ListNode?> lists) {
 ---
 
 ### Ejercicio 9: Alien Dictionary
-**Patrón:** Topological Sort | **Plataforma:** LeetCode #269
+**Patrón:** Topological Sort | **Plataforma:** LeetCode #269 | **Plantilla:** Ver [BFS en 05-patrones-avanzados.md](./05-patrones-avanzados.md#3-bfs-breadth-first-search)
 
 **Enunciado:** Dado un array de palabras de un diccionario alienígena ordenado, determina el orden de los caracteres.
 
@@ -350,7 +350,7 @@ String alienOrder(List<String> words) {
 ---
 
 ### Ejercicio 10: Word Ladder
-**Patrón:** BFS | **Plataforma:** LeetCode #127
+**Patrón:** BFS | **Plataforma:** LeetCode #127 | **Plantilla:** Ver [BFS en 05-patrones-avanzados.md](./05-patrones-avanzados.md#3-bfs-breadth-first-search)
 
 **Enunciado:** Dado `beginWord`, `endWord` y un diccionario `wordList`, encuentra la longitud más corta de `beginWord` a `endWord` cambiando una letra a la vez. Cada palabra intermedia debe estar en el diccionario.
 

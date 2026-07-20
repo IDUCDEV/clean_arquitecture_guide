@@ -17,7 +17,7 @@ A diferencia de la sección 09 (Estructuras de Datos con OOP), que enseña **có
 | # | Archivo | Descripción |
 |---|---------|-------------|
 | 01 | [Metodología General](./01-metodologia-general.md) | Framework de 6 pasos universal para resolver cualquier problema |
-| 02 | [Análisis de Complejidad](./02-analisis-complejidad.md) | Big-O, tabla de constraints vs complejidad esperada, regla de los 10⁸ |
+| 02 | [Análisis de Complejidad](./02-analisis-complejidad.md) | Big-O desde cero: qué es n, qué significa O(n), 4 complejidades esenciales con analogías, tabla visual de crecimiento, regla de los 10⁸, 3 patrones para calcular complejidad, ejemplos en Dart |
 | 03 | [Reconocimiento de Patrones](./03-reconocimiento-patrones.md) | Mapa señales→patrón, árbol de decisión, keywords del enunciado |
 | 04 | [Estructuras de Datos: Referencia Rápida](./04-estructuras-datos-referencia.md) | Tipo de input→estructura recomendada con complejidades |
 | 05 | [Patrones Avanzados](./05-patrones-avanzados.md) | 8 patrones con template Dart: Sliding Window, BFS, DFS, Binary Search, Greedy, DP, Backtracking, Two Pointers |
@@ -33,7 +33,7 @@ A diferencia de la sección 09 (Estructuras de Datos con OOP), que enseña **có
 Tiempo estimado: 15-20 horas
 
 1. Leer 01-metodologia-general.md        (30 min)   ← Fundamento
-2. Leer 02-analisis-complejidad.md       (45 min)   ← Para saber qué complejidad buscar
+2. Leer 02-analisis-complejidad.md       (60 min)   ← Para saber qué complejidad buscar
 3. Leer 03-reconocimiento-patrones.md    (60 min)   ← El corazón de la guía
 4. Leer 04-estructuras-datos-referencia.md (40 min) ← Rápida referencia
 5. Leer 05-patrones-avanzados.md         (90 min)   ← Templates listos para usar
