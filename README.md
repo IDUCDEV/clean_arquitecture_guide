@@ -32,7 +32,7 @@ Clean Architecture es una forma de organizar el código en **capas independiente
 
 ## 📁 Estructura de la Guía
 
-La guía está organizada en **21 módulos numerados** para seguir un orden de aprendizaje lógico:
+La guía está organizada en **22 módulos numerados** para seguir un orden de aprendizaje lógico:
 
 ```
 00-DISENIO-PRODUCTO-MVP/       → Diseño de producto y Design Sprint
@@ -53,9 +53,10 @@ La guía está organizada en **21 módulos numerados** para seguir un orden de a
 15-WIDGETS-FLUTTER/            → Widgets de Flutter (sin state management)
 16-BLOC-CUBIT/                 → State management con BLoC/Cubit
 17-MANTENIMIENTO-DEPENDENCIAS/ → Mantenimiento de dependencias y ciclo de vida
-18-DEBUGGING-FLUTTER/          → Debugging con VSCode y Flutter DevTools
+18-DEBUGGING-FLUTTER/          → Debugging con VSCode y Flutter DevTools + Optimizacion de rendimiento
 19-MONITOREO-PRODUCCION/       → Crashlytics, Sentry y monitoreo
 20-RESOLUCION-PROBLEMAS-ALGORITMOS/ → Protocolo de resolución de problemas algorítmicos
+21-COMUNICACION-EQUIPO/        → Code reviews, colaboración y trabajo en equipo
 ```
 
 ---
@@ -101,6 +102,30 @@ La guía está organizada en **21 módulos numerados** para seguir un orden de a
 ---
 
 ### ☁️ Sección 03: Supabase
+
+#### PARTE 0: SQL y PostgreSQL (Prerequisito)
+
+| Subdirectorio | Archivo | Descripción |
+|---------------|---------|-------------|
+| **Fundamentos SQL** | [01-fundamentos-sql/01-que-es-sql-rdbms.md](./03-SUPABASE/PARTE-0-SQL-POSTGRESQL/01-fundamentos-sql/01-que-es-sql-rdbms.md) | Qué es SQL, RDBMS, categorías de comandos |
+| | [01-fundamentos-sql/02-tipos-de-datos.md](./03-SUPABASE/PARTE-0-SQL-POSTGRESQL/01-fundamentos-sql/02-tipos-de-datos.md) | Tipos de datos en PostgreSQL |
+| | [01-fundamentos-sql/03-ddl-create-alter.md](./03-SUPABASE/PARTE-0-SQL-POSTGRESQL/01-fundamentos-sql/03-ddl-create-alter.md) | CREATE TABLE, ALTER TABLE |
+| | [01-fundamentos-sql/04-dml-select-insert-update-delete.md](./03-SUPABASE/PARTE-0-SQL-POSTGRESQL/01-fundamentos-sql/04-dml-select-insert-update-delete.md) | SELECT, INSERT, UPDATE, DELETE, upsert |
+| | [01-fundamentos-sql/05-where-orden-filtros.md](./03-SUPABASE/PARTE-0-SQL-POSTGRESQL/01-fundamentos-sql/05-where-orden-filtros.md) | WHERE, filtros, orden, paginación |
+| | [01-fundamentos-sql/06-join-relaciones.md](./03-SUPABASE/PARTE-0-SQL-POSTGRESQL/01-fundamentos-sql/06-join-relaciones.md) | INNER, LEFT, RIGHT, FULL, CROSS JOIN |
+| | [01-fundamentos-sql/07-agrupaciones-funciones.md](./03-SUPABASE/PARTE-0-SQL-POSTGRESQL/01-fundamentos-sql/07-agrupaciones-funciones.md) | GROUP BY, funciones de ventana, subqueries |
+| | [01-fundamentos-sql/08-cheatsheet-sql.md](./03-SUPABASE/PARTE-0-SQL-POSTGRESQL/01-fundamentos-sql/08-cheatsheet-sql.md) | Referencia rápida SQL |
+| **PostgreSQL** | [02-postgresql-especifico/01-postgresql-vs-sql-estandar.md](./03-SUPABASE/PARTE-0-SQL-POSTGRESQL/02-postgresql-especifico/01-postgresql-vs-sql-estandar.md) | PostgreSQL vs SQL estándar |
+| | [02-postgresql-especifico/02-constraints-restricciones.md](./03-SUPABASE/PARTE-0-SQL-POSTGRESQL/02-postgresql-especifico/02-constraints-restricciones.md) | Constraints y restricciones |
+| | [02-postgresql-especifico/03-indexes-rendimiento.md](./03-SUPABASE/PARTE-0-SQL-POSTGRESQL/02-postgresql-especifico/03-indexes-rendimiento.md) | Índices y rendimiento |
+| | [02-postgresql-especifico/04-plpgsql-funciones.md](./03-SUPABASE/PARTE-0-SQL-POSTGRESQL/02-postgresql-especifico/04-plpgsql-funciones.md) | Funciones PL/pgSQL |
+| | [02-postgresql-especifico/05-triggers-automatizacion.md](./03-SUPABASE/PARTE-0-SQL-POSTGRESQL/02-postgresql-especifico/05-triggers-automatizacion.md) | Triggers y automatización |
+| | [02-postgresql-especifico/06-jsonb-busqueda-texto.md](./03-SUPABASE/PARTE-0-SQL-POSTGRESQL/02-postgresql-especifico/06-jsonb-busqueda-texto.md) | JSONB y búsqueda de texto |
+| | [02-postgresql-especifico/07-rpc-para-supabase.md](./03-SUPABASE/PARTE-0-SQL-POSTGRESQL/02-postgresql-especifico/07-rpc-para-supabase.md) | RPC para Supabase |
+| | [02-postgresql-especifico/08-cheatsheet-postgresql.md](./03-SUPABASE/PARTE-0-SQL-POSTGRESQL/02-postgresql-especifico/08-cheatsheet-postgresql.md) | Referencia rápida PostgreSQL |
+| **Prácticas** | [03-practicas/01-practica-crud-completo.md](./03-SUPABASE/PARTE-0-SQL-POSTGRESQL/03-practicas/01-practica-crud-completo.md) | CRUD e-commerce completo |
+| | [03-practicas/02-practica-modelado-relacional.md](./03-SUPABASE/PARTE-0-SQL-POSTGRESQL/03-practicas/02-practica-modelado-relacional.md) | Modelado sistema de reservas |
+| | [03-practicas/03-puente-supabase.md](./03-SUPABASE/PARTE-0-SQL-POSTGRESQL/03-practicas/03-puente-supabase.md) | Puente hacia Supabase |
 
 #### PARTE 1: Desarrollo Local
 | Archivo | Descripción |
@@ -396,6 +421,24 @@ La guía está organizada en **21 módulos numerados** para seguir un orden de a
 
 ---
 
+### 🤝 Sección 21: Comunicación y Trabajo en Equipo
+
+| Archivo | Descripción |
+|---------|-------------|
+| [README.md](./21-COMUNICACION-EQUIPO/README.md) | Índice del módulo |
+| [01-code-reviews-efectivos.md](./21-COMUNICACION-EQUIPO/01-code-reviews-efectivos.md) | Code reviews: checklist, feedback constructivo, métricas |
+| [02-colaboracion-diseno-producto.md](./21-COMUNICACION-EQUIPO/02-colaboracion-diseno-producto.md) | Colaboración con diseñadores y PMs, handoff, user stories |
+| [03-git-workflow-equipe.md](./21-COMUNICACION-EQUIPO/03-git-workflow-equipe.md) | Git Flow, merge vs rebase, resolver conflictos, PRs |
+| [04-comunicacion-tecnica.md](./21-COMUNICACION-EQUIPO/04-comunicacion-tecnica.md) | ADRs, documentación, estimaciones, standups, blockers |
+| [05-herramientas-colaboracion.md](./21-COMUNICACION-EQUIPO/05-herramientas-colaboracion.md) | GitHub Projects, Linear, Figma dev mode, pair programming |
+| [06-cheatsheet-comunicacion.md](./21-COMUNICACION-EQUIPO/06-cheatsheet-comunicacion.md) | Templates de PR, ADR, incident report, glossario |
+| [07-practicas-comunicacion.md](./21-COMUNICACION-EQUIPO/07-practicas-comunicacion.md) | 5 escenarios reales con resolución paso a paso |
+| [08-patrones-anti-patrones.md](./21-COMUNICACION-EQUIPO/08-patrones-anti-patrones.md) | Anti-patrones de comunicación, señales de equipo tóxico |
+
+**Contenido:** Code reviews efectivos, colaboración con diseñadores/PMs, Git workflow en equipo, comunicación técnica (ADRs, standups), herramientas de colaboración, templates, escenarios prácticos, anti-patrones.
+
+---
+
 ## 🚀 Orden de Aprendizaje Sugerido
 
 ```
@@ -434,6 +477,8 @@ La guía está organizada en **21 módulos numerados** para seguir un orden de a
 14-GOOGLE-PLAY-RELEASE       → Publicación (4-6 h)
     ↓
 17-MANTENIMIENTO-DEPENDENCIAS → Mantenimiento (6-8 h)
+    ↓
+21-COMUNICACION-EQUIPO        → Comunicación y trabajo en equipo (5-8 h)
 ```
 
 ---

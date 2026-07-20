@@ -6,6 +6,16 @@
 
 ## 📋 Índice
 
+### PARTE 0: SQL Y POSTGRESQL (Prerequisito)
+
+| Submodulo | Archivos | Descripcion | Tiempo |
+|-----------|----------|-------------|--------|
+| [01-fundamentos-sql](./PARTE-0-SQL-POSTGRESQL/01-fundamentos-sql/) | 8 archivos | SQL desde cero: tipos, DDL, DML, joins, agregaciones | 4-6h |
+| [02-postgresql-especifico](./PARTE-0-SQL-POSTGRESQL/02-postgresql-especifico/) | 8 archivos | Constraints, indexes, PL/pgSQL, triggers, JSONB, RPC | 4-6h |
+| [03-practicas](./PARTE-0-SQL-POSTGRESQL/03-practicas/) | 3 archivos | CRUD completo, modelado relacional, puente a Supabase | 2-3h |
+
+> **Nivel:** Principiante | **Tiempo total:** 10-14h
+
 ### PARTE 1: DESARROLLO LOCAL
 
 | Archivo | Descripción |
@@ -74,11 +84,11 @@
 ## 🚀 Orden sugerido de aprendizaje
 
 ```
-PARTE 1 → PARTE 2 → PARTE 3
-Desarrollo → Producción → CI/CD
+PARTE 0 → PARTE 1 → PARTE 2 → PARTE 3
+SQL/PostgreSQL → Desarrollo → Producción → CI/CD
 ```
 
 ---
 
-**Nivel:** Intermedio a Avanzado  
-**Tiempo estimado:** 10-15 horas
+**Nivel:** Principiante a Avanzado  
+**Tiempo estimado:** 20-29 horas (incluyendo PARTE 0)

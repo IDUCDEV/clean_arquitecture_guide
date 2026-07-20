@@ -60,6 +60,7 @@ Necesito ver logs detallados
 |---|---|---|---|
 | 1 | [01-debugging-vscode](./01-debugging-vscode/) | Debugger completo de VSCode para Flutter | 4-6h |
 | 2 | [02-flutter-devtools](./02-flutter-devtools/) | Suite completa de DevTools (7 vistas) | 6-8h |
+| 3 | [03-optimizacion-rendimiento](./03-optimizacion-rendimiento/) | Optimizacion de rendimiento, rebuilds, memoria y rendering | 5-7h |
 
 ### Progresion recomendada
 
@@ -76,8 +77,13 @@ Fase 3: Avanzado
   ├── VSCode: practicas reales + cheatsheet
   └── DevTools: practicas reales + cheatsheet + app size
 
-Fase 4: Maestria
-  └── Ejercicio integrador: diagnosticar una app "enferma"
+Fase 4: Optimizacion
+   ├── Fundamentos de rendimiento -> Optimizar rebuilds
+   └── Memory leaks -> Rendering complejo
+
+Fase 5: Maestria
+   ├── Ejercicio integrador: diagnosticar una app "enferma"
+   └── Practicas de optimizacion reales
 ```
 
 ---
