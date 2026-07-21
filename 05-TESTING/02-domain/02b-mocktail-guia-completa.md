@@ -185,45 +185,247 @@ verifyZeroInteractions(mock);
 
 ## 6. Matchers: any() y captureAny()
 
-### 📚 any()
+> **La pregunta clave:** ¿Cuándo uso `any()`, `any(named: 'x')`, o nada?
+> **La respuesta:** Depende de **cómo está declarado el parámetro en la interfaz**. Lee la firma del método y aplica la regla.
+
+### 🎯 La Regla Fundamental
+
+**El tipo de matcher lo dicta la FIRMA del método, no tu preferencia.**
+
+| Firma del método | Qué poner en `when()` / `verify()` | Matcher |
+|---|---|---|
+| `Future<void> signOut()` | `signOut()` | **Nada** — no hay parámetros |
+| `Future<User> login(String email, String pass)` | `login(any(), any())` | `any()` por cada param **posicional** |
+| `Future<User> signIn({required String email})` | `signIn(email: any(named: 'email'))` | `any(named: 'x')` por cada param **nombrado** |
+| `Future<Cart> add(String userId, {required Product product})` | `add(any(), product: any(named: 'product'))` | Mixto: `any()` + `any(named:)` |
+
+> **Paso a paso:** Mira la interfaz → identifica qué tipo de parámetro tiene cada argumento → elige el matcher correcto.
+
+### 📖 Ejemplos reales del proyecto
+
+Veamos cómo aplicar la regla a las interfaces de este proyecto:
+
+#### Caso 1: Método SIN parámetros
 
 ```dart
-// Cualquier valor posicional
-when(() => mock.getProduct(any())).thenAnswer(...);
-verify(() => mock.getProduct(any())).called(1);
+// Interfaz (IAuthRepository)
+Future<Either<Failure, void>> signOut();
 
-// Cualquier valor para argumento nombrado
-when(() => mock.updateProduct(
-  id: any(named: 'id'),
-  product: any(named: 'product'),
-)).thenAnswer(...);
+// Stub — NO necesitas matcher, no hay parámetros
+when(() => mockRepository.signOut())
+    .thenAnswer((_) async => const Either.right(null));
 
-// Con condición personalizada
-when(() => mock.getProduct(any(that: startsWith('PROD-'))))
-    .thenAnswer(...);
+// Verify — igual, sin args
+verify(() => mockRepository.signOut()).called(1);
 ```
+
+**¿Por qué no `any()`?** Porque `any()` solo se usa cuando hay un parámetro que necesita un valor. Sin parámetros, no hay nada que "emparejar".
+
+#### Caso 2: Parámetros POSICIONALES
+
+```dart
+// Interfaz (IAuthRepository)
+Future<Either<Failure, User>> login(String email, String password);
+
+// Stub — cada param posicional → un any()
+when(() => mockRepository.login(any(), any()))
+    .thenAnswer((_) async => Either.right(tUser));
+
+// Verify con valores específicos (más preciso)
+verify(() => mockRepository.login(tEmail, tPassword)).called(1);
+```
+
+**¿Por qué `any()` y no valores específicos en `when()`?** Porque en el `when()` estás diciendo "para CUALQUIER email y password, retorna esto". Es más flexible. Pero en `verify()` sí quieres confirmar que se pasaron los valores exactos.
+
+#### Caso 3: Parámetros NOMBRADOS (required)
+
+```dart
+// Interfaz (AuthRepository)
+Future<Either<Failure, User>> signInWithEmailAndPassword({
+  required String email,
+  required String password,
+});
+
+// Stub — cada param nombrado → any(named: 'nombreDelParam')
+when(() => mockRepository.signInWithEmailAndPassword(
+  email: any(named: 'email'),
+  password: any(named: 'password'),
+)).thenAnswer((_) async => Either.right(tUser));
+
+// Verify — puedes usar valores específicos
+verify(() => mockRepository.signInWithEmailAndPassword(
+  email: tEmail,
+  password: tPassword,
+)).called(1);
+```
+
+**¿Por qué `any(named: 'email')` y no solo `any()`?** Porque Dart no permite `any()` como argumento nombrado directamente. La sintaxis `named:` le dice a Mocktail **qué parámetro nombrado** estás emparejando.
+
+#### Caso 4: MIXTO (posicionales + nombrados)
+
+```dart
+// Interfaz (CartRepository)
+Future<Either<Failure, Cart>> addProduct(String userId, {
+  required Product product,
+  required int quantity,
+});
+
+// Stub — positional con any(), nombrados con any(named:)
+when(() => mockCartRepository.addProduct(
+  any(),                                        // userId (posicional)
+  product: any(named: 'product'),               // product (nombrado)
+  quantity: any(named: 'quantity'),              // quantity (nombrado)
+)).thenAnswer((_) async => Either.right(tCart));
+```
+
+#### Caso 5: UseCase con Params class (un solo param posicional)
+
+```dart
+// Interfaz (UseCase base)
+Future<Either<Failure, Type>> call(Params params);
+
+// Stub — UN solo any() porque es UN param posicional (el objeto Params)
+when(() => mockLoginUseCase(any()))
+    .thenAnswer((_) async => Either.right(tUser));
+
+// Verify con valor específico
+verify(() => mockLoginUseCase(
+  const LoginParams(email: tEmail, password: tPassword),
+)).called(1);
+```
+
+**Nota:** Aunque `LoginParams` tiene `email` y `password` internamente, para `when()` y `verify()` solo importa que es **un solo objeto posicional**. No descompones sus campos internos.
+
+#### Caso 6: Getter (propiedad calculada, no método)
+
+```dart
+// Interfaz (NetworkInfo)
+Future<bool> get isConnected;
+
+// Stub — es un getter, no tiene paréntesis ni parámetros
+when(() => mockNetworkInfo.isConnected).thenAnswer((_) async => true);
+
+// Verify
+verify(() => mockNetworkInfo.isConnected).called(1);
+```
+
+**Cuidado:** Los getters se tratan como propiedades. No es `isConnected()` sino `isConnected`.
+
+### 🤔 ¿Cuándo usar valor específico vs `any()`?
+
+La confusión común es: "¿siempre uso `any()`?" No. Depende de qué estás haciendo:
+
+```dart
+// ━━━ when() — Stubbing ━━━
+// Usa any() cuando no depende del valor
+when(() => mock.login(any(), any()))
+    .thenAnswer((_) async => Either.right(tUser));
+
+// Usa valor específico cuando SÍ depende del valor
+when(() => mock.login('admin@test.com', 'admin123'))
+    .thenAnswer((_) async => Either.right(tAdmin));
+//  ^^ este stub solo aplica para ese email/password exacto
+
+
+// ━━━ verify() — Verificación ━━━
+// Usa any() cuando NO te importa qué valor se pasó
+verify(() => mock.login(any(), any())).called(1);
+//  ^^ solo verifico que se llamó, no me importan los args
+
+// Usa valor específico cuando SÍ te importa qué valor se pasó
+verify(() => mock.login(tEmail, tPassword)).called(1);
+//  ^^ verifico que se pasaron ESTOS valores exactos
+```
+
+> **Resumen práctico:**
+> - `when()` con `any()` = "para cualquier argumento, retorna esto"
+> - `when()` con valor = "solo para ESTE argumento, retorna esto"
+> - `verify()` con `any()` = "se llamó, no me importa con qué"
+> - `verify()` con valor = "se llamó con ESTOS argumentos exactos"
 
 ### 📚 captureAny()
 
-```dart
-final captured = verify(() => mock.getProduct(captureAny())).captured;
-expect(captured.first, '123');
+`captureAny()` funciona igual que `any()` pero **captura el valor real** que se pasó, para que puedas assertsarlo después.
 
-// Múltiples argumentos
+```dart
+// Capture posicional
+final captured = verify(() => mock.login(
+  captureAny(),   // captura el email real
+  captureAny(),   // captura el password real
+)).captured;
+
+expect(captured[0], tEmail);     // primer arg = email
+expect(captured[1], tPassword);  // segundo arg = password
+```
+
+```dart
+// Capture nombrado — misma lógica que any(named:)
 final captured = verify(() => mock.updateProduct(
   id: captureAny(named: 'id'),
   product: captureAny(named: 'product'),
 )).captured;
+
+expect(captured[0], 'PROD-123');
+expect(captured[1], tProduct);
 ```
 
-### 📊 Tabla de Matchers
+> **¿Cuándo usar `captureAny()` vs valor específico en `verify()`?**
+> - **Valor específico** (`verify(() => mock.login(tEmail, tPassword))`) → cuando sabes qué valor esperas.
+> - **`captureAny()`** → cuando necesitas inspectar el valor real o hacer asserts complejos (como `expect(captured.first, contains('@'))`).
 
-| Matcher | Uso | Ejemplo |
-|---------|-----|---------|
-| `any()` | Cualquier valor posicional | `getProduct(any())` |
-| `any(named: 'x')` | Cualquier valor para argumento 'x' | `updateProduct(id: any(named: 'id'))` |
-| `any(that: matcher)` | Valor que cumple condición | `any(that: equals('123'))` |
-| `captureAny()` | Capturar cualquier valor | `captureAny()` |
+### 📚 any(that: matcher) — Condición personalizada
+
+Cuando no te basta con "cualquier valor" sino que necesitas que cumpla una condición:
+
+```dart
+// Solo acepta IDs que empiecen con 'PROD-'
+when(() => mock.getProduct(
+  any(that: startsWith('PROD-')),
+)).thenAnswer((_) async => Either.right(tProduct));
+
+// Solo acepta emails que contengan '@'
+when(() => mock.login(
+  any(that: contains('@')),
+  any(),
+)).thenAnswer((_) async => Either.right(tUser));
+
+// Solo acepta cantidades mayores a 0
+when(() => mock.addProduct(
+  any(),
+  quantity: any(named: 'quantity', that: greaterThan(0)),
+)).thenAnswer((_) async => Either.right(tCart));
+```
+
+### 📊 Tabla de Referencia Rápida
+
+| Matcher | Sintaxis | Cuándo usarlo | Ejemplo |
+|---------|----------|---------------|---------|
+| `any()` | `any()` | Param **posicional** — acepto cualquier valor | `login(any(), any())` |
+| `any(named:)` | `any(named: 'x')` | Param **nombrado** — acepto cualquier valor | `signIn(email: any(named: 'email'))` |
+| `any(that:)` | `any(that: startsWith('x'))` | Param que debe **cumplir una condición** | `getProduct(any(that: startsWith('P')))` |
+| `captureAny()` | `captureAny()` | Necesito **capturar** el valor real para assert | `verify(() => mock.login(captureAny(), captureAny()))` |
+| **Valor literal** | `tEmail` | Quiero matchear un **valor exacto** | `login(tEmail, tPassword)` |
+| **Nada** | *(sin args)* | Método **sin parámetros** | `signOut()` |
+
+### ⚡ Checklist mental antes de escribir un matcher
+
+```
+1. ¿El método tiene parámetros?
+   NO  → no pongas nada: mock.method()
+   SÍ  → sigue al paso 2
+
+2. ¿El parámetro es posicional o nombrado?
+   POSICIONAL → any()
+   NOMBRADO   → any(named: 'nombreDelParam')
+
+3. ¿Necesitas matchear un valor específico o "cualquier valor"?
+   CUALQUIER VALOR → any() / any(named:)
+   VALOR EXACTO    → tValor, 'texto', 42, etc.
+
+4. ¿Necesitas capturar el valor para después?
+   SÍ  → captureAny() / captureAny(named:)
+   NO  → any() o valor literal
+```
 
 ---
 
