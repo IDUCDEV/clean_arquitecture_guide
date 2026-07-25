@@ -34,8 +34,9 @@ y las herramientas que mantienen al equipo sincronizado.
 | 06 | [cheatsheet-comunicacion.md](06-cheatsheet-comunicacion.md) | Templates y cheatsheets para comunicacion | 15 min |
 | 07 | [practicas-comunicacion.md](07-practicas-comunicacion.md) | 5 escenarios reales con resolucion paso a paso | 60 min |
 | 08 | [patrones-anti-patrones.md](08-patrones-anti-patrones.md) | Anti-patrones y patrones de equipo efectivo | 35 min |
+| 09 | [09-ejercicio-code-review.md](./09-ejercicio-code-review.md) | Code review práctico con código realista | 30 min |
 
-**Tiempo total estimado: ~5 horas**
+**Tiempo total estimado: ~5.5 horas**
 
 ## Fases de Aprendizaje
 
@@ -101,6 +102,5 @@ y las herramientas que mantienen al equipo sincronizado.
 |--------|----------|
 | [12-GIT-FLOW](../12-GIT-FLOW/) | Workflow Git que usamos en equipo |
 | [01-CLEAN-ARCHITECTURE](../01-CLEAN-ARCHITECTURE/) | Para fundamentar feedback en code reviews |
-| [20-SUPABASE-AUTH](../20-SUPABASE-AUTH/) | Colaboracion en features de autenticacion |
-| [15-TESTING](../15-TESTING/) | Que buscar en tests durante code reviews |
-| [18-DEPLOYMENT](../18-DEPLOYMENT/) | Workflow de release y hotfix en equipo |
+| [20-SUPABASE-AUTH](../03-SUPABASE/) | Colaboracion en features de autenticacion |
+| [15-TESTING](../05-TESTING/) | Que buscar en tests durante code reviews |

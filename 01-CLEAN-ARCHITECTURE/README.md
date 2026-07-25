@@ -20,6 +20,9 @@
 | [07-templates-universales.md](./07-templates-universales.md) | Templates universales (Entity, Repository, UseCase, Cubit, State) |
 | [08-decisiones-de-arquitectura.md](./08-decisiones-de-arquitectura.md) | Decisiones: Cubit vs BLoC, FAQ, ¿dónde va cada cosa? |
 | [09-migracion-codigo-espagueti.md](./09-migracion-codigo-espagueti.md) | Migración desde código espagueti |
+| [10-solid-explicite.md](./10-solid-explicite.md) | SOLID explicite con ejemplos Dart/Flutter |
+| [11-anti-patrones-clean-architecture.md](./11-anti-patrones-clean-architecture.md) | 8 anti-patrones comunes y cómo evitarlos |
+| [12-cuando-no-usar-clean-architecture.md](./12-cuando-no-usar-clean-architecture.md) | Cuándo SÍ y cuándo NO usar Clean Architecture |
 
 ---
 
@@ -34,6 +37,9 @@
 - Comparación: Future<Either> vs TaskEither
 - Decisiones de arquitectura
 - Migración desde código espagueti
+- SOLID explicite con Dart/Flutter
+- Anti-patrones en Clean Architecture
+- Cuándo NO usar Clean Architecture
 
 ---
 
@@ -44,4 +50,4 @@ Continúa con [05-TESTING](../05-TESTING/) para aprender a probar tu código, o 
 ---
 
 **Nivel:** Principiante a Intermedio  
-**Tiempo estimado:** 4-6 horas
+**Tiempo estimado:** 6-8 horas

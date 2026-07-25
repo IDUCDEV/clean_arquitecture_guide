@@ -21,8 +21,10 @@ Guía completa de BLoC y Cubit para Flutter, desde fundamentos hasta patrones av
 14. Testing de BLoC/Cubit
 15. HydratedBloc avanzado
 16. Buenas prácticas
-17. Proyecto integrador (e-commerce)
-18. Patrón lista avanzada (previousState, PullToRefreshWrapper, slivers)
+ 17. Proyecto integrador (e-commerce)
+ 18. Patrón lista avanzada (previousState, PullToRefreshWrapper, slivers)
+ 19. Cubit vs BLoC: ¿Cuándo usar cuál?
+ 20. Debugging de BLoC/Cubit
 ```
 
 ## Dependencias (prerrequisitos de otros módulos)

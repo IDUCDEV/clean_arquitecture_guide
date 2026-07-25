@@ -15,7 +15,7 @@ A diferencia de la sección 09 (Estructuras de Datos con OOP), que enseña **có
 ## Ruta de aprendizaje sugerida
 
 ```
-Tiempo estimado: 15-20 horas
+Tiempo estimado: 25-35 horas
 
 1. Leer 01-metodologia-general.md          (30 min)  ← Framework de 6 pasos
 2. Leer 02-analisis-complejidad.md          (90 min)  ← Proceso completo con 5 ejemplos reales
@@ -24,7 +24,11 @@ Tiempo estimado: 15-20 horas
 5. Leer 05-patrones-avanzados.md            (90 min)  ← Templates listos para usar
 6. Leer 06-comunicacion-y-pseudocodigo.md   (30 min)  ← Para entrevistas
 7. Practicar con 07-ejercicios-practica.md  (5-10h)   ← Ejecutar
-8. Consultar 08-recursos-externos.md        (15 min)  ← Para seguir practicando
+8. Leer 09-recursion-y-backtracking.md      (60 min)  ← Recursión y backtracking
+9. Leer 10-system-design-basico.md          (45 min)  ← System Design para entrevistas
+10. Leer 11-errores-comunes-patron.md       (30 min)  ← Errores a evitar
+11. Practicar con 12-ejercicios-adicionales (10-15h)  ← +25 ejercicios
+12. Consultar 08-recursos-externos.md       (15 min)  ← Para seguir practicando
 ```
 
 ---
@@ -41,6 +45,10 @@ Tiempo estimado: 15-20 horas
 | 06 | [Comunicación y Pseudocódigo](./06-comunicacion-y-pseudocodigo.md) | Pseudocódigo y comunicación en entrevistas |
 | 07 | [Ejercicios de Práctica](./07-ejercicios-practica.md) | 10 ejercicios progresivos con solución |
 | 08 | [Recursos Externos](./08-recursos-externos.md) | Libros, plataformas, canales |
+| 09 | [Recursión y Backtracking](./09-recursion-y-backtracking.md) | Template recursión + backtracking + memoización |
+| 10 | [System Design Básico](./10-system-design-basico.md) | Framework de 4 pasos para entrevistas |
+| 11 | [Errores Comunes](./11-errores-comunes-patron.md) | Patrones de error por fase y tipo de problema |
+| 12 | [Ejercicios Adicionales](./12-ejercicios-adicionales.md) | +25 ejercicios organizados por dificultad |
 
 ---
 

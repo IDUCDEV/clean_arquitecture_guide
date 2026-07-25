@@ -16,6 +16,8 @@
 | 06 | [06-json-serializable-freezed.md](./06-json-serializable-freezed.md) | json_serializable y Freezed |
 | 07 | [07-retrofit-api-client.md](./07-retrofit-api-client.md) | Retrofit - Clientes HTTP |
 | 08 | [08-flutter-gen-assets.md](./08-flutter-gen-assets.md) | Assets, Splash, Iconos y L10n |
+| 09 | [09-dart3-pattern-matching-nativo.md](./09-dart3-pattern-matching-nativo.md) | Dart 3: pattern matching nativo |
+| 10 | [10-debugging-build-runner.md](./10-debugging-build-runner.md) | Debugging de build_runner |
 
 ---
 
@@ -61,6 +63,15 @@
 - flutter_native_splash + flutter_launcher_icons
 - flutter_gen para assets tipados
 - Localización con ARB files y gen-l10n
+
+### 09 - Dart 3 Pattern Matching Nativo
+- Switch expressions
+- Destructuring de lists y records
+- Guarded patterns
+
+### 10 - Debugging de build_runner
+- 5 errores comunes y soluciones
+- Comandos esenciales
 
 ---
 

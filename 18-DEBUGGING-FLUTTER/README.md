@@ -61,6 +61,8 @@ Necesito ver logs detallados
 | 1 | [01-debugging-vscode](./01-debugging-vscode/) | Debugger completo de VSCode para Flutter | 4-6h |
 | 2 | [02-flutter-devtools](./02-flutter-devtools/) | Suite completa de DevTools (7 vistas) | 6-8h |
 | 3 | [03-optimizacion-rendimiento](./03-optimizacion-rendimiento/) | Optimizacion de rendimiento, rebuilds, memoria y rendering | 5-7h |
+| 4 | [04-debugging-asincrono.md](./04-debugging-asincrono.md) | Los 5 bugs asíncronos más comunes + patrón seguro | 1h |
+| 5 | [05-workflow-debugging-por-tipo.md](./05-workflow-debugging-por-tipo.md) | Workflow exacto para cada tipo de bug | 1h |
 
 ### Progresion recomendada
 

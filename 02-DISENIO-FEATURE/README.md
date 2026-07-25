@@ -20,7 +20,37 @@
 | [05b-caso-elearning.md](./05b-caso-elearning.md) | Caso integral: Plataforma E-Learning |
 | [05c-caso-facturacion.md](./05c-caso-facturacion.md) | Caso integral: Sistema de Facturación |
 | [05d-caso-delivery.md](./05d-caso-delivery.md) | Caso integral: App de Delivery |
+| [15-estimacion-complejidad.md](./15-estimacion-complejidad.md) | Estimación de tiempo con framework FADER |
 | [BIBLIOGRAFIA.md](./BIBLIOGRAFIA.md) | Fuentes, libros y referencias |
+
+---
+
+### 🤖 Trabajar Sin IA
+
+Sección dedicada a reconstruir tu capacidad de desarrollo autónomo. Framework de 6 fases para enfrentar features sin depender de IA.
+
+| Archivo | Descripción |
+|---------|-------------|
+| [trabajar-sin-ia/06-el-costumbre-de-la-ia.md](./trabajar-sin-ia/06-el-costumbre-de-la-ia.md) | Por qué dependes de IA y qué te cuesta |
+| [trabajar-sin-ia/07-el-flujo-de-trabajo.md](./trabajar-sin-ia/07-el-flujo-de-trabajo.md) | Framework de 6 fases: Investigar → Diseñar → Implementar → Verificar → Refactor → Validar |
+| [trabajar-sin-ia/08-como-investigar-sin-ia.md](./trabajar-sin-ia/08-como-investigar-sin-ia.md) | Fuentes oficiales, GitHub, pub.dev, Stack Overflow |
+| [trabajar-sin-ia/09-feature-simple-ejemplo.md](./trabajar-sin-ia/09-feature-simple-ejemplo.md) | Ejemplo: CRUD de Notas (Simple) |
+| [trabajar-sin-ia/10-feature-intermedia-ejemplo.md](./trabajar-sin-ia/10-feature-intermedia-ejemplo.md) | Ejemplo: Notificaciones Push (Intermedia) |
+| [trabajar-sin-ia/11-feature-compleja-ejemplo.md](./trabajar-sin-ia/11-feature-compleja-ejemplo.md) | Ejemplo: Pagos con Stripe (Compleja) |
+| [trabajar-sin-ia/12-ejercicios-practica.md](./trabajar-sin-ia/12-ejercicios-practica.md) | 6 ejercicios de práctica sin IA |
+| [trabajar-sin-ia/13-checklists-y-plantillas.md](./trabajar-sin-ia/13-checklists-y-plantillas.md) | Plantillas y checklists para cada fase |
+| [trabajar-sin-ia/14-recursos-externos.md](./trabajar-sin-ia/14-recursos-externos.md) | Dónde encontrar ayuda sin depender de IA |
+
+#### Flujo recomendado
+
+```
+1. Lee 06-el-costumbre-de-la-ia.md (entender el problema)
+2. Estudia 07-el-flujo-de-trabajo.md (framework de 6 fases)
+3. Revisa 08-como-investigar-sin-ia.md (herramientas)
+4. Analiza los 3 ejemplos (09, 10, 11) de menor a mayor complejidad
+5. Haz los ejercicios (12) usando las plantillas (13)
+6. Guarda los recursos (14) para consultas rápidas
+```
 
 ---
 
@@ -41,14 +71,21 @@ Los casos prácticos te permiten aplicar FADER + Mapeo + Contratos + Flujo en in
 
 Antes de que existiera la IA, antes de los frameworks reactivos, antes incluso de los IDE modernos, los desarrolladores hacían algo que se está perdiendo: **pensar antes de codificar**.
 
-Este módulo recupera esa práctica. Aquí no vas a escribir código. Vas a:
+Este módulo recupera esa práctica. Tiene dos partes:
 
+### Parte 1: Diseño (Archivos 01-05)
 1. **Descomponer** el problema en piezas atómicas
 2. **Mapear** cada pieza a su capa en Clean Architecture
 3. **Diseñar contratos** (interfaces) que definan cómo se comunican las capas
 4. **Diagramar flujos** de datos y estados
 
-Solo cuando todo eso esté sólido en papel, abrirás el editor.
+### Parte 2: Trabajar Sin IA (carpeta `trabajar-sin-ia/`)
+1. **Entender** por qué dependes de IA y qué te cuesta
+2. **Investigar** usando fuentes oficiales, no IA
+3. **Implementar** siguiendo un framework de 6 fases
+4. **Practicar** con ejercicios reales sin asistencia
+
+Solo cuando todo eso esté sólido en papel, abrirás el editor. Y cuando abras el editor, serás tú — no la IA — quien escriba el código.
 
 ### ¿Por qué "papel y lápiz"?
 
@@ -105,5 +142,5 @@ Después de este módulo, continúa con [01-CLEAN-ARCHITECTURE](../01-CLEAN-ARCH
 ---
 
 **Nivel:** Principiante a Avanzado  
-**Tiempo estimado:** 15-20 horas (incluyendo casos prácticos)  
-**Herramientas:** Papel, lápiz, tu cabeza. Nada más.
+**Tiempo estimado:** 25-35 horas (incluyendo casos prácticos y ejercicios sin IA)  
+**Herramientas:** Papel, lápiz, tu cabeza. Y disciplina para no abrir ChatGPT.

@@ -10,6 +10,15 @@
 |---------|-------------|
 | [01-guia-ia.md](./01-guia-ia.md) | Guía: Uso Inteligente de IA en Desarrollo Flutter |
 | [02-practica-reservas.md](./02-practica-reservas.md) | Práctica: Sistema de Reservas con Enfoque Híbrido |
+| [03-autoevaluacion-ia.md](./03-autoevaluacion-ia.md) | Test de 3 preguntas + matriz de decisiones |
+
+---
+
+## ⚠️ Trabajar Sin IA
+
+¿Quieres reconstruir tus habilidades de resolución de problemas sin dependencia de IA?
+
+→ Ve a **[02-DISENIO-FEATURE/trabajar-sin-ia/](../02-DISENIO-FEATURE/trabajar-sin-ia/)** — 9 archivos con ejercicios, checklists y ejemplos progresivos para recuperar tu autonomía como developer.
 
 ---
 

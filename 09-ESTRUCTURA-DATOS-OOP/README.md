@@ -30,6 +30,10 @@
 | [09-ejercicios-intermedios.md](./09-ejercicios-intermedios.md) | 10 ejercicios con datos estructurados | 🏋️ Práctica |
 | [10-ejercicios-avanzados.md](./10-ejercicios-avanzados.md) | 5 ejercicios integradores (mini-pipeline) | 🏋️ Práctica |
 | [11-recursos-practica.md](./11-recursos-practica.md) | Dartpad, Codewars, Exercism, LeetCode, libros | 📚 Extra |
+| [12-dart3-sealed-classes.md](./12-dart3-sealed-classes.md) | Dart 3: Sealed classes para modelar estados | 🔒 Moderno |
+| [13-dart3-pattern-matching.md](./13-dart3-pattern-matching.md) | Dart 3: Pattern matching con switch expressions | 🎯 Moderno |
+| [14-dart3-records.md](./14-dart3-records.md) | Dart 3: Records (tuplas nativas) para retorno múltiple | 📦 Moderno |
+| [15-dart3-ejercicios.md](./15-dart3-ejercicios.md) | 10 ejercicios integrando sealed + patterns + records | 🏋️ Práctica |
 
 ---
 
@@ -59,6 +63,10 @@ final result = data.map((e) => e.name).where((n) => n.startsWith('A')).toList();
        08 → 09 → 10       (PRACTICAR, PRACTICAR, PRACTICAR)
        ↓
        11                  (recursos para seguir aprendiendo)
+       ↓
+       12 → 13 → 14       (Dart 3: sealed, patterns, records)
+       ↓
+       15                  (ejercicios integradores de Dart 3)
 ```
 
 > **💡 Regla de oro**: Después de leer cada archivo, abre [Dartpad](https://dartpad.dev) y **escribe el código tú mismo**. No copies y pegues.
@@ -84,5 +92,5 @@ Después de dominar este módulo, continúa con:
 ---
 
 **Nivel:** Básico → Avanzado  
-**Tiempo estimado:** 10-15 horas  
-**Ejercicios:** 25+
+**Tiempo estimado:** 14-20 horas  
+**Ejercicios:** 35+ (25 originales + 10 Dart 3)
