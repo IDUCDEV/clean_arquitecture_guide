@@ -107,6 +107,61 @@ while (n > 1) {
 
 ---
 
+## ¿Qué es una operación?
+
+Antes de analizar complejidad, necesitas saber **qué cuenta como 1 operación**.
+
+**Regla simple:** Cada vez que el procesador ejecuta una instrucción básica, es 1 operación.
+
+### Operaciones que son O(1) — siempre lo mismo
+
+| Operación | Ejemplo |
+|-----------|---------|
+| Sumar, restar, multiplicar, dividir | `a + b`, `n * 2`, `a ~/ b` |
+| Comparar dos valores | `a == b`, `a > b`, `a <= b` |
+| Acceder a un array por índice | `arr[i]` |
+| Acceder a un Map/Set por key | `map[key]`, `set.contains(x)` |
+| Asignar un valor a una variable | `x = 5`, `contador++` |
+| Imprimir | `print(x)` |
+| Calcular módulo | `a % b` |
+| Convertir número a string (número pequeño) | `n.toString()` |
+
+### Operaciones que NO son O(1)
+
+| Operación | Complejidad | Ejemplo |
+|-----------|-------------|---------|
+| Buscar en un array **sin orden** | O(n) | `arr.contains(x)` — recorre todo |
+| Insertar al **inicio** de un array | O(n) | `arr.insert(0, x)` — mueve todo |
+| Eliminar del **medio** de un array | O(n) | `arr.removeAt(i)` — mueve todo |
+| Crear un array nuevo copiando otro | O(n) | `List.from(arr)` |
+
+### ¿Por qué importa esto?
+
+Cuando analizas un loop, necesitas saber si las operaciones **dentro** del loop son O(1) o no.
+
+**Ejemplo 1:** Operaciones O(1) dentro del loop → solo cuentas el loop
+```dart
+for (int i = 0; i < n; i++) {
+  total += arr[i];    // O(1) — suma
+  if (arr[i] > max)   // O(1) — comparación
+    max = arr[i];     // O(1) — asignación
+}
+// Total: n × 3 = O(n) ← las constantes se ignoran
+```
+
+**Ejemplo 2:** Operación O(n) dentro del loop → multiplicas
+```dart
+for (int i = 0; i < n; i++) {
+  if (arr.contains(arr[i] * 2))   // O(n) — búsqueda en array
+    print("Found");
+}
+// Total: n × n = O(n²) ← la búsqueda O(n) dentro multiplica
+```
+
+**Truco rápido:** Si ves `arr.contains()`, `arr.indexOf()`, o `arr.remove()` sin índice específico, probablemente es **O(n)**. Si ves `map[key]` o `set.contains()`, es **O(1)**.
+
+---
+
 ## ¿Por qué me importa esto?
 
 Imagina que resuelves un problema y tu solución funciona perfecto... con 10 datos. Pero cuando el judge de HackerRank prueba con 100,000 datos, recibes **Time Limit Exceeded**. Perdiste tiempo porque no analizaste la complejidad antes de codificar.
@@ -248,30 +303,76 @@ List<int> twoSum(List<int> nums, int target) {
 
 ### Ahora analicemos la complejidad (esto es lo importante)
 
-**¿Cómo analizo la complejidad?** Sigo estos pasos:
+Sigue este **checklist** cada vez que analices código:
 
-**Paso 1: Identificar los loops**
-- Este código tiene **dos loops anidados**:
-  ```dart
-  for (int i = 0; i < n; i++) {         // Loop 1
-    for (int j = i + 1; j < n; j++) {   // Loop 2 (dentro del 1)
-      // ...
+#### Checklist: Cómo contar operaciones paso a paso
+
+**Paso 1: Buscar loops**
+- [ ] ¿Hay `for`? ¿Cuántos?
+- [ ] ¿Hay `while`? ¿Cuántos?
+- [ ] ¿Están **anidados** (uno dentro del otro) o **secuenciales** (uno tras otro)?
+
+**Paso 2: Contar iteraciones de cada loop**
+- [ ] Loop 1: ¿Cuántas veces se ejecuta?
+- [ ] Loop 2: ¿Cuántas veces se ejecuta **POR CADA** iteración del Loop 1?
+
+**Paso 3: Contar operaciones DENTRO del loop**
+- [ ] ¿Hay sumas, restas, comparaciones? → O(1) cada una
+- [ ] ¿Hay búsquedas en Array con `.contains()` o `.indexOf()`? → O(n) cada una
+- [ ] ¿Hay búsquedas en Map/Set con `map[key]` o `set.contains()`? → O(1) cada una
+
+**Paso 4: Calcular total**
+- [ ] Si los loops están **anidados**: `Loop1 × Loop2 × Operaciones dentro`
+- [ ] Si los loops están **secuenciales**: `Loop1 + Loop2 + ...`
+
+**Paso 5: Simplificar**
+- [ ] Ignorar constantes (`3n` → `n`, `100n²` → `n²`)
+- [ ] Quedarte con el término de mayor crecimiento
+
+#### Aplicando el checklist a Two Sum
+
+```dart
+for (int i = 0; i < nums.length; i++) {         // ← Loop 1
+  for (int j = i + 1; j < nums.length; j++) {   // ← Loop 2 (dentro del 1)
+    if (nums[i] + nums[j] == target) {           // ← Operación
+      return [i, j];
     }
   }
-  ```
+}
+```
 
-**Paso 2: Contar iteraciones**
-- **Loop 1**: Se ejecuta `n` veces (una por cada elemento)
-- **Loop 2**: Para **cada** iteración del Loop 1, se ejecuta hasta `n` veces
-
-**Paso 3: Multiplicar**
-- Total de iteraciones = `n × n = n²`
-
-**Paso 4: Ignorar operaciones simples**
-- Dentro de los loops: `nums[i] + nums[j]` y `== target` son operaciones simples (O(1))
-- No cambian la complejidad
+| Paso | Pregunta | Respuesta |
+|------|----------|-----------|
+| 1 | ¿Cuántos loops? | 2 `for` |
+| 2 | ¿Están anidados? | **Sí** — Loop 2 está dentro de Loop 1 |
+| 3 | Loop 1: ¿cuántas veces? | `n` veces (recorre todo el array) |
+| 4 | Loop 2: ¿cuántas veces por cada del Loop 1? | Hasta `n` veces |
+| 5 | Operaciones dentro del loop | `nums[i] + nums[j]` → O(1), `==` → O(1) |
+| 6 | **Total** | `n × n × 1 = n²` |
 
 **Conclusión:** **O(n²)** — complejidad cuadrática
+
+### ¿Por qué ignorar constantes en Big-O?
+
+**Pregunta común:** "Si mi código hace 3n operaciones y otro hace 100n, ¿son iguales?"
+
+**Respuesta corta:** En Big-O, sí. Ambos son O(n).
+
+**¿Por qué?** Porque Big-O mide el **patrón de crecimiento**, no la velocidad absoluta.
+
+**Ejemplo numérico:**
+
+| n | 3n | 100n | Relación |
+|---|-----|------|----------|
+| 10 | 30 | 1,000 | 33× más lento |
+| 1,000 | 3,000 | 100,000 | 33× más lento |
+| 1,000,000 | 3,000,000 | 100,000,000 | 33× más lento |
+
+**Observación:** La diferencia siempre es 33×, sin importar cuánto crezca n. Ambos crecen **linealmente**. Por eso decimos que ambos son O(n).
+
+**La analogía:** Es como clasificar carros por tipo (sedan, camioneta), no por velocidad. Un sedan a 100 km/h y otro a 200 km/h ambos son "sedanes". Big-O clasifica el **tipo de crecimiento**, no la velocidad exacta.
+
+**¿Cuándo SÍ importan las constantes?** Cuando dos algoritmos tienen la **misma complejidad** (ambos O(n)), ahí sí comparas constantes. Pero primero optimiza la complejidad (de O(n²) a O(n)), luego optimiza constantes.
 
 ### ¿Por qué O(n²)? (explicación visual)
 
@@ -1236,6 +1337,39 @@ for (int j = 0; j < n; j++) {
 
 ---
 
+## Mapa de decisiones: ¿Qué complejidad tiene mi código?
+
+Cuando no sabes por dónde empezar, usa este mapa:
+
+```
+¿Tu código tiene loops?
+│
+├── NO → O(1) — probablemente constante
+│
+├── SÍ, 1 solo loop
+│   ├── ¿Recorre todo el array? → O(n)
+│   ├── ¿Divide por la mitad en cada paso? → O(log n)
+│   └── ¿Salta de k en k posiciones? → O(n/k) ≈ O(n)
+│
+├── SÍ, 2 loops anidados
+│   ├── ¿Ambos recorren el mismo array? → O(n²)
+│   └── ¿Recorren arrays de tamaño diferente? → O(n × m)
+│
+├── SÍ, 3+ loops anidados
+│   └── O(n³) o peor — busca optimizar
+│
+└── SÍ, pero son secuenciales (uno tras otro)
+    └── Suma las complejidades: O(n) + O(n²) = O(n²)
+```
+
+**Cómo usarlo:**
+1. Mira tu código
+2. Responde las preguntas del mapa
+3. Llega a tu complejidad
+4. Compara con la tabla de constraints (sección PASO 2)
+
+---
+
 ## C.5 Reglas de combinación
 
 En la vida real, los algoritmos combinan patrones. Aquí tienes las reglas para combinar complejidades.
@@ -1357,6 +1491,101 @@ int factorialIterativo(int n) {
 
 ---
 
+## C.6.1 Cómo analizar complejidad de recursión
+
+La recursión es un caso especial. No puedes simplemente "contar loops" porque la función se llama a sí misma.
+
+**La regla:** Cuenta cuántas veces se llama la función y cuánto trabajo hace en cada llamada.
+
+### Ejemplo 1: Factorial (lineal)
+
+```dart
+int factorial(int n) {
+  if (n <= 1) return 1;           // O(1) — caso base
+  return n * factorial(n - 1);    // 1 multiplicación O(1) + llamada recursiva
+}
+```
+
+**Análisis paso a paso:**
+
+| Paso | Pregunta | Respuesta |
+|------|----------|-----------|
+| 1 | ¿Cuántas llamadas se hacen? | n llamadas (desde `n` hasta `1`) |
+| 2 | ¿Cuánto trabajo en cada llamada? | 1 comparación + 1 multiplicación = O(1) |
+| 3 | **Total tiempo** | n × O(1) = **O(n)** |
+| 4 | **Total espacio** | O(n) — cada llamada se apila en el stack |
+
+**Visualización:**
+```
+factorial(5)
+  → 5 * factorial(4)
+    → 4 * factorial(3)
+      → 3 * factorial(2)
+        → 2 * factorial(1)
+          → 1 (caso base)
+```
+Son 5 llamadas apiladas → O(n) espacio.
+
+### Ejemplo 2: Fibonacci (exponencial — ¡cuidado!)
+
+```dart
+int fibonacci(int n) {
+  if (n <= 1) return n;
+  return fibonacci(n - 1) + fibonacci(n - 2);  // 2 llamadas
+}
+```
+
+**Análisis:**
+
+| Paso | Pregunta | Respuesta |
+|------|----------|-----------|
+| 1 | ¿Cuántas llamadas por nivel? | Cada llamada genera **2** llamadas más |
+| 2 | ¿Cuántos niveles? | n niveles |
+| 3 | **Total** | 2ⁿ llamadas → **O(2ⁿ)** — ¡muy lento! |
+
+**¿Por qué es tan lento?** Porque se repite el mismo cálculo muchas veces:
+```
+fibonacci(5)
+  → fibonacci(4) + fibonacci(3)
+    → fibonacci(3) + fibonacci(2)  ← fibonacci(3) se calcula DOS veces
+      → fibonacci(2) + fibonacci(1)  ← fibonacci(2) se calcula TRES veces
+```
+
+### Ejemplo 3: Búsqueda binaria recursiva (logarítmica)
+
+```dart
+int busquedaBinaria(List<int> arr, int target, int left, int right) {
+  if (left > right) return -1;
+  int mid = left + (right - left) ~/ 2;
+  if (arr[mid] == target) return mid;
+  if (arr[mid] < target)
+    return busquedaBinaria(arr, target, mid + 1, right);  // 1 llamada
+  else
+    return busquedaBinaria(arr, target, left, mid - 1);   // 1 llamada
+}
+```
+
+**Análisis:**
+
+| Paso | Pregunta | Respuesta |
+|------|----------|-----------|
+| 1 | ¿Cuántas llamadas? | log₂(n) — cada llamada descarta la mitad |
+| 2 | ¿Trabajo en cada llamada? | O(1) |
+| 3 | **Total** | **O(log n)** |
+
+### Reglas para recursión
+
+| Si cada llamada hace... | Complejidad | Ejemplo |
+|------------------------|-------------|---------|
+| **1 llamada recursiva** con n-1 | O(n) | Factorial |
+| **1 llamada recursiva** con n/2 | O(log n) | Búsqueda binaria |
+| **2 llamadas recursivas** | O(2ⁿ) | Fibonacci malo |
+| **2 llamadas recursivas** + ordenar | O(n log n) | Mergesort |
+
+**Truco:** Si el código recursivo se parece a un loop (1 llamada, reduce n en cada paso), probablemente es O(n) o O(log n). Si se parece a un árbol (2+ llamadas), probablemente es O(2ⁿ) o peor.
+
+---
+
 ## C.7 El Tradeoff Tiempo-Espacio
 
 Muchas veces puedes intercambiar tiempo por espacio:
@@ -1403,20 +1632,145 @@ Muchas veces puedes intercambiar tiempo por espacio:
 
 ---
 
-## Mini-ejercicio: ¿Entiendes Big-O?
+## Ejercicios prácticos: Analiza la complejidad
 
-Responde mentalmente:
+Para cada fragmento de código, sigue el checklist y determina la complejidad. Intenta resolverlos antes de ver la respuesta.
 
-1. **Tienes un array de 1000 elementos. Recorres el array una vez. ¿Qué complejidad es?**
-   → O(n) — un solo recorrido lineal.
+### Ejercicio 1: Dos loops secuenciales
 
-2. **Tienes dos loops anidados, cada uno recorre todo el array de 1000 elementos. ¿Cuántas operaciones?**
-   → O(n²) = 1000 × 1000 = 1,000,000. Sí cabe (0.01s). Pero si n=10⁵, serían 10¹⁰ = 100 segundos. No cabe.
+```dart
+void ejemplo(List<int> arr) {
+  for (int i = 0; i < arr.length; i++) {
+    print(arr[i]);
+  }
+  for (int j = 0; j < arr.length; j++) {
+    print(arr[j]);
+  }
+}
+```
 
-3. **Tienes un array ordenado. Divides el array por la mitad en cada paso. ¿Qué complejidad es?**
-   → O(log n). Con 1000 elementos, solo ~10 pasos.
+<details>
+<summary>Ver análisis</summary>
 
-Si acertaste las 3, entiendes lo básico.
+**Checklist:**
+1. **¿Cuántos loops?** 2 `for`
+2. **¿Están anidados o secuenciales?** **Secuenciales** — uno termina antes de que empiece el otro
+3. **Loop 1:** n iteraciones × O(1) dentro = O(n)
+4. **Loop 2:** n iteraciones × O(1) dentro = O(n)
+5. **Total:** O(n) + O(n) = **O(n)** — se suman, no se multiplican
+
+**¿Por qué no es O(n²)?** Porque los loops no están anidados. Son independientes.
+</details>
+
+---
+
+### Ejercicio 2: Loop con búsqueda en Array
+
+```dart
+bool tieneDoble(List<int> arr) {
+  for (int i = 0; i < arr.length; i++) {
+    if (arr.contains(arr[i] * 2)) {  // ← contains es O(n)
+      return true;
+    }
+  }
+  return false;
+}
+```
+
+<details>
+<summary>Ver análisis</summary>
+
+**Checklist:**
+1. **¿Cuántos loops?** 1 `for` externo
+2. **Loop:** n iteraciones
+3. **Dentro del loop:** `arr.contains(arr[i] * 2)` — buscar en un array es **O(n)**
+4. **Total:** n × n = **O(n²)**
+
+**Lección:** `arr.contains()` es O(n), no O(1). Si buscas en un array sin orden, cada búsqueda recorre todo el array.
+</details>
+
+---
+
+### Ejercicio 3: Loop con búsqueda en Map
+
+```dart
+bool tieneRepetido(List<int> arr) {
+  Map<int, bool> seen = {};
+  for (int i = 0; i < arr.length; i++) {
+    if (seen.containsKey(arr[i])) {  // ← containsKey es O(1)
+      return true;
+    }
+    seen[arr[i]] = true;
+  }
+  return false;
+}
+```
+
+<details>
+<summary>Ver análisis</summary>
+
+**Checklist:**
+1. **¿Cuántos loops?** 1 `for`
+2. **Loop:** n iteraciones
+3. **Dentro del loop:** `seen.containsKey()` es **O(1)**, asignación es O(1)
+4. **Total:** n × 1 = **O(n)**
+
+**Comparación con Ejercicio 2:** Ambos buscan un valor, pero el Ejercicio 2 usa Array (O(n) por búsqueda) y este usa Map (O(1) por búsqueda). **El Map es 10,000 veces más rápido con n=10,000.**
+</details>
+
+---
+
+### Ejercicio 4: Recursión
+
+```dart
+int suma(int n) {
+  if (n <= 0) return 0;
+  return n + suma(n - 1);
+}
+```
+
+<details>
+<summary>Ver análisis</summary>
+
+**Checklist para recursión:**
+1. **¿Cuántas llamadas recursivas?** n llamadas (desde `n` hasta `0`)
+2. **¿Cuánto trabajo en cada llamada?** 1 comparación + 1 suma = O(1)
+3. **Total:** n × O(1) = **O(n)**
+4. **Espacio adicional:** O(n) — cada llamada se apila en el stack
+
+**¿Por qué?** La función se llama a sí misma n veces, y cada llamada hace trabajo constante.
+</details>
+
+---
+
+### Ejercicio 5: Dos loops con tamaños diferentes
+
+```dart
+void ejemplo(List<int> arr1, List<int> arr2) {
+  for (int x in arr1) {
+    print(x);
+  }
+  for (int y in arr2) {
+    print(y);
+  }
+}
+```
+
+<details>
+<summary>Ver análisis</summary>
+
+**Checklist:**
+1. **¿Cuántos loops?** 2 `for`, secuenciales
+2. **Loop 1:** n iteraciones (donde n = arr1.length)
+3. **Loop 2:** m iteraciones (donde m = arr2.length)
+4. **Total:** O(n) + O(m) = **O(n + m)**
+
+**Cuando los inputs son independientes**, usa letras diferentes para cada tamaño.
+</details>
+
+---
+
+**¿Acertaste todos?** Si sí, entiendes lo básico de análisis de complejidad. Si no, revisa el checklist de la sección anterior y vuelve a intentarlo.
 
 ---
 
