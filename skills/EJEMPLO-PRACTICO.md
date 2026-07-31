@@ -2,6 +2,8 @@
 
 Guía paso a paso usando las 5 skills para construir un feature completo de gestión de pedidos.
 
+> **División de roles:** este documento narra el **flujo** (prompts, qué genera cada skill, qué haces tú). El **output íntegro de cada archivo** (código al 100%) vive en [EJEMPLO-RESULTADO-1.md](./EJEMPLO-RESULTADO-1.md) (feature completa) y [EJEMPLO-RESULTADO-2.md](./EJEMPLO-RESULTADO-2.md) (DI, rutas, componentes y tests). Aquí solo se muestran los bloques únicos; el resto se referencia para no duplicar.
+
 ---
 
 ## Escenario
@@ -74,111 +76,7 @@ supabase/
     └── {timestamp}_create_orders.sql
 ```
 
-**Ejemplo de archivo generado** — `domain/entities/order.dart`:
-
-```dart
-import 'package:equatable/equatable.dart';
-
-class Order extends Equatable {
-  const Order({
-    required this.id,
-    required this.userId,
-    required this.total,
-    required this.status,
-    required this.items,
-    required this.createdAt,
-  });
-
-  final String id;
-  final String userId;
-  final double total;
-  final String status;
-  final List<OrderItem> items;
-  final DateTime createdAt;
-
-  @override
-  List<Object?> get props => [id, userId, total, status, items, createdAt];
-
-  Order copyWith({
-    String? id,
-    String? userId,
-    double? total,
-    String? status,
-    List<OrderItem>? items,
-    DateTime? createdAt,
-  }) {
-    return Order(
-      id: id ?? this.id,
-      userId: userId ?? this.userId,
-      total: total ?? this.total,
-      status: status ?? this.status,
-      items: items ?? this.items,
-      createdAt: createdAt ?? this.createdAt,
-    );
-  }
-
-  @override
-  String toString() => 'Order(id: $id, status: $status, total: $total)';
-}
-```
-
-**Ejemplo de archivo generado** — `data/models/order_model.dart` (con mapeo snake_case):
-
-```dart
-import 'dart:convert';
-import 'package:order_app/features/order/domain/entities/order.dart';
-
-class OrderModel extends Order {
-  const OrderModel({
-    required super.id,
-    required super.userId,
-    required super.total,
-    required super.status,
-    required super.items,
-    required super.createdAt,
-  });
-
-  factory OrderModel.fromJson(Map<String, dynamic> json) {
-    return OrderModel(
-      id: json['id'] as String,
-      userId: json['user_id'] as String,
-      total: (json['total'] as num).toDouble(),
-      status: json['status'] as String,
-      items: (json['items'] as List)
-          .map((e) => OrderItem.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      createdAt: DateTime.parse(json['created_at'] as String),
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'user_id': userId,
-    'total': total,
-    'status': status,
-    'items': items.map((e) => e.toJson()).toList(),
-    'created_at': createdAt.toIso8601String(),
-  };
-
-  factory OrderModel.fromEntity(Order entity) => OrderModel(
-    id: entity.id,
-    userId: entity.userId,
-    total: entity.total,
-    status: entity.status,
-    items: entity.items,
-    createdAt: entity.createdAt,
-  );
-
-  Order toEntity() => Order(
-    id: id,
-    userId: userId,
-    total: total,
-    status: status,
-    items: items,
-    createdAt: createdAt,
-  );
-}
-```
+**Ejemplos de archivos generados:** `domain/entities/order.dart` y `data/models/order_model.dart` (con mapeo snake_case). Ver el contenido íntegro en [EJEMPLO-RESULTADO-1.md §1 y §4](./EJEMPLO-RESULTADO-1.md) — aquí no se duplican.
 
 **Tú haces después:**
 - Revisar la migración SQL y ejecutarla en Supabase
@@ -193,7 +91,7 @@ Como pediste `wiring` en el **Paso 1**, `clean-arch-feature` no se detiene al ge
 
 ### 2a. `di-getit-scaffold` actualiza el service locator
 
-Actualiza `lib/core/di/service_locator.dart` (modo manual) con:
+Actualiza `lib/core/di/service_locator.dart` (modo manual) añadiendo las secciones de **DataSources**, **Repositories**, **UseCases** y **Cubits** del feature order, en ese orden de capas:
 
 ```dart
 // ──────────────────────────────────────────────
@@ -204,38 +102,10 @@ sl
     () => OrderRemoteDataSourceImpl(supabase: sl<SupabaseClient>()),
   );
 
-// ──────────────────────────────────────────────
-// Repositories
-// ──────────────────────────────────────────────
-sl
-  ..registerLazySingleton<OrderRepository>(
-    () => OrderRepositoryImpl(
-      remoteDataSource: sl<OrderRemoteDataSource>(),
-    ),
-  );
-
-// ──────────────────────────────────────────────
-// UseCases
-// ──────────────────────────────────────────────
-sl
-  ..registerLazySingleton(() => GetOrders(sl()))
-  ..registerLazySingleton(() => GetOrder(sl()))
-  ..registerLazySingleton(() => CreateOrder(sl()))
-  ..registerLazySingleton(() => UpdateOrder(sl()))
-  ..registerLazySingleton(() => DeleteOrder(sl()));
-
-// ──────────────────────────────────────────────
-// Cubits
-// ──────────────────────────────────────────────
-sl
-  ..registerFactory(() => OrderCubit(
-    getOrders: sl(),
-    getOrder: sl(),
-    createOrder: sl(),
-    updateOrder: sl(),
-    deleteOrder: sl(),
-  ));
+// ... Repositories → UseCases → Cubits, ver íntegro en EJEMPLO-RESULTADO-1.md §12
 ```
+
+El código completo está en [EJEMPLO-RESULTADO-1.md §12](./EJEMPLO-RESULTADO-1.md) — aquí no se duplica.
 
 **Tú haces después:** Nada, queda listo.
 
@@ -244,35 +114,13 @@ sl
 Actualiza `lib/core/router/app_router.dart` con las rutas de las páginas generadas en el Paso 1:
 
 ```dart
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:order_app/features/order/presentation/pages/orders_list_page.dart';
-import 'package:order_app/features/order/presentation/pages/order_detail_page.dart';
-
-class AppRouter {
-  late final GoRouter router;
-
-  AppRouter() {
-    router = GoRouter(
-      initialLocation: '/',
-      routes: [
-        GoRoute(
-          path: '/orders',
-          builder: (_, __) => const OrdersListPage(),
-          routes: [
-            GoRoute(
-              path: ':id',
-              builder: (_, state) => OrderDetailPage(
-                id: state.pathParameters['id']!,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
+// routes: [
+//   GoRoute(path: '/orders', builder: (_, __) => const OrdersListPage(),
+//     routes: [ GoRoute(path: ':id', builder: ...) ]),
+// ]
 ```
+
+El código completo está en [EJEMPLO-RESULTADO-1.md §13](./EJEMPLO-RESULTADO-1.md) — aquí no se duplica.
 
 **Tú haces después:**
 - Envolver `MaterialApp.router(routerConfig: AppRouter().router)` con `MultiBlocProvider` que incluya los cubits necesarios
@@ -286,44 +134,11 @@ class AppRouter {
 
 Hasta aquí todo ha sido scaffolding. Ahora implementas los bodies de:
 
-1. **`order_remote_datasource.dart`** — llamadas a Supabase:
-   ```dart
-   @override
-   Future<List<OrderModel>> getAll() async {
-     final response = await _supabase
-         .from('orders')
-         .select()
-         .order('created_at', ascending: false);
-     return (response as List).map((e) => OrderModel.fromJson(e)).toList();
-   }
-   ```
+1. **`order_remote_datasource.dart`** — llamadas a Supabase (`getAll`, `getById`, `create`, `update`, `delete`, `watchById`)
+2. **`order_repository_impl.dart`** — lógica con Either + try/catch mapeando excepciones a failures
+3. **`order_cubit.dart`** — llamar usecases y emitir estados
 
-2. **`order_repository_impl.dart`** — lógica con Either + try/catch:
-   ```dart
-   @override
-   Future<Either<Failure, List<Order>>> getAll() async {
-     try {
-       final models = await remoteDataSource.getAll();
-       return Right(models.map((m) => m.toEntity()).toList());
-     } on ServerException catch (e) {
-       return Left(ServerFailure(e.message));
-     } on CacheException catch (e) {
-       return Left(CacheFailure(e.message));
-     }
-   }
-   ```
-
-3. **`order_cubit.dart`** — llamar usecases y emitir estados:
-   ```dart
-   Future<void> loadOrders() async {
-     emit(OrderLoading());
-     final result = await _getOrders(NoParams());
-     result.fold(
-       (failure) => emit(OrderError(failure.message)),
-       (orders) => emit(OrdersLoaded(orders)),
-     );
-   }
-   ```
+Ver el "después" (3 bodies ya implementados: datasource `getAll`, repository `getAll` y cubit `loadOrders`) en la sección **"Scaffolding vs implementado"** de [EJEMPLO-RESULTADO-1.md](./EJEMPLO-RESULTADO-1.md) — aquí no se duplican.
 
 ---
 

@@ -5,8 +5,8 @@ Skills que generan **boilerplate / scaffolding** de código, dejando la implemen
 ## Documentación de ejemplo
 
 - [GUIA-DE-USO.md](./GUIA-DE-USO.md) — **la guía completa**: qué inputs proveer a cada skill (obligatorios, opcionales, formatos y prompts de ejemplo), orquestación y troubleshooting.
-- [EJEMPLO-PRACTICO.md](./EJEMPLO-PRACTICO.md) — el **flujo** paso a paso: prompts y fragmentos de output usando las 5 skills (feature Order de principio a fin).
-- [EJEMPLO-RESULTADO-1.md](./EJEMPLO-RESULTADO-1.md) — el **resultado** íntegro: todos los archivos que genera `clean-arch-feature` al 100% para el mismo escenario, listo para comparar contra tu output real.
+- [EJEMPLO-PRACTICO.md](./EJEMPLO-PRACTICO.md) — el **flujo** paso a paso: prompts y qué genera cada skill (feature Order de principio a fin). Referencia el resultado íntegro en vez de duplicarlo.
+- [EJEMPLO-RESULTADO-1.md](./EJEMPLO-RESULTADO-1.md) — la **fuente de verdad del output** de `clean-arch-feature`: todos los archivos al 100% para el mismo escenario, listo para comparar contra tu output real.
 - [EJEMPLO-RESULTADO-2.md](./EJEMPLO-RESULTADO-2.md) — el **resultado** íntegro de las otras 4 skills: `di-getit-scaffold` (manual + injectable), `go-route-scaffold` (auth, Sentry, combinado), `clean-arch-component` (tabla de piezas) y `flutter-test-generator` (test de model).
 
 > Nota: estos archivos son **ejemplos de uso**, no skills.
