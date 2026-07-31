@@ -552,6 +552,117 @@ void main() {
 
 ---
 
+## Mini-escenarios
+
+Variaciones rápidas para ver cómo cambia el resultado según los parámetros opcionales.
+
+### Mini-A: Feature con Supabase **sin** páginas ni wiring
+
+**Prompt:**
+
+> Crea un feature `order` con campos id, userId, total, status, items, createdAt.
+> Operaciones: getAll, getById, create, update, delete.
+> Conéctalo a Supabase, tabla `orders` (id uuid PK, user_id uuid NOT NULL, total float8, status text, items jsonb, created_at timestamptz).
+
+**Qué cambia vs el Paso 1:**
+
+| Elemento | Paso 1 (con extras) | Mini-A (sin extras) |
+|---|---|---|
+| Páginas | `orders_list_page.dart` + `order_detail_page.dart` | placeholder genérico `order_page.dart` |
+| `service_locator.dart` | Actualizado (wiring `di`) | No se toca — el resumen final lo recuerda |
+| `app_router.dart` | Actualizado (wiring `router`) | No se toca |
+| Entity, model, datasource, SQL + RLS | Generados | **Igual**, se generan |
+
+Supabase funciona con o sin páginas/wiring; lo único que se omite son las extras.
+
+### Mini-B: Añadir entity + model a feature existente
+
+**Prompt:**
+
+> Añade una entidad order_item con campos productId: String, quantity: int, price: double, y su model, al feature order
+
+**Qué genera `clean-arch-component`** (dos archivos):
+
+`lib/features/order/domain/entities/order_item.dart`:
+
+```dart
+import 'package:equatable/equatable.dart';
+
+class OrderItem extends Equatable {
+  const OrderItem({
+    required this.productId,
+    required this.quantity,
+    required this.price,
+  });
+
+  final String productId;
+  final int quantity;
+  final double price;
+
+  @override
+  List<Object?> get props => [productId, quantity, price];
+
+  OrderItem copyWith({
+    String? productId,
+    int? quantity,
+    double? price,
+  }) {
+    return OrderItem(
+      productId: productId ?? this.productId,
+      quantity: quantity ?? this.quantity,
+      price: price ?? this.price,
+    );
+  }
+
+  @override
+  String toString() => 'OrderItem(productId: $productId, quantity: $quantity, price: $price)';
+}
+```
+
+`lib/features/order/data/models/order_item_model.dart`:
+
+```dart
+import 'package:order_app/features/order/domain/entities/order_item.dart';
+
+class OrderItemModel extends OrderItem {
+  const OrderItemModel({
+    required super.productId,
+    required super.quantity,
+    required super.price,
+  });
+
+  factory OrderItemModel.fromJson(Map<String, dynamic> json) {
+    return OrderItemModel(
+      productId: json['product_id'] as String,
+      quantity: (json['quantity'] as num).toInt(),
+      price: (json['price'] as num).toDouble(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'product_id': productId,
+        'quantity': quantity,
+        'price': price,
+      };
+
+  factory OrderItemModel.fromEntity(OrderItem entity) => OrderItemModel(
+        productId: entity.productId,
+        quantity: entity.quantity,
+        price: entity.price,
+      );
+
+  OrderItem toEntity() => OrderItem(
+        productId: productId,
+        quantity: quantity,
+        price: price,
+      );
+}
+```
+
+**Tú haces después:** implementar los bodies y, si la entidad se usa desde otra clase, ajustar los imports/campos correspondientes.
+
+---
+
 ## Resumen del flujo completo
 
 | Paso | Skill | Archivos generados | Lo que haces tú |

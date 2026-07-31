@@ -2,6 +2,13 @@
 
 Skills que generan **boilerplate / scaffolding** de código, dejando la implementación de la lógica al desarrollador.
 
+## Documentación de ejemplo
+
+- [EJEMPLO-PRACTICO.md](./EJEMPLO-PRACTICO.md) — el **flujo** paso a paso: prompts y fragmentos de output usando las 5 skills (feature Order de principio a fin).
+- [EJEMPLO-RESULTADO.md](./EJEMPLO-RESULTADO.md) — el **resultado** íntegro: todos los archivos que genera `clean-arch-feature` al 100% para el mismo escenario, listo para comparar contra tu output real.
+
+> Nota: ambos archivos son **ejemplos de uso**, no skills.
+
 ## Índice
 
 | Skill | Qué genera | Cuándo usarla |
@@ -11,6 +18,39 @@ Skills que generan **boilerplate / scaffolding** de código, dejando la implemen
 | [clean-arch-component](./clean-arch-component/SKILL.md) | Archivo individual (entity, model, usecase, cubit, page...) | Cuando añades una pieza a una feature existente |
 | [di-getit-scaffold](./di-getit-scaffold/SKILL.md) | Módulo GetIt de inyección de dependencias | Cuando registras dependencias de una feature en el service locator (se invoca desde `clean-arch-feature` con `wiring: di`) |
 | [go-route-scaffold](./go-route-scaffold/SKILL.md) | Configuración de rutas GoRouter | Cuando añades rutas con/sin auth redirect y Sentry (se invoca desde `clean-arch-feature` con `wiring: router`) |
+
+---
+
+## Instalación
+
+Las skills se cargan desde `.opencode/skills/` (per-proyecto) o `~/.opencode/skills/` (global). Este repo mantiene las fuentes en `skills/`; para usarlas en opencode:
+
+1. Copia la skill que necesitas al destino elegido:
+   ```bash
+   cp -r skills/clean-arch-feature .opencode/skills/
+   # o global: cp -r skills/clean-arch-feature ~/.opencode/skills/
+   ```
+2. Reinicia opencode para que detecte skills nuevas o modificadas.
+3. Verifica con `/skills` que aparecen listadas.
+
+> `EJEMPLO-PRACTICO.md` y `EJEMPLO-RESULTADO.md` **no** se copian: son documentación de referencia, no skills.
+
+---
+
+## Prerrequisitos del proyecto
+
+Las skills asumen un proyecto Flutter **ya inicializado** con la base Clean Architecture. Checklist:
+
+- `lib/core/common/usecase.dart` — clase base `UseCase<Return, Params>`
+- `lib/core/error/failures.dart` — `Failure`, `ServerFailure`, `CacheFailure`, `NetworkFailure`
+- `lib/core/error/exceptions.dart` — `ServerException`, `CacheException`, `AuthException`
+- `lib/core/services/snackbar_helper.dart` — `SnackbarHelper.show`
+- `lib/core/widgets/app_button.dart` — `AppButton` + `AppButtonVariant`
+- `lib/core/di/service_locator.dart` — `sl = GetIt.instance` + `initDependencies()`
+- `lib/core/router/app_router.dart` — `AppRouter` + `GoRouter`
+- Dependencias en `pubspec.yaml`: `fpdart`, `equatable`, `flutter_bloc`, `supabase_flutter`, `get_it`, `go_router`
+
+Si el proyecto no tiene la base de `core/`, créala primero (p. ej. con un prompt de bootstrap) antes de invocar las skills.
 
 ---
 
@@ -68,6 +108,30 @@ Las skills están diseñadas para ser ejecutadas por el asistente AI. Solo tiene
         ↓
 8. Verificas con flutter test
 ```
+
+---
+
+## Referencia rápida de parámetros
+
+| Skill | Parámetros | Formato |
+|---|---|---|
+| `clean-arch-feature` | `feature_name`, `fields`, `operations` | Campos: `nombre: Tipo` (ej `price: double`). Operaciones: `getAll, getById, create, update, delete` |
+| | `table_name`, `columns` (Supabase) | Columnas: `nombre: tipo [constraints]` (ej `id: uuid PK`, `status: text DEFAULT 'pending'`) |
+| | `pages` | `[page_name:pattern, ...]` — pattern: `listener_builder` / `builder` / `form` |
+| | `wiring` | `[di]`, `[router]` o `[di, router]` |
+| `clean-arch-component` | `component_type`, `feature_name` (+ extra según tipo) | `entity`, `model`, `usecase`, `cubit`, `datasource`, `repository`, `repository_impl`, `page` |
+| `di-getit-scaffold` | `mode`, `app_name`, `features`, `external_libs` | `mode`: `manual` o `injectable` |
+| `go-route-scaffold` | `app_name`, `has_auth`, `routes`, `use_sentry` | Ruta: `path, page, feature, children, auth_required` |
+| `flutter-test-generator` | archivo fuente | Ruta al `.dart` (o directorio) |
+
+---
+
+## Troubleshooting
+
+- **El asistente no invocó la skill correcta** → pídele explícitamente: "Usa la skill `clean-arch-feature`...".
+- **El código generado no compila** → verifica los [prerrequisitos](#prerrequisitos-del-proyecto) (imports de `core/`), que diste el `app_name` correcto, y que la feature no exista ya.
+- **La skill no aparece en `/skills`** → reinicia opencode y revisa la ruta de instalación.
+- **El output difiere de los ejemplos** → los templates de cada `SKILL.md` son la fuente de verdad; puede variar si editaste la skill o cambió el patrón del proyecto.
 
 ---
 
