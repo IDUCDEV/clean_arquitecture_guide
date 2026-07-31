@@ -2,7 +2,7 @@
 
 Guía completa para usar las 5 skills de scaffolding. El foco es **qué inputs debes darle a cada skill** para que genere el resultado correcto.
 
-> Para ver el resultado íntegro de cada skill, consulta [EJEMPLO-RESULTADO-1.md](./EJEMPLO-RESULTADO-1.md) y [EJEMPLO-RESULTADO-2.md](./EJEMPLO-RESULTADO-2.md). Para el flujo paso a paso, [EJEMPLO-PRACTICO.md](./EJEMPLO-PRACTICO.md).
+> Para ver el resultado íntegro de cada skill y el flujo paso a paso, consulta [EJEMPLO.md](./EJEMPLO.md) (todo el ejemplo en un solo archivo).
 
 ---
 
