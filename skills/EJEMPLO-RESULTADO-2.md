@@ -1,6 +1,6 @@
 # Ejemplo resultado 2 — Output íntegro de las skills de infraestructura
 
-Este documento muestra el **resultado final completo** que producen `di-getit-scaffold`, `go-route-scaffold`, `clean-arch-component` y `flutter-test-generator`, siguiendo el mismo formato "espejo" de [EJEMPLO-RESULTADO.md](./EJEMPLO-RESULTADO.md) (que cubre `clean-arch-feature`).
+Este documento muestra el **resultado final completo** que producen `di-getit-scaffold`, `go-route-scaffold`, `clean-arch-component` y `flutter-test-generator`, siguiendo el mismo formato "espejo" de [EJEMPLO-RESULTADO-1.md](./EJEMPLO-RESULTADO-1.md) (que cubre `clean-arch-feature`).
 
 Escenario base: el feature **Order** con Supabase del [EJEMPLO-PRACTICO.md](./EJEMPLO-PRACTICO.md) (app `order_app`).
 
@@ -157,7 +157,7 @@ abstract class ExternalModule {
 
 ### B.1 Básico (sin auth, sin Sentry)
 
-Ver [EJEMPLO-RESULTADO.md §13](./EJEMPLO-RESULTADO.md) — el output completo ya está mostrado ahí, no se duplica.
+Ver [EJEMPLO-RESULTADO-1.md §13](./EJEMPLO-RESULTADO-1.md) — el output completo ya está mostrado ahí, no se duplica.
 
 ### B.2 Con auth redirect
 
@@ -294,13 +294,13 @@ Sus templates son los **mismos archivos** que `clean-arch-feature` genera (fuent
 
 | `component_type` | Archivo generado | Ejemplo completo en |
 |---|---|---|
-| `entity` | `domain/entities/{feature}.dart` | [EJEMPLO-RESULTADO.md §1](./EJEMPLO-RESULTADO.md), EJEMPLO-PRACTICO Mini-B |
-| `model` | `data/models/{feature}_model.dart` | [EJEMPLO-RESULTADO.md §4](./EJEMPLO-RESULTADO.md), EJEMPLO-PRACTICO Mini-B |
+| `entity` | `domain/entities/{feature}.dart` | [EJEMPLO-RESULTADO-1.md §1](./EJEMPLO-RESULTADO-1.md), EJEMPLO-PRACTICO Mini-B |
+| `model` | `data/models/{feature}_model.dart` | [EJEMPLO-RESULTADO-1.md §4](./EJEMPLO-RESULTADO-1.md), EJEMPLO-PRACTICO Mini-B |
 | `usecase` | `domain/usecases/{action}_{feature}.dart` | EJEMPLO-PRACTICO Paso 5 (`cancel_order`) |
-| `cubit` | `presentation/cubit/{feature}_cubit.dart` | [EJEMPLO-RESULTADO.md §7](./EJEMPLO-RESULTADO.md) |
-| `datasource` | `data/datasources/{feature}_remote_datasource.dart` | [EJEMPLO-RESULTADO.md §5](./EJEMPLO-RESULTADO.md) |
-| `repository` | `domain/repositories/{feature}_repository.dart` | [EJEMPLO-RESULTADO.md §2](./EJEMPLO-RESULTADO.md) |
-| `repository_impl` | `data/repositories/{feature}_repository_impl.dart` | [EJEMPLO-RESULTADO.md §6](./EJEMPLO-RESULTADO.md) |
+| `cubit` | `presentation/cubit/{feature}_cubit.dart` | [EJEMPLO-RESULTADO-1.md §7](./EJEMPLO-RESULTADO-1.md) |
+| `datasource` | `data/datasources/{feature}_remote_datasource.dart` | [EJEMPLO-RESULTADO-1.md §5](./EJEMPLO-RESULTADO-1.md) |
+| `repository` | `domain/repositories/{feature}_repository.dart` | [EJEMPLO-RESULTADO-1.md §2](./EJEMPLO-RESULTADO-1.md) |
+| `repository_impl` | `data/repositories/{feature}_repository_impl.dart` | [EJEMPLO-RESULTADO-1.md §6](./EJEMPLO-RESULTADO-1.md) |
 | `page` | `presentation/pages/{feature}_{page}_page.dart` | EJEMPLO-PRACTICO Paso 4 (pattern `form`) |
 
 **Prompt típico → resultado:**
@@ -407,5 +407,5 @@ void main() {
 
 ## Siguiente paso
 
-- Para el resultado del feature completo (entity → page + SQL + wiring), ver [EJEMPLO-RESULTADO.md](./EJEMPLO-RESULTADO.md).
+- Para el resultado del feature completo (entity → page + SQL + wiring), ver [EJEMPLO-RESULTADO-1.md](./EJEMPLO-RESULTADO-1.md).
 - Para el flujo paso a paso con prompts, ver [EJEMPLO-PRACTICO.md](./EJEMPLO-PRACTICO.md).

@@ -4,8 +4,9 @@ Skills que generan **boilerplate / scaffolding** de código, dejando la implemen
 
 ## Documentación de ejemplo
 
+- [GUIA-DE-USO.md](./GUIA-DE-USO.md) — **la guía completa**: qué inputs proveer a cada skill (obligatorios, opcionales, formatos y prompts de ejemplo), orquestación y troubleshooting.
 - [EJEMPLO-PRACTICO.md](./EJEMPLO-PRACTICO.md) — el **flujo** paso a paso: prompts y fragmentos de output usando las 5 skills (feature Order de principio a fin).
-- [EJEMPLO-RESULTADO.md](./EJEMPLO-RESULTADO.md) — el **resultado** íntegro: todos los archivos que genera `clean-arch-feature` al 100% para el mismo escenario, listo para comparar contra tu output real.
+- [EJEMPLO-RESULTADO-1.md](./EJEMPLO-RESULTADO-1.md) — el **resultado** íntegro: todos los archivos que genera `clean-arch-feature` al 100% para el mismo escenario, listo para comparar contra tu output real.
 - [EJEMPLO-RESULTADO-2.md](./EJEMPLO-RESULTADO-2.md) — el **resultado** íntegro de las otras 4 skills: `di-getit-scaffold` (manual + injectable), `go-route-scaffold` (auth, Sentry, combinado), `clean-arch-component` (tabla de piezas) y `flutter-test-generator` (test de model).
 
 > Nota: estos archivos son **ejemplos de uso**, no skills.
@@ -34,7 +35,7 @@ Las skills se cargan desde `.opencode/skills/` (per-proyecto) o `~/.opencode/ski
 2. Reinicia opencode para que detecte skills nuevas o modificadas.
 3. Verifica con `/skills` que aparecen listadas.
 
-> `EJEMPLO-PRACTICO.md`, `EJEMPLO-RESULTADO.md` y `EJEMPLO-RESULTADO-2.md` **no** se copian: son documentación de referencia, no skills.
+> `EJEMPLO-PRACTICO.md`, `EJEMPLO-RESULTADO-1.md`, `EJEMPLO-RESULTADO-2.md` y `GUIA-DE-USO.md` **no** se copian: son documentación de referencia, no skills.
 
 ---
 
