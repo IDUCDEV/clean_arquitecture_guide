@@ -251,7 +251,11 @@ class {Feature}RepositoryImpl implements {Feature}Repository {
 
 **Patrón esperado por método:**
 ```dart
-// Comentario explicando la logica en palabras, para que el desarrollador las traduzca codigo.
+// TODO: implementar. Resolver antes de escribir:
+//   1) ¿Qué contrato cumple este método? (qué recibe, qué devuelve)
+//   2) ¿Qué capa inferior interviene? (datasource, cache, red)
+//   3) ¿Qué mapeo entity <-> model aplica?
+//   4) ¿Qué puede fallar y cómo se traduce a Failure?
 ```
 
 ### UseCases (`domain/usecases/{action}_{feature}.dart`)
