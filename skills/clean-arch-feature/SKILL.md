@@ -251,14 +251,7 @@ class {Feature}RepositoryImpl implements {Feature}Repository {
 
 **Patrón esperado por método:**
 ```dart
-// try {
-//   final models = await remoteDataSource.getAll();
-//   return Right(models.map((m) => m.toEntity()).toList());
-// } on ServerException catch (e) {
-//   return Left(ServerFailure(e.message));
-// } on CacheException catch (e) {
-//   return Left(CacheFailure(e.message));
-// }
+// Comentario explicando la logica en palabras, para que el desarrollador las traduzca codigo.
 ```
 
 ### UseCases (`domain/usecases/{action}_{feature}.dart`)
