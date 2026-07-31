@@ -7,11 +7,10 @@ Skills que generan **boilerplate / scaffolding** de código, dejando la implemen
 | Skill | Qué genera | Cuándo usarla |
 |---|---|---|
 | [flutter-test-generator](./flutter-test-generator/SKILL.md) | Tests unitarios boilerplate por capa | Cuando necesitas tests para un archivo existente |
-| [clean-arch-feature](./clean-arch-feature/SKILL.md) | Feature completa (entity → page, con Supabase opcional) | Cuando empiezas una feature nueva desde cero |
-| [clean-arch-component](./clean-arch-component/SKILL.md) | Archivo individual (entity, model, usecase, cubit...) | Cuando añades una pieza a una feature existente |
-| [widget-page-scaffold](./widget-page-scaffold/SKILL.md) | Páginas Flutter con BlocConsumer/Builder/Listener/Form | Cuando necesitas una página que se conecte a un Cubit existente |
-| [di-getit-scaffold](./di-getit-scaffold/SKILL.md) | Módulo GetIt de inyección de dependencias | Cuando registras dependencias de una feature en el service locator |
-| [go-route-scaffold](./go-route-scaffold/SKILL.md) | Configuración de rutas GoRouter | Cuando añades rutas con/sin auth redirect y Sentry |
+| [clean-arch-feature](./clean-arch-feature/SKILL.md) | Feature completa (entity → page, con Supabase, páginas y wiring opcionales) | Cuando empiezas una feature nueva desde cero |
+| [clean-arch-component](./clean-arch-component/SKILL.md) | Archivo individual (entity, model, usecase, cubit, page...) | Cuando añades una pieza a una feature existente |
+| [di-getit-scaffold](./di-getit-scaffold/SKILL.md) | Módulo GetIt de inyección de dependencias | Cuando registras dependencias de una feature en el service locator (se invoca desde `clean-arch-feature` con `wiring: di`) |
+| [go-route-scaffold](./go-route-scaffold/SKILL.md) | Configuración de rutas GoRouter | Cuando añades rutas con/sin auth redirect y Sentry (se invoca desde `clean-arch-feature` con `wiring: router`) |
 
 ---
 
@@ -27,11 +26,17 @@ Las skills están diseñadas para ser ejecutadas por el asistente AI. Solo tiene
 **"Añade un usecase delete_product al feature product"**
 → El asistente ejecuta `clean-arch-component` con `component_type: usecase` y `operation: delete`.
 
-**"Genera una página de listado de productos con BlocConsumer"**
-→ El asistente ejecuta `widget-page-scaffold` con `pattern_type: consumer`.
+**"Crea un feature 'product' (campos id, name, price, categoryId, createdAt) con páginas list y detail"**
+→ El asistente ejecuta `clean-arch-feature` con `pages` y genera las páginas iniciales con su patrón (`list:listener_builder`, `detail:builder`).
+
+**"Añade una página edit al feature product con patrón form"**
+→ El asistente ejecuta `clean-arch-component` con `component_type: page`, `page_name: edit` y `pattern_type: form`.
 
 **"Crea un feature product (campos id, name, price, categoryId, createdAt) y conéctalo a Supabase, tabla products, columnas: id uuid PK, name text, price float8"**
 → El asistente ejecuta `clean-arch-feature` con parámetros Supabase y genera entidad, modelo con snake_case, datasource con `_tableName` + `watchById`, y migración SQL.
+
+**"Crea un feature product (campos id, name, price, categoryId, createdAt) con páginas list y detail, y regístralo en DI y en el router"**
+→ El asistente ejecuta `clean-arch-feature` con `pages` y `wiring: [di, router]`. Tras generar los archivos, orquesta `di-getit-scaffold` (actualiza `service_locator.dart`) y `go-route-scaffold` (añade rutas a `app_router.dart`) en el mismo turno.
 
 **"Registra el feature product en el service locator"**
 → El asistente ejecuta `di-getit-scaffold` y añade las dependencias a `service_locator.dart`.
@@ -49,25 +54,19 @@ Las skills están diseñadas para ser ejecutadas por el asistente AI. Solo tiene
 ```
 1. Diseñas la feature (FADER)
         ↓
-2. Pides scaffold + Supabase → clean-arch-feature
+2. Pides scaffold + Supabase + páginas (+ wiring: DI/rutas) → clean-arch-feature
+        ↓          (si pediste wiring, orquesta di-getit-scaffold + go-route-scaffold)
+3. Implementas bodies de métodos (tú)
         ↓
-3. Registras DI → di-getit-scaffold
+4. Añades más usecases o páginas → clean-arch-component
         ↓
-4. Añades rutas → go-route-scaffold
+5. Implementas bodies (tú)
         ↓
-5. Implementas bodies de métodos (tú)
+6. Pides tests → flutter-test-generator
         ↓
-6. Pides páginas → widget-page-scaffold
+7. Completas los tests (tú)
         ↓
-7. Añades más usecases → clean-arch-component
-        ↓
-8. Implementas bodies (tú)
-        ↓
-9. Pides tests → flutter-test-generator
-        ↓
-10. Completas los tests (tú)
-        ↓
-11. Verificas con flutter test
+8. Verificas con flutter test
 ```
 
 ---

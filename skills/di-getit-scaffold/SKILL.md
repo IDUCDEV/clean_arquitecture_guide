@@ -7,6 +7,8 @@ description: Generate or update GetIt dependency injection module (manual or inj
 
 Genera el archivo de registro de dependencias para GetIt, en modo manual o con injectable. Ordena por capa: external → core → datasources → repositories → usecases → cubits.
 
+> **Orquestación:** esta skill suele invocarse desde `clean-arch-feature` cuando el usuario pide `wiring: [di]`. En ese flujo, los componentes generados (datasources, repositorios, usecases, cubit, estado) se pasan como entrada. Puede usarse también de forma independiente sobre un feature ya existente.
+
 ## Input requerido
 
 | Parámetro | Descripción | Ejemplo |

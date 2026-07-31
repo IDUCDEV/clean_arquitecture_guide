@@ -1,6 +1,6 @@
 # Ejemplo práctico — Feature "Orders" de principio a fin
 
-Guía paso a paso usando las 7 skills para construir un feature completo de gestión de pedidos.
+Guía paso a paso usando las 5 skills para construir un feature completo de gestión de pedidos.
 
 ---
 
@@ -14,7 +14,7 @@ Queremos un feature **Order** con:
 
 ---
 
-## Paso 1: Scaffold completo del feature + Supabase
+## Paso 1: Scaffold completo del feature + Supabase + páginas
 
 **Prompt para el asistente:**
 
@@ -35,8 +35,12 @@ Queremos un feature **Order** con:
 > - `status: text NOT NULL DEFAULT 'pending'`
 > - `items: jsonb NOT NULL DEFAULT '[]'`
 > - `created_at: timestamptz NOT NULL DEFAULT now()`
+>
+> Páginas iniciales: `[list:listener_builder, detail:builder]`
+>
+> Y wiring: regístralo en DI y añade sus rutas al router (`/orders` → lista, `/orders/:id` → detalle)
 
-**Qué genera `clean-arch-feature`:**
+**Qué genera `clean-arch-feature` (orquestando):**
 
 ```
 lib/features/order/
@@ -63,7 +67,8 @@ lib/features/order/
     │   ├── order_cubit.dart
     │   └── order_state.dart
     └── pages/
-        └── order_page.dart
+        ├── orders_list_page.dart            # pattern listener_builder
+        └── order_detail_page.dart           # pattern builder
 supabase/
 └── migrations/
     └── {timestamp}_create_orders.sql
@@ -178,18 +183,17 @@ class OrderModel extends Order {
 **Tú haces después:**
 - Revisar la migración SQL y ejecutarla en Supabase
 - Ajustar RLS policies para filtrar por `user_id`
+- Implementar los bodies de las páginas (`// TODO: render content`)
 
 ---
 
-## Paso 2: Registrar dependencias en GetIt
+## Paso 2: Wiring automático — DI + rutas (orquestado)
 
-**Prompt:**
+Como pediste `wiring` en el **Paso 1**, `clean-arch-feature` no se detiene al generar los archivos: en el mismo turno invoca `di-getit-scaffold` y `go-route-scaffold`, pasándoles los componentes recién creados. Cada skill es dueña de su archivo central; aquí solo se delega.
 
-> Registra el feature order en service_locator en modo manual
+### 2a. `di-getit-scaffold` actualiza el service locator
 
-**Qué genera `di-getit-scaffold`:**
-
-Actualiza `lib/core/di/service_locator.dart` con:
+Actualiza `lib/core/di/service_locator.dart` (modo manual) con:
 
 ```dart
 // ──────────────────────────────────────────────
@@ -235,20 +239,9 @@ sl
 
 **Tú haces después:** Nada, queda listo.
 
----
+### 2b. `go-route-scaffold` actualiza el router
 
-## Paso 3: Añadir rutas
-
-**Prompt:**
-
-> Añade rutas al router:
-> - `/orders` → OrdersListPage
-> - `/orders/:id` → OrderDetailPage
-> Sin auth redirect, sin Sentry
-
-**Qué genera `go-route-scaffold`:**
-
-Actualiza `lib/core/router/app_router.dart`:
+Actualiza `lib/core/router/app_router.dart` con las rutas de las páginas generadas en el Paso 1:
 
 ```dart
 import 'package:flutter/material.dart';
@@ -285,9 +278,11 @@ class AppRouter {
 - Envolver `MaterialApp.router(routerConfig: AppRouter().router)` con `MultiBlocProvider` que incluya los cubits necesarios
 - Implementar `OrdersListPage` y `OrderDetailPage`
 
+> **Sin `wiring`:** si hubieras omitido `wiring` en el prompt del Paso 1, estos dos sub-pasos no se ejecutarían; tendrías que pedirlos aparte ("Registra el feature order en service_locator", "Añade rutas de orders al router").
+
 ---
 
-## Paso 4: Implementar bodies (tú)
+## Paso 3: Implementar bodies (tú)
 
 Hasta aquí todo ha sido scaffolding. Ahora implementas los bodies de:
 
@@ -332,16 +327,19 @@ Hasta aquí todo ha sido scaffolding. Ahora implementas los bodies de:
 
 ---
 
-## Paso 5: Generar páginas con BlocListener + BlocBuilder
+## Paso 4: Añadir página extra a feature existente
+
+Las páginas iniciales ya se generaron en el **Paso 1** (`orders_list_page.dart` con `listener_builder`, `order_detail_page.dart` con `builder`). Ahora imagina que semanas después quieres añadir una página de edición.
 
 **Prompt:**
 
-> Genera una página de listado de orders con listener_builder.
-> Feature: order, page: list, pattern: listener_builder
+> Añade una página edit al feature order con patrón form
 
-**Qué genera `widget-page-scaffold`:**
+**Qué ejecuta `clean-arch-component`:**
 
-`lib/features/order/presentation/pages/orders_list_page.dart`:
+Carga el template `form` de la sección **"Templates de página"** de `clean-arch-feature` (fuente única — no se duplica) y genera:
+
+`lib/features/order/presentation/pages/order_edit_page.dart`:
 
 ```dart
 import 'package:flutter/material.dart';
@@ -350,91 +348,95 @@ import 'package:order_app/core/services/snackbar_helper.dart';
 import 'package:order_app/core/widgets/app_button.dart';
 import 'package:order_app/features/order/presentation/cubit/order_cubit.dart';
 
-class OrdersListPage extends StatefulWidget {
-  const OrdersListPage({super.key});
+class OrderEditPage extends StatefulWidget {
+  const OrderEditPage({super.key});
 
   @override
-  State<OrdersListPage> createState() => _OrdersListPageState();
+  State<OrderEditPage> createState() => _OrderEditPageState();
 }
 
-class _OrdersListPageState extends State<OrdersListPage> {
+class _OrderEditPageState extends State<OrderEditPage> {
+  final _formKey = GlobalKey<FormState>();
+
+  // TODO: declare TextEditingController for each field
+  // late final TextEditingController _statusController;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
+    // TODO: initialize controllers
+    // _statusController = TextEditingController(text: initialValue);
+  }
+
+  @override
+  void dispose() {
+    // TODO: dispose controllers
+    // _statusController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Orders')),
+      appBar: AppBar(title: const Text('Edit Order')),
       body: BlocListener<OrderCubit, OrderState>(
         listener: (context, state) {
-          // TODO: side effects — snackbars, navegación
-          // if (state is OrderLoaded && state.xxxError != null) {
-          //   SnackbarHelper.show(context, state.xxxError!, isSuccess: false);
-          //   context.read<OrderCubit>().clearXxxError();
+          // TODO: handle success / error side effects
+          // if (state is OrderUpdated) {
+          //   SnackbarHelper.show(context, 'Guardado exitoso', isSuccess: true);
+          //   context.pop();
+          // }
+          // if (state is OrderError) {
+          //   SnackbarHelper.show(context, state.message, isSuccess: false);
           // }
         },
         child: BlocBuilder<OrderCubit, OrderState>(
           builder: (context, state) {
-            if (state is OrderLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (state is OrderError) {
-              return Center(
+            final isLoading = state is OrderLoading;
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Form(
+                key: _formKey,
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(state.message, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 16),
+                    // TODO: TextFormField for each field
+                    const SizedBox(height: 24),
                     AppButton(
-                      label: 'Reintentar',
-                      onPressed: _refresh,
+                      label: 'Guardar',
+                      onPressed: isLoading ? null : _submit,
                       variant: AppButtonVariant.primary,
+                      isLoading: isLoading,
                     ),
                   ],
                 ),
-              );
-            }
-            if (state is OrdersLoaded) {
-              final orders = state.orders;
-              if (orders.isEmpty) {
-                return const Center(child: Text('No orders yet'));
-              }
-              return ListView.builder(
-                itemCount: orders.length,
-                itemBuilder: (context, index) {
-                  final order = orders[index];
-                  return ListTile(
-                    title: Text('Order #${order.id.substring(0, 8)}'),
-                    subtitle: Text('\$${order.total.toStringAsFixed(2)}'),
-                    trailing: Text(order.status),
-                  );
-                },
-              );
-            }
-            return const Center(child: CircularProgressIndicator());
+              ),
+            );
           },
         ),
       ),
     );
   }
 
-  void _refresh() {
-    context.read<OrderCubit>().loadOrders();
+  void _submit() {
+    // TODO: implement submit
+    // if (_formKey.currentState!.validate()) {
+    //   context.read<OrderCubit>().updateOrder(
+    //     Order(...),
+    //   );
+    // }
   }
 }
 ```
 
 **Tú haces después:**
-- Conectar la página en el router
-- Implementar los side effects en el listener
-- Ajustar el renderizado de cada estado
+- Implementar controllers, validación y submit
+- Conectar la página en el router (`go-route-scaffold`)
 
 ---
 
-## Paso 6: Añadir usecase extra
+## Paso 5: Añadir usecase extra
 
 **Prompt:**
 
@@ -480,7 +482,7 @@ class CancelOrderParams extends Equatable {
 
 ---
 
-## Paso 7: Generar tests
+## Paso 6: Generar tests
 
 **Prompt:**
 
@@ -553,12 +555,11 @@ void main() {
 ## Resumen del flujo completo
 
 | Paso | Skill | Archivos generados | Lo que haces tú |
-|---|---|---|---|---|
-| 1 | `clean-arch-feature` | 18 archivos + SQL migration | Ejecutar migración, ajustar RLS |
-| 2 | `di-getit-scaffold` | service_locator.dart actualizado | — |
-| 3 | `go-route-scaffold` | app_router.dart actualizado | Conectar en main.dart |
-| 4 | *(tú implementas)* | — | Bodies de datasource, repository, cubit |
-| 5 | `widget-page-scaffold` | orders_list_page.dart | Conectar router |
-| 6 | `clean-arch-component` | cancel_order.dart | Implementar + registrar DI + cubit |
-| 7 | `flutter-test-generator` | order_cubit_test.dart | Completar datos de prueba |
-| 8 | *(tú completas)* | — | Tests restantes + `flutter test` |
+|---|---|---|---|
+| 1 | `clean-arch-feature` | 18 archivos + SQL migration + 2 páginas | Ejecutar migración, ajustar RLS, bodies de páginas |
+| 2 | `clean-arch-feature` → orquesta `di-getit-scaffold` + `go-route-scaffold` | service_locator.dart + app_router.dart actualizados | Conectar en main.dart |
+| 3 | *(tú implementas)* | — | Bodies de datasource, repository, cubit |
+| 4 | `clean-arch-component` | order_edit_page.dart | Implementar + conectar router |
+| 5 | `clean-arch-component` | cancel_order.dart | Implementar + registrar DI + cubit |
+| 6 | `flutter-test-generator` | order_cubit_test.dart | Completar datos de prueba |
+| 7 | *(tú completas)* | — | Tests restantes + `flutter test` |

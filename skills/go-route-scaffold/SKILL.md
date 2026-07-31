@@ -7,6 +7,8 @@ description: Generate or update GoRouter configuration with standard routes, opt
 
 Genera la configuración de GoRouter para la aplicación, soportando redirect de autenticación y observadores como Sentry.
 
+> **Orquestación:** esta skill suele invocarse desde `clean-arch-feature` cuando el usuario pide `wiring: [router]`. En ese flujo, las páginas generadas por el feature se pasan como entradas de `routes`. Puede usarse también de forma independiente sobre páginas existentes.
+
 ## Input requerido
 
 | Parámetro | Descripción | Ejemplo |
