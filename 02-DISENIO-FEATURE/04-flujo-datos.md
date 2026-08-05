@@ -171,7 +171,7 @@ Future<Either<Failure, Cart>> call({
   required String userId,
   required String couponCode,
 }) async {
-  // R005: Cupón vigente
+  // RN005: Cupón vigente
   if (couponCode.isEmpty) return Left(InvalidCoupon());
 
   // Delega la validación de expiración al repositorio
@@ -289,6 +289,29 @@ Widget → Cubit → UseCase → Repository ──→ LocalDataSource ──→ 
                                         │
                                         └──→ RemoteDataSource → API (en background)
 ```
+
+### Flujo Realtime (Supabase Streams)
+
+Cuando otros usuarios pueden cambiar los datos mientras la pantalla está abierta, el flujo clásico "pido → recibo" no basta. El DataSource expone un `Stream` y el Cubit escucha.
+
+```
+Widget → Cubit → UseCase → Repository → RemoteDataSource → Supabase Realtime
+                                      │                        │
+                                      │   subscribe al canal   │
+                                      │                        ▼
+Widget ← Cubit ← UseCase ← Repository ←── Stream<Entity> ───── (cambios)
+```
+
+En el contrato, la lectura en vivo es un Stream además de las operaciones CRUD:
+
+```dart
+abstract class TicketsDataSource {
+  Future<List<TicketModel>> fetchTickets(String raffleId);
+  Stream<TicketModel> watchTickets(String raffleId);   // realtime
+}
+```
+
+> ¿Cuándo usarlo? Diseñarlo en la sección [Supabase por feature](./05e-diseno-supabase.md). Regla práctica: si la pantalla se abre una vez y no cambia, no necesitas realtime.
 
 ---
 

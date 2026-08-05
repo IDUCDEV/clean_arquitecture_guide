@@ -6,6 +6,8 @@
 
 ## Framework FADER
 
+> ⚠️ **Ojo:** este FADER (Frontend/Api/Data/Estados/Requisitos) NO es el FADER de diseño (Formular/Actorizar/Descomponer/Entidades/Reglas). El de diseño te dice **qué construir**; este de estimación te dice **cuánto cuesta cada tipo de trabajo**. Usa el primero para descomponer ([01](./01-descomposicion-feature.md)) y este para estimar cada pieza.
+
 Una feature se descompone en 4 componentes:
 
 | Componente | Descripción | Ejemplo |
@@ -19,6 +21,8 @@ Una feature se descompone en 4 componentes:
 ---
 
 ## Pasos para estimar
+
+> **Estima sobre el diseño, no sobre la intuición.** Antes de estimar, tu feature debe tener: Alcance definido ([00](./00-alcance-feature.md)), FADER completo ([01](./01-descomposicion-feature.md)) y la [matriz de trazabilidad](./05f-criterios-aceptacion-trazabilidad.md). Si la feature no está descompuesta, cualquier estimación es un número adivinado.
 
 ### 1. Descompón la feature
 
@@ -117,6 +121,8 @@ Total estimado: 15-22 horas
 - [Dependencia 1]
 - [Dependencia 2]
 ```
+
+> La plantilla completa por feature (con alcance, FADER, reglas, contratos, Supabase, criterios y esta estimación) está en [PLANTILLA-DISENIO-FEATURE.md](./PLANTILLA-DISENIO-FEATURE.md).
 
 ---
 

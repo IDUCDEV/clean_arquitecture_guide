@@ -1,6 +1,6 @@
 # Caso Práctico: Sistema de Facturación
 
-> Aplica FADER + Mapeo + Contratos + Flujo para diseñar un sistema de facturación con máquina de estados compleja.
+> Aplica FADER + Mapeo + Contratos + Flujo + Supabase + Criterios para diseñar un sistema de facturación con máquina de estados compleja.
 
 ---
 
@@ -17,6 +17,18 @@ Somos el equipo de ingeniería de una empresa SaaS. El equipo de producto nos pi
 1. Trabaja en papel y lápiz. No abras el editor de código.
 2. Sigue cada sección en orden.
 3. Al final, compara con la solución sugerida.
+
+---
+
+## Sección 0: Alcance
+
+Antes de descomponer, define los límites del sistema (teoría en [00-alcance-feature.md](./00-alcance-feature.md)):
+
+1. **Incluye:** ¿qué cubre el sistema de facturación?
+2. **No incluye:** ¿qué NO cubre? (ej: conciliación bancaria, contabilidad completa)
+3. **Dependencias:** ¿qué necesita que exista antes?
+4. **Suposiciones:** ¿qué das por hecho?
+5. **Preguntas abiertas:** ¿qué no sabes todavía?
 
 ---
 
@@ -103,7 +115,7 @@ Define las entidades de negocio:
 
 ### ✏️ Paso 5: Reglas
 
-Enuncia al menos 10 reglas de negocio.
+Enuncia al menos 10 reglas de negocio con formato RN001, RN002... y añade reglas técnicas (RT) y de seguridad (RS) cuando aplique (teoría en [01-descomposicion-feature.md](./01-descomposicion-feature.md#paso-5-reglas)).
 
 **Áreas a cubrir:**
 - Números de factura (secuenciales por emisor)
@@ -271,6 +283,39 @@ Dibuja el flujo automático de generación de facturas recurrentes.
 
 ---
 
+## Sección 5: Diseño Supabase
+
+Aterriza el diseño en Supabase (teoría en [05e-diseno-supabase.md](./05e-diseno-supabase.md)):
+
+> **¿Tu backend es una REST API (Python/otro)?** Aquí no implementas el servidor: solo especificas el **contrato** (endpoints, DTOs, códigos de error, garantías de atomicidad y autorización) que consume tu `RemoteDataSource` con Dio; el backend la diseña e implementa.
+
+1. **Tablas:** facturas, items, pagos, notas de crédito, planes recurrentes.
+2. **Operaciones:** ¿qué UseCase usa select/insert/update/rpc?
+3. **RLS:** policies que cumplan RS001 (emisor ve solo sus facturas).
+4. **Atomicidad:** emisión con número secuencial (RT001) y registro de pago.
+5. **Realtime:** ¿el timeline de estados se sincroniza en vivo?
+
+**Pregúntate:**
+- ¿El contador `proximoNumeroFactura` vive en la BD (transacción) o en el cliente?
+- ¿Marcar "vencida" (RN007) es un cron de Postgres o un trigger?
+- ¿Los pagos parciales (RN008) se validan con un RPC atómico?
+
+---
+
+## Sección 6: Criterios de Aceptación y Trazabilidad
+
+Cierra el diseño (teoría en [05f-criterios-aceptacion-trazabilidad.md](./05f-criterios-aceptacion-trazabilidad.md)):
+
+1. **Criterios:** escribe al menos 5 en formato BDD (prioriza la máquina de estados).
+2. **Matriz:** cruza UseCase → Regla → Contrato → Fuente de verdad → Test.
+
+**Pregúntate:**
+- ¿El criterio "emitir sin items" cubre RN002 y falla con mensaje claro?
+- ¿RN009 (sobrepago → nota de crédito) tiene un criterio y un test?
+- ¿RS002 (número no editable) se verifica en la matriz aunque no pase por UseCase?
+
+---
+
 ## Solución Sugerida
 
 > ⚠️ Resuelve cada sección en papel primero. La solución sugerida es para comparar después.
@@ -342,25 +387,30 @@ Dibuja el flujo automático de generación de facturas recurrentes.
 ║            codigoFiscal                                       ║
 ║                                                               ║
 ║  [R]eglas:                                                    ║
-║  R001: El número de factura es secuencial por emisor         ║
-║  R002: No se puede emitir una factura sin items              ║
-║  R003: fechaVencimiento > fechaEmision                       ║
-║  R004: Solo facturas en borrador se pueden editar            ║
-║  R005: Solo facturas emitidas se pueden enviar                ║
-║  R006: Solo facturas emitidas/enviadas se pueden pagar        ║
-║  R007: Una factura se marca vencida si fechaVencimiento <    ║
+║  RN001: El número de factura es secuencial por emisor         ║
+║  RN002: No se puede emitir una factura sin items              ║
+║  RN003: fechaVencimiento > fechaEmision                       ║
+║  RN004: Solo facturas en borrador se pueden editar            ║
+║  RN005: Solo facturas emitidas se pueden enviar                ║
+║  RN006: Solo facturas emitidas/enviadas se pueden pagar        ║
+║  RN007: Una factura se marca vencida si fechaVencimiento <    ║
 ║        hoy y estado es emitida o enviada                      ║
-║  R008: Pagos parciales: estado = "pagada" solo si            ║
+║  RN008: Pagos parciales: estado = "pagada" solo si            ║
 ║        suma pagos >= total                                    ║
-║  R009: Si suma pagos > total, generar nota de crédito        ║
+║  RN009: Si suma pagos > total, generar nota de crédito        ║
 ║        por el excedente                                       ║
-║  R010: Nota de crédito solo referencia una factura emitida   ║
-║  R011: Al anular, el monto queda como crédito a favor        ║
+║  RN010: Nota de crédito solo referencia una factura emitida   ║
+║  RN011: Al anular, el monto queda como crédito a favor        ║
 ║        del cliente                                            ║
-║  R012: Las recurrentes se generan el día siguiente al         ║
+║  RN012: Las recurrentes se generan el día siguiente al         ║
 ║        de su fecha de siguienteEmision                        ║
-║  R013: Impuesto IVA 21% para productos nacionales,           ║
+║  RN013: Impuesto IVA 21% para productos nacionales,           ║
 ║        0% para exportaciones                                  ║
+║  RT001: Número secuencial FFF-000001 se genera en el          ║
+║        backend (transacción atómica sobre contador)           ║
+║  RS001: Un emisor solo ve sus propias facturas                ║
+║  RS002: El número de factura no es editable por el            ║
+║        frontend (columna protegida por RLS)                   ║
 ║                                                               ║
 ╚═══════════════════════════════════════════════════════════════╝
 ```
@@ -371,38 +421,38 @@ Dibuja el flujo automático de generación de facturas recurrentes.
                     ┌──────────┐
                     │ BORRADOR │
                     └────┬─────┘
-                         │ emitir (R002, R003)
+                         │ emitir (RN002, RN003)
                          ▼
                     ┌──────────┐
          ┌──────────│ EMITIDA  │──────────┐
          │          └────┬─────┘          │
          │               │ enviar         │
          │               ▼                │
-         │          ┌──────────┐  (R006)  │
+         │          ┌──────────┐  (RN006)  │
          │          │ ENVIADA  │          │
          │          └────┬─────┘          │
          │               │                │
-         │      pagar    │  (R006)        │
+         │      pagar    │  (RN006)        │
          │               ▼                │
          │     ╔══════════════╗           │
          │     ║   PAGADA    ║           │
          │     ╚══════════════╝           │
          │         │     ↑                │
          │         │     │ (si sobra →    │
-         │         │     │  R009)         │
+         │         │     │  RN009)         │
          │         │     │                │
          │         ▼     │                │
          │  ┌───────────────┐             │
          │  │ CRÉDITO A      │            │
-         │  │ FAVOR (R011)   │            │
+         │  │ FAVOR (RN011)   │            │
          │  └───────────────┘             │
          │                                │
-         │  vencimiento (R007)            │
+         │  vencimiento (RN007)            │
          │                                ▼
          │                         ┌──────────┐
          └─────────────────────────│ VENCIDA  │
                                    └──────────┘
-         anular (R004,R010) →
+         anular (RN004,RN010) →
          ┌──────────┐
          │ ANULADA  │
          └──────────┘
@@ -491,8 +541,8 @@ CUBIT      → Validaciones por paso
 USUARIO    → Tap "Emitir Factura"
 CUBIT      → emit(InvoiceSubmitting)
 USECASE    → IssueInvoice.call(invoiceId)
-              → Valida R002 (items no vacío)
-              → Valida R003 (fechas válidas)
+              → Valida RN002 (items no vacío)
+              → Valida RN003 (fechas válidas)
               → InvoiceRepository.issue(invoiceId)
 REPO IMPL  → 1. remoteDS.getNextInvoiceNumber(issuerId)
              2. remoteDS.updateInvoiceStatus(id, "emitida", number)
@@ -508,6 +558,72 @@ ERRORES:
   - fecha inválida → InvalidInvoiceDate
   - cliente sin datos fiscales → MissingTaxInfo
 ```
+
+### ✅ Diseño Supabase
+
+```
+invoices
+├── id                uuid PK
+├── number            text (asignado al emitir, RT001)
+├── issuer_id         uuid FK → profiles
+├── customer_id       uuid FK → customers
+├── status            enum (draft, issued, sent, paid, overdue, voided)
+├── due_date          date
+├── total             numeric
+├── currency          text
+└── constraint chk_dates check (due_date > issued_at)
+
+issuers
+├── id                uuid PK
+└── next_invoice_number int  -- contador atómico (RT001)
+
+payments
+├── id                uuid PK
+├── invoice_id        uuid FK → invoices
+├── amount            numeric
+└── status            enum (pending, confirmed)
+
+-- RS001: un emisor solo ve sus propias facturas
+create policy "issuer sees own invoices"
+  on invoices for select
+  using (issuer_id = auth.uid());
+
+-- RN001/RT001: emitir = RPC emitir_factura(p_invoice_id)
+--   → BEGIN; UPDATE issuers SET next_invoice_number = n + 1 RETURNING n;
+--   → UPDATE invoices SET number = ..., status = 'issued';
+--   → COMMIT;  (falla como unidad → sin huecos ni duplicados)
+```
+
+### ✅ Criterios de Aceptación (ejemplos)
+
+```gherkin
+Escenario: Emitir factura sin items
+  Dado un borrador sin items
+  Cuando el emisor intenta emitirlo
+  Entonces el sistema rechaza con InvoiceHasNoItems (RN002)
+
+Escenario: Pago parcial que completa el total
+  Dado una factura emitida por $100 con un pago de $60
+  Cuando se registra un pago de $40
+  Entonces el saldo pendiente es $0
+  Y la factura pasa a "pagada" (RN008)
+
+Escenario: Sobrepago
+  Dado una factura emitida por $100
+  Cuando se registra un pago de $120
+  Entonces la factura pasa a "pagada"
+  Y se genera una nota de crédito por $20 (RN009)
+```
+
+### ✅ Matriz de Trazabilidad
+
+| UseCase                | Regla(s)            | Contrato                                  | Fuente de verdad    | Test                  |
+|------------------------|---------------------|-------------------------------------------|---------------------|-----------------------|
+| IssueInvoice           | RN001, RN002, RN003 | InvoiceRepository.issue                   | RPC atómico (RT001) | unit + integration    |
+| RegisterPayment        | RN006, RN008, RN009 | PaymentRepository (vía Invoice)           | RPC atómico         | unit + integration    |
+| CancelInvoice          | RN004, RN010, RN011 | InvoiceRepository.cancel                  | API + trigger       | unit + widget         |
+| GenerateRecurring      | RN012               | InvoiceRepository.generateRecurringInvoices | cron + RPC         | integration           |
+| Ver facturas propias   | RS001, RS002        | InvoiceRepository.getInvoices             | RLS                 | integration (RLS)     |
 
 ---
 

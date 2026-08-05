@@ -8,7 +8,8 @@
 
 | Archivo | Descripción |
 |---------|-------------|
-| [01-descomposicion-feature.md](./01-descomposicion-feature.md) | Teoría: Framework FADER de descomposición |
+| [00-alcance-feature.md](./00-alcance-feature.md) | Teoría: Definir el alcance de la feature (incluye/no incluye) |
+| [01-descomposicion-feature.md](./01-descomposicion-feature.md) | Teoría: Framework FADER de descomposición + reglas RN/RT/RS |
 | [01a-practica-carrito.md](./01a-practica-carrito.md) | Práctica: Descomponer feature Carrito de Compras |
 | [02-mapeo-capas.md](./02-mapeo-capas.md) | Teoría: Traducir descomposición a Clean Architecture |
 | [02a-practica-carrito-capas.md](./02a-practica-carrito-capas.md) | Práctica: Mapear Carrito a las capas |
@@ -16,11 +17,14 @@
 | [03a-practica-carrito-contratos.md](./03a-practica-carrito-contratos.md) | Práctica: Escribir contratos sin implementar |
 | [04-flujo-datos.md](./04-flujo-datos.md) | Teoría: Flujo de datos entre capas |
 | [04a-practica-carrito-flujo.md](./04a-practica-carrito-flujo.md) | Práctica: Diagramar flujo completo del Carrito |
+| [05e-diseno-supabase.md](./05e-diseno-supabase.md) | Teoría: Contrato con el backend — Supabase (tablas, RLS, RPC, realtime) o REST API (endpoints, DTOs, garantías) |
+| [05f-criterios-aceptacion-trazabilidad.md](./05f-criterios-aceptacion-trazabilidad.md) | Teoría: Criterios de aceptación (BDD) y matriz de trazabilidad |
 | [05-caso-completo-reservas.md](./05-caso-completo-reservas.md) | Caso integral: Sistema de Reservas |
 | [05b-caso-elearning.md](./05b-caso-elearning.md) | Caso integral: Plataforma E-Learning |
 | [05c-caso-facturacion.md](./05c-caso-facturacion.md) | Caso integral: Sistema de Facturación |
 | [05d-caso-delivery.md](./05d-caso-delivery.md) | Caso integral: App de Delivery |
 | [15-estimacion-complejidad.md](./15-estimacion-complejidad.md) | Estimación de tiempo con framework FADER |
+| [PLANTILLA-DISENIO-FEATURE.md](./PLANTILLA-DISENIO-FEATURE.md) | Plantilla reutilizable del flujo completo de diseño |
 | [BIBLIOGRAFIA.md](./BIBLIOGRAFIA.md) | Fuentes, libros y referencias |
 
 ---
@@ -41,7 +45,21 @@ Sección dedicada a reconstruir tu capacidad de desarrollo autónomo. Framework 
 | [trabajar-sin-ia/13-checklists-y-plantillas.md](./trabajar-sin-ia/13-checklists-y-plantillas.md) | Plantillas y checklists para cada fase |
 | [trabajar-sin-ia/14-recursos-externos.md](./trabajar-sin-ia/14-recursos-externos.md) | Dónde encontrar ayuda sin depender de IA |
 
-#### Flujo recomendado
+#### Flujo de diseño recomendado
+
+```
+1.  Define el alcance        → 00-alcance-feature.md
+2.  Descompón con FADER      → 01-descomposicion-feature.md (+ reglas RN/RT/RS)
+3.  Mapea a capas            → 02-mapeo-capas.md
+4.  Diseña contratos         → 03-contratos-primero.md
+5.  Diagrama el flujo        → 04-flujo-datos.md
+6.  Diseña el backend        → 05e-diseno-supabase.md (Supabase: tablas/RLS/RPC · REST API: contrato de endpoints)
+7.  Criterios + trazabilidad → 05f-criterios-aceptacion-trazabilidad.md
+8.  Estima y planifica       → 15-estimacion-complejidad.md
+Todo esto en un solo lugar  → PLANTILLA-DISENIO-FEATURE.md
+```
+
+#### Flujo recomendado (Trabajar Sin IA)
 
 ```
 1. Lee 06-el-costumbre-de-la-ia.md (entender el problema)
@@ -60,10 +78,10 @@ Los casos prácticos te permiten aplicar FADER + Mapeo + Contratos + Flujo en in
 
 | Caso | Industria | Complejidad | Lo nuevo que practicas |
 |------|-----------|-------------|------------------------|
-| [Reservas](./05-caso-completo-reservas.md) | Veterinaria | Media | FADER completo + ADR |
-| [E-Learning](./05b-caso-elearning.md) | Educación | Media | Progreso, jerarquías (curso → módulo → lección) |
-| [Facturación](./05c-caso-facturacion.md) | Financiera | Alta | Máquina de estados, transiciones, número secuencial |
-| [Delivery](./05d-caso-delivery.md) | Logística | Alta | Tiempo real (Streams), geolocalización, 3 actores |
+| [Reservas](./05-caso-completo-reservas.md) | Veterinaria | Media | Alcance, FADER completo, Supabase, ADR |
+| [E-Learning](./05b-caso-elearning.md) | Educación | Media | Progreso, jerarquías, RLS por rol, criterios BDD |
+| [Facturación](./05c-caso-facturacion.md) | Financiera | Alta | Máquina de estados, RPC atómico (número secuencial), trazabilidad |
+| [Delivery](./05d-caso-delivery.md) | Logística | Alta | Realtime, geolocalización, race condition, 3 actores |
 
 ---
 
@@ -73,11 +91,15 @@ Antes de que existiera la IA, antes de los frameworks reactivos, antes incluso d
 
 Este módulo recupera esa práctica. Tiene dos partes:
 
-### Parte 1: Diseño (Archivos 01-05)
+### Parte 1: Diseño (Archivos 00-15)
+0. **Definir el alcance** de la feature antes de descomponer
 1. **Descomponer** el problema en piezas atómicas
 2. **Mapear** cada pieza a su capa en Clean Architecture
 3. **Diseñar contratos** (interfaces) que definan cómo se comunican las capas
 4. **Diagramar flujos** de datos y estados
+5. **Diseñar el backend** (Supabase: tablas, RLS, RPC atómicos, realtime · REST API: contrato de endpoints)
+6. **Definir criterios de aceptación** y una matriz de trazabilidad
+7. **Estimar** la complejidad para planificar
 
 ### Parte 2: Trabajar Sin IA (carpeta `trabajar-sin-ia/`)
 1. **Entender** por qué dependes de IA y qué te cuesta
@@ -127,11 +149,14 @@ Framework de Análisis y Descomposición que usaremos en este módulo:
 
 | Paso | Qué haces | Pregunta guía |
 |------|-----------|---------------|
+| **A**lcance | Definir límites | ¿Qué incluye y qué NO incluye? |
 | **F**ormular | Definir el problema | ¿Qué necesidad resuelve esta feature? |
 | **A**ctorizar | Identificar actores | ¿Quiénes interactúan y qué esperan? |
 | **D**escomponer | Listar operaciones atómicas | ¿Qué acciones mínimas existen? |
 | **E**ntidades | Modelar conceptos del mundo real | ¿Qué objetos de negocio existen? |
-| **R**eglas | Capturar reglas de negocio | ¿Qué condiciones y límites aplican? |
+| **R**eglas | Capturar reglas (RN/RT/RS) | ¿Qué condiciones y límites aplican? |
+
+Después del FADER: mapea a capas → diseña contratos → flujo de datos → **contrato con el backend** → **criterios de aceptación y trazabilidad**. Cada capa defiende sus reglas: el dominio las de negocio (RN), el DataSource las técnicas (RT) y el servidor las de seguridad (RS: RLS en Supabase, autorización en la API).
 
 ---
 

@@ -18,14 +18,18 @@ Cada pieza de tu descomposición FADER cae en una capa específica. Esta matriz 
 │  Entidades       │  DOMAIN         │  Producto, Carrito    │
 │                  │  (entities/)    │                       │
 │──────────────────┼─────────────────┼───────────────────────│
-│  Reglas          │  DOMAIN         │  R001, R002, R004     │
-│  (validación)    │  (usecases/)    │                       │
+│  Reglas de       │  DOMAIN         │  RN001, RN002, RN004  │
+│  negocio (RN)    │  (usecases/)    │                       │
 │──────────────────┼─────────────────┼───────────────────────│
 │  Operaciones     │  DOMAIN         │  AgregarProducto      │
 │  (casos de uso)  │  (usecases/)    │  CalcularTotal        │
 │──────────────────┼─────────────────┼───────────────────────│
 │  Contratos       │  DOMAIN         │  CarritoRepository    │
 │  (interfaces)    │  (repositories/)│  PagoService          │
+│──────────────────┼─────────────────┼───────────────────────│
+│  Reglas técnicas │  DATA           │  RT001: paginación,    │
+│  (RT) y de       │  (datasources/, │  RT003: RPC atómico,  │
+│  seguridad (RS)  │  migrations)    │  RS001: RLS           │
 │──────────────────┼─────────────────┼───────────────────────│
 │  Fuentes de      │  DATA           │  CarritoRemoteDS      │
 │  datos           │  (datasources/) │  CarritoLocalDS       │
@@ -45,18 +49,36 @@ Cada pieza de tu descomposición FADER cae en una capa específica. Esta matriz 
 └────────────────────────────────────────────────────────────┘
 ```
 
+> Las reglas técnicas (RT) y de seguridad (RS) viven en DATA (datasource + migración SQL + RLS), no en el dominio. Se diseñan en [05e-diseno-supabase.md](./05e-diseno-supabase.md).
+
 ---
 
 ## Regla Fundamental
 
-Cada elemento de FADER se mapea a **UNA Y SOLO UNA** capa. Si algo podría ir en dos capas, es señal de que tu descomposición no es precisa.
+Cada **responsabilidad** tiene una **capa propietaria**. Otras capas pueden *reforzarla* o *representarla*, pero no deben convertirse en una segunda fuente de verdad.
 
 ```
 ❌ MAL: "La validación de stock se hace en el UseCase y también en el Widget"
-    → La lógica de negocio siempre pertenece a DOMAIN. La UI solo muestra el resultado.
+    → La lógica de negocio vive en DOMAIN. La UI solo representa el resultado.
 
-✅ BIEN: "La validación de stock ocurre en el UseCase. El Widget muestra el error si ocurre."
+✅ BIEN: "La validación de stock ocurre en el UseCase (fuente de verdad).
+    El Widget muestra el error si ocurre, pero no decide la regla."
 ```
+
+Esto no significa que cada regla exista en un solo lugar del sistema. Una regla de negocio puede estar **reforzada** en varias capas sin que eso sea duplicación incorrecta — es **defensa en profundidad**:
+
+```
+RN004 "Un ticket aprobado no vuelve a aprobarse":
+
+  DOMAIN        UseCase valida la regla (fuente de verdad del negocio)
+  SUPABASE      Constraint + RPC verifican el estado antes de escribir
+  DATA (RLS)    RS001 impide modificar tickets de otras rifas
+  UI            El botón "Aprobar" se deshabilita si el ticket ya está aprobado
+```
+
+Cada capa *refuerza* la misma regla, pero solo el UseCase es la **fuente de verdad** del negocio. Las demás no la redefinen: la protegen o la representan.
+
+> **Para verificar el diseño completo** (que ninguna regla quede sin implementar y ninguna operación sin probar), usa la [matriz de trazabilidad](./05f-criterios-aceptacion-trazabilidad.md).
 
 ---
 
@@ -77,12 +99,12 @@ Todo lo que es **regla de negocio** o **concepto del mundo real** va a DOMAIN. E
 │  └── coupon.dart           ← De tu tarjeta Cupón     │
 │                                                      │
 │  usecases/                                           │
-│  ├── add_product_to_cart      ← R002, R003           │
+│  ├── add_product_to_cart      ← RN002, RN003         │
 │  ├── remove_product_from_cart ← sin reglas extra     │
-│  ├── update_product_qty       ← R003                 │
-│  ├── get_cart_summary         ← R004                 │
-│  ├── apply_coupon             ← R005, R006           │
-│  └── validate_stock           ← R002                 │
+│  ├── update_product_qty       ← RN003                │
+│  ├── get_cart_summary         ← RN004                │
+│  ├── apply_coupon             ← RN005, RN006         │
+│  └── validate_stock           ← RN002                │
 │                                                      │
 │  repositories/  ← INTERFACES (contratos)            │
 │  └── cart_repository.dart                            │
@@ -183,8 +205,8 @@ DOMAIN
 ├── entity: Cart (items, subtotal, discount, tax, total)
 ├── usecase: AddProductToCart
 │   ├── Llama a CartRepository.addProduct()
-│   ├── Valida R002 (stock)
-│   └── Valida R003 (cantidad > 0)
+│   ├── Valida RN002 (stock)
+│   └── Valida RN003 (cantidad > 0)
 ├── interface: CartRepository
 │   └── Future<Either<Failure, Cart>> addProduct(Product, int qty)
 └── failure: AddProductFailure
@@ -217,6 +239,7 @@ PRESENTATION
 | UseCase que llama a la API directamente | `supabaseClient.from(...)` en UseCase | El UseCase no sabe de dónde vienen los datos. Usa Repository. |
 | Estado del Cubit que contiene widgets | `buttonEnabled`, `showSuccessDialog` en Estado | El estado describe datos, no widgets |
 | Regla de negocio en el Widget | if(product.stock == 0) dentro de un Text | Las reglas van en UseCase, no en UI |
+| Regla técnica/seguridad en el dominio | RT001/RS001 dentro de un UseCase | Las RT/RS van a DATA (datasource; RLS en Supabase o contrato de endpoint en REST) |
 | Interfaz de Repository en DATA | `abstract class CartRepository` en DATA | La interface pertenece a DOMAIN |
 | Pasar userId como parámetro en cada método | `getCart(String userId)`, `addProduct(String userId, ...)`, etc. | Inyectar `UserSession` en el RepositoryImpl; el UseCase no necesita saber de dónde viene el userId |
 
@@ -230,7 +253,8 @@ Usa esta tabla para mapear cualquier feature:
 |----------------|------|-----------------|
 | Entidad tal | DOMAIN entities/ | `entidad.dart` |
 | Operación tal | DOMAIN usecases/ | `operacion.dart` |
-| Regla tal | DOMAIN usecases/ | (dentro de su UseCase) |
+| Regla de negocio (RN) | DOMAIN usecases/ | (dentro de su UseCase) |
+| Regla técnica (RT) / seguridad (RS) | DATA datasources/ + migración SQL | (datasource + RLS + RPC) |
 | Interface de repositorio | DOMAIN repositories/ | `repo.dart` |
 | Modelo/DTO | DATA models/ | `modelo_model.dart` |
 | Fuente de datos remota | DATA datasources/ | `remote_ds.dart` |
@@ -240,6 +264,8 @@ Usa esta tabla para mapear cualquier feature:
 | Lógica de UI | PRESENTATION cubit/ | `feature_cubit.dart` |
 | Pantalla | PRESENTATION pages/ | `feature_page.dart` |
 | Componente | PRESENTATION widgets/ | `componente_widget.dart` |
+
+> Después de mapear, registra cada operación, regla y contrato en la [matriz de trazabilidad](./05f-criterios-aceptacion-trazabilidad.md).
 
 ---
 

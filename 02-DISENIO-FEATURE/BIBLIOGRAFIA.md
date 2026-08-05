@@ -117,6 +117,36 @@
 
 ---
 
+### Behaviour Driven Development (BDD) / Gherkin
+
+**Origen:** Dan North (2006), popularizado por Cucumber. El formato Dado/Cuando/Entonces nace del framework de testing RSpec.
+
+**En el módulo:** La sección de criterios de aceptación ([05f](./05f-criterios-aceptacion-trazabilidad.md)) usa el formato BDD para escribir criterios verificables antes de implementar.
+
+**Referencia:** North, D. (2006). *Introducing BDD*. [danielnorth.net](https://dannorth.net/introducing-bdd/) | [Cucumber/Gherkin](https://cucumber.io/docs/gherkin/)
+
+---
+
+### Row-Level Security (RLS) de PostgreSQL
+
+**Origen:** PostgreSQL 9.5 (2016).
+
+**En el módulo:** Las reglas de seguridad (RS) del diseño ([02](./02-mapeo-capas.md), [05e](./05e-diseno-supabase.md)) se implementan como policies de RLS en Supabase, la fuente de verdad para "quién puede leer/escribir qué fila".
+
+**Referencia:** [Documentación oficial de RLS](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) | [Guía de políticas de Supabase](https://supabase.com/docs/guides/database/postgres/row-level-security)
+
+---
+
+### Transacciones y Operaciones Atómicas en PostgreSQL
+
+**Origen:** ACID como propiedad fundamental de las bases relacionales (Härder & Reuter, 1983).
+
+**En el módulo:** Las operaciones que deben ser indivisibles (agendar un slot, emitir factura con número secuencial, asignar repartidor) se diseñan como RPC atómicos con transacciones en Supabase ([05e](./05e-diseno-supabase.md)), en vez de múltiples updates desde el cliente.
+
+**Referencia:** [Transactions en PostgreSQL](https://www.postgresql.org/docs/current/tutorial-transactions.html) | [Database Functions (RPC) de Supabase](https://supabase.com/docs/guides/database/functions)
+
+---
+
 ## 🧠 Metodología FADER
 
 **Origen:** Invención propia para este módulo (2026).
@@ -127,6 +157,8 @@
 - **D**escomponer → Inspirado en Event Storming (Alberto Brandolini) y descomposición funcional clásica
 - **E**ntidades → Inspirado en DDD (Eric Evans)
 - **R**eglas → Inspirado en Business Rules Engine y el enfoque de DDD
+
+La clasificación de reglas **RN** (negocio), **RT** (técnica) y **RS** (seguridad) es una extensión propia del módulo: asigna a cada tipo de regla una capa propietaria (dominio / DataSource / RLS) para la defensa en profundidad.
 
 **No inventé la descomposición de problemas. Inventé el marco con nombre y pasos claros (FADER) para que sea accionable y enseñable.**
 
@@ -153,14 +185,19 @@ Este módulo `02-DISENIO-FEATURE` es un **ensamblaje original** de conceptos exi
 |----------|--------|----------------------|
 | Capas de Clean Architecture | R. C. Martin | Adaptación |
 | Framework FADER | Invención propia | **Original** |
+| Clasificación de reglas RN/RT/RS | Invención propia | **Original** |
 | Matriz de Responsabilidades | Invención propia | **Original** |
 | Mapeo FADER → Clean Architecture | Invención propia | **Original** |
+| Matriz de Trazabilidad (UseCase → Regla → Contrato → Test) | Invención propia | **Original** |
 | Contract-First Design | Metodología establecida | Adaptación |
 | ADRs | M. Nygard | Adaptación |
+| Criterios de aceptación BDD | D. North / Cucumber | Adaptación |
+| RLS de PostgreSQL | PostgreSQL | Adaptación |
+| RPC atómicos / transacciones | PostgreSQL | Adaptación |
 | Plantillas de contratos | Invención propia | **Original** |
 | Diagramas de flujo en U | Invención propia | **Original** |
 | Casos prácticos | Invención propia | **Original** |
 
 ---
 
-*Última actualización: 2026-05-15*
+*Última actualización: 2026-08-05*

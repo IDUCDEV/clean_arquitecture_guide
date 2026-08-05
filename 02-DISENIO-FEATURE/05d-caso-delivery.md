@@ -1,6 +1,6 @@
 # Caso Práctico: App de Delivery
 
-> Aplica FADER + Mapeo + Contratos + Flujo para diseñar una app de delivery con múltiples actores, geolocalización y tiempo real.
+> Aplica FADER + Mapeo + Contratos + Flujo + Supabase + Criterios para diseñar una app de delivery con múltiples actores, geolocalización y tiempo real.
 
 ---
 
@@ -17,6 +17,18 @@ Somos el equipo de ingeniería de una startup de delivery de comida. El equipo d
 1. Trabaja en papel y lápiz. No abras el editor de código.
 2. Sigue cada sección en orden.
 3. Al final, compara con la solución sugerida.
+
+---
+
+## Sección 0: Alcance
+
+Antes de descomponer, define los límites del sistema (teoría en [00-alcance-feature.md](./00-alcance-feature.md)):
+
+1. **Incluye:** ¿qué cubre la app de delivery?
+2. **No incluye:** ¿qué NO cubre? (ej: delivery de supermercado, programa de fidelidad)
+3. **Dependencias:** ¿qué necesita que exista antes?
+4. **Suposiciones:** ¿qué das por hecho?
+5. **Preguntas abiertas:** ¿qué no sabes todavía?
 
 ---
 
@@ -128,7 +140,7 @@ Define las entidades de negocio:
 
 ### ✏️ Paso 5: Reglas
 
-Enuncia al menos 10 reglas de negocio.
+Enuncia al menos 10 reglas de negocio con formato RN001, RN002... y añade reglas técnicas (RT) y de seguridad (RS) cuando aplique (teoría en [01-descomposicion-feature.md](./01-descomposicion-feature.md#paso-5-reglas)).
 
 **Áreas a cubrir:**
 - Asignación de repartidores (distancia máxima, capacidad)
@@ -368,6 +380,39 @@ Dibuja el flujo de datos desde que el repartidor se mueve hasta que el cliente v
 
 ---
 
+## Sección 5: Diseño Supabase
+
+Aterriza el diseño en Supabase (teoría en [05e-diseno-supabase.md](./05e-diseno-supabase.md)):
+
+> **¿Tu backend es una REST API (Python/otro)?** Aquí no implementas el servidor: solo especificas el **contrato** (endpoints, DTOs, códigos de error, garantías de atomicidad y autorización) que consume tu `RemoteDataSource` con Dio; el backend la diseña e implementa.
+
+1. **Tablas:** usuarios (roles), restaurantes, menú, pedidos, pagos, calificaciones, ubicaciones.
+2. **Operaciones:** ¿qué UseCase usa select/insert/update/rpc?
+3. **RLS:** policies para RS001 (cliente ve solo su repartidor) y RS002 (repartidor actualiza su ubicación).
+4. **Atomicidad:** asignación de repartidor (RN001, RN006) y cobro online (RN007).
+5. **Realtime:** tabla `delivery_locations` con Broadcast y tabla `orders` con cambios.
+
+**Pregúntate:**
+- ¿La tarifa (RN005) se calcula en Postgres con PostGIS (RT002) o en el cliente?
+- ¿Cómo evitas que dos repartidores acepten el mismo pedido a la vez (race condition)?
+- ¿Las reglas RN003/RN004 (timeout del restaurante) son un cron de Postgres?
+
+---
+
+## Sección 6: Criterios de Aceptación y Trazabilidad
+
+Cierra el diseño (teoría en [05f-criterios-aceptacion-trazabilidad.md](./05f-criterios-aceptacion-trazabilidad.md)):
+
+1. **Criterios:** escribe al menos 5 en formato BDD (prioriza la máquina de estados y el tracking).
+2. **Matriz:** cruza UseCase → Regla → Contrato → Fuente de verdad → Test.
+
+**Pregúntate:**
+- ¿El criterio "dos repartidores aceptan el mismo pedido" tiene caso de prueba de race condition?
+- ¿RN009 (calificar dentro de 7 días) se puede testear?
+- ¿RS001 y RS002 están en la matriz aunque sean solo RLS?
+
+---
+
 ## Solución Sugerida
 
 > ⚠️ Resuelve cada sección en papel primero. La solución sugerida es para comparar después.
@@ -463,29 +508,37 @@ Dibuja el flujo de datos desde que el repartidor se mueve hasta que el cliente v
 ║  Ubicacion (value object): latitud, longitud                 ║
 ║                                                               ║
 ║  [R]eglas:                                                    ║
-║  R001: El repartidor no puede tener más de 1 pedido          ║
+║  RN001: El repartidor no puede tener más de 1 pedido          ║
 ║        activo a la vez                                        ║
-║  R002: El cliente puede cancelar solo si estado es            ║
+║  RN002: El cliente puede cancelar solo si estado es            ║
 ║        pendiente o confirmado                                 ║
-║  R003: El restaurante tiene 3 minutos para aceptar            ║
+║  RN003: El restaurante tiene 3 minutos para aceptar            ║
 ║        o rechazar un pedido entrante                          ║
-║  R004: Si el restaurante no responde en 3 min,               ║
+║  RN004: Si el restaurante no responde en 3 min,               ║
 ║        el pedido se cancela automáticamente                   ║
-║  R005: La tarifa de envío es $1.5/km desde el                ║
+║  RN005: La tarifa de envío es $1.5/km desde el                ║
 ║        restaurante al cliente                                 ║
-║  R006: El repartidor solo puede ser asignado si está         ║
+║  RN006: El repartidor solo puede ser asignado si está         ║
 ║        a menos de 2km del restaurante                         ║
-║  R007: El pago se procesa al hacer el pedido si es           ║
+║  RN007: El pago se procesa al hacer el pedido si es           ║
 ║        online; al entregar si es efectivo                     ║
-║  R008: Solo se puede calificar si el pedido fue              ║
+║  RN008: Solo se puede calificar si el pedido fue              ║
 ║        entregado                                              ║
-║  R009: La calificación debe hacerse dentro de los 7          ║
+║  RN009: La calificación debe hacerse dentro de los 7          ║
 ║        días posteriores a la entrega                         ║
-║  R010: Si el repartidor no se mueve por 5 minutos,          ║
+║  RN010: Si el repartidor no se mueve por 5 minutos,          ║
 ║        notificar al admin para re-asignación                 ║
-║  R011: No se puede pedir un item no disponible               ║
-║  R012: El restaurante solo entrega en un radio               ║
+║  RN011: No se puede pedir un item no disponible               ║
+║  RN012: El restaurante solo entrega en un radio               ║
 ║        máximo de 5km                                          ║
+║  RT001: La ubicación del repartidor se emite cada 3s          ║
+║        vía Supabase Realtime (Broadcast), no polling         ║
+║  RT002: Tarifa de envío = RPC en Supabase que usa            ║
+║        PostGIS (calculada en servidor)                       ║
+║  RS001: El cliente solo ve la ubicación de su propio         ║
+║        repartidor asignado                                    ║
+║  RS002: El repartidor solo actualiza su propia               ║
+║        ubicación (RLS por auth.uid())                        ║
 ║                                                               ║
 ╚═══════════════════════════════════════════════════════════════╝
 ```
@@ -586,7 +639,7 @@ PEDIDO CONFIRMADO (restaurante aceptó, comida en preparación)
 ┌──────────────────────────────────────────┐
 │  SISTEMA: Buscar repartidores            │
 │  disponibles en un radio de 2km          │
-│  del restaurante (R006)                  │
+│  del restaurante (RN006)                  │
 └──────────────────────────────────────────┘
          │
          ├── ¿Hay repartidores? ──Sí──▶ Notificar a repartidores
@@ -616,6 +669,79 @@ PEDIDO CONFIRMADO (restaurante aceptó, comida en preparación)
                               │
                               └── Aparece repi ──▶ Asignar
 ```
+
+### ✅ Diseño Supabase
+
+```
+orders
+├── id                uuid PK
+├── client_id         uuid FK → profiles
+├── restaurant_id     uuid FK → restaurants
+├── delivery_person_id uuid (nullable)
+├── status            enum (pendiente, confirmado, enPreparacion,
+│                        listo, enCaminoAlResto, recogido,
+│                        enCaminoAlCliente, entregado, cancelado)
+├── total             numeric
+├── delivery_fee      numeric
+
+delivery_locations
+├── delivery_person_id uuid PK
+├── lat               float8
+├── lng               float8
+└── updated_at        timestamptz
+
+-- RS001: el cliente solo lee la ubicación de SU repartidor
+create policy "client reads own courier location"
+  on delivery_locations for select
+  using (delivery_person_id in (
+    select o.delivery_person_id from orders o
+    where o.client_id = auth.uid() and o.status not in ('entregado','cancelado')
+  ));
+
+-- RS002: el repartidor solo escribe su propia ubicación
+create policy "courier updates own location"
+  on delivery_locations for update
+  using (delivery_person_id = auth.uid());
+
+-- RN005/RT002: tarifa = RPC calcular_tarifa(restaurant_id, client_lat, lng)
+--   con PostGIS (ST_Distance sobre la ubicación del restaurante)
+-- RN001/RN006: asignar repartidor = RPC asigna_repartidor(p_order_id, p_courier_id)
+--   → BEGIN; verifica courier activo sin pedido activo y a < 2km;
+--   → UPDATE orders SET delivery_person_id ...; COMMIT;
+```
+
+### ✅ Criterios de Aceptación (ejemplos)
+
+```gherkin
+Escenario: Dos repartidores aceptan el mismo pedido
+  Dado un pedido listo sin repartidor asignado
+  Cuando dos repartidores llaman asigna_repartidor al mismo tiempo
+  Entonces solo uno obtiene la asignación (RN001, RN006, RPC atómico)
+  Y el otro recibe "pedido_ya_asignado"
+
+Escenario: Rastrear repartidor asignado
+  Dado un pedido con repartidor asignado
+  Cuando el cliente abre el tracking
+  Entonces recibe la ubicación de su repartidor vía Realtime (RT001)
+  Y no puede ver la ubicación de repartidores de otros pedidos (RS001)
+
+Escenario: Calificar después de 7 días
+  Dado un pedido entregado hace 8 días
+  Cuando el cliente intenta calificarlo
+  Entonces el sistema rechaza la calificación (RN009)
+```
+
+### ✅ Matriz de Trazabilidad
+
+| UseCase            | Regla(s)              | Contrato                                   | Fuente de verdad     | Test                     |
+|--------------------|-----------------------|--------------------------------------------|----------------------|--------------------------|
+| PlaceOrder         | RN007, RN011, RN012   | OrderRepository.placeOrder                 | RPC + API pagos      | unit + integration       |
+| AcceptOrder        | RN003, RN004          | OrderRepository.acceptOrder                | cron + RPC           | unit + integration       |
+| AssignDelivery     | RN001, RN006          | DeliveryRepository.acceptDelivery          | RPC atómico          | unit + race condition    |
+| TrackOrder         | RT001, RS001          | OrderRepository.watchOrder / Realtime      | Supabase Realtime    | widget + integration     |
+| UpdateLocation     | RS002                 | DeliveryRepository.updateLocation          | RLS + Broadcast      | integration (RLS)        |
+| RateOrder          | RN008, RN009          | OrderRepository.rateOrder                  | API + trigger        | unit                     |
+| CalcularTarifa     | RN005, RT002          | DeliveryRepository.calculateDeliveryFee    | RPC + PostGIS        | unit                     |
 
 ---
 

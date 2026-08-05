@@ -4,6 +4,42 @@
 
 ---
 
+## Paso 0: Define el Alcance
+
+Antes de descomponer, fija los límites de la feature. Una feature puede estar perfectamente descompuesta y aun así crecer sin control si el alcance es ambiguo.
+
+```
+Feature: Gestión de compradores (Buyers)
+
+Incluye:
+- Listar compradores.
+- Buscar por nombre o teléfono.
+- Aprobar tickets seleccionados.
+- Liberar tickets no seleccionados.
+
+No incluye:
+- Enviar notificaciones.
+- Procesar pagos.
+- Editar datos del comprador.
+
+Dependencias:
+- Autenticación (identidad del organizador).
+- Feature de rifas (tabla raffles).
+
+Suposiciones:
+- Un comprador pertenece a una sola rifa.
+
+Preguntas abiertas:
+- ¿Puede aprobarse un ticket ya aprobado?
+- ¿La aprobación debe ser atómica?
+```
+
+**Regla:** cada operación que descubras en FADER debe caber en "Incluye". Si descubres algo que no cabe, o amplía el alcance (y se negocia), o es otra feature.
+
+Consulta la teoría completa y la plantilla en [00-alcance-feature.md](./00-alcance-feature.md).
+
+---
+
 ## ¿Por qué descomponer?
 
 Cuando te dan una feature como "agregar carrito de compras", el 80% del trabajo no es escribir el código del carrito. El trabajo real es entender:
@@ -233,9 +269,17 @@ Para cada entidad, llena esta tarjeta:
 
 ### Paso 5: Reglas
 
-Captura todas las **reglas de negocio**. Una regla es una condición que debe cumplirse siempre, independientemente de la interfaz de usuario o la tecnología.
+Captura todas las **reglas**. Una regla es una condición que debe cumplirse siempre, independientemente de la interfaz de usuario o la tecnología.
 
-**Categorías de reglas:**
+**Clasifica las reglas en 3 tipos.** No todas pertenecen al dominio:
+
+| Tipo | Código | Qué es | Ejemplo | Dónde vive |
+|------|--------|--------|---------|------------|
+| **Negocio** | `RN` | Regla del negocio, independiente de la tecnología | Un ticket aprobado no vuelve a aprobarse | UseCase (dominio) |
+| **Técnica** | `RT` | Requisito de implementación con el stack | La búsqueda debe estar paginada | Contrato con el backend / DataSource |
+| **Seguridad** | `RS` | Restricción de acceso y permisos | Impedir acceder a rifas ajenas | Autorización del servidor (RLS en Supabase / middleware en REST) |
+
+**Categorías de reglas de negocio (RN):**
 
 | Categoría | Ejemplo |
 |-----------|---------|
@@ -245,33 +289,46 @@ Captura todas las **reglas de negocio**. Una regla es una condición que debe cu
 | **Flujo** | Si el stock es menor a la cantidad solicitada, mostrar error |
 | **Consistencia** | Si se aplica un cupón, el descuento no puede exceder el 50% del total |
 
+**Reglas técnicas (RT) y de seguridad (RS):**
+
+```
+RT001 - La consulta de productos debe estar paginada
+RT002 - La búsqueda debe tener debounce
+RT003 - La operación de aprobar+liberar debe ser atómica (RPC)
+
+RS001 - Solo el organizador puede leer su rifa (RLS)
+RS002 - Solo el organizador puede modificar sus tickets
+```
+
+> Estas reglas NO van al dominio ni a la UI. Se diseñan en [05e-diseno-supabase.md](./05e-diseno-supabase.md) y se implementan en DATA (DataSource + migración SQL).
+
 **Formato para documentar reglas:**
 
 ```
-R001 - Restricción de cantidad máxima
+RN001 - Restricción de cantidad máxima
   Descripción: Un carrito no puede tener más de 50 items distintos
   Actor: Cliente
   Severidad: Error
   Mensaje: "Has alcanzado el límite de 50 productos por carrito"
 
-R002 - Validación de stock
+RN002 - Validación de stock
   Descripción: No se puede agregar un producto si el stock es 0
   Actor: Cliente
   Severidad: Error
   Mensaje: "El producto {nombre} no tiene stock disponible"
 
-R003 - Cálculo de impuesto
+RN003 - Cálculo de impuesto
   Descripción: El impuesto se calcula como 16% del subtotal
   Actor: Sistema
   Severidad: Información
 
-R004 - Cupón no expirado
+RN004 - Cupón no expirado
   Descripción: No se puede aplicar un cupón cuya fecha de expiración haya pasado
   Actor: Cliente
   Severidad: Error
   Mensaje: "El cupón {codigo} ha expirado"
 
-R005 - Descuento máximo
+RN005 - Descuento máximo
   Descripción: El descuento total no puede exceder el 50% del subtotal
   Actor: Sistema
   Severidad: Error
@@ -288,6 +345,12 @@ Así se ve una feature completamente descompuesta:
 ╔═══════════════════════════════════════════════════════════╗
 ║  FEATURE: Carrito de Compras                             ║
 ╠═══════════════════════════════════════════════════════════╣
+║  [0] ALCANCE:                                             ║
+║  Incluye: gestionar items, cupones y resumen              ║
+║  No incluye: pagos, envíos, fidelización                  ║
+║  Dependencias: catálogo de productos, inventario          ║
+║  Suposiciones: cliente con sesión iniciada                ║
+║  Preguntas abiertas: ¿cupones combinables?                ║
 ║                                                           ║
 ║  [F]ormular:                                              ║
 ║  Como cliente, quiero gestionar productos en un carrito  ║
@@ -312,11 +375,13 @@ Así se ve una feature completamente descompuesta:
 ║  - Producto, ItemCarrito, Carrito, CuponDescuento         ║
 ║                                                           ║
 ║  [R]eglas:                                                ║
-║  R001: Máximo 50 items por carrito                        ║
-║  R002: Stock > 0 para agregar                             ║
-║  R003: Impuesto 16% del subtotal                          ║
-║  R004: Cupón no expirado                                  ║
-║  R005: Descuento máximo 50%                               ║
+║  RN001: Máximo 50 items por carrito                       ║
+║  RN002: Stock > 0 para agregar                            ║
+║  RN003: Impuesto 16% del subtotal                         ║
+║  RN004: Cupón no expirado                                 ║
+║  RN005: Descuento máximo 50%                              ║
+║  RT001: Búsqueda paginada                                 ║
+║  RS001: RLS impide carritos ajenos                        ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
 ```
@@ -493,7 +558,7 @@ A veces es mas facil reconocer lo que esta mal. Aqui tienes FADER bien hecho vs 
 
 [E] Producto (solo esta entidad, pero faltan Categoria, Marca, etc.)
 
-[R] - El producto debe existir (regla tecnica, no de negocio)
+[R] - El producto debe existir (regla tecnica RT, no de negocio)
     - Mostrar resultados (eso no es una regla, es un comportamiento)
 ```
 
@@ -501,7 +566,7 @@ A veces es mas facil reconocer lo que esta mal. Aqui tienes FADER bien hecho vs 
 - No distingue tipos de busqueda (texto libre, por categoria, por precio)
 - Actor inventado sin proposito
 - Operaciones demasiado gruesas
-- Reglas que no son reglas de negocio
+- Reglas que no son reglas de negocio (o no están clasificadas: las técnicas y de seguridad van como RT/RS)
 - Entidades incompletas
 
 ---
@@ -530,11 +595,12 @@ A veces es mas facil reconocer lo que esta mal. Aqui tienes FADER bien hecho vs 
     FiltroBusqueda (VO: texto, categoriaId?, precioMin?,
                     precioMax?, ordenarPor?, pagina)
 
-[R] R001: Busqueda por texto libre coincide con nombre o descripcion
-    R002: Los filtros se aplican en AND (categoria Y precio Y texto)
-    R003: Resultados paginados de a 20 items
-    R004: Sin resultados -> mensaje "No se encontraron productos"
-    R005: Producto sin stock aparece al final con marca "Agotado"
+[R] RN001: Busqueda por texto libre coincide con nombre o descripcion
+    RN002: Los filtros se aplican en AND (categoria Y precio Y texto)
+    RN003: Sin resultados -> mensaje "No se encontraron productos"
+    RN004: Producto sin stock aparece al final con marca "Agotado"
+    RT001: Resultados paginados de a 20 items
+    RS001: Solo clientes autenticados pueden buscar (RLS/catálogo público)
 ```
 
 **Aciertos:**
@@ -556,8 +622,8 @@ El primer FADER nunca es perfecto. La descomposicion es un proceso iterativo.
 |------|----------------------|
 | **F**ormular | Cuando encuentras un actor que no formulaste. Ej: "Ah, el admin tambien necesita aprobar cupones" |
 | **A**ctorizar | Cuando una operacion no tiene actor claro. Ej: "Quien dispara el calculo de impuestos?" |
-| **D**escomponer | Cuando una regla revela operaciones que faltan. Ej: "R004 dice que el cupon expira... -> falta 'Validar vigencia de cupon'" |
-| **E**ntidades | Cuando una regla menciona conceptos sin entidad. Ej: "R005 habla de 'limite de descuento' -> falta entidad LimiteDescuento" |
+| **D**escomponer | Cuando una regla revela operaciones que faltan. Ej: "RN004 dice que el cupon expira... -> falta 'Validar vigencia de cupon'" |
+| **E**ntidades | Cuando una regla menciona conceptos sin entidad. Ej: "RN005 habla de 'limite de descuento' -> falta entidad LimiteDescuento" |
 | **R**eglas | Cuando modelas entidades y ves bordes. Ej: "Que pasa si el precio es 0? y si es negativo?" |
 
 ### Ciclo de refinamiento recomendado
@@ -617,7 +683,7 @@ No todas las features merecen el mismo nivel de descomposicion. Aplicar FADER co
 [F] Como sistema, quiero usar la tasa de IVA correcta (16%)
     para cumplir con la normativa fiscal.
 
-[R] R001: El IVA para productos nacionales es 16%
+[R] RN001: El IVA para productos nacionales es 16%
     (era 21% por error)
 
 -- Esto es suficiente. No necesitas actores, entidades, ni descomposicion.
@@ -642,9 +708,10 @@ No todas las features merecen el mismo nivel de descomposicion. Aplicar FADER co
     fechaInicio, fechaFin, codigoFiscal)
     HistorialCambio (configuracionId, fecha, usuario, valorAnterior, valorNuevo)
 
-[R] R001: La tasa de IVA no puede ser negativa
-    R002: No se puede eliminar una configuracion con facturas emitidas
-    R003: Los cambios quedan registrados en historial
+[R] RN001: La tasa de IVA no puede ser negativa
+    RN002: No se puede eliminar una configuracion con facturas emitidas
+    RN003: Los cambios quedan registrados en historial
+    RT001: El calculo de impuestos se hace en un RPC (precision decimal)
 ```
 
 ---
@@ -716,6 +783,11 @@ Cuando no sabes si algo es posible, FADER te ayuda a definir el alcance del spik
 
 Al terminar tu hoja FADER, responde estas preguntas:
 
+**Sobre el [0] ALCANCE:**
+- [ ] Definiste Incluye, No incluye, Dependencias, Suposiciones y Preguntas abiertas
+- [ ] Cada operacion de FADER cabe en "Incluye"
+- [ ] Las preguntas abiertas criticas se resolvieron antes de descomponer
+
 **Sobre [F]ormular:**
 - [ ] Cada enunciado sigue "Como [actor], quiero [accion] para [valor]"
 - [ ] No hay dos enunciados que digan lo mismo
@@ -740,9 +812,11 @@ Al terminar tu hoja FADER, responde estas preguntas:
 - [ ] No hay atributos que pertenezcan a otra entidad
 
 **Sobre [R]eglas:**
-- [ ] Cada regla tiene un codigo unico (R001, R002...)
+- [ ] Cada regla tiene un codigo unico (RN001, RT001, RS001...)
+- [ ] Clasificaste cada regla: RN (negocio), RT (tecnica), RS (seguridad)
+- [ ] No hay reglas tecnicas o de seguridad mezcladas con las de negocio
 - [ ] No hay reglas "obvias" sin escribir
-- [ ] Cada regla tiene una categoria (Restriccion, Calculo, Validacion, Flujo, Consistencia)
+- [ ] Cada regla RN tiene una categoria (Restriccion, Calculo, Validacion, Flujo, Consistencia)
 - [ ] Las reglas tienen mensaje de error donde aplica
 
 **Revision cruzada:**
@@ -777,9 +851,11 @@ Feature: Carrito de Compras
 
 | Error | Por qué duele | Cómo evitarlo |
 |-------|---------------|---------------|
+| Empezar sin alcance | La feature crece durante la implementación | Define Incluye/No incluye antes (Paso 0) |
 | Pensar en código demasiado pronto | Te casas con una implementación antes de entender el problema | Termina FADER completo antes de pensar en clases |
 | Mezclar actores | Lógica de admin + cliente en el mismo lugar | Separa por actor desde el principio |
 | Reglas implícitas | "Obviamente" el stock se valida... hasta que en producción falla | Escribe CADA regla, aunque te parezca obvia |
+| Mezclar tipos de reglas | Paginación/RLS entran como reglas de negocio | Clasifica RN / RT / RS |
 | Entidades hinchadas | Producto termina con 30 campos que no necesita | Solo atributos esenciales del negocio |
 | Descomposición vaga | "Gestionar carrito" no es una operación atómica | Si tiene "y" en el nombre, divídelo |
 
@@ -787,7 +863,7 @@ Feature: Carrito de Compras
 
 ## 🚀 Siguiente paso
 
-Ahora que entiendes FADER, ve a la [práctica de descomposición](./01a-practica-carrito.md) y aplica el framework a una feature real de Carrito de Compras.
+Ahora que entiendes FADER, ve a la [práctica de descomposición](./01a-practica-carrito.md) y aplica el framework a una feature real de Carrito de Compras. Cuando termines el FADER, conviértelo en pruebas verificables con los [criterios de aceptación y la matriz de trazabilidad](./05f-criterios-aceptacion-trazabilidad.md).
 
 ---
 

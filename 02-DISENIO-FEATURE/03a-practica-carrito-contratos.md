@@ -168,9 +168,9 @@ abstract class CartLocalDataSource {
 /// Agrega un producto al carrito.
 ///
 /// Valida:
-/// - Que el producto tenga stock disponible (R002)
-/// - Que la cantidad sea mayor a 0 (R003)
-/// - Que el carrito no exceda 50 items (R001)
+/// - Que el producto tenga stock disponible (RN002)
+/// - Que la cantidad sea mayor a 0 (RN003)
+/// - Que el carrito no exceda 50 items (RN001)
 ///
 class AddProductToCart {
   final CartRepository repository;
@@ -201,8 +201,8 @@ class AddProductToCart {
 /// Aplica un cupón de descuento al carrito.
 ///
 /// Valida:
-/// - Que el cupón no esté expirado (R005)
-/// - Que el descuento no exceda el 50% (R006)
+/// - Que el cupón no esté expirado (RN005)
+/// - Que el descuento no exceda el 50% (RN006)
 ///
 class ApplyCoupon {
   final CartRepository repository;
@@ -298,8 +298,10 @@ Negativas:
 - [ ] ¿Los failures están tipados y son específicos?
 - [ ] ¿Los parámetros son los mínimos necesarios?
 - [ ] ¿El DataSource remoto usa modelos en vez de entidades?
+- [ ] ¿Las reglas técnicas/seguridad (RT/RS) no se colaron en el contrato de dominio?
 - [ ] ¿El ADR documenta la decisión más importante?
 - [ ] ¿Los estados del Cubit cubren todos los escenarios?
+- [ ] ¿Cada contrato está registrado en la matriz de trazabilidad?
 
 ---
 

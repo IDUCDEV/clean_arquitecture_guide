@@ -80,12 +80,12 @@ lib/
         │   ├── cart.dart
         │   └── coupon.dart
         ├── usecases/
-        │   ├── add_product_to_cart.dart       ← R002, R003
+        │   ├── add_product_to_cart.dart       ← RN002, RN003
         │   ├── remove_product_from_cart.dart
-        │   ├── update_product_quantity.dart   ← R003
-        │   ├── get_cart_summary.dart          ← R004
-        │   ├── apply_coupon.dart              ← R005, R006
-        │   └── validate_stock.dart            ← R002 (useCase separado)
+        │   ├── update_product_quantity.dart   ← RN003
+        │   ├── get_cart_summary.dart          ← RN004
+        │   ├── apply_coupon.dart              ← RN005, RN006
+        │   └── validate_stock.dart            ← RN002 (useCase separado)
         ├── repositories/
         │   └── cart_repository.dart           ← interface
         └── core/
@@ -204,6 +204,23 @@ CartState
     └── loadingItemId: String?
 ```
 
+### ✅ Matriz de trazabilidad
+
+Conecta operación → UseCase → regla → contrato → test (teoría en [05f-criterios-aceptacion-trazabilidad.md](./05f-criterios-aceptacion-trazabilidad.md)):
+
+| Operación | UseCase | Regla | Contrato | Test |
+|-----------|---------|-------|----------|------|
+| Agregar producto | `AddProductToCart` | RN002, RN003 | `cartRepository.addProduct()` | Unit + integration |
+| Quitar producto | `RemoveProductFromCart` | — | `cartRepository.removeProduct()` | Unit |
+| Actualizar cantidad | `UpdateProductQuantity` | RN003 | `cartRepository.updateQuantity()` | Unit |
+| Ver resumen | `GetCartSummary` | RN004 | `cartRepository.getCart()` | Unit + widget |
+| Aplicar cupón | `ApplyCoupon` | RN005, RN006 | `cartRepository.applyCoupon()` | Unit + integration |
+| Validar stock | `ValidateStock` | RN002 | `cartRepository.addProduct()` | Unit |
+| Acceso al carrito | — | RS001 | `cartRepository.getCart()` (RLS) | Integration |
+| Lectura paginada | — | RT001 | `cartRemoteDataSource` | — |
+
+> **Nota:** RT001 y RS001 no generan UseCase ni archivo en DOMAIN. Se implementan en DATA (datasource + RLS/migración) — ver [05e-diseno-supabase.md](./05e-diseno-supabase.md).
+
 ---
 
 ## Verificación: Lista de chequeo
@@ -218,6 +235,8 @@ Al terminar, verifica:
 - [ ] ¿Las fuentes de datos están separadas (remota/local) en `data/datasources/`?
 - [ ] ¿La implementación del repo está en `data/repositories/`?
 - [ ] ¿Los estados del Cubit reflejan todas las situaciones de UI?
+- [ ] ¿Cada operación, regla y contrato está en la matriz de trazabilidad?
+- [ ] ¿Las reglas RT/RS están en DATA (datasource/RLS) y no en el dominio?
 - [ ] ¿No hay código de DOMAIN dependiendo de DATA o PRESENTATION?
 - [ ] ¿No hay código de DATA o PRESENTATION en DOMAIN?
 

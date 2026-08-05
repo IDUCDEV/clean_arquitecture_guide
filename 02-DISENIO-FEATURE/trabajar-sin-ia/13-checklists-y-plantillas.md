@@ -1,6 +1,7 @@
 # Checklists y Plantillas
 
 > Herramientas reutilizables para cada fase del framework. Copia, pega y adapta a tu feature.
+> Para el diseño de una feature completa usa [PLANTILLA-DISENIO-FEATURE.md](../PLANTILLA-DISENIO-FEATURE.md) (Alcance → FADER → Reglas → Mapeo → Contratos → Flujo → Supabase → Criterios → Trazabilidad).
 
 ---
 
@@ -178,11 +179,12 @@
 ## Diseño: [Feature]
 
 ### FADER
+- [ ] **Alcance**: Incluye / No incluye / Dependencias definidas
 - [ ] **F**ormular: User Story definida
 - [ ] **A**ctorizar: Actores identificados
 - [ ] **D**escomponer: Operaciones atómicas listadas
 - [ ] **E**ntidades: Modelos del negocio definidos
-- [ ] **R**eglas: Reglas de negocio documentadas
+- [ ] **R**eglas: Clasificadas como RN (negocio), RT (técnica) y RS (seguridad)
 
 ### Clean Architecture
 - [ ] Domain: Entidades definidas
@@ -193,10 +195,24 @@
 - [ ] Presentation: Controllers/BLoC definidos
 - [ ] Presentation: Pantallas listadas
 
+### Supabase
+- [ ] Tablas y columnas definidas (snake_case)
+- [ ] Operaciones por UseCase mapeadas (select/insert/update/rpc)
+- [ ] RLS para cada regla RS
+- [ ] Operaciones atómicas identificadas (RPC en transacción)
+- [ ] Realtime definido donde aplica
+
+### Criterios y trazabilidad
+- [ ] Criterios de aceptación en formato BDD (Dado/Cuando/Entonces)
+- [ ] Matriz: UseCase → Regla → Contrato → Fuente de verdad → Test
+- [ ] Toda regla RN tiene UseCase y test que la cubren
+- [ ] Las RS se verifican con test de integración (RLS)
+
 ### Contratos
 - [ ] Cada use case tiene su contrato
 - [ ] Los contratos usan Either para errores
 - [ ] Los contratos son testables
+- [ ] Sin reglas RT/RS en el contrato de dominio
 
 ### Estados
 - [ ] Estados principales definidos

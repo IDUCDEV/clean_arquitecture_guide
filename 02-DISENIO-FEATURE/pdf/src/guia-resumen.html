@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>GUÍA RESUMEN — Diseño de Features</title>
+<link rel="stylesheet" href="guia-resumen.css">
+</head>
+<body>
+
+<div class="header">
+  <div class="mod">Módulo 02 · Clean Architecture + Flutter + Supabase</div>
+  <h1>GUÍA RESUMEN — Diseño de Features</h1>
+  <div class="sub">Resumen integral para diseñar cualquier feature en ~25 minutos, sin volver a leer el módulo completo. Hilo conductor: Feature "Buyers" (organizador gestiona compradores que reservaron tickets en sus rifas).</div>
+</div>
+
+<!-- ================= 0. FLUJO ================= -->
+<section>
+  <div class="section-head s-blue">
+    <span class="num">0</span>
+    <h2>Flujo de trabajo general</h2>
+    <span class="meta">8 pasos · ~25 min</span>
+  </div>
+
+  <table class="flow">
+    <tr>
+      <td><span class="step-n">1</span><span class="step-t">Alcance</span><span class="step-f">2 min</span></td>
+      <td><span class="step-n">2</span><span class="step-t">FADER</span><span class="step-f">8 min</span></td>
+      <td><span class="step-n">3</span><span class="step-t">Mapeo</span><span class="step-f">3 min</span></td>
+      <td><span class="step-n">4</span><span class="step-t">Contratos</span><span class="step-f">3 min</span></td>
+      <td><span class="step-n">5</span><span class="step-t">Flujo</span><span class="step-f">3 min</span></td>
+      <td><span class="step-n">6</span><span class="step-t">Backend</span><span class="step-f">2 min</span></td>
+      <td><span class="step-n">7</span><span class="step-t">Criterios</span><span class="step-f">2 min</span></td>
+      <td><span class="step-n">8</span><span class="step-t">Estimación</span><span class="step-f">2 min</span></td>
+    </tr>
+  </table>
+
+  <div class="callout magenta"><p><strong>Regla de oro:</strong> "1 hora de papel, 30 min de código." Diseña completo antes de abrir el editor.</p></div>
+
+  <table>
+    <thead><tr><th>Paso</th><th>Qué produces</th><th>Dónde aprender más</th></tr></thead>
+    <tbody>
+      <tr><td>1. Alcance</td><td>Límites: incluye / no incluye</td><td class="mono">00-alcance-feature.md</td></tr>
+      <tr><td>2. FADER</td><td>Feature descompuesta en piezas atómicas</td><td class="mono">01-descomposicion-feature.md</td></tr>
+      <tr><td>3. Mapeo</td><td>Cada pieza → una capa de Clean Arch</td><td class="mono">02-mapeo-capas.md</td></tr>
+      <tr><td>4. Contratos</td><td>Interfaces de cada capa (qué, no cómo)</td><td class="mono">03-contratos-primero.md</td></tr>
+      <tr><td>5. Flujo</td><td>Diagrama de datos en forma de U</td><td class="mono">04-flujo-datos.md</td></tr>
+      <tr><td>6. Backend</td><td>Contrato con el servidor (Supabase o REST API)</td><td class="mono">05e-diseno-supabase.md</td></tr>
+      <tr><td>7. Criterios</td><td>Criterios BDD + matriz de trazabilidad</td><td class="mono">05f-criterios-aceptacion-trazabilidad.md</td></tr>
+      <tr><td>8. Estimación</td><td>Tiempo con framework FADE + buffer</td><td class="mono">15-estimacion-complejidad.md</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 1. FADER ================= -->
+<section>
+  <div class="section-head s-blue">
+    <span class="num">1</span>
+    <h2>FADER — Descomponer el problema (8 min)</h2>
+    <span class="meta">Formular → Actorizar → Descomponer → Entidades → Reglas</span>
+  </div>
+  <p>De lo general a lo específico · De lo externo a lo interno. Iterativo: 1er pase rápido (15 min) → revisión cruzada → 2º pase (10 min).</p>
+
+  <h3>F — Formular</h3>
+  <p>Formato: <code>"Como [actor], quiero [acción] para [valor]."</code></p>
+  <p class="muted">❌ "Hay que hacer un carrito." · ✅ "Como cliente, quiero ver el total actualizado del carrito para saber cuánto gastaré."</p>
+  <p class="muted">Preguntas guía: ¿Qué necesidad real resuelve? ¿Qué pasa si NO existe? ¿Quién se beneficia? ¿Cómo se usa hoy sin esta feature? ¿Qué expectativas tiene el usuario?</p>
+
+  <h3>A — Actorizar</h3>
+  <table>
+    <thead><tr><th>Tipo</th><th>Definición</th><th>Ejemplo</th></tr></thead>
+    <tbody>
+      <tr><td>Usuario primario</td><td>Inicia la acción</td><td>Cliente que compra</td></tr>
+      <tr><td>Usuario secundario</td><td>Provee soporte</td><td>Admin que gestiona inventario</td></tr>
+      <tr><td>Sistema externo</td><td>API, servicio, BD</td><td>Supabase, pasarela de pagos</td></tr>
+      <tr><td>Sistema interno</td><td>Otra feature de la app</td><td>Módulo de tickets, notificaciones</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">Reglas: cada actor tiene razón de ser (no inventes) · un actor puede ser persona o sistema · un usuario puede ser varios actores.</p>
+
+  <h3>D — Descomponer</h3>
+  <p><strong>Test de atomicidad</strong> (las 3 deben pasar):</p>
+  <table>
+    <thead><tr><th>#</th><th>Prueba</th><th>Pregunta</th><th>Si falla…</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Un solo verbo</td><td>¿Hace una sola cosa?</td><td>Divide</td></tr>
+      <tr><td>2</td><td>Un solo resultado</td><td>¿Un único cambio en el sistema?</td><td>Divide</td></tr>
+      <tr><td>3</td><td>Valor independiente</td><td>¿Tiene sentido sola para el usuario?</td><td>Combínala o elimínala</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">Clasificación: [C]reate · [R]ead · [U]pdate · [D]elete · Validación · Cálculo · Transición.<br>
+  Granularidad: pequeña 3-6 ops · mediana 7-15 ops · grande 16-30 ops · más de 20 ops → dividir en features. Si el nombre tiene "y", divídelo.</p>
+
+  <h3>E — Entidades</h3>
+  <p>Conceptos del mundo real (no tablas ni clases). Solo atributos esenciales.</p>
+  <p class="muted">Pregunta clave: ¿existe en el negocio o solo en tu BD? ✅ Producto · ❌ ProductoTable (eso vive en DATA). Define relaciones y qué NO es atributo de cada entidad.</p>
+
+  <h3>R — Reglas</h3>
+  <table>
+    <thead><tr><th>Categoría</th><th>Ejemplo</th></tr></thead>
+    <tbody>
+      <tr><td>Restricción</td><td>Máx. 50 items por carrito</td></tr>
+      <tr><td>Cálculo</td><td>Impuesto 16% del subtotal</td></tr>
+      <tr><td>Validación</td><td>Cupón no expirado</td></tr>
+      <tr><td>Flujo</td><td>Si stock &lt; cantidad → error</td></tr>
+      <tr><td>Consistencia</td><td>Descuento máx. 50% del total</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">Formato: R001 + descripción + actor + severidad + mensaje de error. Si crees que una regla es "obvia", escríbela igual.</p>
+
+  <h3>Ejemplo real — Feature Buyers</h3>
+  <pre>[F] F1: Como organizador de rifas, quiero ver los últimos 30 compradores
+        para saber quién me reservó.
+    F2: Como organizador, quiero buscar por nombre o teléfono (coincidencia).
+    F3: Como organizador, quiero aprobar todos los tickets reservados de un
+        comprador en una rifa para confirmar su compra.
+    F4: Como organizador, quiero liberar (rechazar) todos los tickets de un
+        comprador en una rifa para devolverlos a disponibilidad.
+    F5: Como organizador, quiero seleccionar qué tickets apruebo para que
+        el resto se libere automáticamente.
+[A] 1. Organizador (primario) → listar, buscar, aprobar, liberar
+    2. Comprador (secundario) → reserva desde la página de la rifa
+    3. Feature de Tickets (interno) → transiciones de estado
+    4. Página de la rifa (interno) → genera reservas
+[D] Organizador:
+    [R] Listar últimos 30 compradores con tickets reservados
+    [R] Buscar compradores por nombre o teléfono
+    [R] Ver tickets reservados de un comprador (por rifa)
+    [T] Aprobar todos los tickets de un comprador en una rifa
+    [T] Liberar todos los tickets de un comprador en una rifa
+    [T] Aprobar tickets seleccionados
+    [T] Liberar tickets no seleccionados (el resto)
+    Sistema interno (Feature de Tickets):
+    [Validación] Validar que el ticket esté en estado reservado
+    [Acción] Cambiar estado del ticket (→ aprobado | → disponible)
+[E] Comprador (id, nombre, teléfono, fechaReservaMásReciente)
+    Ticket (id, número, estado: disponible|reservado|aprobado,
+           fechaReserva, idComprador?, idRifa)
+    Rifa (id, título, idOrganizador) · Organizador (id, nombre)
+    → Decisión: "Reserva" NO es entidad; es Ticket en estado reservado.
+[R] R001: Solo se muestran tickets de rifas del organizador (Restricción)
+    R002: Lista = últimos 30 compradores por fecha de reserva desc (Restricción)
+    R003: Búsqueda por nombre O teléfono, contiene, ignora mayúsculas (Validación)
+    R004: Solo se aprueban/liberan tickets en estado reservado (Validación)
+    R005: Un ticket aprobado no se aprueba ni libera de nuevo (Consistencia)
+    R006: Al liberar, el ticket vuelve a disponible (Transición)
+    R007: Un comprador puede reservar de varias rifas del organizador (Restricción)
+    R008: Aprobar selección = aprobar elegidos + liberar resto atómicamente (Consistencia)
+    R009: Aprobar solo cambia estado a aprobado (Flujo)</pre>
+
+  <div class="callout green"><p><strong>Checklist de autoevaluación FADER</strong></p>
+  <ul class="checklist">
+    <li>Cada enunciado sigue "Como [actor], quiero [acción] para [valor]"</li>
+    <li>Cada actor tiene ≥1 operación que le pertenece · ninguno "porque sí"</li>
+    <li>Cada operación pasa el test de atomicidad · sin "y" en el nombre</li>
+    <li>Entidades del mundo real, atributos esenciales, relaciones definidas</li>
+    <li>Cada regla: código único + categoría + mensaje de error donde aplique</li>
+    <li>Revisión cruzada: regla↔operación · operación↔actor · entidad↔regla</li>
+  </ul></div>
+</section>
+
+<!-- ================= 2. MAPEO ================= -->
+<section>
+  <div class="section-head s-blue">
+    <span class="num">2</span>
+    <h2>Mapeo FADER → Capas de Clean Architecture (3 min)</h2>
+  </div>
+  <p><strong>Regla fundamental:</strong> cada elemento de FADER se mapea a <span class="blue">una y solo una</span> capa.</p>
+
+  <table>
+    <thead><tr><th>Elemento FADER</th><th>Capa</th><th>Ejemplo / archivo</th></tr></thead>
+    <tbody>
+      <tr><td>Entidades</td><td>DOMAIN</td><td class="mono">product.dart · entities/</td></tr>
+      <tr><td>Reglas (validación)</td><td>DOMAIN</td><td class="mono">dentro de su UseCase · usecases/</td></tr>
+      <tr><td>Operaciones (casos de uso)</td><td>DOMAIN</td><td class="mono">add_product_to_cart.dart · usecases/</td></tr>
+      <tr><td>Contratos (interfaces)</td><td>DOMAIN</td><td class="mono">cart_repository.dart · repositories/ + services/</td></tr>
+      <tr><td>Fuentes de datos</td><td>DATA</td><td class="mono">cart_remote_data_source.dart · datasources/</td></tr>
+      <tr><td>Modelos (DTO / JSON)</td><td>DATA</td><td class="mono">cart_model.dart · models/</td></tr>
+      <tr><td>Implementación de contratos</td><td>DATA</td><td class="mono">cart_repository_impl.dart · repositories/</td></tr>
+      <tr><td>Estados de UI</td><td>PRESENTATION</td><td class="mono">cart_state.dart · cubit/</td></tr>
+      <tr><td>Widgets</td><td>PRESENTATION</td><td class="mono">cart_page.dart · pages/ + widgets/</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Test de capa:</strong> ¿podría este código vivir en un proyecto Dart sin Flutter? Sí → Domain · No → otra capa.</p>
+
+  <h3>Errores comunes</h3>
+  <table>
+    <thead><tr><th>Error</th><th>Solución</th></tr></thead>
+    <tbody>
+      <tr><td>fromJson() en entidad de Domain</td><td>Va en Model (DATA)</td></tr>
+      <tr><td>UseCase que llama supabase.from(...)</td><td>Usa el Repository; no sabe de dónde vienen los datos</td></tr>
+      <tr><td>Estado del Cubit con flags de widgets</td><td>El estado describe datos, no widgets</td></tr>
+      <tr><td>Regla de negocio en un Widget</td><td>Va en UseCase</td></tr>
+      <tr><td>Interface de Repository en DATA</td><td>La interface pertenece a DOMAIN</td></tr>
+      <tr><td>Pasar userId en cada método</td><td>Inyecta UserSession en el RepositoryImpl</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">Reglas técnicas (RT) y de seguridad (RS) nunca van al dominio: viven en DATA (datasource; RLS en Supabase o contrato de endpoint en REST).</p>
+</section>
+
+<!-- ================= 3. CONTRATOS ================= -->
+<section>
+  <div class="section-head s-blue">
+    <span class="num">3</span>
+    <h2>Contract-First Design (3 min)</h2>
+  </div>
+  <p>Define las interfaces públicas de cada capa antes de implementar. El "qué" antes del "cómo".</p>
+
+  <h3>Los 3 contratos clave</h3>
+  <table>
+    <thead><tr><th>Contrato</th><th>Qué define</th><th>Ejemplo</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1 · REPOSITORY</strong> (Domain → Data)</td><td>Qué datos necesita el dominio</td><td class="mono">Future&lt;Either&lt;Failure, Cart&gt;&gt; getCart()</td></tr>
+      <tr><td><strong>2 · DATASOURCE</strong> (Data → API/BD)</td><td>Operaciones de bajo nivel</td><td class="mono">Future&lt;CartModel&gt; fetchCart(userId)</td></tr>
+      <tr><td><strong>3 · USECASE</strong> (Presentation → Domain)</td><td>Operaciones de negocio para la UI</td><td class="mono">Future&lt;Either&lt;Failure, Cart&gt;&gt; call(params)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Validación del contrato</h3>
+  <ul class="checklist">
+    <li><strong>Independiente de tecnología:</strong> sin "Supabase", "HTTP", "SQL".</li>
+    <li><strong>Completo:</strong> cubre toda la descomposición FADER.</li>
+    <li><strong>Consistente:</strong> mismo patrón en todos los métodos.</li>
+    <li><strong>Congelar:</strong> no cambia por decisiones de implementación. Documenta con ADR.</li>
+  </ul>
+
+  <h3>ADR — Architecture Decision Record</h3>
+  <pre># ADR-001: Contrato del Repositorio
+## Contexto        → ¿Por qué decidimos?
+## Decisión        → ¿Qué elegimos y cómo?
+## Consecuencias   → Positivas y negativas
+## Alternativas    → 1..n consideradas y por qué se descartaron</pre>
+</section>
+
+<!-- ================= 4. FLUJO ================= -->
+<section>
+  <div class="section-head s-blue">
+    <span class="num">4</span>
+    <h2>Flujo de Datos (3 min)</h2>
+  </div>
+  <p>Cada operación sigue una forma de U: <strong>UI → Domain → Data → vuelta a UI</strong>.</p>
+  <pre>USUARIO → Widget → Cubit(evento) → UseCase(valida reglas)
+       → Repository(interface) → RepositoryImpl → DataSource(remote/local)
+       → API/Caché → DataSource → Model → RepositoryImpl → Entity
+       → UseCase → Right(Entity) → Cubit → fold(estado) → Widget(rebuild)</pre>
+
+  <p><strong>Tipos por capa</strong> — nunca pases un Model a la UI ni una Entity al DataSource:</p>
+  <table>
+    <thead><tr><th>Capa</th><th>Entrada</th><th>Salida</th></tr></thead>
+    <tbody>
+      <tr><td>Widget</td><td>UserAction</td><td>Event</td></tr>
+      <tr><td>Cubit</td><td>Event</td><td>call UseCase</td></tr>
+      <tr><td>UseCase</td><td>params</td><td>Either&lt;Failure, Entity&gt;</td></tr>
+      <tr><td>Repository</td><td>Domain params</td><td>Either&lt;Failure, Entity&gt;</td></tr>
+      <tr><td>DataSource</td><td>Model params</td><td>Model</td></tr>
+      <tr><td>API/BD</td><td>JSON/SQL</td><td>JSON/Row</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">Flujo de errores (abajo → arriba): API → DataSource captura excepción → Failure → RepoImpl → UseCase → Cubit fold() → mensaje → SnackBar. <strong>Nunca</strong> dejes que una excepción técnica (HTTP 500, timeout, SQL) llegue a la UI.</p>
+</section>
+
+<!-- ================= 5. BACKEND ================= -->
+<section>
+  <div class="section-head s-green">
+    <span class="num">5</span>
+    <h2>Backend: Contrato con el Servidor (2 min)</h2>
+    <span class="meta">Supabase o REST API</span>
+  </div>
+  <p>No diseñas un backend: defines <span class="green">lo que la app necesita del servidor</span>. La diferencia es <strong>quién implementa</strong>.</p>
+
+  <table>
+    <thead><tr><th>Con Supabase (BaaS)</th><th>Con una REST API (Python/otro)</th></tr></thead>
+    <tbody>
+      <tr><td>La app diseña e implementa tablas, RLS y RPC</td><td>La app solo especifica el <strong>contrato</strong> (verbo + path, DTO, códigos de error, garantías); el backend implementa</td></tr>
+      <tr><td>RS → policies de RLS</td><td>RS → autorización en el servidor (roles / middleware)</td></tr>
+      <tr><td>Atomicidad → función RPC</td><td>Atomicidad → operación atómica e idempotente en 1 request</td></tr>
+      <tr><td>Realtime → canales de Supabase</td><td>Realtime → WebSocket/SSE, mismo contrato Stream&lt;Entity&gt;</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout green"><p>El <code>RemoteDataSource</code> es la costura: con Supabase usa <code>SupabaseClient</code>, con una REST API usa Dio — el repositorio no sabe ni le importa cuál. Teoría completa en <span class="mono">05e-diseno-supabase.md</span>.</p></div>
+</section>
+
+<!-- ================= 6. ESTIMACIÓN ================= -->
+<section>
+  <div class="section-head s-magenta">
+    <span class="num">6</span>
+    <h2>Estimación de Complejidad (2 min)</h2>
+  </div>
+  <p>Descompón en 5 componentes y estima cada uno.</p>
+  <table>
+    <thead><tr><th>Letra</th><th>Componente</th><th>Ejemplo</th></tr></thead>
+    <tbody>
+      <tr><td>F</td><td>Frontend</td><td>Pantalla de perfil</td></tr>
+      <tr><td>A</td><td>API / Backend</td><td>CRUD de usuarios</td></tr>
+      <tr><td>D</td><td>Data</td><td>User model + repository</td></tr>
+      <tr><td>E</td><td>Estados</td><td>AuthCubit</td></tr>
+      <tr><td>R</td><td>Requisitos</td><td>Login required</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">Proceso: 1) descompón la feature · 2) estima cada componente · 3) suma +30% buffer (y +20% testing).</p>
+  <table>
+    <thead><tr><th>Nivel</th><th>Tiempo</th><th>Señales</th></tr></thead>
+    <tbody>
+      <tr><td>Simple</td><td>1-3h</td><td>Solo UI, sin backend</td></tr>
+      <tr><td>Media</td><td>4-8h</td><td>UI + 1-2 llamadas, 1 Cubit</td></tr>
+      <tr><td>Compleja</td><td>8-16h</td><td>Backend + realtime, varios estados</td></tr>
+      <tr><td>Épica</td><td>16-40h</td><td>Multi-pantalla, integraciones</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 7. PLANTILLA ================= -->
+<section>
+  <div class="section-head s-magenta">
+    <span class="num">7</span>
+    <h2>Plantilla "Toma y llena" — para cada feature futura</h2>
+  </div>
+  <p>Copia este bloque, llénalo y tendrás el diseño completo.</p>
+
+  <div class="template"><span class="c"># Feature: [Nombre]</span>
+<span class="c">## Alcance</span>
+Incluye: [...] · No incluye: [...]
+<span class="c">## FADER</span>
+[F] Como [actor], quiero [acción] para [valor].
+[A] 1. [actor] (tipo) → [permisos]
+[D] - [R] [operación]
+    - [T] [operación]
+[E] [Entidad] (atributos esenciales)
+[R] R001: [regla] (categoría) · mensaje: "[...]"
+<span class="c">## Mapeo</span>
+| Elemento FADER | Capa | Archivo |
+|---------------|------|---------|
+| Entidad | DOMAIN entities/ | x.dart |
+| Operación | DOMAIN usecases/ | x.dart |
+| Contrato Repo | DOMAIN repositories/ | x_repository.dart |
+| Modelo | DATA models/ | x_model.dart |
+| DataSource | DATA datasources/ | x_remote_data_source.dart |
+| RepoImpl | DATA repositories/ | x_repository_impl.dart |
+| Estado | PRESENTATION cubit/ | x_state.dart |
+| Página | PRESENTATION pages/ | x_page.dart |
+<span class="c">## Backend: [Supabase | REST API]</span>
+Garantías del servidor: [atómico, autorizado (RS), idempotente]
+<span class="c">## Contratos (3)</span>
+<span class="k">// Repository, DataSource, UseCase → Future&lt;Either&lt;Failure, T&gt;&gt;</span>
+<span class="c">## Flujo</span>
+USUARIO → Widget → Cubit → UseCase → Repository → DataSource → API → vuelta.
+<span class="c">## Criterios (BDD)</span>
+Escenario: [título] → Dado ... / Cuando ... / Entonces ...
+<span class="c">## Estimación</span>
+F: [h] · A: [h] · D: [h] · E: [h] · R: [h] → Base [X]h · +30% buffer → Total [Y]h</div>
+</section>
+
+<!-- ================= ANEXO ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">A</span>
+    <h2>Anexo · Índice del módulo (para profundizar)</h2>
+  </div>
+  <table>
+    <thead><tr><th>Necesitas</th><th>Archivo</th></tr></thead>
+    <tbody>
+      <tr><td>Definir el alcance (incluye / no incluye)</td><td class="mono">00-alcance-feature.md</td></tr>
+      <tr><td>Teoría FADER completa (event storming, user story mapping, second pass)</td><td class="mono">01-descomposicion-feature.md</td></tr>
+      <tr><td>Hoja FADER de ejemplo (Buyers)</td><td class="mono">01-descomposicion-feature.md</td></tr>
+      <tr><td>Práctica de descomposición</td><td class="mono">01a-practica-carrito.md</td></tr>
+      <tr><td>Mapeo a capas en detalle</td><td class="mono">02-mapeo-capas.md</td></tr>
+      <tr><td>Práctica de mapeo</td><td class="mono">02a-practica-carrito-capas.md</td></tr>
+      <tr><td>Contract-First en detalle</td><td class="mono">03-contratos-primero.md</td></tr>
+      <tr><td>Práctica de contratos</td><td class="mono">03a-practica-carrito-contratos.md</td></tr>
+      <tr><td>Flujo de datos en detalle</td><td class="mono">04-flujo-datos.md</td></tr>
+      <tr><td>Práctica de flujo</td><td class="mono">04a-practica-carrito-flujo.md</td></tr>
+      <tr><td>Contrato con el backend (Supabase o REST API)</td><td class="mono">05e-diseno-supabase.md</td></tr>
+      <tr><td>Criterios de aceptación y trazabilidad</td><td class="mono">05f-criterios-aceptacion-trazabilidad.md</td></tr>
+      <tr><td>Casos integradores (Reservas, E-Learning, Facturación, Delivery)</td><td class="mono">05*.md</td></tr>
+      <tr><td>Plantilla "toma y llena"</td><td class="mono">PLANTILLA-DISENIO-FEATURE.md</td></tr>
+      <tr><td>Estimación de complejidad</td><td class="mono">15-estimacion-complejidad.md</td></tr>
+      <tr><td>Checklists y plantillas del flujo "sin IA"</td><td class="mono">trabajar-sin-ia/13-checklists-y-plantillas.md</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= BIBLIOGRAFÍA ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">B</span>
+    <h2>Bibliografía y Fuentes</h2>
+  </div>
+  <p class="muted">Fuentes que fundamentan cada decisión del módulo. Versión condensada — la completa está en BIBLIOGRAFIA.md.</p>
+
+  <h3>Libros base</h3>
+  <table>
+    <thead><tr><th>Libro</th><th>Autor (año)</th><th>Aportación al módulo</th></tr></thead>
+    <tbody>
+      <tr><td>Clean Architecture</td><td>Robert C. Martin (2017)</td><td>Las 3 capas, la regla de dependencia, los UseCases como orquestadores</td></tr>
+      <tr><td>Domain-Driven Design</td><td>Eric Evans (2003)</td><td>Lenguaje ubicuo, agregados, entidades vs value objects, reglas en el dominio</td></tr>
+      <tr><td>Growing Object-Oriented Software, Guided by Tests</td><td>Freeman &amp; Pryce (2009)</td><td>Contract-First (diseño de afuera hacia adentro), mocks como herramienta de diseño</td></tr>
+      <tr><td>Refactoring</td><td>Martin Fowler (1999/2018)</td><td>Mejorar el diseño existente sin romperlo; el costo de no diseñar</td></tr>
+      <tr><td>Design Patterns (GoF)</td><td>Gamma, Helm, Johnson, Vlissides (1994)</td><td>Patrón Repository, Adapter, Strategy en Clean Architecture</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Patrones y metodologías</h3>
+  <table>
+    <thead><tr><th>Patrón</th><th>Origen</th><th>En el módulo</th></tr></thead>
+    <tbody>
+      <tr><td>Contract-First Design</td><td>Bertrand Meyer (1986) — Design by Contract</td><td>Cada contrato define responsabilidades, parámetros, retornos y errores</td></tr>
+      <tr><td>ADR (Architecture Decision Records)</td><td>Michael Nygard (2011)</td><td>Documentar decisiones: Contexto → Decisión → Consecuencias → Alternativas</td></tr>
+      <tr><td>Result Pattern / Railway Oriented Programming</td><td>Scott Wlaschin (2014)</td><td>Either&lt;Failure, Success&gt; en vez de excepciones</td></tr>
+      <tr><td>fpdart</td><td>Sandro Maglione</td><td>Implementación de Either, Option, TaskEither en Dart</td></tr>
+      <tr><td>API Design / OpenAPI</td><td>Richardson &amp; Amundsen / OAS</td><td>Contratos de endpoints, idempotencia y errores para backends REST</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Metodología FADER</h3>
+  <p class="muted">Origen: invención propia para este módulo (2026). Adapta: User Story Mapping (Patton) · análisis de actores UML / Use Case 2.0 (Jacobson) · Event Storming (Brandolini) · DDD (Evans) · Business Rules.</p>
+
+  <h3>Paquetes referenciados</h3>
+  <table>
+    <thead><tr><th>Paquete</th><th>Uso</th></tr></thead>
+    <tbody>
+      <tr><td>flutter_bloc</td><td>Manejo de estado (Presentation)</td></tr>
+      <tr><td>equatable</td><td>Comparación de objetos</td></tr>
+      <tr><td>get_it / injectable</td><td>Inyección de dependencias</td></tr>
+      <tr><td>fpdart</td><td>Either, Option, TaskEither</td></tr>
+      <tr><td>supabase_flutter</td><td>Backend como servicio</td></tr>
+      <tr><td>dio / http</td><td>Cliente HTTP para REST APIs</td></tr>
+      <tr><td>freezed (alternativa)</td><td>Sealed classes generadas</td></tr>
+    </tbody>
+  </table>
+
+  <div class="footer-note"><strong>Tiempo objetivo por feature: ~25 min</strong> · Regla de oro: piensa primero, codifica después.</div>
+</section>
+
+</body>
+</html>

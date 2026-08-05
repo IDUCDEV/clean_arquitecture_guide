@@ -279,8 +279,10 @@ abstract class [NombreContrato] {
 | Contrato atado a tecnología | `fetchCartFromSupabase()` | Renómbralo a `fetchCart()` |
 | Contrato con demasiados métodos | 15 métodos en un repositorio | Divide en repositorios más pequeños |
 | Contrato que cambia por la implementación | Agregas params que solo usa un DataSource | El contrato es del dominio, no del DataSource |
+| Reglas técnicas/seguridad en el contrato de dominio | `fetchCartPaginado(page, limit)` en el Repository | La paginación es RT: va en el DataSource, no en el dominio |
 | No documentar decisiones | "¿Por qué retornamos el carrito completo?" | Escribe un ADR |
 | Contrato sin manejo de errores | Retorna `Cart?` en vez de `Either` | Define failures explícitos |
+| Contrato sin trazabilidad | Operaciones sin UseCase o UseCase sin test | Regístralo en la [matriz de trazabilidad](./05f-criterios-aceptacion-trazabilidad.md) |
 
 ---
 

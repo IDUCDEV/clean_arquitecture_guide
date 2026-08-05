@@ -46,7 +46,7 @@ Dibuja la secuencia desde que el usuario presiona "Agregar" hasta que ve el resu
 7. Cubit → Widget (nuevo estado)
 
 **Marca en el diagrama:**
-- ✅ Dónde se validan las reglas R002 (stock) y R003 (cantidad)
+- ✅ Dónde se validan las reglas RN002 (stock) y RN003 (cantidad)
 - ❌ Dónde se manejan los errores
 - 🔄 Dónde se transforman los tipos
 
@@ -62,8 +62,8 @@ Similar al paso 1 pero para `removeProduct`. Nota las diferencias:
 
 Dibuja el flujo de `applyCoupon`. Incluye:
 
-1. ¿Dónde se valida que el cupón no esté expirado? (R005)
-2. ¿Dónde se valida el descuento máximo? (R006)
+1. ¿Dónde se valida que el cupón no esté expirado? (RN005)
+2. ¿Dónde se valida el descuento máximo? (RN006)
 3. ¿El cupón se valida localmente o contra la API?
 4. ¿Qué pasa si el cupón es inválido?
 
@@ -97,9 +97,9 @@ CUBIT             CartActionLoading           emit(CartActionLoading(cart: curre
                     quantity: 1
                   )
 
-USECASE           VALIDA REGLAS:              R002: product.stock > 0
-                                               R003: quantity > 0
-                                               R001: cart.items.length < 50
+USECASE           VALIDA REGLAS:              RN002: product.stock > 0
+                                               RN003: quantity > 0
+                                               RN001: cart.items.length < 50
 
                   Si alguna falla:
                   → Left(InvalidQuantity|ProductOutOfStock|CartLimitExceeded)
@@ -172,8 +172,8 @@ USECASE     → ApplyCoupon.call(userId, code)
                → Valida: couponCode no vacío
                → repository.applyCoupon(userId, code)
 REPO IMPL   → remoteDS.applyCoupon(userId, code)   ← La API valida el cupón
-               → La API retorna error si expiró (R005)
-               → La API retorna error si descuento > 50% (R006)
+               → La API retorna error si expiró (RN005)
+               → La API retorna error si descuento > 50% (RN006)
                → localDS.cacheCart(userId, model)
                → model.toEntity()
 CUBIT       → fold()
@@ -182,7 +182,7 @@ CUBIT       → fold()
 WIDGET      → Muestra descuento aplicado y total actualizado
 ```
 
-**Nota importante:** Las reglas R005 y R006 se validan del lado del servidor (API). El UseCase podría también tener una validación local del formato del código como precaución.
+**Nota importante:** Las reglas RN005 y RN006 se validan del lado del servidor (API). El UseCase podría también tener una validación local del formato del código como precaución.
 
 ### ✅ Flujo Ver Resumen (Offline-First)
 
@@ -213,6 +213,7 @@ WIDGET      → Muestra lista de items, totales, input de cupón
 - [ ] ¿Las validaciones de negocio están en el UseCase (no en otra capa)?
 - [ ] ¿El DataSource remoto usa Models, no Entities?
 - [ ] ¿El flujo offline-first está considerado donde aplica?
+- [ ] ¿Se evaluó si la pantalla necesita realtime (Streams)? (ver [05e-diseno-supabase.md](./05e-diseno-supabase.md))
 - [ ] ¿Los diagramas son claros para alguien que no conoce el código?
 
 ---

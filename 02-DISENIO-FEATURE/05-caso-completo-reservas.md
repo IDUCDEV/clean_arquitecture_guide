@@ -1,6 +1,6 @@
 # Caso Completo: Sistema de Reservas
 
-> Aplica todo lo aprendido (FADER + Mapeo + Contratos + Flujo) para diseñar un Sistema de Reservas desde cero, en papel y lápiz.
+> Aplica todo lo aprendido (FADER + Mapeo + Contratos + Flujo + Supabase + Criterios) para diseñar un Sistema de Reservas desde cero, en papel y lápiz.
 
 ---
 
@@ -9,10 +9,12 @@
 Sin abrir el editor, sin escribir una sola línea de código, vas a diseñar la arquitectura completa de un Sistema de Reservas usando la metodología FADER y Clean Architecture.
 
 Al terminar, tendrás:
-- ✅ Feature descompuesta (Formular, Actorizar, Descomponer, Entidades, Reglas)
+- ✅ Feature descompuesta (Alcance, Formular, Actorizar, Descomponer, Entidades, Reglas)
 - ✅ Mapeo completo a capas de Clean Architecture
 - ✅ Contratos (interfaces) de cada capa
 - ✅ Diagramas de flujo de datos
+- ✅ Diseño de Supabase (tablas, RPC, RLS, realtime)
+- ✅ Criterios de aceptación y matriz de trazabilidad
 - ✅ ADRs documentando decisiones clave
 
 ---
@@ -28,6 +30,18 @@ Somos un equipo que desarrolla una app para **clínicas veterinarias**. El equip
 ## Tu Misión
 
 Completa cada sección en orden, en papel y lápiz. La siguiente guía te lleva paso a paso.
+
+---
+
+## Sección 0: Alcance
+
+Antes de descomponer, define los límites del sistema (teoría en [00-alcance-feature.md](./00-alcance-feature.md)):
+
+1. **Incluye:** ¿qué cubre el sistema de reservas?
+2. **No incluye:** ¿qué NO cubre? (ej: facturación, recetas, pagos)
+3. **Dependencias:** ¿qué necesita que exista antes?
+4. **Suposiciones:** ¿qué das por hecho?
+5. **Preguntas abiertas:** ¿qué no sabes todavía?
 
 ---
 
@@ -94,7 +108,7 @@ Define las entidades de negocio. Para cada una, lista sus atributos esenciales.
 
 ### ✏️ Paso 5: Reglas
 
-Enuncia al menos 8 reglas de negocio con formato R001, R002...
+Enuncia al menos 8 reglas de negocio con formato RN001, RN002... y añade reglas técnicas (RT) y de seguridad (RS) cuando aplique (teoría en [01-descomposicion-feature.md](./01-descomposicion-feature.md#paso-5-reglas)).
 
 **Áreas a cubrir:**
 - Disponibilidad (no dobles reservas)
@@ -300,6 +314,39 @@ Dibuja el flujo de carga de la agenda.
 
 ---
 
+## Sección 5: Diseño Supabase
+
+Ahora aterriza el diseño en Supabase (teoría en [05e-diseno-supabase.md](./05e-diseno-supabase.md)):
+
+> **¿Tu backend es una REST API (Python/otro)?** Aquí no implementas el servidor: solo especificas el **contrato** (endpoints, DTOs, códigos de error, garantías de atomicidad y autorización) que consume tu `RemoteDataSource` con Dio; el backend la diseña e implementa.
+
+1. **Tablas:** define las tablas, columnas y tipos (snake_case).
+2. **Operaciones:** para cada UseCase, ¿qué operación lo implementa (select/insert/update/rpc)?
+3. **RLS:** define policies que hagan cumplir RS001.
+4. **Atomicidad:** identifica operaciones que deben ser atómicas (ej: agendar un slot disponible → RPC en transacción).
+5. **Realtime:** ¿qué tablas se sincronizan en vivo?
+
+**Pregúntate:**
+- ¿La validación de slot disponible (RN001) vive en un RPC atómico o en el cliente?
+- ¿Cómo evitas que el dueño A vea citas del dueño B (RS001)?
+- ¿El recordatorio (RN006) lo dispara Postgres (cron) o un servicio externo?
+
+---
+
+## Sección 6: Criterios de Aceptación y Trazabilidad
+
+Cierra el diseño definiendo criterios (teoría en [05f-criterios-aceptacion-trazabilidad.md](./05f-criterios-aceptacion-trazabilidad.md)):
+
+1. **Criterios de aceptación:** escribe al menos 5 en formato BDD (Dado/Cuando/Entonces).
+2. **Matriz de trazabilidad:** para los UseCases críticos, cruza UseCase → Regla → Contrato → Fuente de verdad → Test.
+
+**Pregúntate:**
+- ¿El criterio "cancelar con 2h de antelación" es verificable?
+- ¿Toda regla RN tiene al menos un UseCase y un test que la cubra?
+- ¿Los criterios distinguen el frontend (validación optimista) del servidor (fuente de verdad)?
+
+---
+
 ## Solución Sugerida
 
 > ⚠️ Resuelve cada sección en papel primero. La solución sugerida es para comparar después.
@@ -377,15 +424,17 @@ Dibuja el flujo de carga de la agenda.
 ║  Recordatorio: id, cita, tipo, enviadoEn, estado             ║
 ║                                                               ║
 ║  [R]eglas:                                                    ║
-║  R001: No se puede agendar una cita en un slot ocupado       ║
-║  R002: Antelación mínima de 4 horas para agendar             ║
-║  R003: Máximo 8 citas por doctor por día                     ║
-║  R004: Cancelación solo con 2h de antelación                  ║
-║  R005: No-show se marca si pasan 15min de la hora             ║
-║  R006: Recordatorio automático 24h antes                      ║
-║  R007: Duración de consulta según tipoConsulta               ║
-║  R008: Un dueño no puede tener 2 citas el mismo día          ║
+║  RN001: No se puede agendar una cita en un slot ocupado       ║
+║  RN002: Antelación mínima de 4 horas para agendar             ║
+║  RN003: Máximo 8 citas por doctor por día                     ║
+║  RN004: Cancelación solo con 2h de antelación                  ║
+║  RN005: No-show se marca si pasan 15min de la hora             ║
+║  RN006: Recordatorio automático 24h antes                      ║
+║  RN007: Duración de consulta según tipoConsulta               ║
+║  RN008: Un dueño no puede tener 2 citas el mismo día          ║
 ║        para la misma mascota (máximo 1 consulta/día)         ║
+║  RT001: Slots en huso horario de la clínica                   ║
+║  RS001: Solo el dueño ve citas de su propia mascota           ║
 ║                                                               ║
 ╚═══════════════════════════════════════════════════════════════╝
 ```
@@ -471,7 +520,7 @@ abstract class AppointmentRepository {
 
 ## Contexto
 Cuando dos dueños intentan agendar el mismo slot simultáneamente,
-necesitamos evitar dobles reservas (R001).
+necesitamos evitar dobles reservas (RN001).
 
 ## Decisión
 La validación de disponibilidad se hará en el backend (Supabase)
@@ -493,18 +542,69 @@ Negativas:
 3. Cola de reservas → Descartado: sobreingeniería para este caso
 ```
 
+### ✅ Diseño Supabase
+
+```
+appointments
+├── id            uuid PK
+├── pet_id        uuid FK → pets
+├── doctor_id     uuid FK → doctors
+├── date_time     timestamptz
+├── duration_min  int
+├── status        enum (scheduled, completed, cancelled, no_show)
+├── created_at    timestamptz
+
+-- RS001: cada dueño solo ve citas de sus mascotas
+create policy "owner sees own pets appointments"
+  on appointments for select
+  using (pet_id in (select id from pets where owner_id = auth.uid()));
+
+-- RN001: slot atómico (evita doble reserva)
+--   rpc agendar_cita(p_pet_id, p_doctor_id, p_date_time, p_duration_min)
+--   → BEGIN; INSERT con constraint único (doctor_id, date_time); COMMIT;
+--   → si hay conflicto, retorna error "slot_ocupado"
+```
+
+### ✅ Criterios de Aceptación (ejemplos)
+
+```gherkin
+Escenario: Agendar cita en slot libre
+  Dado un doctor con un slot libre el 2026-08-10 10:00
+  Y la reserva se hace con más de 4h de antelación (RN002)
+  Cuando el dueño agenda ese slot
+  Entonces la cita queda con estado "scheduled"
+  Y otro dueño ya no ve ese slot disponible
+
+Escenario: Intentar agendar el mismo slot dos veces
+  Dado un slot recién reservado por el dueño A
+  Cuando el dueño B intenta agendar el mismo slot
+  Entonces el sistema rechaza con "slot_ocupado" (RN001)
+```
+
+### ✅ Matriz de Trazabilidad
+
+| UseCase            | Regla(s)      | Contrato                                   | Fuente de verdad | Test                 |
+|--------------------|---------------|--------------------------------------------|------------------|----------------------|
+| CreateAppointment  | RN001, RN002  | AppointmentRepository.create               | RPC atómico      | unit + widget        |
+| CancelAppointment  | RN004         | AppointmentRepository.cancel               | API + RLS        | unit                 |
+| GetDoctorAgenda    | RN007, RT001  | AppointmentRepository.getDoctorAgenda      | API              | unit                 |
+| MarkNoShow         | RN005         | AppointmentRepository.markNoShow           | RPC + cron       | unit + integration   |
+| Ver agenda (dueño) | RS001         | AppointmentRepository.getOwnerAppointments | RLS              | integration (RLS)    |
+
 ---
 
 ## Entregable Final
 
 Al completar este caso, deberías tener en papel:
 
-1. ✅ Una hoja FADER completa (Formular, Actorizar, Descomponer, Entidades, Reglas)
+1. ✅ Una hoja FADER completa (Alcance, Formular, Actorizar, Descomponer, Entidades, Reglas)
 2. ✅ El árbol de carpetas de las 3 capas (domain, data, presentation)
 3. ✅ Los contratos de AppointmentRepository y VeterinarianRepository
 4. ✅ Los estados de los Cubits
 5. ✅ Al menos 1 ADR documentando una decisión clave
 6. ✅ Diagrama de flujo de "Agendar Cita" (de UI a BD y vuelta)
+7. ✅ El diseño de Supabase (tablas, RPC atómico, RLS)
+8. ✅ Criterios de aceptación y matriz de trazabilidad
 
 **Con esto, estás listo para abrir el editor y empezar a codificar.**
 

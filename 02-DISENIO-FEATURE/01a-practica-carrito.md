@@ -23,6 +23,16 @@ Somos parte del equipo de una tienda online. El equipo de producto nos pide:
 
 ## Paso a Paso
 
+### ✏️ Paso 0: Alcance
+
+Escribe en tu hoja (consulta [00-alcance-feature.md](./00-alcance-feature.md)):
+
+1. **Incluye:** ¿qué cubre el carrito?
+2. **No incluye:** ¿qué NO cubre? (pagos, envíos, fidelización...)
+3. **Dependencias:** ¿qué necesita que exista antes?
+4. **Suposiciones:** ¿qué das por hecho?
+5. **Preguntas abiertas:** ¿qué no sabes todavía?
+
 ### ✏️ Paso 1: Formular
 
 Escribe en tu hoja:
@@ -70,7 +80,7 @@ Dibuja las tarjetas de entidad:
 
 Enuncia al menos 5 reglas de negocio:
 
-1. Usa el formato R001, R002...
+1. Usa el formato RN001, RN002... (clasifica técnicas y de seguridad como RT/RS)
 2. Clasifica cada una: Restricción, Cálculo, Validación, Flujo
 3. Define el mensaje de error para el usuario donde aplique
 4. Piensa en bordes: ¿qué pasa si el precio es 0? ¿si la cantidad es negativa?
@@ -80,6 +90,34 @@ Enuncia al menos 5 reglas de negocio:
 ## Solución Sugerida
 
 Compara después de hacerlo tú mismo. No mires antes de terminar.
+
+### ✅ Alcance
+
+```
+Feature: Carrito de Compras
+
+Incluye:
+- Agregar/quitar productos y actualizar cantidades.
+- Ver resumen con subtotal, impuesto y total.
+- Aplicar cupones de descuento.
+
+No incluye:
+- Procesar pagos.
+- Envíos y seguimiento.
+- Programa de fidelización.
+
+Dependencias:
+- Catálogo de productos (stock).
+- Autenticación (identidad del cliente).
+
+Suposiciones:
+- El cliente tiene sesión iniciada.
+- Un carrito pertenece a un solo cliente.
+
+Preguntas abiertas:
+- ¿Los cupones son combinables entre sí?
+- ¿Hay límite de items por carrito? (RN001)
+```
 
 ### ✅ Formular
 
@@ -143,13 +181,15 @@ CuponDescuento:
 
 | Código | Descripción | Tipo | Mensaje |
 |--------|-------------|------|---------|
-| R001 | Máximo 50 items distintos por carrito | Restricción | "Has alcanzado el límite de 50 productos" |
-| R002 | Stock debe ser > 0 para agregar | Validación | "Producto {nombre} sin stock disponible" |
-| R003 | Cantidad a agregar debe ser > 0 | Validación | "La cantidad debe ser mayor a 0" |
-| R004 | Impuesto = 16% (subtotal - descuento) | Cálculo | — |
-| R005 | Cupón debe estar vigente (no expirado) | Validación | "El cupón {codigo} ha expirado" |
-| R006 | Descuento máximo 50% del subtotal | Restricción | "El descuento supera el límite permitido" |
-| R007 | Precio unitario se congela al agregar | Consistencia | — |
+| RN001 | Máximo 50 items distintos por carrito | Restricción | "Has alcanzado el límite de 50 productos" |
+| RN002 | Stock debe ser > 0 para agregar | Validación | "Producto {nombre} sin stock disponible" |
+| RN003 | Cantidad a agregar debe ser > 0 | Validación | "La cantidad debe ser mayor a 0" |
+| RN004 | Impuesto = 16% (subtotal - descuento) | Cálculo | — |
+| RN005 | Cupón debe estar vigente (no expirado) | Validación | "El cupón {codigo} ha expirado" |
+| RN006 | Descuento máximo 50% del subtotal | Restricción | "El descuento supera el límite permitido" |
+| RN007 | Precio unitario se congela al agregar | Consistencia | — |
+| RT001 | El carrito se lee con la sesión (sin pasar userId por parámetro) | Técnica | — |
+| RS001 | RLS: solo el dueño del carrito puede leerlo/escribirlo | Seguridad | — |
 
 ---
 

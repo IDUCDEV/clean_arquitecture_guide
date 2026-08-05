@@ -1,6 +1,6 @@
 # Caso Práctico: Plataforma de Cursos Online (E-Learning)
 
-> Aplica FADER + Mapeo + Contratos + Flujo para diseñar una plataforma de cursos online desde cero.
+> Aplica FADER + Mapeo + Contratos + Flujo + Supabase + Criterios para diseñar una plataforma de cursos online desde cero.
 
 ---
 
@@ -17,6 +17,18 @@ Somos el equipo técnico de una startup de tecnología educativa. El equipo de p
 1. Trabaja en papel y lápiz. No abras el editor de código.
 2. Sigue cada sección en orden.
 3. Al final, compara con la solución sugerida.
+
+---
+
+## Sección 0: Alcance
+
+Antes de descomponer, define los límites del sistema (teoría en [00-alcance-feature.md](./00-alcance-feature.md)):
+
+1. **Incluye:** ¿qué cubre la plataforma?
+2. **No incluye:** ¿qué NO cubre? (ej: foros, certificados, gamificación)
+3. **Dependencias:** ¿qué necesita que exista antes?
+4. **Suposiciones:** ¿qué das por hecho?
+5. **Preguntas abiertas:** ¿qué no sabes todavía?
 
 ---
 
@@ -89,7 +101,7 @@ Define las entidades de negocio con sus atributos esenciales.
 
 ### ✏️ Paso 5: Reglas
 
-Enuncia al menos 8 reglas de negocio con formato R001, R002...
+Enuncia al menos 8 reglas de negocio con formato RN001, RN002... y añade reglas técnicas (RT) y de seguridad (RS) cuando aplique (teoría en [01-descomposicion-feature.md](./01-descomposicion-feature.md#paso-5-reglas)).
 
 **Áreas a cubrir:**
 - Inscripción: ¿puede inscribirse a un curso ya completado?
@@ -277,6 +289,39 @@ Dibuja la máquina de estados de un curso: Borrador → En revisión → Publica
 
 ---
 
+## Sección 5: Diseño Supabase
+
+Aterriza el diseño en Supabase (teoría en [05e-diseno-supabase.md](./05e-diseno-supabase.md)):
+
+> **¿Tu backend es una REST API (Python/otro)?** Aquí no implementas el servidor: solo especificas el **contrato** (endpoints, DTOs, códigos de error, garantías de atomicidad y autorización) que consume tu `RemoteDataSource` con Dio; el backend la diseña e implementa.
+
+1. **Tablas:** cursos, módulos, lecciones, inscripciones, progreso.
+2. **Operaciones:** ¿qué UseCase usa select/insert/update/rpc?
+3. **RLS:** policies que cumplan RS001 (progreso propio) y RS002 (solo instructor edita).
+4. **Atomicidad:** ¿la inscripción a curso pago es atómica (RPC)?
+5. **Realtime:** ¿el progreso se sincroniza en vivo?
+
+**Pregúntate:**
+- ¿El cálculo de progreso (RN004) es una función de BD o se calcula en el cliente?
+- ¿Cómo evitas que un estudiante lea lecciones de un curso no inscrito (RN002)?
+- ¿La transición "publicado" (RN008) la hace solo el admin: RLS o RPC con claim?
+
+---
+
+## Sección 6: Criterios de Aceptación y Trazabilidad
+
+Cierra el diseño (teoría en [05f-criterios-aceptacion-trazabilidad.md](./05f-criterios-aceptacion-trazabilidad.md)):
+
+1. **Criterios:** escribe al menos 5 en formato BDD.
+2. **Matriz:** cruza UseCase → Regla → Contrato → Fuente de verdad → Test.
+
+**Pregúntate:**
+- ¿El criterio "marcar lección completada" considera la inscripción activa?
+- ¿RN006 (instructor no se inscribe a su propio curso) tiene test?
+- ¿La matriz cubre RS001 y RS002 aunque no pasen por un UseCase?
+
+---
+
 ## Solución Sugerida
 
 > ⚠️ Resuelve cada sección en papel primero. La solución sugerida es para comparar después.
@@ -357,22 +402,27 @@ Dibuja la máquina de estados de un curso: Borrador → En revisión → Publica
 ║  Categoria: id, nombre, slug, icono                           ║
 ║                                                               ║
 ║  [R]eglas:                                                    ║
-║  R001: No se puede inscribir a un curso ya inscrito          ║
-║  R002: Solo se pueden ver lecciones de cursos inscritos      ║
-║  R003: Un curso debe tener al menos 1 lección para           ║
+║  RN001: No se puede inscribir a un curso ya inscrito          ║
+║  RN002: Solo se pueden ver lecciones de cursos inscritos      ║
+║  RN003: Un curso debe tener al menos 1 lección para           ║
 ║        solicitar publicación                                  ║
-║  R004: El progreso = (lecciones completadas / total          ║
+║  RN004: El progreso = (lecciones completadas / total          ║
 ║        lecciones) * 100                                       ║
-║  R005: Al completar todas las lecciones, la inscripción      ║
+║  RN005: Al completar todas las lecciones, la inscripción      ║
 ║        pasa a estado "completada"                             ║
-║  R006: Un instructor no puede inscribirse a su propio curso  ║
-║  R007: Los cursos pagos requieren confirmación de pago       ║
+║  RN006: Un instructor no puede inscribirse a su propio curso  ║
+║  RN007: Los cursos pagos requieren confirmación de pago       ║
 ║        antes de activar la inscripción                        ║
-║  R008: Solo el admin puede cambiar el estado a "publicado"   ║
-║  R009: No se puede eliminar un curso con estudiantes         ║
+║  RN008: Solo el admin puede cambiar el estado a "publicado"   ║
+║  RN009: No se puede eliminar un curso con estudiantes         ║
 ║        inscritos (solo archivarlo)                            ║
-║  R010: Las lecciones de tipo "video" requieren contenidoUrl  ║
+║  RN010: Las lecciones de tipo "video" requieren contenidoUrl  ║
 ║        no vacío                                               ║
+║  RT001: La búsqueda del catálogo se delega al backend         ║
+║        (full-text search), no se filtra en el cliente         ║
+║  RS001: Un estudiante solo lee su propio progreso             ║
+║  RS002: Solo el instructor del curso puede editar su          ║
+║        contenido                                              ║
 ║                                                               ║
 ╚═══════════════════════════════════════════════════════════════╝
 ```
@@ -534,6 +584,63 @@ CUBIT         → fold()
 
 ESTUDIANTE    → Ve su progreso actualizado en la barra de avance
 ```
+
+### ✅ Diseño Supabase
+
+```
+enrollments
+├── id            uuid PK
+├── student_id    uuid FK → profiles
+├── course_id     uuid FK → courses
+├── status        enum (active, completed, cancelled)
+├── payment_id    uuid (nullable)
+
+lesson_progress
+├── id            uuid PK
+├── student_id    uuid FK → profiles
+├── lesson_id     uuid FK → lessons
+├── completed     bool
+├── completed_at  timestamptz
+└── unique (student_id, lesson_id)
+
+-- RS001: cada estudiante solo lee su propio progreso
+create policy "student reads own progress"
+  on lesson_progress for select
+  using (student_id = auth.uid());
+
+-- RN002: solo se leen lecciones de cursos con inscripción activa
+--   → RPC get_lesson(student_id, lesson_id) que valida la inscripción
+--   → RLS: lessons visible solo vía courses publicadas
+-- RN004: progreso = RPC calcular_progreso(student_id, course_id)
+-- RN007: inscripción paga = RPC inscribirse que verifica payment_id
+```
+
+### ✅ Criterios de Aceptación (ejemplos)
+
+```gherkin
+Escenario: Completar la última lección
+  Dado un estudiante inscrito en un curso con 5 lecciones
+  Y 4 lecciones completadas
+  Cuando completa la lección 5
+  Entonces su progreso es 100% (RN004)
+  Y su inscripción pasa a "completada" (RN005)
+
+Escenario: Ver lecciones sin estar inscrito
+  Dado un curso publicado
+  Cuando un estudiante no inscrito intenta abrir una lección
+  Entonces el sistema rechaza el acceso (RN002, RLS)
+```
+
+### ✅ Matriz de Trazabilidad
+
+| UseCase            | Regla(s)       | Contrato                                    | Fuente de verdad | Test                 |
+|--------------------|----------------|---------------------------------------------|------------------|----------------------|
+| EnrollCourse       | RN001, RN007   | EnrollmentRepository.enroll                 | RPC atómico      | unit + integration   |
+| CompleteLesson     | RN004, RN005   | EnrollmentRepository.markLessonCompleted    | RPC + trigger    | unit                 |
+| BrowseCourses      | RT001          | CourseRepository.getCatalog                 | API + full-text  | unit                 |
+| ApproveCourse      | RN003, RN008   | CourseRepository.approveCourse              | RPC + claim      | unit + widget        |
+| Ver progreso       | RS001          | EnrollmentRepository.getLessonProgress      | RLS              | integration (RLS)    |
+| Ver lecciones      | RN002, RS002   | CourseRepository.getCourseDetail            | RPC + RLS        | integration (RLS)    |
 
 ---
 
