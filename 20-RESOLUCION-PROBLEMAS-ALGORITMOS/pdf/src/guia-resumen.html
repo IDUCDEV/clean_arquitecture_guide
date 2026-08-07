@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>GUÍA RESUMEN — Resolución de Problemas Algorítmicos</title>
+<link rel="stylesheet" href="guia-resumen.css">
+</head>
+<body>
+
+<div class="header">
+  <div class="mod">Módulo 20 · Clean Architecture + Flutter + Supabase</div>
+  <h1>GUÍA RESUMEN — Resolución de Problemas Algorítmicos</h1>
+  <div class="sub">Resumen integral para resolver problemas de algoritmos tipo HackerRank/LeetCode sin volver a leer el módulo completo. Hilo conductor: Framework de 6 pasos → Big-O → Reconocimiento de patrones → Templates en Dart → Recursión → System Design.</div>
+</div>
+
+<!-- ================= 0. FLUJO ================= -->
+<section>
+  <div class="section-head s-teal">
+    <span class="num">0</span>
+    <h2>El Protocolo: Framework de 6 pasos</h2>
+    <span class="meta">siempre en orden</span>
+  </div>
+
+  <table class="flow">
+    <tr>
+      <td><span class="step-n">1</span><span class="step-t">Entender</span><span class="step-f">"¿Qué me dan? ¿Qué me piden?"</span></td>
+      <td><span class="step-n">2</span><span class="step-t">Constraints</span><span class="step-f">"¿Qué complejidad necesito?"</span></td>
+      <td><span class="step-n">3</span><span class="step-t">Ejemplos</span><span class="step-f">normal + edge + tricky</span></td>
+      <td><span class="step-n">4</span><span class="step-t">Patrón</span><span class="step-f">"¿Qué algoritmo encaja?"</span></td>
+      <td><span class="step-n">5</span><span class="step-t">Pseudocódigo</span><span class="step-f">explicarlo en palabras</span></td>
+      <td><span class="step-n">6</span><span class="step-t">Implementar</span><span class="step-f">testear 3 casos + optimizar</span></td>
+    </tr>
+  </table>
+
+  <div class="callout"><p><strong>Regla de oro:</strong> "Si no puedes explicar el problema con tus propias palabras, no lo entiendes." Leer el enunciado <strong>2 veces</strong> y reformular antes de tocar el teclado.</p></div>
+
+  <table>
+    <thead><tr><th>Paso</th><th>Qué haces</th><th>Clave</th><th>Dónde aprender más</th></tr></thead>
+    <tbody>
+      <tr><td>1. Entender</td><td>Entrada, salida, términos, restricciones implícitas</td><td>Reformular en voz alta</td><td class="mono">01-metodologia-general.md</td></tr>
+      <tr><td>2. Constraints</td><td>Leer límites <strong>antes</strong> de diseñar</td><td>Regla del 10⁸ ops/seg</td><td class="mono">02-analisis-complejidad.md</td></tr>
+      <tr><td>3. Ejemplos</td><td>1 normal + 1 edge case + 1 tricky, a mano</td><td>vacío · 1 elem · negativos · duplicados</td><td class="mono">01-metodologia-general.md</td></tr>
+      <tr><td>4. Patrón</td><td>Nombrar el patrón antes de codificar</td><td>80% cae en ~15 patrones</td><td class="mono">03-reconocimiento-patrones.md</td></tr>
+      <tr><td>5. Pseudocódigo</td><td>1 paso por línea, nombres descriptivos</td><td>Validar lógica sin sintaxis</td><td class="mono">06-comunicacion-y-pseudocodigo.md</td></tr>
+      <tr><td>6. Implementar</td><td>Early returns, estructura correcta, testear</td><td>happy path + edge + stress</td><td class="mono">01-metodologia-general.md</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout orange"><p><strong>NO hagas:</strong> ✗ codificar sin entender · ✗ ignorar constraints · ✗ probar solo el happy path · ✗ adivinar el patrón sin señales · ✗ saltar del enunciado al código.</p></div>
+</section>
+
+<!-- ================= 1. BIG-O ================= -->
+<section>
+  <div class="section-head s-teal">
+    <span class="num">1</span>
+    <h2>Análisis de Complejidad (Big-O)</h2>
+    <span class="meta">rápido antes de escribirlo</span>
+  </div>
+  <p>Big-O mide <span class="teal">cómo crece el tiempo</span> cuando aumentan los datos. No es velocidad absoluta: clasifica el tipo de crecimiento.</p>
+
+  <h3>Las 4 complejidades esenciales</h3>
+  <table>
+    <thead><tr><th>Complejidad</th><th>Nombre</th><th>Analogía</th><th>En código</th></tr></thead>
+    <tbody>
+      <tr><td><strong>O(1)</strong></td><td>Constante</td><td>Abrir en una página marcada</td><td class="mono">arr[0] · map[key]</td></tr>
+      <tr><td><strong>O(n)</strong></td><td>Lineal</td><td>Leer un libro página por página</td><td class="mono">1 for que recorre todo</td></tr>
+      <tr><td><strong>O(n²)</strong></td><td>Cuadrática</td><td>Comparar cada libro con todos</td><td class="mono">2 for anidados</td></tr>
+      <tr><td><strong>O(log n)</strong></td><td>Logarítmica</td><td>Diccionario: mitad por mitad</td><td class="mono">while (n &gt; 1) { n = n ~/ 2; }</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Pregunta clave:</strong> si duplicas n y el tiempo se duplica → O(n); se cuadruplica → O(n²); apenas cambia → O(log n); no cambia → O(1).</p>
+
+  <h3>Regla del 10⁸ y tabla de constraints → complejidad</h3>
+  <p>Un procesador ejecuta ~100 millones de operaciones/segundo. Si tu algoritmo supera eso → "Time Limit Exceeded".</p>
+  <table>
+    <thead><tr><th>Si el problema dice…</th><th>Tu algoritmo debe ser…</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">n ≤ 10</td><td>Cualquier cosa (backtracking / O(2ⁿ))</td></tr>
+      <tr><td class="mono">n ≤ 100</td><td>O(n³) o mejor</td></tr>
+      <tr><td class="mono">n ≤ 5,000</td><td>O(n²) o mejor (2 loops anidados)</td></tr>
+      <tr><td class="mono">n ≤ 10⁵</td><td>O(n log n) o mejor (sorting / binary search)</td></tr>
+      <tr><td class="mono">n ≤ 10⁶</td><td>O(n) o mejor (un solo recorrido)</td></tr>
+      <tr><td class="mono">n ≤ 10⁷</td><td>O(n) con operaciones simples</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Cómo analizar cualquier código: 3 patrones</h3>
+  <table>
+    <thead><tr><th>Patrón en el código</th><th>Complejidad</th><th>Señal</th></tr></thead>
+    <tbody>
+      <tr><td>1 loop</td><td>O(n)</td><td class="mono">for (cada elemento) { hacer algo }</td></tr>
+      <tr><td>2 loops anidados (mismos datos)</td><td>O(n²)</td><td class="mono">for i { for j { … } }</td></tr>
+      <tr><td>while que divide por 2</td><td>O(log n)</td><td class="mono">while (n &gt; 1) { n = n ~/ 2; }</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout"><p><strong>Reglas de combinación:</strong> <strong>secuencial</strong> (uno tras otro) → toma la MÁS GRANDE · <strong>anidados</strong> → se MULTIPLICAN · <strong>constante dentro del loop</strong> → no cambia. O(n) + O(n²) = O(n²).</p></div>
+
+  <h3>Operaciones O(1) vs O(n)</h3>
+  <table>
+    <thead><tr><th>O(1)</th><th>O(n) — ¡cuidado!</th></tr></thead>
+    <tbody>
+      <tr><td>Suma, resta, módulo, comparación</td><td class="mono">arr.contains(x) · arr.indexOf(x)</td></tr>
+      <tr><td class="mono">arr[i] · map[key] · set.contains(x)</td><td class="mono">arr.insert(0, x) · arr.removeAt(i)</td></tr>
+      <tr><td>Asignar, imprimir</td><td class="mono">List.from(arr) · arr.sublist()</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Espacio y recursión</h3>
+  <p>Complejidad <strong>espacial</strong>: array/map de n → O(n); recursión profunda → O(n) stack (puede causar stack overflow); variable auxiliar → O(1).</p>
+  <table>
+    <thead><tr><th>Si cada llamada hace…</th><th>Complejidad</th><th>Ejemplo</th></tr></thead>
+    <tbody>
+      <tr><td>1 llamada recursiva con n-1</td><td>O(n)</td><td>Factorial</td></tr>
+      <tr><td>1 llamada recursiva con n/2</td><td>O(log n)</td><td>Binary search</td></tr>
+      <tr><td><strong>2 llamadas recursivas</strong></td><td>O(2ⁿ) — lento</td><td>Fibonacci sin memo</td></tr>
+      <tr><td>2 llamadas + ordenar</td><td>O(n log n)</td><td>Mergesort</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">Regla: recursión que parece loop (1 llamada) = O(n)/O(log n). Que parece árbol (2+ llamadas) = O(2ⁿ) o peor → necesita memoización.</p>
+
+  <div class="callout green"><p><strong>Checklist pre-código:</strong> ¿cuál es el n máximo? · ¿qué complejidad necesito? · ¿mi enfoque cumple? · ¿puedo usar Map/Set para O(1)? · ¿necesito pre-computar? · ¿cuánto espacio extra uso?</p></div>
+</section>
+
+<!-- ================= 2. PATRONES ================= -->
+<section>
+  <div class="section-head s-teal">
+    <span class="num">2</span>
+    <h2>Reconocimiento de Patrones</h2>
+    <span class="meta">80% de los problemas · ~15 patrones</span>
+  </div>
+  <p>No inventes algoritmos: <strong>reconoce</strong> cuál patrón aplica. Framework de 3 pasos:</p>
+  <ol>
+    <li><strong>Identificar tipo de input</strong> → patrones candidatos</li>
+    <li><strong>Detectar keywords</strong> del enunciado → patrón</li>
+    <li><strong>Validar contra las constraints</strong> → ¿cabe la complejidad?</li>
+  </ol>
+
+  <h3>Paso 1: Tipo de Input → Patrones</h3>
+  <table>
+    <thead><tr><th>Input</th><th>Patrones a considerar primero</th></tr></thead>
+    <tbody>
+      <tr><td>Array ordenado</td><td>Two Pointers, Binary Search</td></tr>
+      <tr><td>Array desordenado</td><td>HashMap, Sorting + Two Pointers, Sliding Window</td></tr>
+      <tr><td>String</td><td>HashMap (frecuencias), Sliding Window, Trie</td></tr>
+      <tr><td>Linked List</td><td>Two Pointers (fast/slow), Reversal</td></tr>
+      <tr><td>Tree</td><td>DFS, BFS, Recursión</td></tr>
+      <tr><td>Graph</td><td>BFS, DFS, Topological Sort, Union-Find</td></tr>
+      <tr><td>Matrix / Grid</td><td>BFS + visited, DFS, DP</td></tr>
+      <tr><td>Intervalos</td><td>Sorting + Greedy, Merge logic</td></tr>
+      <tr><td>Stream / Online</td><td>Heap / Priority Queue</td></tr>
+      <tr><td>Números / Bits</td><td>Bit manipulation, Math, Binary Search</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Paso 2: Keywords → Patrón</h3>
+  <table>
+    <thead><tr><th>Keyword del enunciado</th><th>Patrón</th></tr></thead>
+    <tbody>
+      <tr><td>subarray/substring <strong>contiguo</strong> · longest/shortest</td><td>Sliding Window</td></tr>
+      <tr><td><strong>par / triplet</strong> que suma</td><td>Two Pointers o HashMap</td></tr>
+      <tr><td><strong>sorted</strong> array · buscar en rango</td><td>Binary Search</td></tr>
+      <tr><td><strong>minimum steps / shortest path</strong> (sin peso)</td><td>BFS</td></tr>
+      <tr><td>all <strong>combinations / permutations</strong></td><td>Backtracking</td></tr>
+      <tr><td><strong>k-th</strong> largest / smallest · top K</td><td>Heap / Priority Queue</td></tr>
+      <tr><td><strong>overlapping subproblems</strong> + optimal</td><td>Dynamic Programming</td></tr>
+      <tr><td><strong>ciclo</strong> / cycle</td><td>DFS + visited o Union-Find</td></tr>
+      <tr><td><strong>connected / componentes</strong></td><td>DFS / BFS / Union-Find</td></tr>
+      <tr><td><strong>next greater / smaller</strong> element</td><td>Monotonic Stack</td></tr>
+      <tr><td><strong>dependency / prerequisite</strong></td><td>Topological Sort</td></tr>
+      <tr><td><strong>frequency / count duplicates</strong></td><td>HashMap</td></tr>
+      <tr><td><strong>merge intervals / overlapping</strong></td><td>Sorting + Intervals</td></tr>
+      <tr><td><strong>prefix</strong> matching</td><td>Trie</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Paso 3: Validación</h3>
+  <p class="muted">¿La complejidad del patrón cabe en las constraints? (O(n²) cuando necesitas O(n) → mal patrón). ¿Cubre todos los edge cases? (con negativos, Sliding Window falla → usa Prefix Sum). ¿Hay uno más simple? (Greedy &gt; DP si ambos funcionan).</p>
+
+  <div class="callout"><p><strong>El Mantra:</strong> "Este es un problema de <strong>[PATRÓN]</strong> porque el input es <strong>[TIPO]</strong> y me piden <strong>[QUÉ]</strong>, con complejidad <strong>[O(?)]</strong>." Si puedes completarlo, estás listo para implementar.</p></div>
+</section>
+
+<!-- ================= 3. ESTRUCTURAS ================= -->
+<section>
+  <div class="section-head s-green">
+    <span class="num">3</span>
+    <h2>Estructuras de Datos: Referencia Rápida</h2>
+    <span class="meta">qué usar para qué</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Necesito…</th><th>Usa…</th><th>Complejidad</th></tr></thead>
+    <tbody>
+      <tr><td>Acceso rápido por índice</td><td class="mono">List</td><td>O(1) acceso · O(n) búsqueda</td></tr>
+      <tr><td>Verificar si un valor existe</td><td class="mono">Set</td><td>O(1) contains</td></tr>
+      <tr><td>Frecuencias / pares / agrupar</td><td class="mono">Map&lt;K,V&gt;</td><td>O(1) lookup</td></tr>
+      <tr><td>Procesar FIFO / BFS</td><td class="mono">Queue</td><td>O(1) add/remove</td></tr>
+      <tr><td>Min/max repetidamente · Top-K</td><td class="mono">PriorityQueue (Heap)</td><td>O(log n) add/remove</td></tr>
+      <tr><td>Buscar en datos ordenados</td><td class="mono">Binary Search sobre List</td><td>O(log n)</td></tr>
+      <tr><td>Conexiones dinámicas</td><td class="mono">Union-Find (propia)</td><td>O(α(n)) ≈ O(1)</td></tr>
+      <tr><td>Prefix matching (strings)</td><td class="mono">Trie (propia)</td><td>O(L)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Complejidad de operaciones en Dart</h3>
+  <table>
+    <thead><tr><th>Operación</th><th>Complejidad</th><th>Detalle</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">arr.sort() (Tim Sort)</td><td>O(n log n)</td><td>Default de Dart, estable</td></tr>
+      <tr><td class="mono">set.union · intersection</td><td>O(n) · O(min(n,m))</td><td>—</td></tr>
+      <tr><td class="mono">map.putIfAbsent · update</td><td>O(1)</td><td>Patrón de frecuencias: <code>(freq[item] ?? 0) + 1</code></td></tr>
+      <tr><td class="mono">heap.removeFirst()</td><td>O(log n)</td><td>Extrae el mínimo (min-heap por defecto)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout green"><p><strong>Patrón Top-K con Heap:</strong> min-heap de tamaño K → agregas y si supera K, <code>removeFirst()</code>. Al final el heap contiene los K más grandes en O(n log k) en vez de O(n log n).</p></div>
+
+  <h3>Decisiones de estructura por problema</h3>
+  <table>
+    <thead><tr><th>Problema</th><th>Estructura óptima</th><th>Por qué</th></tr></thead>
+    <tbody>
+      <tr><td>Two Sum</td><td class="mono">Map&lt;int,int&gt;</td><td>Lookup de complemento O(1)</td></tr>
+      <tr><td>Sliding Window Máximo</td><td class="mono">Deque</td><td>Monotonic, O(1) por operación</td></tr>
+      <tr><td>K-th Largest</td><td class="mono">PriorityQueue (min-heap k)</td><td>O(n log k)</td></tr>
+      <tr><td>Detectar ciclo en lista</td><td class="mono">Two Pointers (fast/slow)</td><td>O(1) espacio, sin visited</td></tr>
+      <tr><td>Subarray Sum = k</td><td class="mono">Map + prefix sum</td><td>O(n) un solo pass</td></tr>
+      <tr><td>Range sum queries</td><td class="mono">List precomputada</td><td>O(1) por query tras O(n)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 4. TEMPLATES ================= -->
+<section>
+  <div class="section-head s-green">
+    <span class="num">4</span>
+    <h2>Los 8 Patrones con Templates en Dart</h2>
+    <span class="meta">copiar y adaptar</span>
+  </div>
+
+  <table>
+    <thead><tr><th>#</th><th>Patrón</th><th>Cuándo usar</th><th>Complejidad</th><th>Error común</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>Sliding Window</strong></td><td>Subarray/substring contiguo (longest/shortest, k)</td><td>O(n)</td><td>Usarlo con negativos (rompe monotonicidad → Prefix Sum)</td></tr>
+      <tr><td>2</td><td><strong>Two Pointers</strong></td><td>Array ordenado, pares/triplets, partition</td><td>O(n)</td><td>No ordenar el array primero</td></tr>
+      <tr><td>3</td><td><strong>BFS</strong></td><td>Camino mínimo sin pesos, niveles, grid</td><td>O(V+E)</td><td>No marcar visitados antes de agregar a la cola</td></tr>
+      <tr><td>4</td><td><strong>DFS</strong></td><td>Todos los caminos, componentes, ciclos, islas</td><td>O(V+E)</td><td>No hacer backtrack / deshacer cambios</td></tr>
+      <tr><td>5</td><td><strong>Binary Search</strong></td><td>Array ordenado, espacio de respuesta monotónico</td><td>O(log n)</td><td>Off-by-one: confundir <code>left &lt; right</code> vs <code>left &lt;= right</code></td></tr>
+      <tr><td>6</td><td><strong>Greedy</strong></td><td>Óptimo local = global (sin subproblemas superpuestos)</td><td>O(n log n)</td><td>Asumir que siempre funciona — hay que probarlo</td></tr>
+      <tr><td>7</td><td><strong>DP</strong></td><td>Subproblemas superpuestos + optimalidad</td><td>O(n) a O(n·m)</td><td>No definir bien la recurrence relation</td></tr>
+      <tr><td>8</td><td><strong>Backtracking</strong></td><td>Todas las combinaciones/permutaciones (n ≤ 20)</td><td>O(2ⁿ)/O(n!)</td><td>Olvidar <code>removeLast()</code> / <code>used[i] = false</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Plantillas esenciales (condensadas)</h3>
+
+  <pre><span class="k">// TWO POINTERS</span> (array ordenado) — O(n) | O(1)
+while (left &lt; right) {
+  int sum = arr[left] + arr[right];
+  if (sum == target) return [left, right];
+  else if (sum &lt; target) left++;   // necesito más
+  else right--;                     // necesito menos
+}
+
+<span class="k">// SLIDING WINDOW</span> (tamaño variable, longest) — O(n)
+int left = 0, maxLen = 0;
+for (int right = 0; right &lt; arr.length; right++) {
+  // expandir: agregar arr[right] al state
+  while (/* condición violada */) { left++; /* quitar arr[left] */ }
+  maxLen = max(maxLen, right - left + 1);
+}</pre>
+
+  <pre><span class="k">// BFS</span> (camino mínimo sin peso) — O(V+E) | O(V)
+Queue&lt;List&lt;int&gt;&gt; queue = Queue();   // [node, dist]
+Set&lt;int&gt; visited = {};
+queue.add([start, 0]); visited.add(start);
+while (queue.isNotEmpty) {
+  var cur = queue.removeFirst();
+  if (cur[0] == target) return cur[1];
+  for (int nb in graph[cur[0]]) {
+    if (!visited.contains(nb)) {
+      visited.add(nb);
+      queue.add([nb, cur[1] + 1]);
+    }
+  }
+}
+return -1; // sin camino
+
+<span class="k">// DFS grid (contar islas)</span> — O(rows×cols)
+void dfs(Grid g, int r, int c) {
+  if (fuera de rango || g[r][c] != '1') return;
+  g[r][c] = '0'; // marcar visitado
+  dfs(g, r+1, c); dfs(g, r-1, c); dfs(g, r, c+1); dfs(g, r, c-1);
+}</pre>
+
+  <pre><span class="k">// BINARY SEARCH</span> — O(log n) | O(1)
+while (left &lt;= right) {
+  int mid = left + (right - left) ~/ 2;
+  if (arr[mid] == target) return mid;
+  else if (arr[mid] &lt; target) left = mid + 1;
+  else right = mid - 1;
+}
+return -1;
+
+<span class="k">// DP (Climbing Stairs)</span> — O(n) | O(n)
+List&lt;int&gt; dp = List.filled(n + 1, 0);
+dp[1] = 1; dp[2] = 2;
+for (int i = 3; i &lt;= n; i++) { dp[i] = dp[i-1] + dp[i-2]; }
+return dp[n];
+
+<span class="k">// BACKTRACKING (permutaciones)</span> — O(n!)
+if (current.length == nums.length) { resultado.add(List.from(current)); return; }
+for (int i = 0; i &lt; nums.length; i++) {
+  if (used[i]) continue;
+  used[i] = true; current.add(nums[i]);   // hacer
+  backtrack();                              // explorar
+  current.removeLast(); used[i] = false;  // deshacer ← CLAVE
+}</pre>
+</section>
+
+<!-- ================= 5. COMUNICACIÓN ================= -->
+<section>
+  <div class="section-head s-teal">
+    <span class="num">5</span>
+    <h2>Comunicación y Pseudocódigo</h2>
+    <span class="meta">la otra mitad del trabajo</span>
+  </div>
+
+  <h3>Estructura de presentación (5 min)</h3>
+  <table class="flow">
+    <tr>
+      <td><span class="step-n">1</span><span class="step-t">Reformular</span><span class="step-f">30 seg</span></td>
+      <td><span class="step-n">2</span><span class="step-t">Constraints</span><span class="step-f">30 seg</span></td>
+      <td><span class="step-n">3</span><span class="step-t">Brute force</span><span class="step-f">30 seg</span></td>
+      <td><span class="step-n">4</span><span class="step-t">Óptimo</span><span class="step-f">1 min</span></td>
+      <td><span class="step-n">5</span><span class="step-t">Pseudocódigo</span><span class="step-f">2 min</span></td>
+    </tr>
+  </table>
+  <p class="muted">1. "Entiendo que me pides [reformulación]." · 2. "El input llega a n=[valor], así que necesito [complejidad]." · 3. "Lo obvio sería [brute force] O(?), pero es lento porque [razón]." · 4. "Puedo mejorarlo con [patrón]: la idea es [2 oraciones]." · 5. Pseudocódigo limpio.</p>
+
+  <h3>Reglas de pseudocódigo limpio</h3>
+  <ul>
+    <li><strong>1 paso por línea</strong> · nombres descriptivos (<code>queue</code>, <code>visited</code>, no <code>q</code>, <code>v</code>)</li>
+    <li><strong>Indentación</strong> para bloques (while, for, if)</li>
+    <li><strong>Comentarios</strong> solo para la lógica clave · separa datos de lógica</li>
+  </ul>
+
+  <div class="callout"><p><strong>Mantra de entrevista:</strong> "Elegí <strong>[patrón]</strong> porque <strong>[señal del enunciado]</strong>, complejidad <strong>[O(?) tiempo, O(?) espacio]</strong>, edge cases <strong>[casos]</strong>, alternativas <strong>[por qué no otras]</strong>."</p></div>
+
+  <h3>Errores de comunicación</h3>
+  <table>
+    <thead><tr><th>Error</th><th>Cómo evitarlo</th></tr></thead>
+    <tbody>
+      <tr><td>Codificar en silencio</td><td>Narra cada paso mientras escribes</td></tr>
+      <tr><td>No preguntar antes</td><td>"¿Puedo asumir que [asunción]?"</td></tr>
+      <tr><td>No mencionar brute force</td><td>Siempre menciónalo primero</td></tr>
+      <tr><td>Olvidar edge cases</td><td>Menciona al menos 2 antes de codificar</td></tr>
+      <tr><td>No decir la complejidad</td><td>Termina con "La complejidad es O(?)"</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 6. RECURSIÓN ================= -->
+<section>
+  <div class="section-head s-green">
+    <span class="num">6</span>
+    <h2>Recursión y Backtracking</h2>
+    <span class="meta">recursión = llamarse · backtracking = deshacer</span>
+  </div>
+
+  <h3>Recursión: los 3 pasos</h3>
+  <ol>
+    <li><strong>Caso base</strong> — ¿cuándo para? Sin esto, llamada infinita.</li>
+    <li><strong>Caso recursivo</strong> — ¿cómo reduces el problema?</li>
+    <li><strong>¿Qué cambia en cada llamada?</strong> — algo debe acercarse al caso base.</li>
+  </ol>
+
+  <pre><span class="k">int resolver(tipo input)</span> {
+  if (input es casoBase) return resultadoBase;  // 1. base
+  return operacion(input, resolver(inputReducido)); // 2. recursivo
+}</pre>
+
+  <h3>Memoización: evitar recalcular</h3>
+  <p>Recursión con <strong>2+ llamadas</strong> recalcula lo mismo (fibonacci = O(2ⁿ)). Con <code>Map</code> o <code>@cache</code> → O(n). <span class="muted">Regla: si ves 2+ llamadas recursivas, necesitas memo.</span></p>
+
+  <h3>Cuándo usar cada uno</h3>
+  <table>
+    <thead><tr><th>Situación</th><th>Usar</th></tr></thead>
+    <tbody>
+      <tr><td>Dividir y conquistar (merge sort)</td><td>Recursión simple</td></tr>
+      <tr><td>Explorar todas las combinaciones</td><td>Backtracking</td></tr>
+      <tr><td>Subproblemas repetidos</td><td>Recursión + memoización</td></tr>
+      <tr><td>Árboles binarios</td><td>Recursión (DFS)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout orange"><p><strong>Backtracking = probar, y si no funciona, REVERTIR.</strong> Plantilla: ¿es solución? → agregar y return. Para cada candidato: si es válido → <strong>hacer</strong> · <strong>explorar</strong> · <strong>deshacer</strong> (el deshacer es la clave).</p></div>
+</section>
+
+<!-- ================= 7. SYSTEM DESIGN ================= -->
+<section>
+  <div class="section-head s-orange">
+    <span class="num">7</span>
+    <h2>System Design Básico para Flutter</h2>
+    <span class="meta">diseñar la app, no solo la función</span>
+  </div>
+
+  <h3>Framework de 4 pasos</h3>
+  <table class="flow">
+    <tr>
+      <td><span class="step-n">1</span><span class="step-t">Clarificar</span><span class="step-f">requisitos + restricciones</span></td>
+      <td><span class="step-n">2</span><span class="step-t">Diseñar</span><span class="step-f">alto nivel (componentes + datos)</span></td>
+      <td><span class="step-n">3</span><span class="step-t">Profundizar</span><span class="step-f">modelado + Flutter</span></td>
+      <td><span class="step-n">4</span><span class="step-t">Escalar</span><span class="step-f">¿qué pasa con 1M usuarios?</span></td>
+    </tr>
+  </table>
+
+  <p><strong>Paso 1 — preguntas obligatorias:</strong> ¿cuántos usuarios? · ¿cuántos datos por día? · ¿latencia aceptable? · ¿requiere real-time (WebSocket vs polling)?</p>
+
+  <p><strong>Paso 2 — componentes clave:</strong> Flutter app (cliente) → API (REST/WebSocket) → Backend (Supabase) → PostgreSQL → Cache (Redis / SharedPreferences).</p>
+
+  <h3>Paso 4 — problemas comunes de escala</h3>
+  <table>
+    <thead><tr><th>Problema</th><th>Solución</th></tr></thead>
+    <tbody>
+      <tr><td>Demasiadas consultas</td><td>Caching (Redis, local)</td></tr>
+      <tr><td>Imágenes lentas</td><td>CDN + compression</td></tr>
+      <tr><td>Real-time</td><td>WebSocket / Supabase Realtime</td></tr>
+      <tr><td>BD lenta</td><td>Índices + read replicas</td></tr>
+      <tr><td>Servidor saturado</td><td>Load balancing</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout"><p><strong>Ejemplo chat:</strong> tablas <code>conversations</code> · <code>messages</code> · <code>conversation_members</code> (PK compuesta) + suscripción con <code>onPostgresChanges(PostgresInsertEvent)</code> en <code>ChatCubit</code> → emite <code>Message.fromJson(payload.newRecord)</code>.</p></div>
+
+  <h3>Errores en entrevistas</h3>
+  <p class="muted">✗ codificar sin clarificar · ✗ no mencionar escalabilidad (paso 4 siempre) · ✗ ignorar edge cases · ✗ solo REST cuando piden real-time (menciona WebSocket/Supabase Realtime).</p>
+</section>
+
+<!-- ================= 8. ERRORES ================= -->
+<section>
+  <div class="section-head s-orange">
+    <span class="num">8</span>
+    <h2>Errores Comunes y Verificación</h2>
+    <span class="meta">detectar en tiempo real</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Fase</th><th>Error típico</th><th>Solución</th></tr></thead>
+    <tbody>
+      <tr><td>Entender</td><td>No leer todo el enunciado · asumir sin preguntar</td><td>Leer 2 veces · preguntar edge cases · releer qué retorna (¿índices o valores?)</td></tr>
+      <tr><td>Approach</td><td>Brute force sin pensar · over-engineering · ignorar restricciones</td><td>Buscar patrón primero · solución más simple · ver límites antes de diseñar</td></tr>
+      <tr><td>Implementar</td><td>Off-by-one · índice inválido · olvidar edge cases · no deshacer en backtracking</td><td>Dibujar caso base · verificar bounds · testear vacío/1/2 · siempre <code>deshacer()</code></td></tr>
+      <tr><td>Verificar</td><td>Solo mirar el código · solo happy path · "se ve bien"</td><td>Dry run con el ejemplo · probar vacío/1/máximo · trazar paso a paso</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout green"><p><strong>Regla de los 3 casos:</strong> 1) vacío/null → ¿no crashea? · 2) mínimo (1 elem) → ¿funciona? · 3) normal (ejemplo) → ¿retorna correcto?</p></div>
+
+  <pre><span class="k">// Errores clásicos en Dart</span>
+arr[0];                 // ✗ crash si vacío → arr.isEmpty ? null : arr[0]
+map[key]!;              // ✗ crash si falta → map[key]  (null si no existe)
+n * factorial(n - 1);   // ✗ sin caso base → infinito
+backtrack(...);         // ✗ olvidar deshacer → actual.removeLast()</pre>
+
+  <div class="callout"><p><strong>Checklist antes de decir "estoy listo":</strong> ¿leí TODAS las restricciones? · ¿probé el ejemplo del enunciado? · ¿probé edge cases (vacío, 1 elem, null)? · ¿la complejidad cumple? · ¿el retorno es correcto? · ¿compila en Dart?</p></div>
+</section>
+
+<!-- ================= 9. EJERCICIOS ================= -->
+<section>
+  <div class="section-head s-teal">
+    <span class="num">9</span>
+    <h2>Banco de Ejercicios</h2>
+    <span class="meta">10 guiados (07) + 26 adicionales (12)</span>
+  </div>
+
+  <h3>Los 10 ejercicios guiados — por patrón</h3>
+  <table>
+    <thead><tr><th>#</th><th>Problema</th><th>Patrón</th><th>Complejidad</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Two Sum (LC #1)</td><td>HashMap</td><td>O(n) t · O(n) e</td></tr>
+      <tr><td>2</td><td>Valid Anagram (LC #242)</td><td>HashMap frecuencias</td><td>O(n) t · O(1) e</td></tr>
+      <tr><td>3</td><td>Maximum Subarray (LC #53)</td><td>DP lineal (Kadane)</td><td>O(n) t · O(1) e</td></tr>
+      <tr><td>4</td><td>Best Time to Buy/Sell (LC #121)</td><td>One-pass tracking mínimo</td><td>O(n) t · O(1) e</td></tr>
+      <tr><td>5</td><td>Number of Islands (LC #200)</td><td>DFS/BFS en grid</td><td>O(rows×cols)</td></tr>
+      <tr><td>6</td><td>Coin Change (LC #322)</td><td>DP</td><td>O(amount×coins)</td></tr>
+      <tr><td>7</td><td>LRU Cache (LC #146)</td><td>HashMap + Doubly Linked List</td><td>O(1) get/put</td></tr>
+      <tr><td>8</td><td>Merge K Sorted Lists (LC #23)</td><td>Heap (PriorityQueue)</td><td>O(N log k)</td></tr>
+      <tr><td>9</td><td>Alien Dictionary (LC #269)</td><td>Topological Sort</td><td>O(C) total chars</td></tr>
+      <tr><td>10</td><td>Word Ladder (LC #127)</td><td>BFS</td><td>O(M² × N)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Los +25 adicionales por nivel (12)</h3>
+  <table>
+    <thead><tr><th>Nivel</th><th>Problemas</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Fácil</strong> (1-6)</td><td>Two Sum · Valid Anagram · Reverse String · Merge Sorted Arrays · Contains Duplicate · Max Subarray Sum</td></tr>
+      <tr><td><strong>Medio</strong> (7-12)</td><td>Group Anagrams · Longest Consecutive Sequence · Product Except Self · Valid Parentheses · Binary Search Rotated · Climbing Stairs</td></tr>
+      <tr><td><strong>Difícil</strong> (13-17)</td><td>Merge K Sorted Lists · LRU Cache · Word Ladder · Median of Two Sorted Arrays · Regex Matching</td></tr>
+      <tr><td><strong>Dart específico</strong> (18-26)</td><td>Stack con List · Queue con List · HashMap simple · DFS in/pre/post-order · BFS por niveles · Graph BFS · Detectar ciclo (blanco/gris/negro) · Merge Sort · Quick Sort</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout orange"><p><strong>Regla de los 20 minutos:</strong> 20 min sin avance → mira una pista (no la solución). 20 min más → revisa la solución y vuelve a intentarla mañana.</p></div>
+
+  <p><strong>Progresión sugerida:</strong> Semana 1: 1-3 Easy (15-20 min c/u) · Semana 2: 4-5 Medium (30-45) · Semana 3: 6-7 Medium (45-60) · Semana 4: 8-10 Hard (60-90).</p>
+</section>
+
+<!-- ================= 10. RECURSOS ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">10</span>
+    <h2>Recursos para Seguir Practicando</h2>
+    <span class="meta">después de esta guía</span>
+  </div>
+
+  <h3>Libros</h3>
+  <table>
+    <thead><tr><th>Libro</th><th>Autor</th><th>Por qué</th></tr></thead>
+    <tbody>
+      <tr><td>Competitive Programmer's Handbook</td><td>Laaksonen</td><td>Gratuito: fundamentos → DP, grafos, matemáticas</td></tr>
+      <tr><td>Principles of Algorithmic Problem Solving</td><td>Guzman</td><td>Metodología + ejemplos resueltos</td></tr>
+      <tr><td>Introduction to Algorithms (CLRS)</td><td>Cormen et al.</td><td>Referencia académica completa</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Plataformas por nivel</h3>
+  <table>
+    <thead><tr><th>Plataforma</th><th>Nivel ideal</th></tr></thead>
+    <tbody>
+      <tr><td>Exercism (track Dart)</td><td>Principiante</td></tr>
+      <tr><td>Codewars</td><td>Principiante-Intermedio</td></tr>
+      <tr><td>HackerRank</td><td>Intermedio</td></tr>
+      <tr><td>LeetCode</td><td>Intermedio-Avanzado</td></tr>
+      <tr><td>Codeforces · CSES</td><td>Avanzado</td></tr>
+    </tbody>
+  </table>
+
+  <p class="muted"><strong>Ruta entrevistas (3 meses):</strong> Mes 1: HackerRank Interview Prep Kit · Mes 2: LeetCode NeetCode 150 (patrón por patrón) · Mes 3: LeetCode Grind 75.<br>
+  <strong>Ruta competitive (6 meses):</strong> CSES (Intro + Sorting + Graphs) → Codeforces Div 2 A-C → Div 2 D-E + AtCoder ABC.</p>
+
+  <div class="callout"><p><strong>Consejos de práctica:</strong> consistencia &gt; cantidad (1 problema/día) · repite a los 30 días · explica en voz alta · respeta el timebox · agrupa por patrón, no por dificultad · trackea en una spreadsheet (problema, patrón, ¿lo resolviste solo?, días desde revisión).</p></div>
+</section>
+
+<!-- ================= ANEXO ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">A</span>
+    <h2>Anexo · Índice del módulo (para profundizar)</h2>
+  </div>
+  <table>
+    <thead><tr><th>Necesitas</th><th>Archivo</th></tr></thead>
+    <tbody>
+      <tr><td>Framework de 6 pasos completo + ejemplo Valid Parentheses</td><td class="mono">01-metodologia-general.md</td></tr>
+      <tr><td>Big-O desde cero, regla del 10⁸, 5 pasos con 4 ejemplos HackerRank</td><td class="mono">02-analisis-complejidad.md</td></tr>
+      <tr><td>Reconocimiento de patrones, keywords y árbol de decisión</td><td class="mono">03-reconocimiento-patrones.md</td></tr>
+      <tr><td>Referencia de estructuras de datos con complejidades</td><td class="mono">04-estructuras-datos-referencia.md</td></tr>
+      <tr><td>8 templates en Dart (Sliding Window → Backtracking)</td><td class="mono">05-patrones-avanzados.md</td></tr>
+      <tr><td>Comunicación en entrevistas y pseudocódigo limpio</td><td class="mono">06-comunicacion-y-pseudocodigo.md</td></tr>
+      <tr><td>10 ejercicios guiados (3 easy · 4 medium · 3 hard) con soluciones</td><td class="mono">07-ejercicios-practica.md</td></tr>
+      <tr><td>Recursión y backtracking (templates + memoización)</td><td class="mono">09-recursion-y-backtracking.md</td></tr>
+      <tr><td>System Design para Flutter (feed, chat, notificaciones)</td><td class="mono">10-system-design-basico.md</td></tr>
+      <tr><td>Errores comunes por fase + checklist de verificación</td><td class="mono">11-errores-comunes-patron.md</td></tr>
+      <tr><td>+25 ejercicios por nivel y dificultad</td><td class="mono">12-ejercicios-adicionales.md</td></tr>
+      <tr><td>Libros, plataformas, repos y canales de práctica</td><td class="mono">08-recursos-externos.md</td></tr>
+    </tbody>
+  </table>
+
+  <div class="footer-note"><strong>Protocolo en una línea:</strong> Entender → Constraints → Ejemplos → Patrón → Pseudocódigo → Código. · Regla de oro: si puedes nombrar el patrón y su complejidad antes de codificar, ya tienes la mitad de la solución.</div>
+</section>
+
+</body>
+</html>
