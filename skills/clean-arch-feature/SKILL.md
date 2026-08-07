@@ -1,19 +1,30 @@
 ---
 name: clean-arch-feature
-description: Generate a complete Clean Architecture feature scaffold (entity, model, datasource, repository interface + impl, usecases, cubit, state, optional pages) from a feature name and entity fields. Optionally includes Supabase integration (table schema → snake_case model + datasource + SQL migration), initial pages (listener_builder / builder / form patterns) and wiring orchestration (delegates DI registration to di-getit-scaffold and routing to go-route-scaffold). All method bodies are left as throw UnimplementedError() — implementation is the developer's responsibility.
+description: Generate a complete Clean Architecture feature scaffold (entity, model, datasource, repository interface + impl, usecases, cubit, state, optional pages) either from a feature name + entity fields (classic mode) or from a design file (design_file) following the module 02 8-step methodology (Alcance → FADER → Mapeo → Contratos → Flujo → Backend → Criterios → Estimación, e.g. disenio-feature-buyers-fader.md). Optionally includes Supabase integration (table schema → snake_case model + datasource + SQL migration), initial pages (listener_builder / builder / form patterns) and wiring orchestration (delegates DI registration to di-getit-scaffold and routing to go-route-scaffold). All method bodies are left as throw UnimplementedError() — implementation is the developer's responsibility.
 ---
 
 # clean-arch-feature — Scaffold completo de feature
 
 Genera la estructura completa de carpetas y archivos para una feature siguiendo Clean Architecture + Supabase + Cubit. Si proporcionas datos de tabla Supabase, genera además el mapeo snake_case, datasource con `SupabaseClient`, y migración SQL.
 
-## Input requerido
+## Input requerido (modo clásico)
 
 | Parámetro | Descripción | Ejemplo |
 |---|---|---|
 | `feature_name` | Nombre en snake_case | `product`, `user_profile` |
 | `fields` | Lista de campos con nombre y tipo Dart | `id: String`, `name: String`, `price: double`, `categoryId: String?` |
 | `operations` | CRUD a generar | `getAll`, `getById`, `create`, `update`, `delete` |
+
+> **Modo clásico.** Solo aplica si NO se provee `design_file`. Si se provee `design_file`, estos tres parámetros se ignoran y se derivan del archivo (ver [Input alternativo](#input-alternativo-hoja-de-diseño) y [Modo hoja de diseño](#modo-hoja-de-diseño--parsing-del-archivo)).
+
+## Input alternativo (hoja de diseño)
+
+| Parámetro | Descripción | Ejemplo |
+|---|---|---|
+| `design_file` | Ruta a una hoja de diseño markdown que sigue el flujo de 8 pasos del módulo 02 (Alcance → FADER → Mapeo → Contratos → Flujo → Backend → Criterios → Estimación) | `02-DISENIO-FEATURE/disenio-feature-buyers-fader.md` |
+
+**Si se omite:** se usa el modo clásico (`feature_name` + `fields` + `operations`).
+**Si se proporciona:** se ignoran `feature_name`, `fields` y `operations`; la skill lee el archivo, lo parsea (ver [Modo hoja de diseño](#modo-hoja-de-diseño--parsing-del-archivo)) y deriva entidades, usecases, repositorios, datasource, cubit, state y páginas. `table_name`, `columns`, `pages` y `wiring` siguen siendo inputs opcionales que se piden aparte si aplican.
 
 ## Input opcional (Supabase)
 
@@ -25,6 +36,8 @@ Genera la estructura completa de carpetas y archivos para una feature siguiendo 
 **Si se omite:** se genera el esqueleto genérico (model sin mapeo snake_case, datasource sin `_tableName`, sin migración SQL).
 **Si se proporciona:** se genera model con snake_case real, datasource con `_tableName` + `watchById`, y `supabase/migrations/{timestamp}_create_{table}.sql`.
 
+**En modo hoja de diseño:** las tablas se deducen de la sección `6 · Backend` del archivo. Como el archivo normalmente NO incluye columnas Postgres, si se desea migración SQL la skill **pregunta las columnas** al usuario antes de generarla. Si el usuario declina, se omite la migración y el resumen lo indica.
+
 ## Input opcional (páginas iniciales)
 
 | Parámetro | Descripción | Ejemplo |
@@ -35,6 +48,8 @@ Los patrones disponibles son `listener_builder` (default), `builder` y `form`. V
 
 **Si se omite:** se genera el placeholder genérico `{feature}_page.dart`.
 **Si se proporciona:** se genera una página por entrada: `{feature}_{page_name}_page.dart` con el patrón indicado. El nombre del archivo usa el plural de la feature solo cuando `page_name` es `list` (ej: `orders_list_page.dart`).
+
+**En modo hoja de diseño:** las páginas se derivan de las filas `Página` de la sección `3 · Mapeo` del archivo. El patrón se toma de `pages` si se provee; si no, se usa `listener_builder`.
 
 ## Input opcional (wiring — orquestación)
 
@@ -103,6 +118,60 @@ supabase/
 ```
 
 Además, los archivos `model.dart` y `remote_datasource.dart` se generan con mapeo snake_case y `_tableName`.
+
+## Modo hoja de diseño — parsing del archivo
+
+Cuando se provee `design_file`, la skill convierte la hoja de diseño en el mismo spec que el modo clásico. El archivo esperado sigue el flujo de 8 pasos del módulo 02 (ver el ejemplo `02-DISENIO-FEATURE/disenio-feature-buyers-fader.md`). El parsing es **estructural por encabezados de sección** (1 Alcance, 2 FADER, 3 Mapeo, 4 Contratos, 5 Flujo, 6 Backend, 7 Criterios, 8 Estimación), no por contenido literal.
+
+Reglas de parsing, sección por sección:
+
+| Sección del archivo | Qué se extrae | Cómo se usa |
+|---|---|---|
+| `3 · Mapeo FADER → Capas` | Tabla `Elemento FADER \| Capa \| Archivo` → lista exacta de archivos a generar | **Fuente principal.** Cada fila → un artefacto (tabla abajo). `feature_name` = prefijo de ruta repetido en la columna Capa (ej. `buyers`) |
+| `2 · FADER [E] Entidades` | Entidades y atributos (`Entidad: attr1, attr2, ...`) | Campos de entity/model. Los tipos se infieren (ver [Inferencia de tipos](#inferencia-de-tipos)) |
+| `2 · FADER [D] Descomponer` | Operaciones atómicas por actor | Fallback para usecases si `4 · Contratos` no las define |
+| `2 · FADER [R] Reglas` | Reglas de negocio (R001…R009) | `// TODO` comentadas en el body del usecase que las valida (matriz de `7 · Criterios` o descripción) |
+| `4 · Contratos` | Firmas Dart exactas de Repository (4.1), DataSource (4.2) y UseCases (4.3) | Se usan **verbatim** (qué, no cómo). Sin `Either` explícito en la hoja → envolver según el patrón estándar (Failure/Data) |
+| `6 · Backend` | Tablas Supabase y RPCs | El datasource referencia RPCs en sus TODOs; nombres de tabla para `_tableName` y migración |
+| `7 · Criterios` | Escenarios BDD + matriz | No genera archivos; anota qué usecases cubre. Útil después para `flutter-test-generator` |
+| `1 · Alcance` y `8 · Estimación` | Contexto y tiempos | No generan archivos |
+
+**Artefactos por fila del mapeo (columna "Elemento FADER"):**
+
+| La fila contiene | Template |
+|---|---|
+| `Entidad` | Entity (`domain/entities/{archivo}`) |
+| `Operación:` | UseCase (`domain/usecases/{archivo}`) |
+| `Contrato de Repo` | Repository interface (`domain/repositories/{archivo}`) |
+| `Modelo` | Model (`data/models/{archivo}`) |
+| `DataSource` | Remote DataSource (`data/datasources/{archivo}`) |
+| `Implementación de contrato` | Repository Impl (`data/repositories/{archivo}`) |
+| `Estados de UI` | Cubit + State (`presentation/cubit/{archivo}`) |
+| `Página` | Página (`presentation/pages/{archivo}`) |
+
+**Naming:** los nombres de archivo se toman **verbatim** de la columna `Archivo` (ej. `buyer_reservations_model.dart`). La clase = UpperCamelCase del stem del archivo (`buyer_reservations_model.dart` → `BuyerReservationsModel`). El cubit se nombra por la feature del prefijo (no por el nombre del archivo state).
+
+**Dependencias externas (multi-feature):** si una fila del mapeo apunta a otra feature (ruta distinta al prefijo `feature_name`, ej. `tickets/domain/entities/ticket_entity.dart`), NO se genera: se verifica si existe en el proyecto y, si no existe, se lista en el resumen final como dependencia externa pendiente (se generará con su propia skill de feature/component).
+
+**Migración SQL en modo diseño:** las tablas salen de `6 · Backend`. Como el archivo normalmente no incluye columnas Postgres, si se desea migración la skill **pregunta las columnas** al usuario y genera `supabase/migrations/{timestamp}_create_{table}.sql`. Si declina, se omite y el resumen lo indica.
+
+### Inferencia de tipos
+
+Cuando la hoja lista atributos sin tipo Dart (ej. `Comprador: id, nombre, teléfono, fechaReservaMásReciente`), la skill infiere por convención:
+
+| Atributo (o contiene) | Tipo Dart |
+|---|---|
+| `id` / `*Id` (FK) | `String` |
+| `fecha*`, `created*`, `updated*`, `*At`, `*Fecha` | `DateTime` |
+| `precio`, `price`, `total`, `amount`, `costo` | `double` |
+| `cantidad`, `quantity`, `count`, `número`, `numero` | `int` |
+| `nombre`, `name`, `título`, `title`, `teléfono`, `phone`, `estado`, `status`, `email` | `String` |
+| prefijo `is*` / `has*` / `bool` | `bool` |
+| default | `String` |
+
+- Los atributos inferidos llevan `// TODO: verificar tipo` en la declaración.
+- Atributos en snake_case → camelCase en Dart (`fecha_reserva` → `fechaReserva`).
+- Si la hoja ya trae tipos (`id: String`), se respetan.
 
 ## Templates generados
 
@@ -658,15 +727,17 @@ CREATE POLICY "Users can update own {table_name}"
 
 ## Workflow
 
-1. Preguntar al usuario: feature name, lista de campos (nombre + tipo Dart), operaciones CRUD deseadas, y nombre del paquete (app name)
-2. Preguntar opcionalmente: table_name y columnas Postgres si desea integración Supabase
-3. Preguntar opcionalmente: páginas iniciales deseadas (`pages`) con sus patrones — si se omiten, generar el placeholder genérico
+1. Determinar el modo de entrada:
+   - **Modo hoja de diseño** (si se proporciona `design_file`): leer el archivo y parsearlo con [Modo hoja de diseño](#modo-hoja-de-diseño--parsing-del-archivo). Derivar feature, lista de archivos, entidades/campos (con inferencia de tipos), usecases, contratos y tablas. NO preguntar `feature_name`, `fields` ni `operations`.
+   - **Modo clásico** (si no): preguntar feature name, lista de campos (nombre + tipo Dart), operaciones CRUD deseadas, y nombre del paquete (app name)
+2. Preguntar opcionalmente: table_name y columnas Postgres si desea integración Supabase. En modo hoja de diseño las tablas se deducen del archivo y solo se preguntan las columnas (si se quiere migración y el archivo no las trae)
+3. Preguntar opcionalmente: páginas iniciales deseadas (`pages`) con sus patrones — si se omiten, generar el placeholder genérico (modo clásico) o las páginas del mapeo con patrón `listener_builder` (modo hoja de diseño)
 4. Preguntar opcionalmente: wiring deseado (`[di]`, `[router]` o `[di, router]`)
 5. Generar cada archivo siguiendo los templates de arriba
 6. Si se proporcionó Supabase: generar además migración SQL con CREATE TABLE + índices + RLS
-7. Si se proporcionó `pages`: generar una página por entrada con el template de su patrón
+7. Si se proporcionó `pages` (o el mapeo define páginas): generar una página por entrada con el template de su patrón
 8. Si se proporcionó `wiring` con `di`: invocar la skill `di-getit-scaffold` pasándole los componentes generados (datasources, repositorios, usecases, cubit, estado) para que actualice `service_locator.dart`. No escribir la lógica de DI aquí — delegar.
 9. Si se proporcionó `wiring` con `router`: invocar la skill `go-route-scaffold` pasándole las páginas generadas para que actualice `app_router.dart`. No escribir la lógica de rutas aquí — delegar.
 10. No generar bodies de métodos — usar `throw UnimplementedError()`
-11. Mostrar resumen de archivos creados al final
-12. Recordar al usuario que debe: implementar bodies, revisar RLS policies si aplica, ejecutar migración en Supabase, y ejecutar `flutter pub get` si añadió nuevos paquetes
+11. Mostrar resumen de archivos creados al final. En modo hoja de diseño incluir además: dependencias externas pendientes (si hay) y campos con tipo inferido (`// TODO: verificar tipo`)
+12. Recordar al usuario que debe: implementar bodies, revisar RLS policies si aplica, ejecutar migración en Supabase, verificar los tipos inferidos en modo hoja de diseño, y ejecutar `flutter pub get` si añadió nuevos paquetes

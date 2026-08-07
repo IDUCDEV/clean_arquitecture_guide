@@ -14,6 +14,7 @@ Guía completa para usar las 5 skills de scaffolding. El foco es **qué inputs d
 |---|---|---|
 | `app_name` | Nombre del paquete en `pubspec.yaml` | `order_app` |
 | `feature_name` | Nombre de la feature en snake_case | `product`, `user_profile` |
+| `design_file` | Hoja de diseño markdown (8 pasos, módulo 02) usada como input de la feature | `02-DISENIO-FEATURE/disenio-feature-buyers-fader.md` |
 | Naming | Archivos en snake_case, clases en UpperCamelCase | `order_model.dart`, `OrderModel` |
 | Scaffolding-only | Las skills generan estructura, **nunca** lógica | `throw UnimplementedError()` |
 
@@ -53,6 +54,8 @@ Genera las 4 capas de una feature nueva: `data/`, `domain/`, `presentation/` + o
 **Prompt mínimo:**
 
 > Crea un feature `product` con campos `id: String`, `name: String`, `price: double`, `categoryId: String?`, `createdAt: DateTime` y operaciones `getAll, getById, create, update, delete`.
+
+> **Alternativa (modo hoja de diseño):** en vez de `feature_name` + `fields` + `operations` puedes pasar un `design_file` con la hoja de diseño del módulo 02. Ver [2.6](#26-modo-hoja-de-diseño-design_file).
 
 ### 2.2 Opcional — Supabase
 
@@ -106,6 +109,28 @@ Regla de naming: `list` genera plural (`orders_list_page.dart`); el resto singul
 Genera (si todo se pide): entity, repository interface, model, datasource, repository_impl, 5 usecases, cubit + state, páginas, migración SQL, registros en DI y rutas en el router.
 
 **Lo siguiente es tuyo:** implementar los bodies (`UnimplementedError`), revisar RLS policies, ejecutar la migración, y `flutter pub get` si añadiste paquetes.
+
+### 2.6 Modo hoja de diseño (`design_file`)
+
+En vez de describir la feature en el prompt, la skill puede **leer la hoja de diseño** (el `.md` del flujo de 8 pasos del módulo 02) y derivar todo de ahí.
+
+| Parámetro | Qué es | Formato | Ejemplo |
+|---|---|---|---|
+| `design_file` | Ruta a la hoja de diseño markdown | ruta | `02-DISENIO-FEATURE/disenio-feature-buyers-fader.md` |
+
+**Cómo funciona:**
+- Si se provee `design_file`, se ignoran `feature_name`, `fields` y `operations`; la skill parsea el archivo y extrae archivos, entidades, usecases, contratos, tablas y páginas.
+- Sección `3 · Mapeo` → qué archivos crear (y sus nombres exactos).
+- Sección `2 · FADER [E]` → campos de las entidades; los tipos se **infieren por convención** de nombre (`id`→`String`, `fecha*`→`DateTime`, `precio/total`→`double`, `cantidad`→`int`, default→`String`) y se marcan con `// TODO: verificar tipo`.
+- Sección `4 · Contratos` → firmas verbatim de repository/datasource/usecases.
+- Sección `6 · Backend` → tablas y RPCs para el datasource. Para la migración SQL la skill **pregunta las columnas** (el archivo no las trae); si declinas, se omite.
+- Sección `2 · FADER [R]` → reglas de negocio como `// TODO` en los usecases.
+- Filas del mapeo que apunten a **otras features** (ej. `tickets/...`) no se generan: se listan como dependencias externas pendientes.
+- `pages`, `wiring`, Supabase y `app_name` siguen pidiéndose igual que en modo clásico.
+
+**Prompt en modo hoja de diseño:**
+
+> Usa la skill `clean-arch-feature` con `design_file: 02-DISENIO-FEATURE/disenio-feature-buyers-fader.md`. Páginas `[list:listener_builder, detail:builder]`. Wiring `[di, router]`. App name `raffle_app`.
 
 ---
 
@@ -302,7 +327,7 @@ python3 skills/flutter-test-generator/generate_test.py lib/features/product/pres
 
 | Skill | Obligatorio | Opcional | Prompt de ejemplo |
 |---|---|---|---|
-| `clean-arch-feature` | `feature_name`, `fields`, `operations` | Supabase (`table_name`, `columns`), `pages`, `wiring` | "Crea un feature `product` con campos `id`, `name`, `price` y operaciones CRUD..." |
+| `clean-arch-feature` | `feature_name` + `fields` + `operations` **o** `design_file` | Supabase (`table_name`, `columns`), `pages`, `wiring` | "Crea un feature `product` con campos `id`, `name`, `price` y operaciones CRUD..." / "Usa la skill `clean-arch-feature` con `design_file: .../disenio-feature-buyers-fader.md`" |
 | `clean-arch-component` | `feature_name`, `component_type` | `fields`, `operation`, `page_name`, `pattern_type` (según tipo) | "Añade un usecase `cancel_order` al feature `order`" |
 | `di-getit-scaffold` | `mode`, `app_name`, `features` | `external_libs`, `local_datasource` | "Registra el feature `product` en el service locator (manual)" |
 | `go-route-scaffold` | `app_name`, `has_auth`, `routes` | `use_sentry`, `auth_cubit`, `auth_states` | "Añade las rutas de `/orders` y `/orders/:id` al router" |
@@ -318,6 +343,8 @@ python3 skills/flutter-test-generator/generate_test.py lib/features/product/pres
 | El feature ya existe y se sobrescribe | Se pidió `clean-arch-feature` sobre una feature existente | Usa `clean-arch-component` para piezas sueltas |
 | No salieron páginas | Se olvidó `pages` | Regenera con `pages` o añade páginas con `clean-arch-component` |
 | No salió migración SQL | Se olvidó `table_name`/`columns` | Regenera con los datos de Supabase |
+| No salió migración SQL en modo `design_file` | El archivo no trae columnas Postgres | Indica las columnas cuando la skill las pregunte (o regenera con `table_name` + `columns`) |
+| Tipos inferidos incorrectos en modo `design_file` | Inferencia por convención de nombre | Revisa los `// TODO: verificar tipo` y ajusta el tipo antes de implementar |
 | No se registró en DI ni router | Se omitió `wiring` | Invoca `di-getit-scaffold` y `go-route-scaffold` manualmente |
 | El modelo usa camelCase en vez de snake_case | No se dieron columnas Supabase | Para mapeo snake_case siempre se requiere `table_name` + `columns` |
 | Tests generados para la capa equivocada | Path ambiguo (ej: `presentation/cubit/` con state dentro) | Indica el archivo exacto |

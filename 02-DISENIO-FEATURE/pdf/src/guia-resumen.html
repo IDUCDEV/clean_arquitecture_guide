@@ -51,10 +51,53 @@
   </table>
 </section>
 
-<!-- ================= 1. FADER ================= -->
+<!-- ================= 1. ALCANCE ================= -->
 <section>
   <div class="section-head s-blue">
     <span class="num">1</span>
+    <h2>Alcance — Qué entra y qué NO (2 min)</h2>
+    <span class="meta">Antes de FADER · incluye / no incluye</span>
+  </div>
+  <p><strong>FADER te dice <em>cómo</em> hacer la feature; el alcance te dice <em>cuál</em> es la feature.</strong> Define los límites antes de descomponer.</p>
+
+  <div class="callout magenta"><p><strong>El error clásico no es descomponer mal: es descomponer <span class="blue">bien la feature equivocada</span>.</strong></p></div>
+
+  <h3>Las 5 secciones del alcance</h3>
+  <table>
+    <thead><tr><th>Sección</th><th>Qué es</th><th>Ejemplo</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1 · Incluye</strong></td><td>Lo que la feature sí cubre — operaciones concretas, no conceptos</td><td>"Aprobar tickets", "Buscar por nombre o teléfono"</td></tr>
+      <tr><td><strong>2 · No incluye</strong></td><td>Lo que no cubre aunque parezca relacionado — evita el scope creep</td><td>"Enviar notificaciones", "Procesar pagos"</td></tr>
+      <tr><td><strong>3 · Dependencias</strong></td><td>Qué debe existir antes/durante (features, tablas, APIs)</td><td>"Feature de autenticación", "Tabla raffles", "RLS por organizer_id"</td></tr>
+      <tr><td><strong>4 · Suposiciones</strong></td><td>Cosas que asumes sin verificar — para discutirlas en diseño, no en producción</td><td>"Un comprador pertenece a una sola rifa"</td></tr>
+      <tr><td><strong>5 · Preguntas abiertas</strong></td><td>Lo que aún no sabes; si cambian el alcance, resuélvelas antes de FADER</td><td>"¿Puede aprobarse un ticket ya aprobado?"</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout green"><p><strong>Regla:</strong> si algo que <em>podría</em> estar relacionado no está en "Incluye", debe estar en "No incluye". No dejes espacio para la ambigüedad.</p></div>
+
+  <h3>Ejemplo real — Feature Buyers</h3>
+  <pre>Feature: Gestión de compradores (Buyers)
+Incluye:      Listar · Buscar por nombre/teléfono · Aprobar seleccionados · Liberar el resto
+No incluye:   Notificaciones · Pagos · Editar comprador · Historial de aprobaciones
+Dependencias: Autenticación · Feature de rifas (tabla raffles) · RLS en tickets por organizer_id
+Suposiciones: Un comprador → una rifa · "Aprobar" = marcar ticket como ganador · Solo el organizador gestiona
+Preguntas:    ¿Ticket ya aprobado se puede aprobar? · ¿Aprobación atómica con liberación? · ¿Límite de aprobados?</pre>
+
+  <div class="callout green"><p><strong>Checklist de autoevaluación</strong></p>
+  <ul class="checklist">
+    <li>Cada operación de FADER aparece en "Incluye"</li>
+    <li>Nada de "No incluye" se filtra al diseño</li>
+    <li>Cada dependencia está identificada (features, tablas, servicios)</li>
+    <li>Las suposiciones son explícitas y verificables</li>
+    <li>Las preguntas abiertas críticas se resolvieron antes de empezar</li>
+  </ul></div>
+</section>
+
+<!-- ================= 2. FADER ================= -->
+<section>
+  <div class="section-head s-blue">
+    <span class="num">2</span>
     <h2>FADER — Descomponer el problema (8 min)</h2>
     <span class="meta">Formular → Actorizar → Descomponer → Entidades → Reglas</span>
   </div>
@@ -158,10 +201,10 @@
   </ul></div>
 </section>
 
-<!-- ================= 2. MAPEO ================= -->
+<!-- ================= 3. MAPEO ================= -->
 <section>
   <div class="section-head s-blue">
-    <span class="num">2</span>
+    <span class="num">3</span>
     <h2>Mapeo FADER → Capas de Clean Architecture (3 min)</h2>
   </div>
   <p><strong>Regla fundamental:</strong> cada elemento de FADER se mapea a <span class="blue">una y solo una</span> capa.</p>
@@ -198,10 +241,10 @@
   <p class="muted">Reglas técnicas (RT) y de seguridad (RS) nunca van al dominio: viven en DATA (datasource; RLS en Supabase o contrato de endpoint en REST).</p>
 </section>
 
-<!-- ================= 3. CONTRATOS ================= -->
+<!-- ================= 4. CONTRATOS ================= -->
 <section>
   <div class="section-head s-blue">
-    <span class="num">3</span>
+    <span class="num">4</span>
     <h2>Contract-First Design (3 min)</h2>
   </div>
   <p>Define las interfaces públicas de cada capa antes de implementar. El "qué" antes del "cómo".</p>
@@ -232,10 +275,10 @@
 ## Alternativas    → 1..n consideradas y por qué se descartaron</pre>
 </section>
 
-<!-- ================= 4. FLUJO ================= -->
+<!-- ================= 5. FLUJO ================= -->
 <section>
   <div class="section-head s-blue">
-    <span class="num">4</span>
+    <span class="num">5</span>
     <h2>Flujo de Datos (3 min)</h2>
   </div>
   <p>Cada operación sigue una forma de U: <strong>UI → Domain → Data → vuelta a UI</strong>.</p>
@@ -259,10 +302,10 @@
   <p class="muted">Flujo de errores (abajo → arriba): API → DataSource captura excepción → Failure → RepoImpl → UseCase → Cubit fold() → mensaje → SnackBar. <strong>Nunca</strong> dejes que una excepción técnica (HTTP 500, timeout, SQL) llegue a la UI.</p>
 </section>
 
-<!-- ================= 5. BACKEND ================= -->
+<!-- ================= 6. BACKEND ================= -->
 <section>
   <div class="section-head s-green">
-    <span class="num">5</span>
+    <span class="num">6</span>
     <h2>Backend: Contrato con el Servidor (2 min)</h2>
     <span class="meta">Supabase o REST API</span>
   </div>
@@ -281,10 +324,63 @@
   <div class="callout green"><p>El <code>RemoteDataSource</code> es la costura: con Supabase usa <code>SupabaseClient</code>, con una REST API usa Dio — el repositorio no sabe ni le importa cuál. Teoría completa en <span class="mono">05e-diseno-supabase.md</span>.</p></div>
 </section>
 
-<!-- ================= 6. ESTIMACIÓN ================= -->
+<!-- ================= 7. CRITERIOS ================= -->
+<section>
+  <div class="section-head s-orange">
+    <span class="num">7</span>
+    <h2>Criterios (BDD) y Matriz de Trazabilidad (2 min)</h2>
+    <span class="meta">nada sin implementar · nada sin probar</span>
+  </div>
+  <p>Los criterios dicen <strong>qué significa que la feature funcione</strong>; la matriz garantiza que <strong>nada se quedó sin implementar ni sin probar</strong>.</p>
+
+  <h3>Formato BDD</h3>
+  <pre>CA01:
+Dado que [contexto inicial],
+cuando [acción del actor],
+entonces [resultado esperado].</pre>
+  <p class="muted">Un criterio = un escenario · concreto y medible ("últimos 30", no "los recientes") · cubre el borde y el error · referencia la regla que valida (CA02 ↔ RN005).</p>
+
+  <h3>Ejemplo — Buyers</h3>
+  <pre>CA01: Dado que soy organizador, cuando abro Buyers, entonces veo los últimos 30 compradores.
+CA02: Dado que un ticket está aprobado, cuando intento liberarlo, entonces la operación es rechazada.
+CA03: Dado que selecciono algunos tickets, cuando confirmo, entonces los seleccionados se aprueban y el resto se libera.</pre>
+
+  <table>
+    <thead><tr><th>Tamaño de feature</th><th>Criterios típicos</th></tr></thead>
+    <tbody>
+      <tr><td>Hotfix (1-2 ops)</td><td>1-3</td></tr>
+      <tr><td>Pequeña (3-6 ops)</td><td>3-6</td></tr>
+      <tr><td>Mediana (7-15 ops)</td><td>8-15</td></tr>
+      <tr><td>Grande (16-30 ops)</td><td>15-25</td></tr>
+    </tbody>
+  </table>
+  <p class="muted"><strong>Regla práctica:</strong> cada operación atómica de FADER → al menos un happy path y uno de error.</p>
+
+  <h3>Matriz de trazabilidad</h3>
+  <p class="muted">Cadena de punta a punta: <code>Operación → UseCase → Regla → Contrato → Test</code></p>
+  <table>
+    <thead><tr><th>Operación</th><th>UseCase</th><th>Regla</th><th>Contrato</th><th>Test</th></tr></thead>
+    <tbody>
+      <tr><td>Aprobar tickets</td><td class="mono">ApproveTickets</td><td>RN004, RN005, RN008</td><td class="mono">approveTickets()</td><td>Unit + integration</td></tr>
+      <tr><td>Liberar tickets</td><td class="mono">ReleaseTickets</td><td>RN004, RN006</td><td class="mono">releaseTickets()</td><td>Unit + integration</td></tr>
+      <tr><td>Listar compradores</td><td class="mono">GetBuyers</td><td>RS001, RT001</td><td class="mono">getBuyers()</td><td>Unit + widget</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout green"><p><strong>Lectura cruzada</strong></p>
+  <ul class="checklist">
+    <li>Cada operación de FADER está en la matriz</li>
+    <li>Cada regla RN/RT/RS está en la matriz</li>
+    <li>Cada contrato definido en 03-contratos-primero.md está en la matriz</li>
+    <li>Cada criterio de aceptación (CA) tiene una fila que lo respalda</li>
+    <li>Cada fila tiene un tipo de test asignado</li>
+  </ul></div>
+</section>
+
+<!-- ================= 8. ESTIMACIÓN ================= -->
 <section>
   <div class="section-head s-magenta">
-    <span class="num">6</span>
+    <span class="num">8</span>
     <h2>Estimación de Complejidad (2 min)</h2>
   </div>
   <p>Descompón en 5 componentes y estima cada uno.</p>
@@ -310,10 +406,10 @@
   </table>
 </section>
 
-<!-- ================= 7. PLANTILLA ================= -->
+<!-- ================= 9. PLANTILLA ================= -->
 <section>
   <div class="section-head s-magenta">
-    <span class="num">7</span>
+    <span class="num">9</span>
     <h2>Plantilla "Toma y llena" — para cada feature futura</h2>
   </div>
   <p>Copia este bloque, llénalo y tendrás el diseño completo.</p>
