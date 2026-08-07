@@ -1,0 +1,242 @@
+/* ==========================================================================
+   GUÍA RESUMEN — 00 Diseño de Producto MVP
+   Paleta Material Design 3 (seed #6750A4) + verde/magenta de apoyo.
+   Tipografía: Noto Sans / Noto Sans Mono / Noto Color Emoji.
+   Render: wkhtmltopdf (Qt WebKit) — sin variables CSS, sin grid/flex.
+   ========================================================================== */
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Noto Sans", "Adwaita Sans", sans-serif;
+  color: #1C1B1F;
+  font-size: 9pt;
+  line-height: 1.55;
+  background: #FFFFFF;
+}
+
+code, pre {
+  font-family: "Noto Sans Mono", "Adwaita Mono", monospace;
+}
+
+a { color: #6750A4; text-decoration: none; }
+
+/* --------------------------------------------------------------------------
+   CABECERA
+   -------------------------------------------------------------------------- */
+.header {
+  padding: 10mm 0 6mm;
+  border-bottom: 3px solid #6750A4;
+  margin-bottom: 6mm;
+}
+.header .mod {
+  color: #9A97A0;
+  font-size: 8pt;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.header h1 {
+  color: #4F378B;
+  font-size: 22pt;
+  font-weight: 800;
+  margin: 2mm 0 1mm;
+  line-height: 1.1;
+}
+.header .sub {
+  color: #9A97A0;
+  font-size: 9.5pt;
+}
+
+/* --------------------------------------------------------------------------
+   SECCIONES
+   -------------------------------------------------------------------------- */
+section {
+  margin: 0 0 7mm;
+  page-break-inside: avoid;
+}
+.section-head {
+  border-bottom: 2px solid #E4E0EA;
+  padding-bottom: 2.5mm;
+  margin-bottom: 4mm;
+}
+.section-head .num {
+  display: inline-block;
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 10pt;
+  border-radius: 6px;
+  padding: 2px 9px;
+  margin-right: 3mm;
+}
+.section-head h2 {
+  display: inline;
+  color: #1C1B1F;
+  font-size: 14pt;
+  font-weight: 800;
+}
+.section-head .meta {
+  float: right;
+  color: #9A97A0;
+  font-size: 8pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+.s-purple .num { background: #6750A4; }
+.s-green .num { background: #14936B; }
+.s-magenta .num { background: #BC1FCE; }
+.s-gray .num { background: #8E8894; }
+.s-orange .num { background: #B45309; }
+
+/* --------------------------------------------------------------------------
+   TIPOGRAFÍA DE CONTENIDO
+   -------------------------------------------------------------------------- */
+p { margin: 0 0 3mm; }
+h3 { color: #4F378B; font-size: 10.5pt; font-weight: 800; margin: 5mm 0 2mm; }
+strong { color: #1C1B1F; }
+.purple { color: #6750A4; font-weight: 700; }
+.green { color: #14936B; font-weight: 700; }
+.magenta { color: #BC1FCE; font-weight: 700; }
+.muted { color: #9A97A0; }
+
+ul, ol { margin: 0 0 3mm; padding-left: 6mm; }
+li { margin: 1mm 0; }
+
+.callout {
+  background: #F9FAFB;
+  border: 1px solid #E4E0EA;
+  border-left: 4px solid #6750A4;
+  border-radius: 0 6px 6px 0;
+  padding: 3mm 4mm;
+  margin: 3mm 0;
+}
+.callout.green { border-left-color: #14936B; }
+.callout.magenta { border-left-color: #BC1FCE; }
+.callout p { margin: 0; }
+
+code {
+  background: #F6F2FA;
+  border: 1px solid #E4E0EA;
+  color: #4F378B;
+  border-radius: 4px;
+  padding: 0.5px 4px;
+  font-size: 0.92em;
+}
+pre {
+  background: #F6F2FA;
+  border: 1px solid #E4E0EA;
+  border-left: 3px solid #6750A4;
+  border-radius: 6px;
+  padding: 3mm 4mm;
+  margin: 3mm 0;
+  font-size: 7.8pt;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+  page-break-inside: avoid;
+}
+pre code { background: none; border: none; padding: 0; }
+
+/* --------------------------------------------------------------------------
+   TABLAS
+   -------------------------------------------------------------------------- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 8.5pt;
+  margin: 3mm 0;
+}
+th {
+  background: #EADDFF;
+  color: #1C1B1F;
+  font-weight: 700;
+  text-align: left;
+  padding: 5px 8px;
+  border: 1px solid #E4E0EA;
+}
+td {
+  padding: 5px 8px;
+  border: 1px solid #E4E0EA;
+  vertical-align: top;
+}
+tr:nth-child(even) td { background: #F6F2FA; }
+td.mono {
+  font-family: "Noto Sans Mono", "Adwaita Mono", monospace;
+  font-size: 7.5pt;
+  color: #6750A4;
+}
+
+/* --------------------------------------------------------------------------
+   FLUJO (días con chips)
+   -------------------------------------------------------------------------- */
+.flow {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 2mm 0;
+  margin: 3mm 0;
+}
+.flow td {
+  background: #F6F2FA;
+  border: 1px solid #E4E0EA;
+  border-top: 3px solid #6750A4;
+  border-radius: 6px;
+  text-align: center;
+  padding: 3mm 2mm;
+  vertical-align: top;
+}
+.flow .step-n { color: #6750A4; font-weight: 800; font-size: 9pt; }
+.flow .step-t { display: block; color: #1C1B1F; font-weight: 700; font-size: 8pt; margin-top: 1mm; }
+.flow .step-f { display: block; color: #9A97A0; font-size: 7pt; margin-top: 1mm; }
+
+.flowline {
+  color: #9A97A0;
+  text-align: center;
+  font-weight: 700;
+  margin: 1.5mm 0;
+}
+
+/* --------------------------------------------------------------------------
+   CHECKLISTS
+   -------------------------------------------------------------------------- */
+.checklist { list-style: none; padding-left: 0; }
+.checklist li { padding-left: 6mm; }
+.checklist li:before {
+  content: "✔ ";
+  color: #14936B;
+  font-weight: 800;
+}
+
+/* --------------------------------------------------------------------------
+   PLANTILLA (bloque de código destacado)
+   -------------------------------------------------------------------------- */
+.template {
+  background: #1C1B1F;
+  color: #E4E0EA;
+  border-radius: 8px;
+  padding: 4mm;
+  font-family: "Noto Sans Mono", "Adwaita Mono", monospace;
+  font-size: 7.6pt;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.template .c { color: #9A97A0; }
+.template .k { color: #D0BCFF; font-weight: 700; }
+
+/* --------------------------------------------------------------------------
+   PIE
+   -------------------------------------------------------------------------- */
+.footer-note {
+  margin-top: 8mm;
+  padding-top: 3mm;
+  border-top: 1px solid #E4E0EA;
+  color: #9A97A0;
+  font-size: 8pt;
+  text-align: center;
+}
+.footer-note strong { color: #1C1B1F; }

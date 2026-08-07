@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>GUÍA RESUMEN — Diseño de Producto MVP</title>
+<link rel="stylesheet" href="guia-resumen.css">
+</head>
+<body>
+
+<div class="header">
+  <div class="mod">Módulo 00 · Clean Architecture + Flutter + Supabase</div>
+  <h1>GUÍA RESUMEN — Diseño de Producto MVP</h1>
+  <div class="sub">Resumen integral para definir, validar y diseñar un MVP en 5 días sin volver a leer el módulo completo. Hilo conductor: app MVP de reservas de canchas de tenis.</div>
+</div>
+
+<!-- ================= 0. FLUJO ================= -->
+<section>
+  <div class="section-head s-purple">
+    <span class="num">0</span>
+    <h2>Flujo de trabajo general</h2>
+    <span class="meta">5 días · 2 metodologías Google</span>
+  </div>
+
+  <table class="flow">
+    <tr>
+      <td><span class="step-n">1</span><span class="step-t">Understand + Define</span><span class="step-f">Lunes</span></td>
+      <td><span class="step-n">2</span><span class="step-t">Sketch</span><span class="step-f">Martes</span></td>
+      <td><span class="step-n">3</span><span class="step-t">Decide</span><span class="step-f">Miércoles</span></td>
+      <td><span class="step-n">4</span><span class="step-t">Prototype</span><span class="step-f">Jueves</span></td>
+      <td><span class="step-n">5</span><span class="step-t">Validate</span><span class="step-f">Viernes</span></td>
+      <td><span class="step-n">M3</span><span class="step-t">Material Design 3</span><span class="step-f">En paralelo</span></td>
+    </tr>
+  </table>
+
+  <div class="callout magenta"><p><strong>Regla de oro:</strong> "Piensa primero, codifica después." Si no está en el Golden Path, no entra en el MVP.</p></div>
+
+  <table>
+    <thead><tr><th>Día</th><th>Qué produces</th><th>Dónde aprender más</th></tr></thead>
+    <tbody>
+      <tr><td>1. Understand + Define</td><td>Goal con métrica, mapa del problema, HMWs, Golden Path, alcance MVP</td><td class="mono">02-understand-define.md</td></tr>
+      <tr><td>2. Sketch</td><td>Lightning Demos, Crazy 8s, Solution Sketch (3 paneles)</td><td class="mono">03-sketch-decide.md</td></tr>
+      <tr><td>3. Decide</td><td>Dot voting, solución única, storyboard (plano del prototipo)</td><td class="mono">03-sketch-decide.md</td></tr>
+      <tr><td>4. Prototype</td><td>Prototipo navegable (Figma o Flutter) del Golden Path</td><td class="mono">06-prototipado-validacion.md</td></tr>
+      <tr><td>5. Validate</td><td>5 tests con usuarios + matriz de hallazgos + decisión</td><td class="mono">06-prototipado-validacion.md</td></tr>
+      <tr><td>M3 en paralelo</td><td>Paleta (seed), tipografía, shape y componentes M3</td><td class="mono">04/05-m3-*.md</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 1. UNDERSTAND + DEFINE ================= -->
+<section>
+  <div class="section-head s-purple">
+    <span class="num">1</span>
+    <h2>Understand + Define (Día 1)</h2>
+    <span class="meta">Entender la mañana · acotar la tarde</span>
+  </div>
+  <p>Objetivo: que todo el equipo tenga la misma información y <strong>acote el MVP</strong> a lo mínimo para validar valor.</p>
+
+  <h3>Ejercicios de Understand</h3>
+  <table>
+    <thead><tr><th>Ejercicio</th><th>Qué produce</th><th>Ejemplo (reservas)</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Start at the End</strong></td><td>Goal a largo plazo + métrica</td><td>"Reservar en &lt;30s sin llamar" · métrica: tiempo promedio</td></tr>
+      <tr><td><strong>Mapa del problema</strong></td><td>Flujo actual + fricciones</td><td>Llama → ocupado → vuelve a llamar → FRUSTRACIÓN</td></tr>
+      <tr><td><strong>Expert Interviews</strong></td><td>Lo que sabe el equipo</td><td>Decisor, Diseñador, Dev, Experto</td></tr>
+      <tr><td><strong>How Might We (HMW)</strong></td><td>Cada fricción → oportunidad</td><td>"¿Cómo podríamos reservar sin hablar con nadie?"</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Ejercicios de Define</h3>
+  <p><strong>The Golden Path:</strong> el flujo crítico del MVP. Máximo 3-4 pantallas. Todo lo demás es post-MVP.</p>
+  <pre>Pantalla 1: Home → "Buscar canchas"
+Pantalla 2: Lista de canchas → "Seleccionar fecha y hora"
+Pantalla 3: Confirmar reserva → "Pagar"
+Pantalla 4: Confirmación → "Listo, llegas a las 5pm"</pre>
+
+  <p><strong>Alcance del MVP:</strong> usa la matriz Impacto vs. Esfuerzo. Lo que está en el Golden Path → MVP. Lo demás → después o se evita.</p>
+
+  <div class="callout green"><p><strong>Sprint Goal</strong> (guía de la semana): "Validar que los usuarios pueden reservar una cancha de tenis en menos de 30 segundos desde su teléfono."</p></div>
+</section>
+
+<!-- ================= 2. SKETCH ================= -->
+<section>
+  <div class="section-head s-purple">
+    <span class="num">2</span>
+    <h2>Sketch (Día 2)</h2>
+    <span class="meta">Soluciones individuales · sin discutir</span>
+  </div>
+  <p>Cada miembro genera soluciones de forma individual. No se critica, se dibuja.</p>
+
+  <table>
+    <thead><tr><th>Ejercicio</th><th>Formato</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Lightning Demos</strong></td><td>Cada quien muestra 2-3 apps que resuelven algo similar. ¿Qué hace bien? ¿Qué harías diferente? ¿Qué robarías?</td></tr>
+      <tr><td><strong>Crazy 8s</strong></td><td>Hoja en 8 partes. 8 variaciones de la pantalla clave en 8 minutos (1 min por recuadro). Importa la cantidad.</td></tr>
+      <tr><td><strong>Solution Sketch</strong></td><td>Boceto detallado de 3 paneles: 1) problema actual, 2) la solución, 3) el resultado. Debe ser auto-explicativo.</td></tr>
+    </tbody>
+  </table>
+
+  <p class="muted">Herramientas: papel y lápiz (recomendado) o Miro/Figma.</p>
+</section>
+
+<!-- ================= 3. DECIDE ================= -->
+<section>
+  <div class="section-head s-purple">
+    <span class="num">3</span>
+    <h2>Decide (Día 3)</h2>
+    <span class="meta">Elegir una sola solución</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Ejercicio</th><th>Cómo funciona</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Art Museum</strong></td><td>Pega los sketches en la pared. Cada persona: 2 dot votes grandes (👍) + 1 pequeño (❓)</td></tr>
+      <tr><td><strong>Heat Map + Speed Critique</strong></td><td>Critica los más votados (3 min c/u): ¿qué nos gusta? ¿qué dudas? ¿qué mejorarías?</td></tr>
+      <tr><td><strong>Straw Poll + Decisión Final</strong></td><td>1 voto por persona (no al propio). Empate → el Decisor desempata (puede elegir híbrido).</td></tr>
+      <tr><td><strong>Storyboard</strong></td><td>Plano del prototipo: cada pantalla con layout, componentes M3, flujo de datos y estados (carga, vacío, error, éxito).</td></tr>
+    </tbody>
+  </table>
+
+  <p>El storyboard es el <span class="purple">puente hacia M3</span>: aquí defines <strong>qué</strong> va en cada pantalla; M3 define <strong>cómo</strong> diseñarlo.</p>
+
+  <table>
+    <thead><tr><th>Storyboard dice</th><th>M3 provee</th></tr></thead>
+    <tbody>
+      <tr><td>"Barra de navegación abajo"</td><td class="mono">NavigationBar</td></tr>
+      <tr><td>"Tarjeta con producto"</td><td class="mono">Card + ListTile</td></tr>
+      <tr><td>"Botón principal"</td><td class="mono">FilledButton / FilledTonalButton</td></tr>
+      <tr><td>"Campo de búsqueda"</td><td class="mono">SearchBar</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 4. M3 FUNDAMENTOS ================= -->
+<section>
+  <div class="section-head s-green">
+    <span class="num">4</span>
+    <h2>Material Design 3 — Fundamentos</h2>
+    <span class="meta">Color · Tipografía · Formas</span>
+  </div>
+  <p>M3 (Material You) es el sistema de diseño de Google y el que Flutter usa nativamente desde 3.7. Tres subsistemas:</p>
+  <pre>M3 Theme
+├── ColorScheme (color)
+├── TextTheme (tipografía)
+└── ShapeScheme (formas)</pre>
+
+  <h3>Color: esquemas tonales</h3>
+  <p>Eliges un <strong>color semilla (seed)</strong> y M3 genera una paleta de 12 tonos que asigna a roles:</p>
+  <pre>seed: #6750A4 (púrpura)
+  → genera 13 tonos (0, 5, 10, 20, 30, ..., 100)
+  → asigna roles: primary, secondary, tertiary, surface, error</pre>
+  <table>
+    <thead><tr><th>Rol</th><th>Uso</th></tr></thead>
+    <tbody>
+      <tr><td>primary</td><td>Elementos destacados (botones, links)</td></tr>
+      <tr><td>secondary / tertiary</td><td>Énfasis medio / bajo</td></tr>
+      <tr><td>surface</td><td>Fondos de pantalla y componentes</td></tr>
+      <tr><td>error</td><td>Estados de error</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Tipografía: type scale</h3>
+  <p>15 estilos tipográficos (display, headline, title, body, label). En Flutter: <code>Theme.of(context).textTheme.titleLarge</code>.</p>
+
+  <h3>Forma: shape</h3>
+  <table>
+    <thead><tr><th>Shape</th><th>Radio</th><th>Componentes típicos</th></tr></thead>
+    <tbody>
+      <tr><td>Small</td><td>8px</td><td>Buttons, TextField</td></tr>
+      <tr><td>Medium</td><td>12px</td><td>Cards, Dialogs</td></tr>
+      <tr><td>Large</td><td>16px</td><td>FAB, BottomSheets</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 5. COMPONENTES M3 ================= -->
+<section>
+  <div class="section-head s-green">
+    <span class="num">5</span>
+    <h2>Componentes M3 — mapa para tu MVP</h2>
+    <span class="meta">Qué usar en cada parte de la app</span>
+  </div>
+  <p>Para cada pantalla del storyboard: identifica primero <strong>qué necesidad de UI</strong> tienes y luego elige el componente.</p>
+
+  <table>
+    <thead><tr><th>Necesidad</th><th>Componente M3</th></tr></thead>
+    <tbody>
+      <tr><td>Navegación principal</td><td><span class="mono">NavigationBar</span> (inferior) o <span class="mono">NavigationDrawer</span> (lateral)</td></tr>
+      <tr><td>Barra superior</td><td class="mono">TopAppBar</td></tr>
+      <tr><td>Lista de ítems</td><td class="mono">Card + ListTile</td></tr>
+      <tr><td>Acción principal</td><td><span class="mono">FilledButton</span> o <span class="mono">FAB</span></td></tr>
+      <tr><td>Acción secundaria</td><td><span class="mono">FilledTonalButton</span></td></tr>
+      <tr><td>Selección única</td><td><span class="mono">SegmentedButton</span> o <span class="mono">ChoiceChip</span></td></tr>
+      <tr><td>Selección múltiple</td><td><span class="mono">FilterChip</span></td></tr>
+      <tr><td>Búsqueda</td><td><span class="mono">SearchBar</span></td></tr>
+      <tr><td>Formulario</td><td><span class="mono">TextField</span> + <span class="mono">FilledButton</span></td></tr>
+      <tr><td>Fecha / Hora</td><td><span class="mono">DatePickerDialog</span> / <span class="mono">TimePickerDialog</span></td></tr>
+      <tr><td>Confirmación</td><td><span class="mono">AlertDialog</span> o <span class="mono">BottomSheet</span></td></tr>
+      <tr><td>Feedback breve</td><td><span class="mono">SnackBar</span></td></tr>
+      <tr><td>Notificación</td><td><span class="mono">Badge</span></td></tr>
+      <tr><td>Progreso</td><td><span class="mono">LinearProgressIndicator</span> / <span class="mono">CircularProgressIndicator</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 6. PROTOTIPADO ================= -->
+<section>
+  <div class="section-head s-magenta">
+    <span class="num">6</span>
+    <h2>Prototipado (Día 4)</h2>
+    <span class="meta">Prototipo realista pero falso</span>
+  </div>
+  <p>Construye una simulación convincente del Golden Path. No es código real de producción.</p>
+
+  <table>
+    <thead><tr><th>Opción</th><th>Cuándo</th><th>Ventaja</th><th>Desventaja</th></tr></thead>
+    <tbody>
+      <tr><td><strong>A · Figma</strong> (+ M3 Kit)</td><td>No-devs</td><td>Rápido (medio día)</td><td>Sin comportamiento real</td></tr>
+      <tr><td><strong>B · Flutter</strong></td><td>Devs</td><td>Comportamiento real, reutilizable</td><td>Más lento (1 día)</td></tr>
+      <tr><td><strong>C · Híbrida</strong> ✅</td><td>Recomendada</td><td>AM Figma para testear · PM Flutter para producción</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <p class="muted">Tip: no diseñes todas las pantallas. Solo el Golden Path (3-4) + estados clave (carga, error, vacío).</p>
+</section>
+
+<!-- ================= 7. VALIDACIÓN ================= -->
+<section>
+  <div class="section-head s-magenta">
+    <span class="num">7</span>
+    <h2>Validate (Día 5)</h2>
+    <span class="meta">El día más importante del Sprint</span>
+  </div>
+  <p>Pones el prototipo frente a <strong>5 usuarios reales</strong> (encuentras ~85% de los problemas de usabilidad).</p>
+
+  <h3>Estructura de la entrevista (30 min)</h3>
+  <pre>5 min  → Bienvenida y contexto ("cuéntame de ti")
+5 min  → Pregunta sobre el problema actual ("¿cómo reservas hoy?")
+15 min → Test del prototipo → observa en silencio, no ayudes, pide pensar en voz alta
+5 min  → Cierre ("¿qué te pareció? ¿comprarías esto?")</pre>
+
+  <h3>Señales</h3>
+  <table>
+    <thead><tr><th>Positiva</th><th>Alerta</th></tr></thead>
+    <tbody>
+      <tr><td>Navega sin ayuda · completa la tarea · pregunta por precio</td><td>Se queda en blanco &gt;5s · toca donde no hay botón · "¿cómo vuelvo atrás?"</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Decisión post-Sprint</h3>
+  <table>
+    <thead><tr><th>Resultado</th><th>Acción</th></tr></thead>
+    <tbody>
+      <tr><td>✅ Completaron el flujo + interés</td><td><strong>Pasar a desarrollo</strong>: MVP validado</td></tr>
+      <tr><td>❌ No completaron / no ven valor</td><td><strong>Pivotar</strong>: cambiar enfoque o solución</td></tr>
+      <tr><td>⚠️ Resultados mixtos</td><td><strong>Iterar</strong>: ajustar y re-testear (mini-Sprint 2 días)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 8. M3 A FLUTTER ================= -->
+<section>
+  <div class="section-head s-green">
+    <span class="num">8</span>
+    <h2>M3 a Flutter: implementación</h2>
+    <span class="meta">Sin paquetes extra · nativo</span>
+  </div>
+
+  <h3>1 · Activar M3 + seed color</h3>
+  <pre>MaterialApp(
+  theme: ThemeData(
+    useMaterial3: true,
+    colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFF6750A4)),
+  ),
+  darkTheme: ThemeData( // dark automático con Brightness.dark
+    useMaterial3: true,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: Color(0xFF6750A4), brightness: Brightness.dark),
+  ),
+  themeMode: ThemeMode.system,
+)</pre>
+
+  <h3>2 · Personalización</h3>
+  <ul class="checklist">
+    <li><strong>TextTheme</strong>: <code>textTheme.titleLarge</code>, <code>bodyMedium</code>… o <code>fontFamily: 'Inter'</code> global</li>
+    <li><strong>Formas</strong>: <code>cardTheme.shape</code> (12px), <code>filledButtonTheme.shape</code> (8px)</li>
+    <li><strong>ThemeExtensions</strong>: tokens que M3 no cubre (spacing, radii, shadows)</li>
+    <li><strong>Dynamic Color</strong> (Android 12+): <code>dynamicSchemeVariant</code> (tonalSpot, fidelity, monochrome…)</li>
+  </ul>
+
+  <h3>3 · Arquitectura del theme (buena práctica)</h3>
+  <pre>lib/theme/
+├── app_theme.dart        → ThemeData light + dark
+├── app_colors.dart       → ColorScheme.fromSeed
+├── app_typography.dart   → TextTheme
+└── app_extensions.dart   → ThemeExtensions</pre>
+</section>
+
+<!-- ================= 9. TEMPLATE ================= -->
+<section>
+  <div class="section-head s-green">
+    <span class="num">9</span>
+    <h2>Template de proyecto</h2>
+    <span class="meta">Starter M3 + Clean Architecture</span>
+  </div>
+  <p>El directorio <code>template/</code> incluye: M3 theming completo (light + dark + dynamic color), Clean Architecture (data/domain/presentation) y componentes M3 reutilizables.</p>
+
+  <div class="template"><span class="c">template/lib/</span>
+├── main.dart, app.dart     <span class="c"># MaterialApp con M3</span>
+├── theme/                  <span class="c"># app_theme · app_colors · app_typography · app_extensions</span>
+├── features/mvp/
+│   ├── data/               <span class="c"># datasources/ · repositories/</span>
+│   ├── domain/             <span class="c"># entities/ · repositories/ · usecases/</span>
+│   └── presentation/       <span class="c"># pages/ · widgets/</span>
+└── core/components/        <span class="c"># componentes M3 compartidos</span></div>
+
+  <p><strong>Personalización rápida:</strong> 1) cambia el <code>seedColor</code> en <code>app_colors.dart</code> · 2) agrega tu font (Google Fonts Inter) · 3) agrega tus pantallas en <code>features/mvp/presentation/pages/</code>.</p>
+</section>
+
+<!-- ================= C. CASO ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">C</span>
+    <h2>Caso integrador — App de Reservas de Tenis</h2>
+  </div>
+  <p>Proceso completo en 5 días con la app <strong>MVP para reservar canchas de tenis</strong>.</p>
+
+  <table>
+    <thead><tr><th>Día</th><th>Decisión clave</th></tr></thead>
+    <tbody>
+      <tr><td>1 · Understand+Define</td><td>Goal: reservar en &lt;30s sin llamar. Golden Path de 4 pantallas. MVP: búsqueda + reserva + pago + confirmación.</td></tr>
+      <tr><td>2 · Sketch</td><td>Solution Sketch: campo de búsqueda + calendario + botón "Reservar".</td></tr>
+      <tr><td>3 · Decide</td><td>Storyboard con <span class="mono">SearchBar</span>, <span class="mono">SegmentedButton</span>, <span class="mono">Card</span>, <span class="mono">FilledButton</span>. Seed: <span class="mono">#1B5E20</span> (verde cancha).</td></tr>
+      <tr><td>4 · Prototype</td><td>Figma (AM) + Flutter con el template (PM).</td></tr>
+      <tr><td>5 · Validate</td><td>3/5 completaron en &lt;30s. Hallazgos: SearchBar poco obvio (alta), falta filtro precio (media), botón reserva muy abajo (alta). → <strong>✅ Pasar a desarrollo</strong></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout green"><p><strong>Lecciones:</strong> el Sprint ahorró semanas (detectamos el problema del botón antes de codificar) · M3 aceleró el diseño · el template permitió pasar de prototipo a código en horas.</p></div>
+</section>
+
+<!-- ================= A. ANEXO ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">A</span>
+    <h2>Anexo · Índice del módulo (para profundizar)</h2>
+  </div>
+  <table>
+    <thead><tr><th>Necesitas</th><th>Archivo</th></tr></thead>
+    <tbody>
+      <tr><td>Qué es Design Sprint, las 6 fases, adaptación a MVP mobile</td><td class="mono">01-design-sprint-intro.md</td></tr>
+      <tr><td>Understand + Define: mapa del problema, user journey, goal, alcance</td><td class="mono">02-understand-define.md</td></tr>
+      <tr><td>Sketch + Decide: Crazy 8s, dot voting, storyboard</td><td class="mono">03-sketch-decide.md</td></tr>
+      <tr><td>Fundamentos M3: tonal palettes, type scale, shape</td><td class="mono">04-m3-fundamentos.md</td></tr>
+      <tr><td>Componentes M3 con código Dart</td><td class="mono">05-m3-componentes-mobile.md</td></tr>
+      <tr><td>Prototipado (Fase 5) + Validate (Fase 6)</td><td class="mono">06-prototipado-validacion.md</td></tr>
+      <tr><td>Llevar M3 a Flutter (ThemeData, ColorScheme, ThemeExtensions)</td><td class="mono">07-m3-flutter-implementacion.md</td></tr>
+      <tr><td>Explicación del template starter y personalización</td><td class="mono">08-template-proyecto.md</td></tr>
+      <tr><td>Caso integrador completo</td><td class="mono">09-caso-completo-mvp.md</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= B. BIBLIOGRAFÍA ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">B</span>
+    <h2>Bibliografía y fuentes</h2>
+  </div>
+  <p class="muted">Fuentes que sustentan el módulo. Versión condensada — la completa está en BIBLIOGRAFIA.md.</p>
+
+  <h3>Metodologías oficiales</h3>
+  <table>
+    <thead><tr><th>Recurso</th><th>Tipo</th></tr></thead>
+    <tbody>
+      <tr><td>Google Design Sprint Kit</td><td>Guía + métodos · designsprintkit.withgoogle.com</td></tr>
+      <tr><td>GV Design Sprint (Jake Knapp)</td><td>Libro · gv.com/sprint</td></tr>
+      <tr><td>Material Design 3 (m3.material.io)</td><td>Sistema completo + Material Theme Builder</td></tr>
+      <tr><td>Material 3 Figma Kit</td><td>Kit Figma oficial</td></tr>
+      <tr><td>Material Design para Flutter</td><td>Guía oficial · docs.flutter.dev/ui/design/material</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Libros recomendados</h3>
+  <table>
+    <thead><tr><th>Título</th><th>Autor</th><th>Por qué</th></tr></thead>
+    <tbody>
+      <tr><td><em>Sprint</em></td><td>Jake Knapp</td><td>El libro original del Design Sprint</td></tr>
+      <tr><td><em>The Design of Everyday Things</em></td><td>Don Norman</td><td>Fundamentos de diseño centrado en el usuario</td></tr>
+      <tr><td><em>Don't Make Me Think</em></td><td>Steve Krug</td><td>Usabilidad, práctico y corto</td></tr>
+    </tbody>
+  </table>
+
+  <div class="footer-note"><strong>Objetivo: MVP validado en 5 días</strong> · Regla de oro: piensa primero, codifica después.</div>
+</section>
+
+</body>
+</html>

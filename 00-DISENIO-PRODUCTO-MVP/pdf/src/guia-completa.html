@@ -1,0 +1,1973 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>00 — Diseño de Producto MVP</title>
+<link rel="stylesheet" href="guia-completa.css">
+</head>
+<body>
+<div class="cover">
+  <span class="module-tag">Módulo 00</span>
+  <h1>Diseño de<br>Producto MVP</h1>
+  <p class="subtitle">Design Sprint + Material Design 3 para apps Flutter. Define y valida qué construir antes de escribir una línea de código, y diseña la interfaz con el mismo sistema que usa Flutter de forma nativa.</p>
+  <table class="meta">
+    <tr>
+      <td><span class="label">Metodología</span><span class="value">Design Sprint Kit + Material Design 3</span></td>
+      <td><span class="label">Backend</span><span class="value">Listo para implementar con Supabase (BaaS)</span></td>
+    </tr>
+    <tr>
+      <td><span class="label">Nivel</span><span class="value">Producto / Diseño / Flutter</span></td>
+      <td><span class="label">Tiempo estimado</span><span class="value">5 días de Sprint + implementación M3</span></td>
+    </tr>
+  </table>
+  <div class="tags"><span>Design Sprint</span><span>Material Design 3</span><span>Flutter</span><span>MVP</span></div>
+</div><div class="toc"><h2>Contenido</h2><p class="toc-count">10 capítulos · Design Sprint + Material Design 3 para MVP Flutter</p><div class="part">Parte 1 · Design Sprint</div>
+<div class="row"><span class="num">01</span><span class="title">01 — Introducción al Design Sprint para MVP Mobile</span></div>
+<div class="row"><span class="num">02</span><span class="title">02 — Understand + Define</span></div>
+<div class="row"><span class="num">03</span><span class="title">03 — Sketch + Decide</span></div>
+<div class="part">Parte 2 · Material Design 3</div>
+<div class="row"><span class="num">04</span><span class="title">04 — Fundamentos de Material Design 3</span></div>
+<div class="row"><span class="num">05</span><span class="title">05 — Componentes M3 Clave para Mobile</span></div>
+<div class="part">Parte 3 · Prototipado y validación</div>
+<div class="row"><span class="num">06</span><span class="title">06 — Prototipado + Validación</span></div>
+<div class="part">Parte 4 · Implementación Flutter</div>
+<div class="row"><span class="num">07</span><span class="title">07 — M3 a Flutter: Implementación</span></div>
+<div class="row"><span class="num">08</span><span class="title">08 — Template de proyecto</span></div>
+<div class="part">Parte 5 · Caso integrador</div>
+<div class="row"><span class="num">09</span><span class="title">09 — Caso completo: App de Reservas</span></div>
+<div class="part">Parte 6 · Cierre</div>
+<div class="row"><span class="num">BI</span><span class="title">Bibliografía y recursos oficiales</span></div></div><div class="chapter"><div class="chapter-head"><span class="num-chip">Paso 01</span><div class="kick">Parte 1 · Design Sprint</div><h2>01 — Introducción al Design Sprint para MVP Mobile</h2></div><div class="article"><h2 id="qué-es-un-design-sprint">¿Qué es un Design Sprint?</h2>
+<p>El <strong>Design Sprint</strong> es una metodología creada por Google para responder preguntas críticas de negocio a través del diseño, prototipado y testing con usuarios reales en <strong>5 días</strong>. Fue desarrollada por Jake Knapp en Google Ventures y hoy es mantenida como un recurso open-source por Google: <a href="https://designsprintkit.withgoogle.com/methodology">designsprintkit.withgoogle.com</a>.</p>
+<p>No es una metodología más. Es el estándar que Google usa internamente para validar productos antes de invertir en desarrollo.</p>
+<h2 id="las-6-fases">Las 6 fases</h2>
+<pre><code>LUNES        MARTES      MIÉRCOLES    JUEVES      VIERNES
+Understand → Define →   Sketch  →   Decide →   Prototype → Validate
+(Entender)  (Definir)   (Bosquejar) (Decidir)   (Prototipar) (Validar)</code></pre>
+<table>
+<thead>
+<tr>
+<th>Fase</th>
+<th>Duración</th>
+<th>Objetivo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Understand</strong></td>
+<td>1 día</td>
+<td>Mapear el problema, alinear al equipo, recopilar información</td>
+</tr>
+<tr>
+<td><strong>Define</strong></td>
+<td>(incluido en Understand)</td>
+<td>Definir el foco del sprint, metas y métricas de éxito</td>
+</tr>
+<tr>
+<td><strong>Sketch</strong></td>
+<td>1 día</td>
+<td>Generar soluciones individuales en papel</td>
+</tr>
+<tr>
+<td><strong>Decide</strong></td>
+<td>1 día</td>
+<td>Criticar, votar y decidir la mejor solución</td>
+</tr>
+<tr>
+<td><strong>Prototype</strong></td>
+<td>1 día</td>
+<td>Construir un prototipo realista (pero falso)</td>
+</tr>
+<tr>
+<td><strong>Validate</strong></td>
+<td>1 día</td>
+<td>Testear con 5 usuarios reales</td>
+</tr>
+</tbody>
+</table>
+<h2 id="por-qué-funciona">¿Por qué funciona?</h2>
+<ol type="1">
+<li><strong>Comprime meses en 5 días</strong>: lo que normalmente toma investigación, proof-of-concept y discusiones interminables se reduce a una semana enfocada.</li>
+<li><strong>Pone al usuario en el centro</strong>: el viernes tienes evidencia real, no suposiciones.</li>
+<li><strong>Alinea al equipo</strong>: diseño, producto e ingeniería trabajan juntos desde el día 1.</li>
+</ol>
+<h2 id="design-sprint-vs-metodologías-tradicionales">Design Sprint vs. metodologías tradicionales</h2>
+<table>
+<thead>
+<tr>
+<th>Aspecto</th>
+<th>Design Sprint</th>
+<th>Agile/Scrum tradicional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Horizonte</td>
+<td>Descubrimiento (descubrir qué construir)</td>
+<td>Entrega (cómo construir ya definido)</td>
+</tr>
+<tr>
+<td>Validación</td>
+<td>Antes de escribir código</td>
+<td>Después de escribir código</td>
+</tr>
+<tr>
+<td>Riesgo</td>
+<td>Bajo (prototipo rápido)</td>
+<td>Alto (inversión en desarrollo)</td>
+</tr>
+<tr>
+<td>Usuarios</td>
+<td>5 usuarios en 1 día</td>
+<td>Usuarios reales en producción</td>
+</tr>
+<tr>
+<td>Cambio de dirección</td>
+<td>Gratis (solo papel)</td>
+<td>Costoso (código desechado)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="adaptación-para-mvp-mobile-con-flutter">Adaptación para MVP mobile con Flutter</h2>
+<p>Un Design Sprint clásico asume que prototipas en herramientas como Figma o Keynote. Para un MVP mobile con Flutter, la adaptación es:</p>
+<ol type="1">
+<li><p><strong>Understand + Define</strong>: mismos ejercicios (mapa, goal, expert interviews). El entregable es un <strong>documento de alcance del MVP</strong> con las pantallas críticas identificadas.</p></li>
+<li><p><strong>Sketch + Decide</strong>: mismos ejercicios. El entregable es un <strong>storyboard</strong> del flujo principal de la app.</p></li>
+<li><p><strong>Prototype</strong>: aquí puedes elegir:</p>
+<ul>
+<li><strong>Opción A (recomendada para no-devs)</strong>: Figma con el <a href="https://www.figma.com/community/file/1035203688168086460">kit de M3</a>. Rápido, sin código.</li>
+<li><strong>Opción B (para devs)</strong>: Flutter con el template M3 de este módulo. Más realista, más lento.</li>
+<li><strong>Opción C (híbrida)</strong>: Prototipo en Figma para validar el jueves, y mientras tanto preparar la base en Flutter con el template.</li>
+</ul></li>
+<li><p><strong>Validate</strong>: pruebas con usuarios sobre el prototipo. El entregable es un <strong>informe de validación</strong> con hallazgos y decisiones.</p></li>
+</ol>
+<h2 id="antes-del-sprint-el-equipo">Antes del Sprint: el equipo</h2>
+<p>Para un Sprint de app móvil necesitas:</p>
+<table>
+<thead>
+<tr>
+<th>Rol</th>
+<th>Cantidad</th>
+<th>Responsabilidad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Facilitador</strong></td>
+<td>1</td>
+<td>Cronometra, guía los ejercicios, no opina</td>
+</tr>
+<tr>
+<td><strong>Decisor</strong></td>
+<td>1</td>
+<td>Dueño del producto, tiene la última palabra</td>
+</tr>
+<tr>
+<td><strong>Diseñador UI/UX</strong></td>
+<td>1</td>
+<td>Domina M3, Figma, patrones mobile</td>
+</tr>
+<tr>
+<td><strong>Flutter Dev</strong></td>
+<td>1</td>
+<td>Conoce viabilidad técnica, costos de implementación</td>
+</tr>
+<tr>
+<td><strong>Experto en negocio</strong></td>
+<td>1</td>
+<td>Conoce el mercado, los usuarios, la competencia</td>
+</tr>
+</tbody>
+</table>
+<p>Mínimo viable: Facilitador + Decisor + Diseñador. Si eres solo tú, puedes hacer un Sprint en solitario (más lento, pero funciona).</p>
+<h2 id="cuándo-no-hacer-un-design-sprint">¿Cuándo NO hacer un Design Sprint?</h2>
+<ul>
+<li>Cuando el problema ya está muy definido y solo falta implementar</li>
+<li>Cuando no tienes acceso a usuarios para validar</li>
+<li>Cuando el equipo no puede comprometer 5 días completos</li>
+<li>Cuando necesitas un producto completo (el Sprint solo da un MVP validado)</li>
+</ul>
+<hr />
+<p><strong>Siguiente: <a href="02-understand-define.md">02 — Understand + Define</a></strong></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Paso 02</span><div class="kick">Parte 1 · Design Sprint</div><h2>02 — Understand + Define</h2></div><div class="article"><p><strong>Día 1: Entender el problema y definir el foco</strong></p>
+<hr />
+<p>Estas dos fases ocurren en el <strong>mismo día</strong>. La mañana es para entender, la tarde para definir.</p>
+<h2 id="fase-1-understand">Fase 1: Understand</h2>
+<p>El objetivo es que todo el equipo tenga el mismo nivel de información sobre el problema, el usuario y el negocio.</p>
+<h3 id="11-ejercicio-start-at-the-end">1.1. Ejercicio: Start at the End</h3>
+<p>Define el <strong>goal a largo plazo</strong> del producto.</p>
+<pre><code>Pregunta: &quot;¿Qué estará pasando cuando nuestro producto sea un éxito?&quot;
+Ejemplo: &quot;Los usuarios podrán reservar una cancha de tenis en menos de 30 segundos
+          desde su teléfono, sin llamar por teléfono.&quot;</code></pre>
+<p>El goal debe tener una <strong>métrica</strong> asociada:</p>
+<blockquote>
+<p>Ejemplo: "Reducir el tiempo de reserva promedio de 5 minutos a &lt;30 segundos"</p>
+</blockquote>
+<h3 id="12-ejercicio-mapa-del-problema">1.2. Ejercicio: Mapa del problema</h3>
+<p>Dibuja el flujo del usuario <strong>actual</strong> (sin tu producto). Identifica puntos de fricción.</p>
+<pre><code>[Usuario quiere jugar tenis]
+  → Abre Google Maps → Busca canchas → Encuentra teléfono
+  → Llama → Ocupado → Vuelve a llamar → Pregunta disponibilidad
+  → &quot;Sí, hay a las 5pm&quot; → &quot;OK, reserve&quot; → Llega y la cancha está ocupada
+  ← FRUSTRACIÓN ←</code></pre>
+<p>Los puntos de fricción son <strong>oportunidades de diseño</strong>.</p>
+<h3 id="13-ejercicio-expert-interviews">1.3. Ejercicio: Expert Interviews</h3>
+<p>Cada miembro del equipo comparte lo que sabe. Formato:</p>
+<table>
+<thead>
+<tr>
+<th>Persona</th>
+<th>Aporta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Decisor</td>
+<td>Visión de negocio, restricciones, stakeholders</td>
+</tr>
+<tr>
+<td>Diseñador</td>
+<td>Patrones de UX, competencia, tendencias mobile</td>
+</tr>
+<tr>
+<td>Dev</td>
+<td>Viabilidad técnica, costos, tiempos</td>
+</tr>
+<tr>
+<td>Experto</td>
+<td>Datos de mercado, investigación de usuarios</td>
+</tr>
+</tbody>
+</table>
+<p>Preguntas clave:</p>
+<ul>
+<li>¿Qué sabemos con certeza?</li>
+<li>¿Qué estamos asumiendo?</li>
+<li>¿Qué necesitaríamos saber para tener confianza?</li>
+</ul>
+<h3 id="14-ejercicio-how-might-we-hmw">1.4. Ejercicio: How Might We (HMW)</h3>
+<p>Reformula cada punto de fricción como una oportunidad:</p>
+<blockquote>
+<p>Fricción: "Llamar por teléfono es lento y poco confiable" HMW: "¿Cómo podríamos permitir reservar sin hablar con nadie?"</p>
+</blockquote>
+<blockquote>
+<p>Fricción: "No saber si la cancha estará disponible al llegar" HMW: "¿Cómo podríamos garantizar disponibilidad en tiempo real?"</p>
+</blockquote>
+<hr />
+<h2 id="fase-2-define">Fase 2: Define</h2>
+<p>Con toda la información sobre la mesa, es hora de <strong>acotar</strong>.</p>
+<h3 id="21-ejercicio-the-golden-path">2.1. Ejercicio: The Golden Path</h3>
+<p>Define el <strong>camino ideal</strong> del usuario dentro del MVP. No más de 3-4 pantallas.</p>
+<pre><code>Pantalla 1: Home → &quot;Buscar canchas&quot;
+Pantalla 2: Lista de canchas → &quot;Seleccionar fecha y hora&quot;
+Pantalla 3: Confirmar reserva → &quot;Pagar&quot;
+Pantalla 4: Confirmación → &quot;Listo, llegas a las 5pm&quot;</code></pre>
+<p>El Golden Path es el <strong>flujo crítico</strong> del MVP. Todo lo demás: registro, perfil, historial, etc. son <strong>post-MVP</strong>.</p>
+<h3 id="22-ejercicio-definir-el-alcance-del-mvp">2.2. Ejercicio: Definir el alcance del MVP</h3>
+<p>El MVP no es "lo mínimo para salir", sino <strong>lo mínimo para validar valor</strong>.</p>
+<p>Usa la matriz <strong>Impacto vs. Esfuerzo</strong>:</p>
+<pre><code>Impacto ↑
+  |  [Hacer primero]  |  [Hacer después]  |
+  |  Golden Path      |  Historial        |
+  |  Reserva rápida   |  Favoritos        |
+  |--------------------|-------------------|
+  |  [Último]         |  [Evitar]         |
+  |  Chat en vivo     |  Modo oscuro      |
+  |  Landing page     |  Animaciones      |
+  └────────────────────→ Esfuerzo</code></pre>
+<p><strong>Regla de oro del MVP mobile:</strong></p>
+<blockquote>
+<p>Si no está en el Golden Path, no entra en el MVP.</p>
+</blockquote>
+<h3 id="23-sprint-goal">2.3. Sprint Goal</h3>
+<p>Redacta el objetivo del Sprint en una frase:</p>
+<blockquote>
+<p>"Validar que los usuarios pueden reservar una cancha de tenis en menos de 30 segundos desde su teléfono."</p>
+</blockquote>
+<p>Esto guiará todas las decisiones del resto de la semana.</p>
+<h3 id="24-checklist-del-día-1">2.4. Checklist del Día 1</h3>
+<ul class="task-list">
+<li><label><input type="checkbox" />Goal a largo plazo definido con métrica</label></li>
+<li><label><input type="checkbox" />Mapa del problema dibujado</label></li>
+<li><label><input type="checkbox" />HMWs generados a partir de fricciones</label></li>
+<li><label><input type="checkbox" />Golden Path definido (3-4 pantallas)</label></li>
+<li><label><input type="checkbox" />MVP scope acotado (qué entra / qué no entra)</label></li>
+<li><label><input type="checkbox" />Sprint Goal redactado</label></li>
+<li><label><input type="checkbox" />Usuarios reclutados para el viernes (Validate)</label></li>
+</ul>
+<h2 id="plantilla-documento-de-alcance-del-mvp">Plantilla: Documento de alcance del MVP</h2>
+<pre><code>---
+MVP: [Nombre del producto]
+Goal: [Frase única]
+Métrica principal: [Ej: tiempo de reserva &lt;30s]
+---
+
+## Golden Path
+1. [Pantalla 1: acción]
+2. [Pantalla 2: acción]
+3. [Pantalla 3: acción]
+
+## Incluye (MVP)
+- [Feature 1]
+- [Feature 2]
+- [Feature 3]
+
+## No incluye (post-MVP)
+- [Feature X]
+- [Feature Y]
+
+## Supuestos a validar
+1. [Supuesto 1: ej, &quot;los usuarios quieren reservar sin hablar&quot;]
+2. [Supuesto 2]
+
+## Criterios de éxito
+- [ ] [Criterio 1]
+- [ ] [Criterio 2]</code></pre>
+<hr />
+<p><strong>Siguiente: <a href="03-sketch-decide.md">03 — Sketch + Decide</a></strong></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Paso 03</span><div class="kick">Parte 1 · Design Sprint</div><h2>03 — Sketch + Decide</h2></div><div class="article"><p><strong>Día 2: Bosquejar soluciones → Día 3: Decidir la mejor</strong></p>
+<hr />
+<h2 id="fase-3-sketch">Fase 3: Sketch</h2>
+<p>El objetivo es que <strong>cada miembro del equipo</strong> genere soluciones de forma individual. No se discute, no se critica, se dibuja.</p>
+<h3 id="31-ejercicio-lightning-demos-mañana">3.1. Ejercicio: Lightning Demos (mañana)</h3>
+<p>Antes de dibujar, inspírate. Cada miembro muestra 2-3 apps o productos existentes que resuelven problemas similares.</p>
+<p>Para cada demo, responde:</p>
+<ul>
+<li>¿Qué hace bien?</li>
+<li>¿Qué harías diferente?</li>
+<li>¿Qué podríamos robar (remix)?</li>
+</ul>
+<p>Ejemplo para una app de reservas:</p>
+<blockquote>
+<p><strong>Airbnb</strong>: la navegación por fechas es excelente. <strong>OpenTable</strong>: la confirmación instantánea da confianza. <strong>Uber</strong>: no necesitas registro para usarlo.</p>
+</blockquote>
+<h3 id="32-ejercicio-crazy-8s">3.2. Ejercicio: Crazy 8s</h3>
+<p>Cada persona dobla una hoja en 8 partes. En <strong>8 minutos</strong> (1 minuto por recuadro), dibuja 8 variaciones de una pantalla clave.</p>
+<pre><code>┌─────────┬─────────┬─────────┬─────────┐
+│  Var 1  │  Var 2  │  Var 3  │  Var 4  │
+│         │         │         │         │
+├─────────┼─────────┼─────────┼─────────┤
+│  Var 5  │  Var 6  │  Var 7  │  Var 8  │
+│         │         │         │         │
+└─────────┴─────────┴─────────┴─────────┘</code></pre>
+<p>No importa la calidad del dibujo. Importa la cantidad de ideas.</p>
+<h3 id="33-ejercicio-solution-sketch-tarde">3.3. Ejercicio: Solution Sketch (tarde)</h3>
+<p>Cada persona crea un <strong>boceto detallado</strong> de su mejor solución. Formato de 3 paneles:</p>
+<pre><code>┌─────────────────────────────────────┐
+│  Panel 1: Estado actual / problema  │
+│  (una escena que muestre la         │
+│   frustración del usuario)          │
+├─────────────────────────────────────┤
+│  Panel 2: La solución               │
+│  (la pantalla clave del MVP)        │
+├─────────────────────────────────────┤
+│  Panel 3: El resultado              │
+│  (el usuario feliz, métrica lograda)│
+└─────────────────────────────────────┘</code></pre>
+<p>El Solution Sketch debe ser <strong>auto-explicativo</strong>. Mañana alguien más podría tener que entenderlo sin que le expliques nada.</p>
+<p>Herramientas: papel y lápiz (recomendado), o tool digital como Miro/Figma.</p>
+<hr />
+<h2 id="fase-4-decide">Fase 4: Decide</h2>
+<p>El objetivo es <strong>elegir una sola solución</strong> para prototipar.</p>
+<h3 id="41-ejercicio-art-museum">4.1. Ejercicio: Art Museum</h3>
+<p>Pega todos los Solution Sketches en la pared. El equipo camina en silencio y los revisa.</p>
+<p>Cada persona tiene:</p>
+<ul>
+<li><strong>2 dot votes grandes</strong> (👍): "Esto es genial, deberíamos construirlo"</li>
+<li><strong>1 dot vote pequeño</strong> (❓): "Esto es interesante, pero tengo dudas"</li>
+</ul>
+<h3 id="42-ejercicio-heat-map--speed-critique">4.2. Ejercicio: Heat Map + Speed Critique</h3>
+<p>El facilitador selecciona los sketches con más votos. El equipo los critica rápidamente (3 min cada uno):</p>
+<table>
+<thead>
+<tr>
+<th>Pregunta</th>
+<th>Tiempo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>¿Qué nos gusta?</td>
+<td>1 min</td>
+</tr>
+<tr>
+<td>¿Qué dudas tenemos?</td>
+<td>1 min</td>
+</tr>
+<tr>
+<td>¿Qué mejorarías?</td>
+<td>1 min</td>
+</tr>
+</tbody>
+</table>
+<h3 id="43-ejercicio-straw-poll--decisión-final">4.3. Ejercicio: Straw Poll + Decisión Final</h3>
+<p>Votación final. Cada persona tiene <strong>1 voto</strong> (no puede votar por el suyo).</p>
+<ul>
+<li>Si hay empate, el <strong>Decisor</strong> desempata.</li>
+<li>El Decisor puede elegir una solución híbrida ("tomamos la navegación de A y el detalle de B").</li>
+</ul>
+<h3 id="44-ejercicio-storyboard">4.4. Ejercicio: Storyboard</h3>
+<p>Con la solución elegida, el diseñador (con ayuda del equipo) crea un <strong>storyboard</strong> detallado del prototipo. Esto es el <strong>plano</strong> para el Día 4.</p>
+<pre><code>┌────────┐   ┌────────┐   ┌────────┐   ┌────────┐
+│ Home   │ → │ Lista  │ → │ Detalle│ → │ Confir │
+│ Buscar │   │ Canchas│   │ Reserva│   │ OK!    │
+│        │   │ 3pm    │   │ Pagar  │   │ 5pm    │
+└────────┘   └────────┘   └────────┘   └────────┘
+     ↓            ↓            ↓            ↓
+  TextField    ListView    BottomSheet   Confetti
+  + Icon      + Filtros   + ElevatedBtn  + Icon</code></pre>
+<p>Cada pantalla del storyboard debe incluir:</p>
+<ul>
+<li><strong>Layout</strong> básico (qué va donde)</li>
+<li><strong>Componentes M3</strong> a usar (ver módulo 05)</li>
+<li><strong>Flujo de datos</strong> (qué pasa cuando el usuario toca)</li>
+<li><strong>Estados</strong>: carga, vacío, error, éxito</li>
+</ul>
+<h3 id="45-checklist-del-día-3">4.5. Checklist del Día 3</h3>
+<ul class="task-list">
+<li><label><input type="checkbox" />Solución única seleccionada y aprobada por el Decisor</label></li>
+<li><label><input type="checkbox" />Storyboard detallado con todas las pantallas del Golden Path</label></li>
+<li><label><input type="checkbox" />Componentes M3 identificados para cada pantalla</label></li>
+<li><label><input type="checkbox" />Prototipador asignado y herramientas listas (Figma / Flutter)</label></li>
+<li><label><input type="checkbox" />Guión de entrevista preparado para el viernes</label></li>
+<li><label><input type="checkbox" />Usuarios confirmados para Validate (mínimo 5)</label></li>
+</ul>
+<hr />
+<h2 id="de-sketchdecide-a-m3">De Sketch/Decide a M3</h2>
+<p>El storyboard es el <strong>puente</strong> entre el Design Sprint y Material Design 3.</p>
+<p>En el storyboard defines <strong>qué</strong> va en cada pantalla. En los próximos capítulos aprenderás <strong>cómo</strong> diseñarlo con M3.</p>
+<table>
+<thead>
+<tr>
+<th>Storyboard dice</th>
+<th>M3 provee</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"Barra de navegación abajo"</td>
+<td><code>NavigationBar</code></td>
+</tr>
+<tr>
+<td>"Tarjeta con producto"</td>
+<td><code>Card</code> + <code>ListTile</code></td>
+</tr>
+<tr>
+<td>"Botón principal"</td>
+<td><code>FilledButton</code> / <code>FilledTonalButton</code></td>
+</tr>
+<tr>
+<td>"Selector de fecha"</td>
+<td><code>DatePickerDialog</code></td>
+</tr>
+<tr>
+<td>"Campo de búsqueda"</td>
+<td><code>SearchBar</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><strong>Siguiente: <a href="04-m3-fundamentos.md">04 — Fundamentos de Material Design 3</a></strong></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Paso 04</span><div class="kick">Parte 2 · Material Design 3</div><h2>04 — Fundamentos de Material Design 3</h2></div><div class="article"><p><strong>El sistema de diseño oficial de Google para apps móviles</strong></p>
+<hr />
+<p>Material Design 3 (M3) es el sistema de diseño open-source de Google, también conocido como <strong>Material You</strong>. Es la evolución de Material Design y el que Flutter usa de forma nativa desde la versión 3.7.</p>
+<p>M3 se basa en 3 subsistemas principales:</p>
+<pre><code>M3 Theme
+├── ColorScheme (color)
+├── TextTheme (tipografía)
+└── ShapeScheme (formas)</code></pre>
+<h2 id="1-color-esquemas-tonales">1. Color: esquemas tonales</h2>
+<p>M3 introduce el concepto de <strong>paletas tonales</strong>. En lugar de elegir colores individuales, eliges un <strong>color semilla (seed)</strong> y M3 genera una paleta completa de 12 tonos.</p>
+<h3 id="cómo-funciona">Cómo funciona</h3>
+<pre><code>seed: #6750A4 (púrpura)
+  → genera 13 tonos (0, 5, 10, 20, 30, ..., 95, 100)
+  → asigna roles: primary, secondary, tertiary, surface, error</code></pre>
+<table>
+<thead>
+<tr>
+<th>Rol</th>
+<th>Uso</th>
+<th>Ejemplo Flutter</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>primary</code></td>
+<td>Botones principales, FAB, switches activos</td>
+<td><code>colorScheme.primary</code></td>
+</tr>
+<tr>
+<td><code>onPrimary</code></td>
+<td>Texto/icono sobre primary</td>
+<td><code>colorScheme.onPrimary</code></td>
+</tr>
+<tr>
+<td><code>secondary</code></td>
+<td>Botones secundarios, chips</td>
+<td><code>colorScheme.secondary</code></td>
+</tr>
+<tr>
+<td><code>surface</code></td>
+<td>Fondos de pantalla, cards</td>
+<td><code>colorScheme.surface</code></td>
+</tr>
+<tr>
+<td><code>surfaceContainer</code></td>
+<td>Cards, bottomsheets (nuevo en M3)</td>
+<td><code>colorScheme.surfaceContainer</code></td>
+</tr>
+<tr>
+<td><code>tertiary</code></td>
+<td>Acentos alternativos</td>
+<td><code>colorScheme.tertiary</code></td>
+</tr>
+<tr>
+<td><code>error</code></td>
+<td>Estados de error</td>
+<td><code>colorScheme.error</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="dynamic-color-material-you">Dynamic Color (Material You)</h3>
+<p>En Android 12+, el sistema puede generar el ColorScheme <strong>desde el wallpaper del usuario</strong>. Tu app se adapta automáticamente a los gustos del usuario.</p>
+<pre><code>En Android 12+  →  ColorScheme.fromSeed(source: userWallpaperColor)
+En otros        →  ColorScheme.fromSeed(seedColor: brandColor)</code></pre>
+<h3 id="contraste">Contraste</h3>
+<p>M3 garantiza contraste mínimo:</p>
+<ul>
+<li>Texto normal: 4.5:1</li>
+<li>Texto grande: 3:1</li>
+<li>Iconos: 3:1</li>
+</ul>
+<h2 id="2-tipografía-type-scale">2. Tipografía: type scale</h2>
+<p>M3 define una <strong>escala tipográfica</strong> con 11 estilos. No son estilos aislados, sino un <strong>sistema</strong> que escala armónicamente.</p>
+<table>
+<thead>
+<tr>
+<th>Style</th>
+<th>Tamaño</th>
+<th>Peso</th>
+<th>Uso típico</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>displayLarge</code></td>
+<td>57</td>
+<td>Regular</td>
+<td>Hero text</td>
+</tr>
+<tr>
+<td><code>displayMedium</code></td>
+<td>45</td>
+<td>Regular</td>
+<td>Pantallas de bienvenida</td>
+</tr>
+<tr>
+<td><code>displaySmall</code></td>
+<td>36</td>
+<td>Regular</td>
+<td>Encabezados grandes</td>
+</tr>
+<tr>
+<td><code>headlineLarge</code></td>
+<td>32</td>
+<td>Regular</td>
+<td>Títulos de sección</td>
+</tr>
+<tr>
+<td><code>headlineMedium</code></td>
+<td>28</td>
+<td>Regular</td>
+<td>Títulos de pantalla</td>
+</tr>
+<tr>
+<td><code>headlineSmall</code></td>
+<td>24</td>
+<td>Regular</td>
+<td>Subtítulos</td>
+</tr>
+<tr>
+<td><code>titleLarge</code></td>
+<td>22</td>
+<td>Medium</td>
+<td>App bar titles</td>
+</tr>
+<tr>
+<td><code>titleMedium</code></td>
+<td>16</td>
+<td>Medium</td>
+<td>Navigation, cards</td>
+</tr>
+<tr>
+<td><code>titleSmall</code></td>
+<td>14</td>
+<td>Medium</td>
+<td>Botones, tabs</td>
+</tr>
+<tr>
+<td><code>bodyLarge</code></td>
+<td>16</td>
+<td>Regular</td>
+<td>Cuerpo de texto</td>
+</tr>
+<tr>
+<td><code>bodyMedium</code></td>
+<td>14</td>
+<td>Regular</td>
+<td>Texto secundario</td>
+</tr>
+<tr>
+<td><code>bodySmall</code></td>
+<td>12</td>
+<td>Regular</td>
+<td>Captions, tags</td>
+</tr>
+<tr>
+<td><code>labelLarge</code></td>
+<td>14</td>
+<td>Medium</td>
+<td>Botones, chips</td>
+</tr>
+<tr>
+<td><code>labelMedium</code></td>
+<td>12</td>
+<td>Medium</td>
+<td>Texto en componentes</td>
+</tr>
+<tr>
+<td><code>labelSmall</code></td>
+<td>11</td>
+<td>Medium</td>
+<td>Textos pequeños</td>
+</tr>
+</tbody>
+</table>
+<h3 id="regla-de-oro-tipográfica-m3">Regla de oro tipográfica M3</h3>
+<blockquote>
+<p>Usa los <strong>nombres semánticos</strong>, no tamaños fijos.</p>
+<p>✅ <code>Theme.of(context).textTheme.titleLarge</code></p>
+<p>❌ <code>TextStyle(fontSize: 22, fontWeight: FontWeight.w500)</code></p>
+</blockquote>
+<h2 id="3-forma-shape">3. Forma (Shape)</h2>
+<p>M3 define formas por <strong>categoría de componente</strong>, no globalmente.</p>
+<table>
+<thead>
+<tr>
+<th>Categoría</th>
+<th>Esquinas típicas</th>
+<th>Componentes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>small</code></td>
+<td>8px</td>
+<td>Botones, chips, text fields</td>
+</tr>
+<tr>
+<td><code>medium</code></td>
+<td>12px</td>
+<td>Cards, dialogos</td>
+</tr>
+<tr>
+<td><code>large</code></td>
+<td>16px</td>
+<td>Bottom sheets, navigation drawers</td>
+</tr>
+<tr>
+<td><code>extraLarge</code></td>
+<td>20px</td>
+<td>FAB grandes</td>
+</tr>
+</tbody>
+</table>
+<p>En Flutter, las formas se definen mediante <code>ShapeBorder</code>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>Card(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  shape<span class="op">:</span> RoundedRectangleBorder(</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    borderRadius<span class="op">:</span> BorderRadius<span class="op">.</span>circular(<span class="dv">12</span>)<span class="op">,</span> <span class="co">// medium</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  )<span class="op">,</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<h2 id="4-elevación">4. Elevación</h2>
+<p>M3 cambió la forma de pensar la elevación. Ahora se usa <strong>color en lugar de sombras</strong> para indicar profundidad:</p>
+<pre><code>surfaceContainerLow    → nivel 1 (cerca del fondo)
+surfaceContainer       → nivel 2
+surfaceContainerHigh   → nivel 3 (cards levantadas)
+surfaceContainerHighest→ nivel 4 (modales, dialogs)</code></pre>
+<p>Los contenedores de superficie (surface containers) permiten diferenciar capas sin añadir sombras artificiales.</p>
+<h2 id="5-motion">5. Motion</h2>
+<p>M3 prioriza motion sutil y con propósito:</p>
+<table>
+<thead>
+<tr>
+<th>Principio</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Responsive</strong></td>
+<td>La UI reacciona al toque inmediatamente (ripple)</td>
+</tr>
+<tr>
+<td><strong>Expresivo</strong></td>
+<td>Las transiciones cuentan una historia (shared element transitions)</td>
+</tr>
+<tr>
+<td><strong>Familiar</strong></td>
+<td>Usa curvas estándar (emphasized, standard)</td>
+</tr>
+</tbody>
+</table>
+<p>En Flutter, el ripple de M3 viene por defecto en todos los botones y componentes interactivos.</p>
+<hr />
+<h2 id="resumen-m3-en-una-página">Resumen: M3 en una página</h2>
+<pre><code>M3 Theme
+├── ColorScheme.fromSeed(seedColor: brandColor)
+│   ├── light scheme
+│   └── dark scheme
+├── TextTheme (15 estilos, usa nombres semánticos)
+└── Shape scheme (small=8, medium=12, large=16)</code></pre>
+<p>Lo más importante que debes recordar:</p>
+<ol type="1">
+<li><strong>Elige un seed color</strong> y deja que M3 genere el resto</li>
+<li><em><em>Usa colorScheme.</em> siempre</em>*, nunca colores hardcodeados</li>
+<li><em><em>Usa textTheme.</em> siempre</em>*, nunca tamaños fijos</li>
+<li><strong>Prefiere surfaceContainer</strong> sobre sombras para profundidad</li>
+<li><strong>Soporta dark mode</strong> desde el día 1 (M3 lo hace fácil)</li>
+</ol>
+<hr />
+<p><strong>Siguiente: <a href="05-m3-componentes-mobile.md">05 — Componentes M3 para Mobile</a></strong></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Paso 05</span><div class="kick">Parte 2 · Material Design 3</div><h2>05 — Componentes M3 Clave para Mobile</h2></div><div class="article"><p><strong>El arsenal de UI para construir tu MVP</strong></p>
+<hr />
+<p>M3 clasifica sus componentes en 5 categorías. Aquí cubrimos los que más usarás en un MVP mobile.</p>
+<h2 id="1-navegación">1. Navegación</h2>
+<h3 id="navigationbar-antes-bottomnavigationbar">NavigationBar (antes BottomNavigationBar)</h3>
+<p>El estándar para navegación principal en mobile.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>NavigationBar(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  selectedIndex<span class="op">:</span> <span class="dv">0</span><span class="op">,</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  onDestinationSelected<span class="op">:</span> (index) <span class="op">{},</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  destinations<span class="op">:</span> <span class="at">const</span> [</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    NavigationDestination(icon<span class="op">:</span> Icon(Icons<span class="op">.</span>home)<span class="op">,</span> label<span class="op">:</span> <span class="st">&#39;Inicio&#39;</span>)<span class="op">,</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    NavigationDestination(icon<span class="op">:</span> Icon(Icons<span class="op">.</span>search)<span class="op">,</span> label<span class="op">:</span> <span class="st">&#39;Buscar&#39;</span>)<span class="op">,</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    NavigationDestination(icon<span class="op">:</span> Icon(Icons<span class="op">.</span>favorite)<span class="op">,</span> label<span class="op">:</span> <span class="st">&#39;Favoritos&#39;</span>)<span class="op">,</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    NavigationDestination(icon<span class="op">:</span> Icon(Icons<span class="op">.</span>person)<span class="op">,</span> label<span class="op">:</span> <span class="st">&#39;Perfil&#39;</span>)<span class="op">,</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  ]<span class="op">,</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<p><strong>Reglas M3:</strong></p>
+<ul>
+<li>Máximo 5 destinos</li>
+<li>Destino activo usa <code>primary</code> + tonal surface</li>
+<li>Muestra el label siempre (excepto en pantallas muy angostas)</li>
+</ul>
+<h3 id="navigationdrawer">NavigationDrawer</h3>
+<p>Para navegación secundaria o apps con muchas secciones.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Drawer(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  child<span class="op">:</span> NavigationDrawer(</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    selectedIndex<span class="op">:</span> <span class="dv">0</span><span class="op">,</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    onDestinationSelected<span class="op">:</span> (index) <span class="op">{},</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    children<span class="op">:</span> [</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>      NavigationDrawerDestination(</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        icon<span class="op">:</span> Icon(Icons<span class="op">.</span>inbox)<span class="op">,</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        label<span class="op">:</span> Text(<span class="st">&#39;Inbox&#39;</span>)<span class="op">,</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>      )<span class="op">,</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    ]<span class="op">,</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  )<span class="op">,</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<h3 id="topappbar">TopAppBar</h3>
+<p>La barra superior. M3 tiene 3 variantes:</p>
+<table>
+<thead>
+<tr>
+<th>Variante</th>
+<th>Uso</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AppBar</code> (centerTitle)</td>
+<td>Pantallas principales</td>
+</tr>
+<tr>
+<td><code>AppBar</code> (small/leading)</td>
+<td>Pantallas de detalle</td>
+</tr>
+<tr>
+<td><code>SliverAppBar</code></td>
+<td>Scroll con colapso</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-contenido">2. Contenido</h2>
+<h3 id="card">Card</h3>
+<p>Contenedor para información agrupada.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>Card(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  child<span class="op">:</span> Column(</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    children<span class="op">:</span> [</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>      ListTile(</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        leading<span class="op">:</span> CircleAvatar(child<span class="op">:</span> Icon(Icons<span class="op">.</span>tennis))<span class="op">,</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>        title<span class="op">:</span> Text(<span class="st">&#39;Cancha de Tenis&#39;</span>)<span class="op">,</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>        subtitle<span class="op">:</span> Text(<span class="st">&#39;Club Deportivo&#39;</span>)<span class="op">,</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>      )<span class="op">,</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>      Row(</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>        mainAxisAlignment<span class="op">:</span> MainAxisAlignment<span class="op">.</span>end<span class="op">,</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        children<span class="op">:</span> [</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>          TextButton(onPressed<span class="op">:</span> <span class="op">{},</span> child<span class="op">:</span> Text(<span class="st">&#39;Reservar&#39;</span>))<span class="op">,</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        ]<span class="op">,</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>      )<span class="op">,</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    ]<span class="op">,</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  )<span class="op">,</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<p>Variantes: <code>Card</code> (elevated), <code>Card.outlined</code>, <code>Card.filled</code>.</p>
+<h3 id="listtile">ListTile</h3>
+<p>Ítem estándar para listas.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>ListTile(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  leading<span class="op">:</span> Icon(Icons<span class="op">.</span>location_on)<span class="op">,</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  title<span class="op">:</span> Text(<span class="st">&#39;Club Deportivo&#39;</span>)<span class="op">,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  subtitle<span class="op">:</span> Text(<span class="st">&#39;A 2.3 km&#39;</span>)<span class="op">,</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  trailing<span class="op">:</span> Chip(label<span class="op">:</span> Text(<span class="st">&#39;\$15/h&#39;</span>))<span class="op">,</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<h2 id="3-acción">3. Acción</h2>
+<h3 id="buttons">Buttons</h3>
+<p>M3 tiene una jerarquía clara:</p>
+<table>
+<thead>
+<tr>
+<th>Tipo</th>
+<th>Énfasis</th>
+<th>Uso</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>FilledButton</code></td>
+<td>Alto</td>
+<td>Acción principal (Continuar, Pagar)</td>
+</tr>
+<tr>
+<td><code>FilledTonalButton</code></td>
+<td>Medio</td>
+<td>Acción secundaria importante</td>
+</tr>
+<tr>
+<td><code>OutlinedButton</code></td>
+<td>Medio</td>
+<td>Acción alternativa</td>
+</tr>
+<tr>
+<td><code>TextButton</code></td>
+<td>Bajo</td>
+<td>Acción menos importante (Cancelar)</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb5"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>FilledButton(onPressed<span class="op">:</span> () <span class="op">{},</span> child<span class="op">:</span> Text(<span class="st">&#39;Reservar ahora&#39;</span>))</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>FilledButton<span class="op">.</span>icon(</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  icon<span class="op">:</span> Icon(Icons<span class="op">.</span>shopping_cart)<span class="op">,</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  label<span class="op">:</span> Text(<span class="st">&#39;Agregar al carrito&#39;</span>)<span class="op">,</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<h3 id="fab-floatingactionbutton">FAB (FloatingActionButton)</h3>
+<p>Para la acción principal de la pantalla.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>FloatingActionButton(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  onPressed<span class="op">:</span> () <span class="op">{},</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  child<span class="op">:</span> Icon(Icons<span class="op">.</span>add)<span class="op">,</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">// Variante extendida (con texto):</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>FloatingActionButton<span class="op">.</span>extended(</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  onPressed<span class="op">:</span> () <span class="op">{},</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  icon<span class="op">:</span> Icon(Icons<span class="op">.</span>add)<span class="op">,</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  label<span class="op">:</span> Text(<span class="st">&#39;Nueva reserva&#39;</span>)<span class="op">,</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<h3 id="segmentedbutton">SegmentedButton</h3>
+<p>Alternativa moderna a RadioButton / ToggleButtons.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>SegmentedButton<span class="op">&lt;</span><span class="dt">String</span><span class="op">&gt;</span>(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  segments<span class="op">:</span> [</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    ButtonSegment(value<span class="op">:</span> <span class="st">&#39;day&#39;</span><span class="op">,</span> label<span class="op">:</span> Text(<span class="st">&#39;Día&#39;</span>))<span class="op">,</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    ButtonSegment(value<span class="op">:</span> <span class="st">&#39;week&#39;</span><span class="op">,</span> label<span class="op">:</span> Text(<span class="st">&#39;Semana&#39;</span>))<span class="op">,</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    ButtonSegment(value<span class="op">:</span> <span class="st">&#39;month&#39;</span><span class="op">,</span> label<span class="op">:</span> Text(<span class="st">&#39;Mes&#39;</span>))<span class="op">,</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  ]<span class="op">,</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  selected<span class="op">:</span> selected<span class="op">,</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  onSelectionChanged<span class="op">:</span> (v) <span class="op">{},</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<h2 id="4-entrada-de-texto">4. Entrada de texto</h2>
+<h3 id="textfield">TextField</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>TextField(</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  decoration<span class="op">:</span> InputDecoration(</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    labelText<span class="op">:</span> <span class="st">&#39;Buscar canchas&#39;</span><span class="op">,</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    prefixIcon<span class="op">:</span> Icon(Icons<span class="op">.</span>search)<span class="op">,</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    filled<span class="op">:</span> <span class="cn">true</span><span class="op">,</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  )<span class="op">,</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<h3 id="searchbar">SearchBar</h3>
+<p>Nuevo en M3. Más moderno que TextField para búsquedas.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>SearchBar(</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  leading<span class="op">:</span> Icon(Icons<span class="op">.</span>search)<span class="op">,</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  hintText<span class="op">:</span> <span class="st">&#39;Buscar canchas...&#39;</span><span class="op">,</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  onSubmitted<span class="op">:</span> (v) <span class="op">{},</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<h2 id="5-feedback">5. Feedback</h2>
+<h3 id="snackbar">SnackBar</h3>
+<p>Notificaciones temporales.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>ScaffoldMessenger<span class="op">.</span>of(context)<span class="op">.</span>showSnackBar(</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  SnackBar(content<span class="op">:</span> Text(<span class="st">&#39;Reserva confirmada&#39;</span>))<span class="op">,</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<h3 id="badge">Badge</h3>
+<p>Indicadores de notificaciones o conteo.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>Badge(</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  label<span class="op">:</span> Text(<span class="st">&#39;3&#39;</span>)<span class="op">,</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  child<span class="op">:</span> IconButton(icon<span class="op">:</span> Icon(Icons<span class="op">.</span>notifications))<span class="op">,</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<h3 id="alertdialog">AlertDialog</h3>
+<p>Diálogos de confirmación.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>AlertDialog(</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  title<span class="op">:</span> Text(<span class="st">&#39;Confirmar reserva&#39;</span>)<span class="op">,</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  content<span class="op">:</span> Text(<span class="st">&#39;¿Reservar cancha por \$15/h?&#39;</span>)<span class="op">,</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  actions<span class="op">:</span> [</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    TextButton(onPressed<span class="op">:</span> () <span class="op">{},</span> child<span class="op">:</span> Text(<span class="st">&#39;Cancelar&#39;</span>))<span class="op">,</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    FilledButton(onPressed<span class="op">:</span> () <span class="op">{},</span> child<span class="op">:</span> Text(<span class="st">&#39;Confirmar&#39;</span>))<span class="op">,</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  ]<span class="op">,</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<h2 id="mapa-de-componentes-para-tu-mvp">Mapa de componentes para tu MVP</h2>
+<p>Usa esta tabla para decidir qué componente usar en cada parte de tu app:</p>
+<table>
+<thead>
+<tr>
+<th>Necesidad</th>
+<th>Componente M3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Navegación principal</td>
+<td><code>NavigationBar</code> (inferior) o <code>NavigationDrawer</code> (lateral)</td>
+</tr>
+<tr>
+<td>Barra superior</td>
+<td><code>TopAppBar</code></td>
+</tr>
+<tr>
+<td>Lista de ítems</td>
+<td><code>Card</code> + <code>ListTile</code></td>
+</tr>
+<tr>
+<td>Acción principal</td>
+<td><code>FilledButton</code> o <code>FAB</code></td>
+</tr>
+<tr>
+<td>Acción secundaria</td>
+<td><code>FilledTonalButton</code></td>
+</tr>
+<tr>
+<td>Selección única</td>
+<td><code>SegmentedButton</code> o <code>ChoiceChip</code></td>
+</tr>
+<tr>
+<td>Selección múltiple</td>
+<td><code>FilterChip</code></td>
+</tr>
+<tr>
+<td>Búsqueda</td>
+<td><code>SearchBar</code></td>
+</tr>
+<tr>
+<td>Formulario</td>
+<td><code>TextField</code> + <code>FilledButton</code></td>
+</tr>
+<tr>
+<td>Fecha</td>
+<td><code>DatePickerDialog</code></td>
+</tr>
+<tr>
+<td>Hora</td>
+<td><code>TimePickerDialog</code></td>
+</tr>
+<tr>
+<td>Confirmación</td>
+<td><code>AlertDialog</code> o <code>BottomSheet</code></td>
+</tr>
+<tr>
+<td>Feedback breve</td>
+<td><code>SnackBar</code></td>
+</tr>
+<tr>
+<td>Notificación</td>
+<td><code>Badge</code></td>
+</tr>
+<tr>
+<td>Progreso</td>
+<td><code>LinearProgressIndicator</code> o <code>CircularProgressIndicator</code></td>
+</tr>
+<tr>
+<td>Vacío / Error</td>
+<td><code>Center</code> + <code>Icon</code> + <code>Text</code> (diseño propio)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="regla-de-oro">Regla de oro</h2>
+<blockquote>
+<p>Para cada pantalla del storyboard (del Design Sprint), identifica primero <strong>qué necesidad de UI tiene</strong> y luego ve a la tabla de arriba para elegir el componente M3.</p>
+</blockquote>
+<hr />
+<p><strong>Siguiente: <a href="06-prototipado-validacion.md">06 — Prototipado y Validación</a></strong></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Paso 06</span><div class="kick">Parte 3 · Prototipado y validación</div><h2>06 — Prototipado + Validación</h2></div><div class="article"><p><strong>Día 4: Construir → Día 5: Testear con usuarios</strong></p>
+<hr />
+<h2 id="fase-5-prototype">Fase 5: Prototype</h2>
+<p>El objetivo es construir un <strong>prototipo realista</strong> del MVP en 1 día. No es código real, es una simulación convincente.</p>
+<h3 id="opción-a-prototipado-en-figma-recomendada-para-no-devs">Opción A: Prototipado en Figma (recomendada para no-devs)</h3>
+<p>Figma + <a href="https://www.figma.com/community/file/1035203688168086460">Material 3 Design Kit</a>.</p>
+<pre><code>Storyboard del Día 3
+       ↓
+Componentes M3 en Figma (arrastrar y soltar)
+       ↓
+Conexiones y flujos (prototyping mode)
+       ↓
+Prototipo navegable listo para test</code></pre>
+<p><strong>Ventajas:</strong> Rápido (medio día), cualquier persona del equipo puede hacerlo. <strong>Desventajas:</strong> No muestra comportamiento real (scroll, carga, etc.).</p>
+<h3 id="opción-b-prototipado-en-flutter-recomendada-para-devs">Opción B: Prototipado en Flutter (recomendada para devs)</h3>
+<p>Usa el template de este módulo para construir el MVP funcional.</p>
+<pre><code>flutter create --template app mvp_prototipo
+→ Copiar template theme/ de este módulo
+→ Implementar las 3-4 pantallas del Golden Path
+→ Datos mock (sin backend)</code></pre>
+<p><strong>Ventajas:</strong> Comportamiento real, reutilizable como base del producto final. <strong>Desventajas:</strong> Más lento (1 día completo o más).</p>
+<h3 id="opción-c-híbrida-recomendada">Opción C: Híbrida (recomendada)</h3>
+<pre><code>Jueves AM: Figma → prototipo visual navegable (para testear el viernes)
+Jueves PM: Flutter → empezar a codificar las pantallas (para producción)</code></pre>
+<h3 id="guía-rápida-prototipado-en-figma-con-m3">Guía rápida: Prototipado en Figma con M3</h3>
+<ol type="1">
+<li><strong>Instala el kit M3</strong>: <a href="https://www.figma.com/community/file/1035203688168086460">https://www.figma.com/community/file/1035203688168086460</a></li>
+<li><strong>Define tu theme</strong>: seed color → genera la paleta con <a href="https://m3.material.io/theme-builder">Material Theme Builder</a></li>
+<li><strong>Arma las pantallas</strong>: arrastra componentes M3 (NavigationBar, Card, FilledButton, etc.)</li>
+<li><strong>Conecta los flujos</strong>: usa Figma Prototyping para enlazar pantallas</li>
+<li><strong>Tip</strong>: no diseñes todas las pantallas. Solo el Golden Path (3-4 pantallas) + estados clave (carga, error, vacío).</li>
+</ol>
+<hr />
+<h2 id="fase-6-validate">Fase 6: Validate</h2>
+<p>El día más importante del Sprint. Pones el prototipo frente a <strong>5 usuarios reales</strong> y observas.</p>
+<h3 id="por-qué-5-usuarios">¿Por qué 5 usuarios?</h3>
+<p>Con 5 usuarios encuentras ~85% de los problemas de usabilidad. Después del quinto, ves los mismos problemas una y otra vez.</p>
+<h3 id="cómo-reclutar-usuarios">Cómo reclutar usuarios</h3>
+<table>
+<thead>
+<tr>
+<th>Método</th>
+<th>Tiempo</th>
+<th>Costo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Clients actuales</td>
+<td>1-2 días</td>
+<td>Gratis</td>
+</tr>
+<tr>
+<td>Redes sociales</td>
+<td>2-3 días</td>
+<td>Gratis</td>
+</tr>
+<tr>
+<td>UserInterviews.com</td>
+<td>2-5 días</td>
+<td>~$50-100/usuario</td>
+</tr>
+<tr>
+<td>Respondent.io</td>
+<td>2-5 días</td>
+<td>~$100-200/usuario</td>
+</tr>
+</tbody>
+</table>
+<p>Perfil de usuario ideal: alguien que <strong>tiene el problema</strong> que tu MVP resuelve.</p>
+<h3 id="estructura-de-la-entrevista-30-min">Estructura de la entrevista (30 min)</h3>
+<pre><code>5 min  → Bienvenida y contexto (&quot;cuéntame de ti&quot;)
+5 min  → Pregunta sobre el problema actual (&quot;¿cómo reservas hoy?&quot;)
+15 min → Test del prototipo (&quot;ahora quiero que reserves una cancha&quot;)
+          → Observa en silencio
+          → No ayudes, no expliques
+          → Pide que piense en voz alta
+5 min  → Cierre (&quot;¿qué te pareció? ¿comprarías esto?&quot;)</code></pre>
+<h3 id="qué-observar">Qué observar</h3>
+<table>
+<thead>
+<tr>
+<th>Señal positiva</th>
+<th>Señal de alerta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Navega sin ayuda</td>
+<td>Se queda en blanco &gt;5s</td>
+</tr>
+<tr>
+<td>Completa la tarea</td>
+<td>Toca donde no hay botón</td>
+</tr>
+<tr>
+<td>Dice "esto es justo lo que necesito"</td>
+<td>Dice "¿y esto qué hace?"</td>
+</tr>
+<tr>
+<td>Pregunta por precio</td>
+<td>Pregunta "¿cómo vuelvo atrás?"</td>
+</tr>
+<tr>
+<td>Sonríe/celebra al completar</td>
+<td>Frunce el ceño, suspira</td>
+</tr>
+</tbody>
+</table>
+<h3 id="matriz-de-resultados">Matriz de resultados</h3>
+<p>Después de los 5 tests, clasifica los hallazgos:</p>
+<pre><code>                         Impacto en el usuario
+                      Bajo              Alto
+          ┌───────────────────────────────┐
+  Fácil   │  Bajo / Fácil     │  Alto / Fácil   │
+  de      │  (mejora rápida)  │  (prioridad!)   │
+  arreglar│───────────────────┼─────────────────│
+          │  Bajo / Difícil   │  Alto / Difícil  │
+  Difícil │  (pospuesto)      │  (requiere       │
+          │                   │   rediseño)      │
+          └───────────────────────────────────────┘</code></pre>
+<h3 id="decisiones-post-sprint">Decisiones post-Sprint</h3>
+<p>Con los resultados, tienes 3 opciones:</p>
+<table>
+<thead>
+<tr>
+<th>Resultado</th>
+<th>Acción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>✅ Los usuarios completaron el flujo y mostraron interés</td>
+<td><strong>Pasar a desarrollo</strong>: el MVP está validado</td>
+</tr>
+<tr>
+<td>❌ Los usuarios no completaron el flujo o no vieron valor</td>
+<td><strong>Pivotar</strong>: cambiar enfoque o solución</td>
+</tr>
+<tr>
+<td>⚠️ Resultados mixtos</td>
+<td><strong>Iterar</strong>: ajustar el prototipo y testear de nuevo (mini-Sprint de 2 días)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="checklist-del-día-5">Checklist del Día 5</h3>
+<ul class="task-list">
+<li><label><input type="checkbox" />5 entrevistas completadas</label></li>
+<li><label><input type="checkbox" />Grabaciones (audio/video) guardadas</label></li>
+<li><label><input type="checkbox" />Matriz de hallazgos completada</label></li>
+<li><label><input type="checkbox" />Decisión tomada: ✅ desarrollo / 🔄 iterar / ❌ pivotar</label></li>
+<li><label><input type="checkbox" />Próximos pasos documentados</label></li>
+</ul>
+<hr />
+<h2 id="del-prototipo-validado-al-código-flutter">Del prototipo validado al código Flutter</h2>
+<p>Una vez validado, el prototipo (Figma o Flutter) se convierte en el <strong>contrato de diseño</strong> para implementación.</p>
+<p>En el siguiente capítulo verás cómo llevar el theme M3 a código Flutter.</p>
+<hr />
+<p><strong>Siguiente: <a href="07-m3-flutter-implementacion.md">07 — M3 a Flutter: Implementación</a></strong></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Paso 07</span><div class="kick">Parte 4 · Implementación Flutter</div><h2>07 — M3 a Flutter: Implementación</h2></div><div class="article"><p><strong>Traducir el sistema de diseño a código</strong></p>
+<hr />
+<p>Flutter implementa M3 de forma nativa. No necesitas paquetes adicionales. Solo activarlo.</p>
+<h2 id="1-activar-m3">1. Activar M3</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>MaterialApp(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  theme<span class="op">:</span> ThemeData(</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    useMaterial3<span class="op">:</span> <span class="cn">true</span><span class="op">,</span> <span class="co">// ← Activa M3</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    colorScheme<span class="op">:</span> ColorScheme<span class="op">.</span>fromSeed(</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>      seedColor<span class="op">:</span> Color(<span class="dv">0xFF6750A4</span>)<span class="op">,</span> <span class="co">// seed color</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    )<span class="op">,</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  )<span class="op">,</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  darkTheme<span class="op">:</span> ThemeData(</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    useMaterial3<span class="op">:</span> <span class="cn">true</span><span class="op">,</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    colorScheme<span class="op">:</span> ColorScheme<span class="op">.</span>fromSeed(</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>      seedColor<span class="op">:</span> Color(<span class="dv">0xFF6750A4</span>)<span class="op">,</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>      brightness<span class="op">:</span> Brightness<span class="op">.</span>dark<span class="op">,</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    )<span class="op">,</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  )<span class="op">,</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  themeMode<span class="op">:</span> ThemeMode<span class="op">.</span>system<span class="op">,</span> <span class="co">// respeta preferencia del sistema</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<p>Con <code>useMaterial3: true</code>:</p>
+<ul>
+<li>Los componentes M3 cambian sus defaults (NavigationBar, Cards, Buttons, etc.)</li>
+<li>Se activa la escala tipográfica M3</li>
+<li>Las formas cambian a las redondeadas de M3</li>
+</ul>
+<h2 id="2-colorscheme">2. ColorScheme</h2>
+<p>La clase central de color en M3.</p>
+<h3 id="desde-un-seed-color-recomendado">Desde un seed color (recomendado)</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>ColorScheme<span class="op">.</span>fromSeed(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  seedColor<span class="op">:</span> Color(<span class="dv">0xFF6750A4</span>)<span class="op">,</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  brightness<span class="op">:</span> Brightness<span class="op">.</span>light<span class="op">,</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<p>Esto genera <strong>automáticamente</strong> los 12 tonos. No necesitas definir nada más.</p>
+<h3 id="esquema-personalizado">Esquema personalizado</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>ColorScheme(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  primary<span class="op">:</span> Color(<span class="dv">0xFF6750A4</span>)<span class="op">,</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  onPrimary<span class="op">:</span> Colors<span class="op">.</span>white<span class="op">,</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  primaryContainer<span class="op">:</span> Color(<span class="dv">0xFFEADDFF</span>)<span class="op">,</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  onPrimaryContainer<span class="op">:</span> Color(<span class="dv">0xFF21005D</span>)<span class="op">,</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  secondary<span class="op">:</span> Color(<span class="dv">0xFF625B71</span>)<span class="op">,</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  onSecondary<span class="op">:</span> Colors<span class="op">.</span>white<span class="op">,</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  surface<span class="op">:</span> Color(<span class="dv">0xFFFFFBFE</span>)<span class="op">,</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  onSurface<span class="op">:</span> Color(<span class="dv">0xFF1C1B1F</span>)<span class="op">,</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... más roles</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<p>Usa <code>fromSeed</code> siempre que puedas. Personaliza solo cuando necesites un color exacto de marca.</p>
+<h3 id="dynamic-color-material-you">Dynamic Color (Material You)</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">// En Android 12+</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>ColorScheme<span class="op">.</span>fromSeed(</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  seedColor<span class="op">:</span> Color(<span class="dv">0xFF6750A4</span>)<span class="op">,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  dynamicSchemeVariant<span class="op">:</span> DynamicSchemeVariant<span class="op">.</span>tonalSpot<span class="op">,</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  brightness<span class="op">:</span> Brightness<span class="op">.</span>light<span class="op">,</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<p><code>DynamicSchemeVariant</code> controla el estilo de la paleta generada:</p>
+<table>
+<thead>
+<tr>
+<th>Variante</th>
+<th>Efecto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tonalSpot</code></td>
+<td>Default. Balanceado</td>
+</tr>
+<tr>
+<td><code>fidelity</code></td>
+<td>Se acerca más al color original</td>
+</tr>
+<tr>
+<td><code>monochrome</code></td>
+<td>Un solo tono</td>
+</tr>
+<tr>
+<td><code>neutral</code></td>
+<td>Colores neutros</td>
+</tr>
+<tr>
+<td><code>vibrant</code></td>
+<td>Más saturado</td>
+</tr>
+<tr>
+<td><code>expressive</code></td>
+<td>Colores llamativos</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-texttheme">3. TextTheme</h2>
+<p>La escala tipográfica M3 en Flutter:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>TextTheme(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  displayLarge<span class="op">:</span> TextStyle(fontSize<span class="op">:</span> <span class="dv">57</span><span class="op">,</span> fontWeight<span class="op">:</span> FontWeight<span class="op">.</span>w400)<span class="op">,</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  headlineLarge<span class="op">:</span> TextStyle(fontSize<span class="op">:</span> <span class="dv">32</span><span class="op">,</span> fontWeight<span class="op">:</span> FontWeight<span class="op">.</span>w400)<span class="op">,</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  titleLarge<span class="op">:</span> TextStyle(fontSize<span class="op">:</span> <span class="dv">22</span><span class="op">,</span> fontWeight<span class="op">:</span> FontWeight<span class="op">.</span>w500)<span class="op">,</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  bodyLarge<span class="op">:</span> TextStyle(fontSize<span class="op">:</span> <span class="dv">16</span><span class="op">,</span> fontWeight<span class="op">:</span> FontWeight<span class="op">.</span>w400)<span class="op">,</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  labelLarge<span class="op">:</span> TextStyle(fontSize<span class="op">:</span> <span class="dv">14</span><span class="op">,</span> fontWeight<span class="op">:</span> FontWeight<span class="op">.</span>w500)<span class="op">,</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... más estilos</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<p>Uso en widgets:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>Text(<span class="st">&#39;Título de la pantalla&#39;</span><span class="op">,</span> style<span class="op">:</span> Theme<span class="op">.</span>of(context)<span class="op">.</span>textTheme<span class="op">.</span>titleLarge)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>Text(<span class="st">&#39;Cuerpo del texto&#39;</span><span class="op">,</span> style<span class="op">:</span> Theme<span class="op">.</span>of(context)<span class="op">.</span>textTheme<span class="op">.</span>bodyMedium)</span></code></pre></div>
+<h3 id="font-family-personalizada">Font family personalizada</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>ThemeData(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  textTheme<span class="op">:</span> TextTheme(</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    titleLarge<span class="op">:</span> TextStyle(fontFamily<span class="op">:</span> <span class="st">&#39;Inter&#39;</span><span class="op">,</span> fontSize<span class="op">:</span> <span class="dv">22</span>)<span class="op">,</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    bodyMedium<span class="op">:</span> TextStyle(fontFamily<span class="op">:</span> <span class="st">&#39;Inter&#39;</span><span class="op">,</span> fontSize<span class="op">:</span> <span class="dv">14</span>)<span class="op">,</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  )<span class="op">,</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<p>O global con <code>ThemeData(fontFamily: 'Inter')</code>.</p>
+<h2 id="4-shapescheme-formas">4. ShapeScheme (formas)</h2>
+<p>En Flutter, las formas se definen por componente:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ThemeData(</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  cardTheme<span class="op">:</span> CardTheme(</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    shape<span class="op">:</span> RoundedRectangleBorder(</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>      borderRadius<span class="op">:</span> BorderRadius<span class="op">.</span>circular(<span class="dv">12</span>)<span class="op">,</span> <span class="co">// medium</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    )<span class="op">,</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  )<span class="op">,</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  filledButtonTheme<span class="op">:</span> FilledButtonThemeData(</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    shape<span class="op">:</span> RoundedRectangleBorder(</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>      borderRadius<span class="op">:</span> BorderRadius<span class="op">.</span>circular(<span class="dv">8</span>)<span class="op">,</span> <span class="co">// small</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    )<span class="op">,</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  )<span class="op">,</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<h2 id="5-componentes-m3">5. Componentes M3</h2>
+<p>Una vez activado <code>useMaterial3</code>, los widgets de Flutter ya usan M3:</p>
+<table>
+<thead>
+<tr>
+<th>Widget</th>
+<th>Cambio con M3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>NavigationBar</code></td>
+<td>Reemplaza BottomNavigationBar. Más compacto, colores M3</td>
+</tr>
+<tr>
+<td><code>NavigationDrawer</code></td>
+<td>Reemplaza Drawer tradicional</td>
+</tr>
+<tr>
+<td><code>FilledButton</code></td>
+<td>Nuevo. Botón principal con fondo lleno</td>
+</tr>
+<tr>
+<td><code>FilledTonalButton</code></td>
+<td>Nuevo. Botón con fondo tonal</td>
+</tr>
+<tr>
+<td><code>SegmentedButton</code></td>
+<td>Nuevo. Reemplaza ToggleButtons</td>
+</tr>
+<tr>
+<td><code>SearchBar</code></td>
+<td>Nuevo. Barra de búsqueda M3</td>
+</tr>
+<tr>
+<td><code>Card</code></td>
+<td>Por defecto usa esquinas redondeadas M3</td>
+</tr>
+<tr>
+<td><code>Badge</code></td>
+<td>Nuevo. Indicador de notificaciones</td>
+</tr>
+</tbody>
+</table>
+<h2 id="6-themeextensions-tokens-personalizados">6. ThemeExtensions (tokens personalizados)</h2>
+<p>Para valores que no cubre M3 (spacing, radii, custom shadows):</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> AppSpacing <span class="kw">extends</span> ThemeExtension<span class="op">&lt;</span>AppSpacing<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> <span class="dt">double</span> xs;</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> <span class="dt">double</span> sm;</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> <span class="dt">double</span> md;</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> <span class="dt">double</span> lg;</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">const</span> AppSpacing(<span class="op">{</span>required <span class="kw">this</span><span class="op">.</span>xs<span class="op">,</span> required <span class="kw">this</span><span class="op">.</span>sm<span class="op">,</span> required <span class="kw">this</span><span class="op">.</span>md<span class="op">,</span> required <span class="kw">this</span><span class="op">.</span>lg<span class="op">}</span>);</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  AppSpacing copyWith(<span class="op">{</span><span class="dt">double</span><span class="op">?</span> xs<span class="op">,</span> <span class="dt">double</span><span class="op">?</span> sm<span class="op">,</span> <span class="dt">double</span><span class="op">?</span> md<span class="op">,</span> <span class="dt">double</span><span class="op">?</span> lg<span class="op">}</span>) <span class="op">{</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">return</span> AppSpacing(xs<span class="op">:</span> xs <span class="op">??</span> <span class="kw">this</span><span class="op">.</span>xs<span class="op">,</span> sm<span class="op">:</span> sm <span class="op">??</span> <span class="kw">this</span><span class="op">.</span>sm<span class="op">,</span> md<span class="op">:</span> md <span class="op">??</span> <span class="kw">this</span><span class="op">.</span>md<span class="op">,</span> lg<span class="op">:</span> lg <span class="op">??</span> <span class="kw">this</span><span class="op">.</span>lg);</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  AppSpacing lerp(AppSpacing<span class="op">?</span> other<span class="op">,</span> <span class="dt">double</span> t) <span class="op">{</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (other <span class="op">==</span> <span class="cn">null</span>) <span class="kw">return</span> <span class="kw">this</span>;</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">return</span> AppSpacing(</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>      xs<span class="op">:</span> lerpDouble(xs<span class="op">,</span> other<span class="op">.</span>xs<span class="op">,</span> t)<span class="op">!,</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>      sm<span class="op">:</span> lerpDouble(sm<span class="op">,</span> other<span class="op">.</span>sm<span class="op">,</span> t)<span class="op">!,</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>      md<span class="op">:</span> lerpDouble(md<span class="op">,</span> other<span class="op">.</span>md<span class="op">,</span> t)<span class="op">!,</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>      lg<span class="op">:</span> lerpDouble(lg<span class="op">,</span> other<span class="op">.</span>lg<span class="op">,</span> t)<span class="op">!,</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>    );</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Uso:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>Theme<span class="op">.</span>of(context)<span class="op">.</span><span class="kw">extension</span><span class="op">&lt;</span>AppSpacing<span class="op">&gt;</span>()<span class="op">!.</span>md <span class="co">// → 16</span></span></code></pre></div>
+<h2 id="7-dark-mode">7. Dark mode</h2>
+<p>Con <code>ColorScheme.fromSeed</code> y <code>Brightness.dark</code>, obtienes dark mode automático:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>ThemeData(</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  useMaterial3<span class="op">:</span> <span class="cn">true</span><span class="op">,</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  colorScheme<span class="op">:</span> ColorScheme<span class="op">.</span>fromSeed(</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    seedColor<span class="op">:</span> brandColor<span class="op">,</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    brightness<span class="op">:</span> Brightness<span class="op">.</span>dark<span class="op">,</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  )<span class="op">,</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<p>No necesitas ajustar nada. Los componentes M3 se adaptan solos.</p>
+<h2 id="8-arquitectura-del-theme-buena-práctica">8. Arquitectura del theme (buena práctica)</h2>
+<p>Separa el theme en archivos independientes:</p>
+<pre><code>lib/theme/
+├── app_theme.dart        → ThemeData light + dark
+├── app_colors.dart       → ColorScheme (light + dark)
+├── app_typography.dart   → TextTheme
+└── app_extensions.dart   → ThemeExtensions (spacing, radii)</code></pre>
+<p>Esto es exactamente lo que incluye el template de este módulo.</p>
+<h2 id="checklist-de-implementación-m3">Checklist de implementación M3</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" /><code>useMaterial3: true</code> activado</label></li>
+<li><label><input type="checkbox" /><code>ColorScheme.fromSeed</code> con seed color de marca</label></li>
+<li><label><input type="checkbox" />Light + dark scheme definidos</label></li>
+<li><label><input type="checkbox" /><code>textTheme</code> personalizado (fuente de marca si aplica)</label></li>
+<li><label><input type="checkbox" />Componentes actualizados a M3 (NavigationBar, etc.)</label></li>
+<li><label><input type="checkbox" /><code>ThemeExtensions</code> para tokens no cubiertos</label></li>
+<li><label><input type="checkbox" /><code>ThemeMode.system</code> para respetar preferencia del usuario</label></li>
+</ul>
+<hr />
+<p><strong>Siguiente: <a href="08-template-proyecto.md">08 — Template de proyecto</a></strong></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Paso 08</span><div class="kick">Parte 4 · Implementación Flutter</div><h2>08 — Template de proyecto</h2></div><div class="article"><p><strong>Starter Flutter con M3 + Clean Architecture para tu MVP</strong></p>
+<hr />
+<p>El directorio <code>template/</code> contiene un proyecto Flutter listo para usar como base de tu MVP. Incluye:</p>
+<ul>
+<li>M3 theming completo (light + dark + dynamic color)</li>
+<li>Clean Architecture (data/domain/presentation)</li>
+<li>Componentes M3 reutilizables</li>
+<li>Estructura preparada para escalar</li>
+</ul>
+<h2 id="estructura">Estructura</h2>
+<pre><code>template/
+├── lib/
+│   ├── main.dart                    # Entry point
+│   ├── app.dart                     # MaterialApp con M3
+│   ├── theme/
+│   │   ├── app_theme.dart           # ThemeData light + dark
+│   │   ├── app_colors.dart          # ColorScheme.fromSeed
+│   │   ├── app_typography.dart      # TextTheme M3
+│   │   └── app_extensions.dart      # Spacing, Radii tokens
+│   ├── features/
+│   │   └── mvp/                     # Feature de ejemplo
+│   │       ├── data/
+│   │       │   ├── datasources/     # Fuentes de datos (API, local)
+│   │       │   └── repositories/    # Implementación de repositorios
+│   │       ├── domain/
+│   │       │   ├── entities/        # Modelos de dominio
+│   │       │   ├── repositories/    # Contratos (abstract)
+│   │       │   └── usecases/        # Casos de uso
+│   │       └── presentation/
+│   │           ├── pages/           # Pantallas
+│   │           └── widgets/         # Widgets reutilizables
+│   └── core/
+│       └── components/              # Componentes M3 compartidos
+├── test/
+│   └── ...                          # Tests unitarios + de widgets
+└── pubspec.yaml</code></pre>
+<h2 id="cómo-usar-el-template">Cómo usar el template</h2>
+<h3 id="opción-1-copiar-sobre-un-proyecto-existente">Opción 1: Copiar sobre un proyecto existente</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Después de flutter create</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> <span class="at">-r</span> template/lib/theme/ tu-proyecto/lib/theme/</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> <span class="at">-r</span> template/lib/core/ tu-proyecto/lib/core/</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Adapta main.dart y app.dart</span></span></code></pre></div>
+<h3 id="opción-2-usar-como-base">Opción 2: Usar como base</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> <span class="at">-r</span> template/ mi-mvp/</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> mi-mvp</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Edita pubspec.yaml con tu nombre, dependencias, etc.</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="ex">flutter</span> pub get</span></code></pre></div>
+<h3 id="opción-3-referencia-de-estudio">Opción 3: Referencia de estudio</h3>
+<p>Lee cada archivo del template como ejemplo de implementación M3 + Clean Architecture.</p>
+<h2 id="personalización-rápida">Personalización rápida</h2>
+<ol type="1">
+<li><strong>Cambia el seed color</strong> en <code>app_colors.dart</code>:</li>
+</ol>
+<div class="sourceCode" id="cb4"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="at">static</span> ColorScheme light() <span class="op">=&gt;</span> ColorScheme<span class="op">.</span>fromSeed(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  seedColor<span class="op">:</span> Color(<span class="dv">0xFF</span>TU_COLOR)<span class="op">,</span> <span class="co">// ← tu color de marca</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>);</span></code></pre></div>
+<ol start="2" type="1">
+<li><strong>Agrega tu font</strong> en <code>app_typography.dart</code> y <code>pubspec.yaml</code>:</li>
+</ol>
+<div class="sourceCode" id="cb5"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// app_typography.dart</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>TextTheme(</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  titleLarge<span class="op">:</span> GoogleFonts<span class="op">.</span>interTextTheme()<span class="op">.</span>titleLarge<span class="op">,</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  bodyMedium<span class="op">:</span> GoogleFonts<span class="op">.</span>interTextTheme()<span class="op">.</span>bodyMedium<span class="op">,</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<ol start="3" type="1">
+<li><strong>Agrega tus pantallas</strong> en <code>features/mvp/presentation/pages/</code>:</li>
+</ol>
+<div class="sourceCode" id="cb6"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> HomePage <span class="kw">extends</span> StatelessWidget <span class="op">{</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  Widget build(BuildContext context) <span class="op">{</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">return</span> Scaffold(</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>      appBar<span class="op">:</span> AppBar(title<span class="op">:</span> Text(<span class="st">&#39;Mi MVP&#39;</span>))<span class="op">,</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>      body<span class="op">:</span> Center(child<span class="op">:</span> Text(<span class="st">&#39;¡A construir!&#39;</span>))<span class="op">,</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    );</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="dependencias-incluidas">Dependencias incluidas</h2>
+<p>En <code>pubspec.yaml</code>:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dependencies</span><span class="kw">:</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">flutter</span><span class="kw">:</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">sdk</span><span class="kw">:</span><span class="at"> flutter</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">google_fonts</span><span class="kw">:</span><span class="at"> ^6.1.0</span><span class="co">  # tipografía M3 fácil</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">dev_dependencies</span><span class="kw">:</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">flutter_test</span><span class="kw">:</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">sdk</span><span class="kw">:</span><span class="at"> flutter</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">flutter_lints</span><span class="kw">:</span><span class="at"> ^3.0.0</span></span></code></pre></div>
+<h2 id="integración-con-otros-módulos">Integración con otros módulos</h2>
+<table>
+<thead>
+<tr>
+<th>Necesidad</th>
+<th>Módulo relacionado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>State management (BLoC/Cubit)</td>
+<td><code>16-BLOC-CUBIT</code></td>
+</tr>
+<tr>
+<td>Backend con Supabase</td>
+<td><code>03-SUPABASE</code></td>
+</tr>
+<tr>
+<td>Almacenamiento local</td>
+<td><code>04-ALMACENAMIENTO-LOCAL</code></td>
+</tr>
+<tr>
+<td>Testing</td>
+<td><code>05-TESTING</code></td>
+</tr>
+<tr>
+<td>Widgets avanzados</td>
+<td><code>15-WIDGETS-FLUTTER</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><strong>Siguiente: <a href="09-caso-completo-mvp.md">09 — Caso completo MVP</a></strong></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Caso 09</span><div class="kick">Parte 5 · Caso integrador</div><h2>09 — Caso completo: App de Reservas</h2></div><div class="article"><p><strong>De Design Sprint a Flutter con M3 en 5 días</strong></p>
+<hr />
+<p>Este caso integrador recorre el proceso completo con un ejemplo real: una app MVP para <strong>reservar canchas de tenis</strong>.</p>
+<h2 id="día-1-understand--define">Día 1: Understand + Define</h2>
+<h3 id="goal-a-largo-plazo">Goal a largo plazo</h3>
+<blockquote>
+<p>"Los usuarios pueden reservar una cancha de tenis en menos de 30 segundos desde su teléfono, sin llamar por teléfono."</p>
+</blockquote>
+<p><strong>Métrica principal:</strong> Tiempo promedio de reserva &lt; 30 segundos.</p>
+<h3 id="mapa-del-problema">Mapa del problema</h3>
+<pre><code>[Usuario quiere jugar tenis]
+  → Google Maps &quot;canchas de tenis cerca&quot;
+  → Encuentra teléfono
+  → Llama → Ocupado → Llama de nuevo
+  → &quot;¿Tienen cancha libre a las 5pm?&quot;
+  → &quot;Sí&quot; → &quot;OK, reserve&quot;
+  → Llega → No está reservada → Enfado
+  ← Pierde una hora de juego ←</code></pre>
+<h3 id="hmws-seleccionados">HMWs seleccionados</h3>
+<ul>
+<li>"¿Cómo podríamos mostrar disponibilidad en tiempo real?"</li>
+<li>"¿Cómo podríamos permitir reservar sin hablar con nadie?"</li>
+<li>"¿Cómo podríamos confirmar la reserva instantáneamente?"</li>
+</ul>
+<h3 id="golden-path">Golden Path</h3>
+<pre><code>1. Home → buscar canchas (filtro por fecha/hora)
+2. Lista de canchas disponibles → seleccionar
+3. Confirmar datos → pagar
+4. Confirmación → ticket digital</code></pre>
+<h3 id="alcance-del-mvp">Alcance del MVP</h3>
+<table>
+<thead>
+<tr>
+<th>Incluye</th>
+<th>No incluye</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Búsqueda por fecha/hora</td>
+<td>Registro de usuario obligatorio</td>
+</tr>
+<tr>
+<td>Lista de canchas con precio</td>
+<td>Historial de reservas</td>
+</tr>
+<tr>
+<td>Reserva y pago</td>
+<td>Favoritos</td>
+</tr>
+<tr>
+<td>Confirmación</td>
+<td>Chat con el club</td>
+</tr>
+<tr>
+<td>Modo invitado (sin registro)</td>
+<td>Reseñas</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sprint-goal">Sprint Goal</h3>
+<blockquote>
+<p>"Validar que un usuario puede encontrar y reservar una cancha de tenis en menos de 30 segundos sin ayuda."</p>
+</blockquote>
+<hr />
+<h2 id="día-2-sketch">Día 2: Sketch</h2>
+<h3 id="solution-sketch-por-el-diseñador">Solution Sketch (por el diseñador)</h3>
+<p>Panel 1: Usuario frustrado llamando por teléfono sin respuesta. Panel 2: App con campo de búsqueda, calendario y botón "Reservar". Panel 3: Usuario feliz con confirmación en pantalla.</p>
+<hr />
+<h2 id="día-3-decide">Día 3: Decide</h2>
+<h3 id="storyboard-final">Storyboard final</h3>
+<pre><code>┌─────────────────┐
+│  Pantalla 1     │
+│  Home           │
+│  ┌───────────┐  │
+│  │ SearchBar │  │  &quot;Buscar canchas...&quot;
+│  └───────────┘  │
+│  [Hoy] [Mañana] │  ← SegmentedButton
+│  [◀] [5:00] [▶] │
+│  ┌───────────┐  │
+│  │ Card       │  │  Cancha 1 - $15/h - Libre
+│  │ Card       │  │  Cancha 2 - $18/h - Libre
+│  │ Card       │  │  Cancha 3 - $20/h - Ocupado
+│  └───────────┘  │
+└─────────────────┘
+         ↓ tap en card
+┌─────────────────┐
+│  Pantalla 2     │
+│  Detalle + Pago  │
+│  Cancha de Tenis│
+│  Club Deportivo │
+│  ─────────────  │
+│  Fecha: 15 Jul  │
+│  Hora: 5:00 PM  │
+│  Precio: $15    │
+│  ┌───────────┐  │
+│  │ FilledBtn │  │  &quot;Reservar y pagar&quot;
+│  └───────────┘  │
+└─────────────────┘
+         ↓ tap en botón
+┌─────────────────┐
+│  Pantalla 3     │
+│  Confirmación   │
+│  ✓              │
+│  &quot;Reserva       │
+│  confirmada&quot;    │
+│  Cancha 1       │
+│  5:00 PM        │
+│  Código: T-047  │
+│                 │
+│  [Volver al inicio]│
+└─────────────────┘</code></pre>
+<h3 id="componentes-m3-identificados">Componentes M3 identificados</h3>
+<table>
+<thead>
+<tr>
+<th>Pantalla</th>
+<th>Componentes M3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Home</td>
+<td><code>SearchBar</code>, <code>SegmentedButton</code>, <code>Card</code> + <code>ListTile</code></td>
+</tr>
+<tr>
+<td>Detalle</td>
+<td><code>Card</code>, <code>FilledButton</code>, <code>ListTile</code></td>
+</tr>
+<tr>
+<td>Confirmación</td>
+<td><code>Card</code>, <code>Icon</code> (check), <code>TextButton</code></td>
+</tr>
+<tr>
+<td>Estados</td>
+<td><code>CircularProgressIndicator</code>, <code>SnackBar</code>, <code>AlertDialog</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="día-4-prototype-figma--flutter">Día 4: Prototype (Figma + Flutter)</h2>
+<h3 id="theme-m3-definido">Theme M3 definido</h3>
+<pre><code>Seed color: #1B5E20 (verde oscuro, evoca cancha de tenis)
+→ Light + Dark scheme generados con ColorScheme.fromSeed
+→ Tipografía: Google Fonts Inter
+→ Shape: 8px small, 12px medium, 16px large</code></pre>
+<h3 id="pantallas-en-figma">Pantallas en Figma</h3>
+<p>Se crean las 3 pantallas del storyboard usando componentes M3 del kit de Figma. Flujos conectados: Home → Detalle → Confirmación.</p>
+<h3 id="base-en-flutter-template">Base en Flutter (template)</h3>
+<p>Se copia el template y se configura el theme con el seed color verde.</p>
+<hr />
+<h2 id="día-5-validate">Día 5: Validate</h2>
+<h3 id="usuarios-reclutados">Usuarios reclutados</h3>
+<p>5 personas que juegan tenis al menos 1 vez por semana.</p>
+<h3 id="resultados">Resultados</h3>
+<table>
+<thead>
+<tr>
+<th>Usuario</th>
+<th>Completó la tarea?</th>
+<th>Tiempo</th>
+<th>Problemas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>✅ Sí</td>
+<td>25s</td>
+<td>Ninguno</td>
+</tr>
+<tr>
+<td>2</td>
+<td>✅ Sí</td>
+<td>20s</td>
+<td>Dudó en el SearchBar (no obvio)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>✅ Sí</td>
+<td>35s</td>
+<td>Quería filtrar por precio</td>
+</tr>
+<tr>
+<td>4</td>
+<td>❌ No</td>
+<td>60s</td>
+<td>No encontró el botón de reserva</td>
+</tr>
+<tr>
+<td>5</td>
+<td>✅ Sí</td>
+<td>28s</td>
+<td>"Muy fácil, me encantó"</td>
+</tr>
+</tbody>
+</table>
+<h3 id="hallazgos">Hallazgos</h3>
+<table>
+<thead>
+<tr>
+<th>Hallazgo</th>
+<th>Prioridad</th>
+<th>Acción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SearchBar no es obvio como buscador</td>
+<td>Alta</td>
+<td>Agregar hint text + icono de lupa más claro</td>
+</tr>
+<tr>
+<td>Falta filtro por precio</td>
+<td>Media</td>
+<td>Agregar como post-MVP</td>
+</tr>
+<tr>
+<td>Botón de reserva muy abajo</td>
+<td>Alta</td>
+<td>Mover FilledButton arriba, hacerlo sticky</td>
+</tr>
+<tr>
+<td>El flujo general funciona</td>
+<td>-</td>
+<td>MVP validado, pasar a desarrollo</td>
+</tr>
+</tbody>
+</table>
+<h3 id="decisión">Decisión</h3>
+<p><strong>✅ Pasar a desarrollo.</strong> Los 3 de 5 usuarios completaron la tarea en &lt;30s. Los problemas identificados son fáciles de corregir antes del lanzamiento.</p>
+<hr />
+<h2 id="de-vuelta-a-flutter-implementación-del-mvp">De vuelta a Flutter: implementación del MVP</h2>
+<p>Con el prototipo validado y los hallazgos corregidos, se implementa usando:</p>
+<ol type="1">
+<li><strong>Template M3</strong> → theme con seed color + dark mode</li>
+<li><strong>Clean Architecture</strong> → features/mvp con data/domain/presentation</li>
+<li><strong>Datos mock</strong> → sin backend todavía (los repositorios devuelven datos estáticos)</li>
+<li><strong>Golden Path</strong> → las 3 pantallas conectadas con navegación</li>
+</ol>
+<div class="sourceCode" id="cb5"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// app.dart</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>MaterialApp(</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  theme<span class="op">:</span> AppTheme<span class="op">.</span>light<span class="op">,</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  darkTheme<span class="op">:</span> AppTheme<span class="op">.</span>dark<span class="op">,</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  themeMode<span class="op">:</span> ThemeMode<span class="op">.</span>system<span class="op">,</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  home<span class="op">:</span> HomePage()<span class="op">,</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// features/mvp/presentation/pages/home_page.dart</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> HomePage <span class="kw">extends</span> StatelessWidget <span class="op">{</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  Widget build(BuildContext context) <span class="op">{</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">return</span> Scaffold(</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>      appBar<span class="op">:</span> AppBar(title<span class="op">:</span> Text(<span class="st">&#39;Reservar cancha&#39;</span>))<span class="op">,</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>      body<span class="op">:</span> Column(</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>        children<span class="op">:</span> [</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>          SearchBar(hintText<span class="op">:</span> <span class="st">&#39;Buscar canchas...&#39;</span>)<span class="op">,</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>          SegmentedButton(<span class="op">...</span>)<span class="op">,</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>          Expanded(</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>            child<span class="op">:</span> ListView(</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>              children<span class="op">:</span> canchas<span class="op">.</span>map((c) <span class="op">=&gt;</span> Card(</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>                child<span class="op">:</span> ListTile(</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>                  title<span class="op">:</span> Text(c<span class="op">.</span>nombre)<span class="op">,</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>                  subtitle<span class="op">:</span> Text(<span class="st">&#39;\$${c.precio}/h&#39;</span>)<span class="op">,</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>                  trailing<span class="op">:</span> c<span class="op">.</span>disponible</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>                    <span class="op">?</span> FilledButton(onPressed<span class="op">:</span> () <span class="op">{},</span> child<span class="op">:</span> Text(<span class="st">&#39;Reservar&#39;</span>))</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>                    <span class="op">:</span> Chip(label<span class="op">:</span> Text(<span class="st">&#39;Ocupado&#39;</span>))<span class="op">,</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>                )<span class="op">,</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>              ))<span class="op">.</span>toList()<span class="op">,</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>            )<span class="op">,</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>          )<span class="op">,</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>        ]<span class="op">,</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>      )<span class="op">,</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>      bottomNavigationBar<span class="op">:</span> NavigationBar(destinations<span class="op">:</span> [<span class="op">...</span>])<span class="op">,</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>    );</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<hr />
+<h2 id="lecciones-del-caso-real">Lecciones del caso real</h2>
+<ol type="1">
+<li><strong>El Design Sprint ahorró semanas</strong>: detectamos el problema del botón de reserva antes de escribir código.</li>
+<li><strong>M3 aceleró el diseño</strong>: no diseñamos desde cero, usamos componentes ya definidos.</li>
+<li><strong>El template M3 + Clean Arch</strong>: nos permitió pasar de prototipo a código en horas.</li>
+<li><strong>La validación con 5 usuarios fue suficiente</strong>: encontramos los problemas críticos.</li>
+</ol>
+<hr />
+<p><strong>Siguiente: <a href="BIBLIOGRAFIA.md">BIBLIOGRAFIA</a></strong></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Anexo</span><div class="kick">Parte 6 · Cierre</div><h2>Bibliografía y recursos oficiales</h2></div><div class="article"><h2 id="design-sprint">Design Sprint</h2>
+<table>
+<thead>
+<tr>
+<th>Recurso</th>
+<th>Tipo</th>
+<th>Enlace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Google Design Sprint Kit (oficial)</td>
+<td>Guía + métodos</td>
+<td><a href="https://designsprintkit.withgoogle.com/methodology">https://designsprintkit.withgoogle.com/methodology</a></td>
+</tr>
+<tr>
+<td>GV Design Sprint (Jake Knapp)</td>
+<td>Libro</td>
+<td><a href="https://www.gv.com/sprint/">https://www.gv.com/sprint/</a></td>
+</tr>
+<tr>
+<td>The Design Sprint (videos)</td>
+<td>Videos</td>
+<td><a href="https://www.youtube.com/playlist?list=PLI5pVb4v-8nPgI7wHmR0y3OcE1G5r5z0y">https://www.youtube.com/playlist?list=PLI5pVb4v-8nPgI7wHmR0y3OcE1G5r5z0y</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="material-design-3">Material Design 3</h2>
+<table>
+<thead>
+<tr>
+<th>Recurso</th>
+<th>Tipo</th>
+<th>Enlace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Material Design 3 (oficial)</td>
+<td>Sistema completo</td>
+<td><a href="https://m3.material.io">https://m3.material.io</a></td>
+</tr>
+<tr>
+<td>Foundations (color, typography, shape)</td>
+<td>Guía</td>
+<td><a href="https://m3.material.io/foundations">https://m3.material.io/foundations</a></td>
+</tr>
+<tr>
+<td>Material Theme Builder</td>
+<td>Herramienta</td>
+<td><a href="https://m3.material.io/theme-builder">https://m3.material.io/theme-builder</a></td>
+</tr>
+<tr>
+<td>Material 3 Figma Kit</td>
+<td>Kit Figma</td>
+<td><a href="https://www.figma.com/community/file/1035203688168086460">https://www.figma.com/community/file/1035203688168086460</a></td>
+</tr>
+<tr>
+<td>Material A-Z</td>
+<td>Glosario</td>
+<td><a href="https://m3.material.io/material-az">https://m3.material.io/material-az</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="flutter--m3">Flutter + M3</h2>
+<table>
+<thead>
+<tr>
+<th>Recurso</th>
+<th>Tipo</th>
+<th>Enlace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Material Design para Flutter (oficial)</td>
+<td>Guía</td>
+<td><a href="https://docs.flutter.dev/ui/design/material">https://docs.flutter.dev/ui/design/material</a></td>
+</tr>
+<tr>
+<td>MDC-101: Material Components Basics</td>
+<td>Codelab</td>
+<td><a href="https://codelabs.developers.google.com/codelabs/mdc-101-flutter">https://codelabs.developers.google.com/codelabs/mdc-101-flutter</a></td>
+</tr>
+<tr>
+<td>MDC-102: Material Structure and Layout</td>
+<td>Codelab</td>
+<td><a href="https://codelabs.developers.google.com/codelabs/mdc-102-flutter">https://codelabs.developers.google.com/codelabs/mdc-102-flutter</a></td>
+</tr>
+<tr>
+<td>MDC-103: Material Theming (Color, Shape, Type)</td>
+<td>Codelab</td>
+<td><a href="https://codelabs.developers.google.com/codelabs/mdc-103-flutter">https://codelabs.developers.google.com/codelabs/mdc-103-flutter</a></td>
+</tr>
+<tr>
+<td>Flutter App Architecture Guide</td>
+<td>Guía</td>
+<td><a href="https://docs.flutter.dev/app-architecture">https://docs.flutter.dev/app-architecture</a></td>
+</tr>
+<tr>
+<td>Flutter Widget Catalog</td>
+<td>Referencia</td>
+<td><a href="https://docs.flutter.dev/reference/widgets">https://docs.flutter.dev/reference/widgets</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="diseño-mobile-iosandroid">Diseño mobile (iOS/Android)</h2>
+<table>
+<thead>
+<tr>
+<th>Recurso</th>
+<th>Tipo</th>
+<th>Enlace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Apple Human Interface Guidelines</td>
+<td>Guía</td>
+<td><a href="https://developer.apple.com/design/human-interface-guidelines">https://developer.apple.com/design/human-interface-guidelines</a></td>
+</tr>
+<tr>
+<td>Android Design for Mobile</td>
+<td>Guía</td>
+<td><a href="https://developer.android.com/design/ui/mobile">https://developer.android.com/design/ui/mobile</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="libros-recomendados">Libros recomendados</h2>
+<table>
+<thead>
+<tr>
+<th>Título</th>
+<th>Autor</th>
+<th>Por qué</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><em>Sprint</em></td>
+<td>Jake Knapp</td>
+<td>El libro original del Design Sprint</td>
+</tr>
+<tr>
+<td><em>The Design of Everyday Things</em></td>
+<td>Don Norman</td>
+<td>Fundamentos de diseño centrado en el usuario</td>
+</tr>
+<tr>
+<td><em>Don't Make Me Think</em></td>
+<td>Steve Krug</td>
+<td>Usabilidad web y mobile, práctico y corto</td>
+</tr>
+<tr>
+<td><em>Material Design 3: Documentation</em></td>
+<td>Google</td>
+<td>Leer online, no comprar (es gratis)</td>
+</tr>
+</tbody>
+</table>
+</div></div>
+</body>
+</html>
