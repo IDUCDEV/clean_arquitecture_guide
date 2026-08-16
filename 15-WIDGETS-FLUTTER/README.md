@@ -1,6 +1,6 @@
 # 15 — Widgets de Flutter
 
-> Catálogo práctico de widgets de Flutter: desde fundamentos hasta el arsenal completo, sin state management.
+> Catálogo práctico de widgets de Flutter: desde fundamentos hasta el arsenal completo, sin state management. Alineado con **Material 3** y **Flutter 3.44+**.
 
 ---
 
@@ -9,14 +9,14 @@
 | Archivo | Descripción |
 |---------|-------------|
 | [01-fundamentos-widgets.md](./01-fundamentos-widgets.md) | Widget, Element, RenderObject, BuildContext, keys |
-| [02-widgets-basicos-y-atomizacion.md](./02-widgets-basicos-y-atomizacion.md) | Text, Image, Icon, Button, Chip, Avatares, atomización |
-| [03-layout-y-navegacion.md](./03-layout-y-navegacion.md) | Row, Column, Stack, Expanded, Navigator, GoRouter |
-| [04-interaccion-y-formularios.md](./04-interaccion-y-formularios.md) | TextField, Form, validación, FocusNode, debounce |
-| [05-listas-y-scroll.md](./05-listas-y-scroll.md) | ListView, GridView, CustomScrollView, Slivers, pull-to-refresh |
-| [06-datos-estados-y-ciclo-de-vida.md](./06-datos-estados-y-ciclo-de-vida.md) | StatefulWidget, initState, dispose, StreamBuilder, ValueListenableBuilder |
+| [02-widgets-basicos-y-atomizacion.md](./02-widgets-basicos-y-atomizacion.md) | Text, Image, Icon, Button, Chip, Card, Badge, atomización |
+| [03-layout-y-navegacion.md](./03-layout-y-navegacion.md) | Row, Column, Stack, Expanded, Scaffold, Navigator, GoRouter, PopScope |
+| [04-interaccion-y-formularios.md](./04-interaccion-y-formularios.md) | TextField, Form, validación, RadioGroup, SegmentedButton, DropdownMenu |
+| [05-listas-y-scroll.md](./05-listas-y-scroll.md) | ListView, GridView, CustomScrollView, Slivers, CarouselView, pull-to-refresh |
+| [06-datos-estados-y-ciclo-de-vida.md](./06-datos-estados-y-ciclo-de-vida.md) | StatefulWidget, initState, dispose, mounted, StreamBuilder, ListenableBuilder |
 | [07-animaciones.md](./07-animaciones.md) | AnimatedContainer, Hero, TweenAnimationBuilder, implicit/explicit |
 | [08-estrategias-composicion.md](./08-estrategias-composicion.md) | Composición vs herencia, patrones slot, builder, child |
-| [09-patrones-renderizacion.md](./09-patrones-renderizacion.md) | Conditional rendering, AsyncValue, loading/error/data, debouncer |
+| [09-patrones-renderizacion.md](./09-patrones-renderizacion.md) | Conditional rendering, sealed states, loading/error/data, slivers |
 | [10-perf-y-buenas-practicas.md](./10-perf-y-buenas-practicas.md) | const constructors, RepaintBoundary, keys, evitar rebuilds |
 | [11-arsenal-completo-widgets.md](./11-arsenal-completo-widgets.md) | Referencia rápida de +150 widgets organizados por categoría |
 
@@ -26,9 +26,9 @@
 
 - Fundamentos del framework de widgets
 - Widgets básicos y atómicos
-- Layout y navegación (GoRouter)
+- Layout y navegación (GoRouter 17.x)
 - Interacción y formularios con validación
-- Listas, scroll y slivers
+- Listas, scroll, slivers y carrusel
 - Data binding y ciclo de vida
 - Animaciones implícitas y explícitas
 - Patrones de composición y renderización

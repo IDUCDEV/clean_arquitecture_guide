@@ -82,7 +82,7 @@ Stack(
 
 ## Scaffold
 
-Estructura base de una pantalla.
+Estructura base de una pantalla. Con Material 3, la barra inferior recomendada es `NavigationBar`.
 
 ```dart
 Scaffold(
@@ -97,23 +97,25 @@ Scaffold(
     onPressed: () {},
     child: const Icon(Icons.add),
   ),
-  bottomNavigationBar: BottomNavigationBar(
-    items: const [
-      BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
-      BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Buscar'),
-      BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
+  bottomNavigationBar: NavigationBar(
+    selectedIndex: _tabIndex,
+    onDestinationSelected: (index) => setState(() => _tabIndex = index),
+    destinations: const [
+      NavigationDestination(icon: Icon(Icons.home), label: 'Inicio'),
+      NavigationDestination(icon: Icon(Icons.search), label: 'Buscar'),
+      NavigationDestination(icon: Icon(Icons.person), label: 'Perfil'),
     ],
   ),
-  drawer: Drawer(
-    child: ListView(
-      children: const [
-        DrawerHeader(child: Text('Menú')),
-        ListTile(leading: Icon(Icons.settings), title: Text('Ajustes')),
-      ],
-    ),
+  drawer: NavigationDrawer(
+    children: const [
+      DrawerHeader(child: Text('Menú')),
+      ListTile(leading: Icon(Icons.settings), title: Text('Ajustes')),
+    ],
   ),
 );
 ```
+
+> `BottomNavigationBar` y `Drawer` siguen funcionando pero son estilos de Material 2. En Material 3 usa `NavigationBar` y `NavigationDrawer`.
 
 ## Navigator 1.0 (push/pop)
 
@@ -138,12 +140,12 @@ final resultado = await Navigator.push<String>(
 );
 ```
 
-## Navigator 2.0 con GoRouter
+## Navegación con GoRouter (recomendada)
 
-Navegación declarativa basada en rutas (recomendada para apps reales).
+Navegación declarativa basada en rutas. Es el estándar actual para apps reales y lo usaremos a lo largo de la guía.
 
 ```dart
-// pubspec.yaml: go_router: ^14.0.0
+// pubspec.yaml: go_router: ^17.5.0
 
 final router = GoRouter(
   initialLocation: '/',
@@ -189,9 +191,11 @@ context.push('/productos/42');
 // context.pop regresa
 context.pop();
 
-// Parámetros extra
+// Parámetros extra (query)
 context.push('/productos/42?source=home');
 ```
+
+Con `go_router` también puedes proteger rutas con `redirect` (por ejemplo, redirigir a login si no hay sesión). Veremos esto en profundidad en los módulos de arquitectura.
 
 ## SafeArea
 
@@ -209,17 +213,20 @@ SafeArea(
 
 ## MediaQuery
 
-Información del tamaño y orientación de la pantalla.
+Información del tamaño y orientación de la pantalla. Usa los accesores `xOf` para reconstruir solo cuando cambie lo que te interesa.
 
 ```dart
 @override
 Widget build(BuildContext context) {
-  final size = MediaQuery.of(context).size;
-  final isMobile = size.width < 600;
+  final ancho = MediaQuery.sizeOf(context).width;   // solo cambia con el tamaño
+  final alto = MediaQuery.heightOf(context);         // solo cambia con el alto
+  final isMobile = ancho < 600;
 
   return isMobile ? const _MobileLayout() : const _TabletLayout();
 }
 ```
+
+> `MediaQuery.of(context).size` (forma anterior) reconstruía el widget ante *cualquier* cambio de MediaQuery (tema, padding, etc.). Desde Flutter 3.35 prefiere `MediaQuery.sizeOf` / `widthOf` / `heightOf`.
 
 ## LayoutBuilder
 
@@ -236,14 +243,35 @@ LayoutBuilder(
 );
 ```
 
+## PopScope (reemplaza WillPopScope)
+
+Para interceptar el botón de retroceso del sistema. `WillPopScope` está deprecado desde Flutter 3.24.
+
+```dart
+PopScope(
+  canPop: false, // bloquea el pop
+  onPopInvokedWithResult: (didPop, result) {
+    if (!didPop) {
+      // Confirmar salida antes de permitir el pop
+      _mostrarConfirmacion();
+    }
+  },
+  child: const Scaffold(body: Text('Edición pendiente')),
+);
+```
+
+En versiones futuras, `onPopInvokedWithResult` reemplaza por completo a `onPopInvoked` (deprecado en 3.29).
+
 
 ---
 
 ## 📚 Referencias
 
-- [Flutter | Widget catalog](https://docs.flutter.dev/ui/widgets) — Catálogo completo de widgets por categoría
-- [Flutter | API reference](https://api.flutter.dev/) — Documentación de la API de Flutter
 - [Flutter | Layouts](https://docs.flutter.dev/ui/layout) — Guía de layouts en Flutter
+- [Flutter | Understanding constraints](https://docs.flutter.dev/ui/layout/constraints) — Cómo funcionan las restricciones
+- [Flutter | Navigation and routing](https://docs.flutter.dev/ui/navigation) — Navegación declarativa e imperativa
+- [go_router | pub.dev](https://pub.dev/packages/go_router) — Documentación de go_router
+- [Flutter | PopScope](https://api.flutter.dev/flutter/widgets/PopScope-class.html) — Interceptar el retroceso del sistema
 
 ---
 

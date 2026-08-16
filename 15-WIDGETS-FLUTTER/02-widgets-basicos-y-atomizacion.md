@@ -20,6 +20,15 @@ const Text(
 
 Propiedades clave: `style`, `textAlign`, `maxLines`, `overflow`, `softWrap`.
 
+Para estilos heredables usa `DefaultTextStyle` o el `textTheme` del tema (ver capítulo 8):
+
+```dart
+Text(
+  'Título de la tarjeta',
+  style: Theme.of(context).textTheme.titleMedium,
+);
+```
+
 ## Icon
 
 Íconos del set Material Design.
@@ -28,7 +37,7 @@ Propiedades clave: `style`, `textAlign`, `maxLines`, `overflow`, `softWrap`.
 const Icon(Icons.favorite, color: Colors.red, size: 32);
 ```
 
-Usa siempre `Icons.*`. Evita imágenes para íconos simples.
+Usa siempre `Icons.*`. Evita imágenes para íconos simples. Nota: Material Icons tiene su propia librería de fuentes; si usas iconos personalizados de Google Fonts en runtime, se necesita el paquete `google_fonts`. En la mayoría de los casos `Icons.*` es suficiente.
 
 ## Imagen
 
@@ -39,6 +48,14 @@ Image.asset('assets/imagenes/logo.png');
 // Desde red
 Image.network('https://ejemplo.com/foto.jpg');
 
+// Con errorBuilder y control de decodificación
+Image.network(
+  'https://ejemplo.com/foto.jpg',
+  errorBuilder: (context, error, stackTrace) =>
+      const Icon(Icons.broken_image),
+  filterQuality: FilterQuality.medium,
+);
+
 // Con placeholder y caché (requiere cached_network_image)
 CachedNetworkImage(
   imageUrl: 'https://ejemplo.com/foto.jpg',
@@ -46,6 +63,8 @@ CachedNetworkImage(
   errorWidget: (_, __, ___) => const Icon(Icons.error),
 );
 ```
+
+Para rendimiento, siempre declara dimensiones (`width`/`height`) o `cacheWidth`/`cacheHeight` en imágenes de red (ver capítulo 10).
 
 ## SizedBox y Container
 
@@ -69,7 +88,7 @@ Container(
 );
 ```
 
-Prefiere `SizedBox` sobre `Container` cuando solo necesites espacio. `Container` es más pesado.
+Prefiere `SizedBox` sobre `Container` cuando solo necesites espacio. `Container` es más pesado. Para casos simples usa los widgets especializados: `ColoredBox` (solo color), `DecoratedBox` (solo decoración), `Padding` (solo espaciado) — evitan las restricciones que `Container` impone.
 
 ## Padding, Margin, Center, Align
 
@@ -89,9 +108,9 @@ Align(
 );
 ```
 
-## Botones
+## Botones (Material 3)
 
-Cada version de Material Design tiene su familia de botones.
+Cada versión de Material Design tiene su familia de botones. Con Material 3, `ElevatedButton` se considera legado; usa `FilledButton`.
 
 ```dart
 FilledButton(
@@ -122,22 +141,37 @@ FilledButton.icon(
 );
 ```
 
+Los botones se deshabilitan pasando `onPressed: null`. Para agrupar opciones exclusivas usa `SegmentedButton` (ver capítulo 4).
+
 ## Chip
 
-Etiquetas compactas para mostrar metadata.
+Etiquetas compactas para mostrar metadata y filtrar.
 
 ```dart
 const Chip(label: Text('Flutter'));
+
 InputChip(
   label: const Text('Dart'),
   onSelected: (selected) {},
   avatar: const Icon(Icons.code),
 );
+
+FilterChip(
+  label: const Text('Activo'),
+  selected: _filtroActivo,
+  onSelected: (selected) => setState(() => _filtroActivo = selected),
+);
+
+ChoiceChip(
+  label: const Text('Pequeño'),
+  selected: _tamaño == 'peq',
+  onSelected: (_) => setState(() => _tamaño = 'peq'),
+);
 ```
 
 ## Card
 
-Contenedor elevado con bordes redondeados, ideal para listas.
+Contenedor elevado con bordes redondeados, ideal para listas. Con Material 3 existen variantes `filled` y `outlined`.
 
 ```dart
 Card(
@@ -153,6 +187,24 @@ Card(
     ),
   ),
 );
+
+// Variantes M3: menos elevación, más sutiles
+Card.filled(child: /* ... */);
+Card.outlined(child: /* ... */);
+```
+
+## Badge
+
+Indicador superpuesto (notificaciones, contadores).
+
+```dart
+Badge(
+  label: const Text('3'),
+  child: const Icon(Icons.notifications),
+);
+
+// Sin child: badge independiente sobre el borde superior
+Badge.count(count: 99, child: const Icon(Icons.shopping_cart));
 ```
 
 ## Patrón de atomización
@@ -161,10 +213,10 @@ Los widgets se agrupan en una jerarquía de atomic design:
 
 ```
 Átomos      → Text, Icon, Chip, Botones, SizedBox
-Moléculas   → Card, ListTile, AppBar, BottomNavigationBar
+Moléculas   → Card, ListTile, AppBar, NavigationBar
 Organismos  → Formulario, Lista, Drawer, Scaffold
 Plantillas  → Página específica con layout
-Páginas     → Ruta completa con Provider/BlocProvider
+Páginas     → Ruta completa con Providers
 ```
 
 Crea tus propios widgets atómicos para mantener consistencia:
@@ -180,7 +232,8 @@ class AppText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       texto,
-      style: (Theme.of(context).textTheme.bodyLarge ?? const TextStyle()).merge(style),
+      style: (Theme.of(context).textTheme.bodyLarge ?? const TextStyle())
+          .merge(style),
     );
   }
 }
@@ -192,8 +245,9 @@ class AppText extends StatelessWidget {
 ## 📚 Referencias
 
 - [Flutter | Widget catalog](https://docs.flutter.dev/ui/widgets) — Catálogo completo de widgets por categoría
-- [Flutter | API reference](https://api.flutter.dev/) — Documentación de la API de Flutter
-- [Flutter | Layouts](https://docs.flutter.dev/ui/layout) — Guía de layouts en Flutter
+- [Flutter | Material 3](https://docs.flutter.dev/ui/material3) — Guía de Material 3 en Flutter
+- [Flutter | Text](https://api.flutter.dev/flutter/widgets/Text-class.html) — API del widget Text
+- [Flutter | Card](https://api.flutter.dev/flutter/material/Card-class.html) — API de Card y variantes M3
 
 ---
 

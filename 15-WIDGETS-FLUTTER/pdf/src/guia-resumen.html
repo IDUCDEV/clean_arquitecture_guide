@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>GUÍA RESUMEN — Widgets de Flutter</title>
+<link rel="stylesheet" href="guia-resumen.css">
+</head>
+<body>
+
+<div class="header">
+  <div class="mod">Módulo 15 · Clean Architecture + Flutter + Supabase</div>
+  <h1>GUÍA RESUMEN — Widgets de Flutter</h1>
+  <div class="sub">Resumen integral de widgets de Flutter (Material 3) sin volver a leer el módulo completo. Hilo conductor: Fundamentos → Básicos y atomización → Layout y navegación → Formularios → Listas → Estado y ciclo de vida → Animaciones → Composición → Renderización → Performance → Migración de APIs deprecadas.</div>
+</div>
+
+<!-- ================= 0. FUNDAMENTOS ================= -->
+<section>
+  <div class="section-head s-indigo">
+    <span class="num">0</span>
+    <h2>Fundamentos: los 3 árboles y la regla de oro</h2>
+    <span class="meta">widget · element · render</span>
+  </div>
+
+  <p>En Flutter <strong>todo es un widget</strong>: una descripción inmutable de la UI. El modelo es <strong>declarativo</strong> — describes cómo debe verse la UI para un estado y Flutter la lleva ahí.</p>
+
+  <table class="flow">
+    <tr>
+      <td><span class="step-n">Widget</span><span class="step-f">configuración, barato de crear/descartar</span></td>
+      <td><span class="step-n">Element</span><span class="step-f">instancia mutable que Flutter reutiliza</span></td>
+      <td><span class="step-n">RenderObject</span><span class="step-f">layout + paint en pantalla</span></td>
+    </tr>
+  </table>
+
+  <h3>Stateless vs Stateful</h3>
+  <table>
+    <thead><tr><th></th><th>StatelessWidget</th><th>StatefulWidget</th></tr></thead>
+    <tbody>
+      <tr><td>Estado mutable</td><td>No</td><td>Sí (vive en la clase <code>State</code>)</td></tr>
+      <tr><td>Reconstruye por</td><td>Nuevas propiedades / contexto</td><td>Propiedades + <code>setState()</code></td></tr>
+      <tr><td>Usa cuando</td><td>Solo depende de props y contexto</td><td>Necesita estado efímero interno</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout"><p><strong>Regla de oro:</strong> ¿el widget cambia con el tiempo? No → <code>StatelessWidget</code> · Solo por datos externos → <code>StatelessWidget</code> + <code>Stream</code>/<code>Future</code> · Estado efímero interno → <code>StatefulWidget</code>.</p></div>
+
+  <h3>Claves rápidas</h3>
+  <ul>
+    <li><strong>BuildContext</strong> = el "lugar" del widget en el árbol (acceso a <code>Theme.of</code>, <code>Navigator</code>, <code>MediaQuery.sizeOf</code>).</li>
+    <li><strong>const</strong> en todo widget que no cambie → Flutter se salta su reconstrucción.</li>
+    <li><strong>Keys</strong>: <code>ValueKey</code> (identificador), <code>ObjectKey</code> (objeto), <code>UniqueKey</code> (forzar re-creación), <code>GlobalKey</code> (acceder desde fuera).</li>
+  </ul>
+</section>
+
+<!-- ================= 1. BÁSICOS ================= -->
+<section>
+  <div class="section-head s-indigo">
+    <span class="num">1</span>
+    <h2>Widgets básicos y atomización</h2>
+    <span class="meta">los bloques de construcción</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Categoría</th><th>Widgets</th></tr></thead>
+    <tbody>
+      <tr><td>Texto</td><td><code>Text</code>, <code>RichText</code>, <code>SelectableText</code>, <code>DefaultTextStyle</code></td></tr>
+      <tr><td>Imagen</td><td><code>Image.asset/.network</code>, <code>CircleAvatar</code>, <code>CachedNetworkImage</code></td></tr>
+      <tr><td>Espaciado</td><td><code>SizedBox</code> &gt; <code>Container</code>; <code>ColoredBox</code>/<code>DecoratedBox</code> (ligeros)</td></tr>
+      <tr><td>Botones M3</td><td><code>FilledButton</code>, <code>FilledButton.tonal</code>, <code>OutlinedButton</code>, <code>TextButton</code> (<code>ElevatedButton</code> = legacy M2)</td></tr>
+      <tr><td>Chips</td><td><code>Chip</code>, <code>InputChip</code>, <code>FilterChip</code>, <code>ChoiceChip</code>, <code>ActionChip</code></td></tr>
+      <tr><td>Contenedores</td><td><code>Card</code>, <code>Card.filled</code>, <code>Card.outlined</code>, <code>Badge</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Atomización (atomic design)</h3>
+  <p>Átomos (Text, Icon, Chip, Botones) → Moléculas (Card, ListTile, AppBar, NavigationBar) → Organismos (Formulario, Lista, Scaffold) → Plantillas → Páginas.</p>
+  <p>Crea widgets atómicos propios (<code>AppText</code>, <code>UserAvatar</code>) para consistencia; hazlos <code>const</code> y sin estado cuando sea posible.</p>
+</section>
+
+<!-- ================= 2. LAYOUT ================= -->
+<section>
+  <div class="section-head s-blue">
+    <span class="num">2</span>
+    <h2>Layout y Navegación</h2>
+    <span class="meta">Row · Stack · Scaffold · GoRouter</span>
+  </div>
+
+  <h3>Row / Column / Stack</h3>
+  <p><code>Row</code> = eje horizontal · <code>Column</code> = eje vertical. <code>mainAxisAlignment</code> sobre el eje principal, <code>crossAxisAlignment</code> sobre el secundario. <code>Expanded</code> reparte espacio proporcional (flex), <code>Flexible</code> permite encoger. <code>Stack</code> + <code>Positioned</code> superponen capas.</p>
+
+  <h3>Scaffold (M3)</h3>
+  <p>Barra inferior: <code>NavigationBar</code> + <code>NavigationDestination</code> (M3). Drawer: <code>NavigationDrawer</code>. <code>BottomNavigationBar</code> y <code>Drawer</code> son legacy M2.</p>
+
+  <h3>Navegación</h3>
+  <table>
+    <thead><tr><th>API</th><th>Uso</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Navigator 1.0</strong></td><td><code>Navigator.push/pop</code> imperativo, rutas por clase</td></tr>
+      <tr><td><strong>GoRouter (recomendada)</strong></td><td>Rutas declarativas con <code>GoRoute</code>, params, redirects; <code>context.go</code>/<code>push</code>/<code>pop</code>; <code>pubspec: go_router ^17.5.0</code></td></tr>
+      <tr><td><strong>PopScope</strong></td><td>Intercepta el botón atrás (reemplaza <code>WillPopScope</code>)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout"><p><strong>Responsive:</strong> usa <code>MediaQuery.sizeOf/widthOf/heightOf</code> (no <code>MediaQuery.of().size</code>) para decidir por pantalla, y <code>LayoutBuilder</code> para decidir por el espacio del padre.</p></div>
+</section>
+
+<!-- ================= 3. FORMULARIOS ================= -->
+<section>
+  <div class="section-head s-blue">
+    <span class="num">3</span>
+    <h2>Interacción y Formularios</h2>
+    <span class="meta">validación y selección</span>
+  </div>
+
+  <h3>Formularios</h3>
+  <p><code>Form(key: GlobalKey&lt;FormState&gt;)</code> + <code>TextFormField(validator:)</code>. <code>validate()</code> corre todos los validators; <code>save()</code> dispara <code>onSaved</code>. Controladores (<code>TextEditingController</code>) siempre en <code>dispose()</code>.</p>
+
+  <h3>Selección y controles M3</h3>
+  <table>
+    <thead><tr><th>Control</th><th>Nota clave</th></tr></thead>
+    <tbody>
+      <tr><td><code>DropdownButtonFormField</code></td><td>Usa <code>initialValue</code> (no <code>value</code>, deprecado 3.35)</td></tr>
+      <tr><td><code>DropdownMenu</code></td><td>Alternativa M3 con búsqueda</td></tr>
+      <tr><td><code>Radio</code></td><td>Dentro de <code>RadioGroup</code>; <code>groupValue</code>/<code>onChanged</code> deprecados en Radio</td></tr>
+      <tr><td><code>Switch</code></td><td>Usa <code>activeThumbColor</code> (no <code>activeColor</code>)</td></tr>
+      <tr><td><code>SegmentedButton</code></td><td>Selección exclusiva estilizada</td></tr>
+      <tr><td><code>Slider</code> / <code>RangeSlider</code></td><td>Rangos con <code>divisions</code> y <code>labels</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Patrón de formulario sin librerías</h3>
+  <pre><span class="k">Form(key: _formKey) → campos TextFormField con validator
+Botón: FilledButton habilitado según estado
+Estado local: ValueNotifier&lt;bool&gt;(_enviando) + ValueListenableBuilder</span></pre>
+
+  <div class="callout"><p><strong>Adelanto módulo 16:</strong> el mismo árbol de widgets se mantiene con <code>BlocProvider</code> + <code>BlocListener</code> + <code>BlocBuilder</code>. La estructura del formulario no cambia, solo quién gestiona el estado.</p></div>
+</section>
+
+<!-- ================= 4. LISTAS ================= -->
+<section>
+  <div class="section-head s-blue">
+    <span class="num">4</span>
+    <h2>Listas y Scroll</h2>
+    <span class="meta">virtualización y slivers</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Widget</th><th>Cuándo</th></tr></thead>
+    <tbody>
+      <tr><td><code>ListView</code></td><td>Pocos hijos conocidos</td></tr>
+      <tr><td><code>ListView.builder</code></td><td>Listas grandes: construye solo lo visible <strong>(preferido)</strong></td></tr>
+      <tr><td><code>ListView.separated</code></td><td>Con separadores entre ítems</td></tr>
+      <tr><td><code>GridView</code></td><td>Cuadrículas (count / builder)</td></tr>
+      <tr><td><code>CustomScrollView</code> + Slivers</td><td>Combinar AppBar colapsable + lista + grid en un scroll</td></tr>
+      <tr><td><code>CarouselView</code> (3.35+)</td><td>Carrusel de tarjetas con snapping</td></tr>
+      <tr><td><code>AnimatedList</code> / <code>SliverAnimatedList</code></td><td>Inserciones/eliminaciones animadas</td></tr>
+      <tr><td><code>ReorderableListView</code></td><td>Orden por drag &amp; drop (keys obligatorias)</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Pull-to-refresh:</strong> <code>RefreshIndicator(onRefresh:)</code> con una función <code>Future</code>. <strong>Infinite scroll:</strong> <code>ScrollController</code> + listener que detecta el final (<code>pixels ≥ maxScrollExtent - 200</code>). <strong>Nota:</strong> <code>cacheExtent</code> está deprecado desde 3.44.</p>
+</section>
+
+<!-- ================= 5. ESTADO ================= -->
+<section>
+  <div class="section-head s-amber">
+    <span class="num">5</span>
+    <h2>Datos, Estado y Ciclo de Vida</h2>
+    <span class="meta">flujo unidireccional</span>
+  </div>
+
+  <p>Los datos viajan <strong>hacia abajo</strong>; los callbacks <strong>hacia arriba</strong> (lifting state up).</p>
+
+  <h3>Ciclo de vida StatefulWidget</h3>
+  <pre><span class="k">constructor → initState → didChangeDependencies → build
+(padre cambia) didUpdateWidget → build
+(desmonta) dispose
+// setState() programa una reconstrucción del subárbol</span></pre>
+
+  <h3>Widgets reactivos</h3>
+  <table>
+    <thead><tr><th>Widget</th><th>Escucha</th><th>Uso</th></tr></thead>
+    <tbody>
+      <tr><td><code>FutureBuilder</code></td><td>Future</td><td>Carga única (guardar el future en variable para reintentar)</td></tr>
+      <tr><td><code>StreamBuilder</code></td><td>Stream</td><td>Emisiones continuas (opcional <code>initialData</code>)</td></tr>
+      <tr><td><code>ValueListenableBuilder</code></td><td>ValueNotifier</td><td>Estado local simple</td></tr>
+      <tr><td><code>ListenableBuilder</code></td><td>cualquier Listenable</td><td>Objetos ChangeNotifier, Animations</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout amber"><p><strong>mounted vs context.mounted:</strong> <code>mounted</code> (en el <code>State</code>) protege <code>setState</code> tras un <code>await</code>; <code>context.mounted</code> (en el <code>BuildContext</code>) protege operaciones con context (navegación, SnackBar, <code>context.read</code>).</p></div>
+</section>
+
+<!-- ================= 6. ANIMACIONES ================= -->
+<section>
+  <div class="section-head s-amber">
+    <span class="num">6</span>
+    <h2>Animaciones</h2>
+    <span class="meta">implícitas vs explícitas</span>
+  </div>
+
+  <h3>Implícitas (cambia el target, Flutter interpola)</h3>
+  <p><code>AnimatedContainer</code>, <code>AnimatedOpacity</code>, <code>AnimatedPadding</code>, <code>AnimatedSwitcher</code>, <code>AnimatedPositioned</code>, <code>AnimatedAlign</code>, <code>AnimatedSlide/Scale/Rotation</code>, <code>TweenAnimationBuilder</code>. Personalizables con <code>AnimationStyle</code>.</p>
+
+  <h3>Explícitas (control fino)</h3>
+  <p><code>AnimationController</code> (+ <code>SingleTickerProviderStateMixin</code>) → <code>Tween</code> → <code>CurvedAnimation</code> → <code>AnimatedBuilder</code>. Con <code>AnimationStatusListener</code> para repetir/invertir y <code>Interval</code> para animaciones escalonadas.</p>
+
+  <h3>Extras</h3>
+  <ul>
+    <li><strong>Hero</strong>: transición compartida entre pantallas con el mismo <code>tag</code>.</li>
+    <li><strong>CustomPainter</strong>: dibujo vectorial (<code>paint</code> + <code>shouldRepaint</code>).</li>
+    <li><strong>Lottie/Rive</strong>: animaciones JSON de After Effects.</li>
+  </ul>
+
+  <div class="callout"><p><strong>Reglas:</strong> implícitas primero · ~300ms en interacciones táctiles · no animes opacity+size juntos · usa <code>FadeTransition</code> en loops (no <code>Opacity</code>).</p></div>
+</section>
+
+<!-- ================= 7. COMPOSICIÓN ================= -->
+<section>
+  <div class="section-head s-amber">
+    <span class="num">7</span>
+    <h2>Estrategias de Composición</h2>
+    <span class="meta">composición &gt; herencia</span>
+  </div>
+
+  <ul>
+    <li><strong>No heredes widgets</strong>: compón con parámetros (<code>AccionBoton</code> envuelve un <code>FilledButton</code>).</li>
+    <li><strong>Slots</strong>: expón <code>child</code> (contenido fijo) o <code>builder</code> (contenido que depende del contexto).</li>
+    <li><strong>Widgets privados anidados</strong> (<code>_Body</code>, <code>_InfoSection</code>) → sub-árboles <code>const</code> que se reconstruyen independientemente.</li>
+    <li><strong>Una responsabilidad por widget</strong> (Page / View / Card / Tile / Form / Dialog…).</li>
+    <li><strong>Builder pattern</strong>: crear un contexto hijo para SnackBars y similares.</li>
+  </ul>
+
+  <div class="callout"><p><strong>InheritedWidget:</strong> mecanismo interno de <code>Theme</code>, <code>MediaQuery</code> y <code>BlocProvider</code>. Entiende cómo funciona, no lo reimplementes.</p></div>
+</section>
+
+<!-- ================= 8. RENDERIZACIÓN ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">8</span>
+    <h2>Patrones de Renderización</h2>
+    <span class="meta">loading · error · empty · data</span>
+  </div>
+
+  <h3>Renderizado condicional</h3>
+  <p>Ternario → <code>collection-if</code> / <code>collection-for</code> → <code>Visibility</code> (con <code>maintainSize</code>/<code>maintainState</code>).</p>
+
+  <h3>Estados con clases selladas (Dart 3)</h3>
+  <pre><span class="k">sealed class AsyncState&lt;T&gt;
+  ├─ AsyncLoading&lt;T&gt;
+  ├─ AsyncError&lt;T&gt; (message)
+  └─ AsyncData&lt;T&gt; (data)
+
+UI: switch (estado) → loading spinner / error + reintentar / empty / builder(data)</span></pre>
+
+  <h3>Scroll y vistas</h3>
+  <ul>
+    <li><strong>Slivers</strong>: AppBar colapsable + listas + grids en <code>CustomScrollView</code>.</li>
+    <li><strong>NestedScrollView</strong>: header que colapsa con Tabs en el body.</li>
+    <li><strong>IndexedStack</strong>: mantiene vistas montadas (no pierde estado). <strong>PageView</strong>: swipe.</li>
+    <li><strong>Shimmer/Skeleton</strong>: placeholders animados mientras carga.</li>
+    <li><strong>Overlay/Popup</strong>: bottom sheets, tooltips, PopupMenuButton.</li>
+    <li><strong>Callback pattern</strong>: el hijo notifica al padre (inversión de control).</li>
+  </ul>
+</section>
+
+<!-- ================= 9. PERFORMANCE ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">9</span>
+    <h2>Rendimiento y Buenas Prácticas</h2>
+    <span class="meta">rebuilds mínimos</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Práctica</th><th>Qué evita</th></tr></thead>
+    <tbody>
+      <tr><td><code>const</code> en widgets que no cambian</td><td>Reconstrucciones innecesarias</td></tr>
+      <tr><td>Extraer sub-widgets <code>const</code></td><td>Rebuilds en cascada</td></tr>
+      <tr><td><code>ListView.builder</code></td><td>Construir items invisibles</td></tr>
+      <tr><td><code>RepaintBoundary</code></td><td>Repintar mapas/videos/canvas al hacer scroll</td></tr>
+      <tr><td>Callbacks como métodos (no closures)</td><td>Nuevas closures cada build</td></tr>
+      <tr><td><code>AnimatedBuilder</code> en animaciones</td><td>setState por frame</td></tr>
+      <tr><td><code>ValueKey</code> en listas dinámicas</td><td>Estado confundido al reordenar</td></tr>
+      <tr><td>Imágenes con <code>width/height</code> + caché</td><td>Decodificaciones gigantes</td></tr>
+      <tr><td><code>dispose()</code> de controladores</td><td>Memory leaks</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Herramientas:</strong> Flutter DevTools → Rebuild Counts, Track widget rebuilds, Performance overlay, Memory/CPU.</p>
+</section>
+
+<!-- ================= 10. MIGRACIÓN ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">10</span>
+    <h2>Migración: APIs deprecadas → reemplazo</h2>
+    <span class="meta">target Flutter 3.44+</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Deprecado</th><th>Reemplazo</th><th>Desde</th></tr></thead>
+    <tbody>
+      <tr><td><code>DropdownButtonFormField.value</code></td><td><code>initialValue</code></td><td>3.35</td></tr>
+      <tr><td><code>Radio.groupValue/onChanged</code></td><td>Envolver en <code>RadioGroup</code></td><td>3.32</td></tr>
+      <tr><td><code>Switch.activeColor</code></td><td><code>activeThumbColor</code></td><td>3.35</td></tr>
+      <tr><td><code>MediaQuery.of(context).size</code></td><td><code>MediaQuery.sizeOf/widthOf/heightOf</code></td><td>3.35</td></tr>
+      <tr><td><code>MaterialState</code></td><td><code>WidgetState</code></td><td>3.22</td></tr>
+      <tr><td><code>WillPopScope</code></td><td><code>PopScope</code></td><td>3.24</td></tr>
+      <tr><td><code>Color.withOpacity</code></td><td><code>withValues(alpha:)</code></td><td>3.27</td></tr>
+      <tr><td><code>findChildIndexCallback</code></td><td><code>findItemIndexCallback</code></td><td>3.41</td></tr>
+      <tr><td><code>cacheExtent</code> en viewports</td><td>Automático (no declarar)</td><td>3.44</td></tr>
+      <tr><td><code>ExpansionTileController</code></td><td><code>ExpansibleController</code></td><td>3.32</td></tr>
+      <tr><td><code>ButtonBar</code></td><td><code>OverflowBar</code></td><td>3.24</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout green"><p><strong>Widgets nuevos a aprovechar:</strong> <code>SegmentedButton</code>, <code>DropdownMenu</code>, <code>SearchBar</code>/<code>SearchAnchor</code>, <code>MenuAnchor</code>, <code>CarouselView</code> (3.35+), <code>Card.filled/outlined</code>, <code>ListenableBuilder</code>, <code>Badge</code>, <code>NavigationBar</code>, <code>RadioGroup</code>.</p></div>
+</section>
+
+<!-- ================= ANEXO ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">A</span>
+    <h2>Anexo · Índice del módulo (para profundizar)</h2>
+  </div>
+  <table>
+    <thead><tr><th>Necesitas</th><th>Archivo</th></tr></thead>
+    <tbody>
+      <tr><td>Widget/Element/Render, BuildContext, keys, const</td><td class="mono">01-fundamentos-widgets.md</td></tr>
+      <tr><td>Text, Image, Icon, botones M3, chips, Card, Badge</td><td class="mono">02-widgets-basicos-y-atomizacion.md</td></tr>
+      <tr><td>Row/Column/Stack, Scaffold, Navigator, GoRouter, PopScope</td><td class="mono">03-layout-y-navegacion.md</td></tr>
+      <tr><td>TextField/Form, validación, RadioGroup, DropdownMenu, SegmentedButton</td><td class="mono">04-interaccion-y-formularios.md</td></tr>
+      <tr><td>ListView/GridView, slivers, CarouselView, pull-to-refresh, paginación</td><td class="mono">05-listas-y-scroll.md</td></tr>
+      <tr><td>Ciclo de vida, mounted, FutureBuilder/StreamBuilder/ListenableBuilder</td><td class="mono">06-datos-estados-y-ciclo-de-vida.md</td></tr>
+      <tr><td>Animaciones implícitas/explotas, Hero, CustomPainter, Lottie</td><td class="mono">07-animaciones.md</td></tr>
+      <tr><td>Composición vs herencia, slots, InheritedWidget, naming</td><td class="mono">08-estrategias-composicion.md</td></tr>
+      <tr><td>Estados sealed, loading/error/empty, slivers, overlays</td><td class="mono">09-patrones-renderizacion.md</td></tr>
+      <tr><td>const, RepaintBoundary, keys, DevTools, checklist</td><td class="mono">10-perf-y-buenas-practicas.md</td></tr>
+      <tr><td>+150 widgets por categoría, Material 3, Cupertino</td><td class="mono">11-arsenal-completo-widgets.md</td></tr>
+    </tbody>
+  </table>
+
+  <div class="footer-note"><strong>Widgets de Flutter en una línea:</strong> Fundamentos (3 árboles + const + keys) → Básicos atómicos → Layout + GoRouter → Formularios M3 → Listas eficientes → Estado y ciclo de vida → Animaciones → Composición → Renderización → Performance. · Regla de oro: cada widget con una responsabilidad, y todo lo que no cambia debe ser <code>const</code>.</div>
+</section>
+
+</body>
+</html>

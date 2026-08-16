@@ -82,10 +82,10 @@ ListView(
 // Útil para: mapas, videos, animaciones aisladas, Canvas
 ```
 
-## Avoid reconstitutions innecesarias
+## Evita reconstrucciones innecesarias
 
 ```dart
-// MAL: nuevo widget en cada build
+// MAL: nueva closure en cada build
 @override
 Widget build(BuildContext context) {
   return ChildWidget(
@@ -142,11 +142,23 @@ ListView.builder(
 ## Evitar Opacity con animaciones
 
 ```dart
-// MAL: Opacity fuerza repintado
+// MAL: Opacity fuerza repintado del subárbol en cada cambio
 Opacity(opacity: 0.5, child: const Text('Hola'));
 
-// BIEN: AnimatedOpacity o FadeTransition
+// BIEN: AnimatedOpacity o FadeTransition (compositing)
 FadeTransition(opacity: _anim, child: const Text('Hola'));
+```
+
+## Colores: usa withValues en vez de withOpacity
+
+Desde Flutter 3.27, `Color.withOpacity` está deprecado. Usa `withValues(alpha:)`:
+
+```dart
+// MAL (deprecado desde 3.27)
+Colors.black.withOpacity(0.5);
+
+// BIEN
+Colors.black.withValues(alpha: 0.5);
 ```
 
 ## Evitar Column/Row dentro de ListView.builder
@@ -189,6 +201,7 @@ Future.wait(
 - **Rebuild Counts**: identifica widgets que se reconstruyen sin necesidad.
 - **Track widget rebuilds**: muestra por qué se reconstruyó un widget.
 - **Performance overlay**: muestra la velocidad de frames (target: 60fps o 120fps).
+- **Memory & CPU**: detecta leaks y trabajo en el hilo de UI.
 
 ## Checklist de performance
 
@@ -199,15 +212,17 @@ Future.wait(
 - [ ] ¿Animaciones con `AnimatedBuilder` en lugar de `setState`?
 - [ ] ¿RepaintBoundary en mapas/videos/canvas?
 - [ ] ¿Keys correctas en listas dinámicas?
+- [ ] ¿Controladores (`TextEditingController`, `ScrollController`) dispuestos en `dispose`?
 
 
 ---
 
 ## 📚 Referencias
 
-- [Flutter | Widget catalog](https://docs.flutter.dev/ui/widgets) — Catálogo completo de widgets por categoría
-- [Flutter | API reference](https://api.flutter.dev/) — Documentación de la API de Flutter
-- [Flutter | Layouts](https://docs.flutter.dev/ui/layout) — Guía de layouts en Flutter
+- [Flutter | Performance best practices](https://docs.flutter.dev/perf/best-practices) — Mejores prácticas de rendimiento
+- [Flutter | DevTools](https://docs.flutter.dev/tools/devtools/overview) — Suite de herramientas de desarrollo
+- [Flutter | Widgets vs render objects](https://docs.flutter.dev/perf/rendering) — Optimización del árbol de render
+- [Flutter | API — Color.withValues](https://api.flutter.dev/flutter/dart-ui/Color/withValues.html) — Reemplazo de withOpacity (3.27+)
 
 ---
 

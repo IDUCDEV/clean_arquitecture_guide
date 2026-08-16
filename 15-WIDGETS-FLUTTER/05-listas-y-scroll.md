@@ -131,15 +131,38 @@ CustomScrollView(
 );
 ```
 
+> Nota: en la vista scrollable, `cacheExtent` está deprecado desde Flutter 3.44 (los viewports ahora calculan su caché automáticamente). No lo declares.
+
+## CarouselView (3.35+)
+
+Carrusel de tarjetas con scroll por páginas, construido sobre la familia de scroll.
+
+```dart
+CarouselView(
+  itemSnapping: true,
+  itemExtent: 280,
+  children: [
+    for (final banner in banners)
+      _BannerCard(banner: banner),
+  ],
+);
+```
+
 ## Pull to refresh
 
 ```dart
+Future<void> _recargar() async {
+  // Carga tu data; RefreshIndicator muestra el spinner mientras espera
+  final data = await cargarProductos();
+  if (mounted) setState(() => _productos = data);
+}
+
 RefreshIndicator(
-  onRefresh: () => context.read<ProductosCubit>().recargar(),
+  onRefresh: _recargar,
   child: ListView.builder(
-    itemCount: productos.length,
+    itemCount: _productos.length,
     itemBuilder: (context, index) => ListTile(
-      title: Text(productos[index].nombre),
+      title: Text(_productos[index].nombre),
     ),
   ),
 );
@@ -147,19 +170,19 @@ RefreshIndicator(
 
 ## Infinite scroll (paginación)
 
-```dart
-class _ProductosLista extends StatefulWidget {
-  @override
-  State<_ProductosLista> createState() => _ProductosListaState();
-}
+Con un `StatefulWidget` + `ScrollController`, sin librerías externas.
 
-class _ProductosListaState extends State<_ProductosLista> {
+```dart
+class _ProductosListaState extends State<ProductosLista> {
   final _scrollCtrl = ScrollController();
+  final _items = <Producto>[];
+  bool _isLoadingMore = false;
 
   @override
   void initState() {
     super.initState();
     _scrollCtrl.addListener(_onScroll);
+    _cargarPagina();
   }
 
   @override
@@ -172,36 +195,46 @@ class _ProductosListaState extends State<_ProductosLista> {
   void _onScroll() {
     if (_scrollCtrl.position.pixels >=
         _scrollCtrl.position.maxScrollExtent - 200) {
-      context.read<ProductosCubit>().cargarMas();
+      _cargarPagina();
+    }
+  }
+
+  Future<void> _cargarPagina() async {
+    if (_isLoadingMore) return;
+    _isLoadingMore = true;
+    final nuevos = await cargarProductos(
+      offset: _items.length,
+    );
+    if (mounted) {
+      setState(() {
+        _items.addAll(nuevos);
+        _isLoadingMore = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ProductosCubit, ProductosState>(
-      builder: (context, state) {
-        return ListView.builder(
-          controller: _scrollCtrl,
-          itemCount: state.items.length + (state.isLoadingMore ? 1 : 0),
-          itemBuilder: (context, index) {
-            if (index >= state.items.length) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: CircularProgressIndicator(),
-                ),
-              );
-            }
-            return ListTile(title: Text(state.items[index].nombre));
-          },
-        );
+    return ListView.builder(
+      controller: _scrollCtrl,
+      itemCount: _items.length + (_isLoadingMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index >= _items.length) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+        return ListTile(title: Text(_items[index].nombre));
       },
     );
   }
 }
 ```
 
-## ScrollController útilidades
+## ScrollController utilidades
 
 ```dart
 // Scroll a posición específica
@@ -220,7 +253,7 @@ NotificationListener<ScrollNotification>(
     if (notification is ScrollEndNotification &&
         _scrollCtrl.position.pixels >=
             _scrollCtrl.position.maxScrollExtent) {
-      context.read<ProductosCubit>().cargarMas();
+      _cargarPagina();
     }
     return false;
   },
@@ -279,14 +312,40 @@ _listKey.currentState!.removeItem(
 );
 ```
 
+Existe la variante sliver `SliverAnimatedList` para usarla dentro de un `CustomScrollView`.
+
+## ReorderableListView
+
+Lista reordenable por drag & drop.
+
+```dart
+ReorderableListView(
+  onReorder: (oldIndex, newIndex) {
+    setState(() {
+      if (newIndex > oldIndex) newIndex--;
+      final item = _items.removeAt(oldIndex);
+      _items.insert(newIndex, item);
+    });
+  },
+  children: [
+    for (final item in _items)
+      ListTile(
+        key: ValueKey(item.id), // key obligatoria
+        title: Text(item.nombre),
+      ),
+  ],
+);
+```
+
 
 ---
 
 ## 📚 Referencias
 
-- [Flutter | Widget catalog](https://docs.flutter.dev/ui/widgets) — Catálogo completo de widgets por categoría
-- [Flutter | API reference](https://api.flutter.dev/) — Documentación de la API de Flutter
-- [Flutter | Layouts](https://docs.flutter.dev/ui/layout) — Guía de layouts en Flutter
+- [Flutter | ListView](https://api.flutter.dev/flutter/widgets/ListView-class.html) — API de ListView y variantes
+- [Flutter | Slivers](https://docs.flutter.dev/ui/layout/scrolling/slivers) — Guía de slivers y CustomScrollView
+- [Flutter | CarouselView](https://api.flutter.dev/flutter/material/CarouselView-class.html) — Carrusel de contenido (3.35+)
+- [Flutter | AnimatedList](https://api.flutter.dev/flutter/widgets/AnimatedList-class.html) — Listas con animaciones
 
 ---
 

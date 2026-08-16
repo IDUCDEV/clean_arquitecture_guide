@@ -1,6 +1,6 @@
 # 11. Arsenal Completo de Widgets
 
-Referencia rápida de todos los widgets útiles para apps móviles. Cada entrada incluye una descripción de un línea y el uso típico.
+Referencia rápida de todos los widgets útiles para apps móviles. Cada entrada incluye una descripción de una línea y el uso típico. Alineado con **Material 3** y Flutter 3.44+.
 
 ## Texto y tipografía
 
@@ -11,6 +11,7 @@ Referencia rápida de todos los widgets útiles para apps móviles. Cada entrada
 | `SelectableText` | Texto seleccionable por el usuario |
 | `DefaultTextStyle` | Hereda estilo de texto a hijos |
 | `FittedBox` | Escala el hijo para que quepa en el espacio disponible |
+| `Wrap` de `TextSpan` | Composición de textos estilizados (en `Text.rich`) |
 
 ## Íconos e imágenes
 
@@ -21,17 +22,20 @@ Referencia rápida de todos los widgets útiles para apps móviles. Cada entrada
 | `CircleAvatar` | Avatar circular con inicial o foto |
 | `FadeInImage` | Imagen con fade al cargar |
 | `Placeholder` | Espacio placeholder visual |
+| `CachedNetworkImage` | Imagen de red con caché (paquete `cached_network_image`) |
 
 ## Botones
 
 | Widget | Uso |
 |---|---|
-| `FilledButton` | Botón primario (relleno) |
-| `FilledButton.tonal` | Botón secundario (tonal) |
+| `FilledButton` | Botón primario M3 (relleno) |
+| `FilledButton.tonal` | Botón secundario M3 (tonal) |
 | `OutlinedButton` | Botón con borde |
 | `TextButton` | Botón de solo texto |
-| `ElevatedButton` | Botón con sombra (legacy) |
+| `ElevatedButton` | Botón con sombra (legacy M2) |
 | `IconButton` | Botón solo ícono |
+| `IconButton.filled` / `.tonal` | Variantes M3 con fondo |
+| `SegmentedButton` | Grupo de selección exclusiva segmentado (M3) |
 | `CloseButton` | Botón de cerrar (back) |
 | `BackButton` | Botón de retroceso |
 
@@ -41,15 +45,21 @@ Referencia rápida de todos los widgets útiles para apps móviles. Cada entrada
 |---|---|
 | `TextField` | Campo de texto libre |
 | `TextFormField` | Campo de texto con validación `Form` |
-| `DropdownButtonFormField` | Selector desplegable |
+| `DropdownButtonFormField` | Selector desplegable (usa `initialValue`, no `value`) |
+| `DropdownMenu` | Menú desplegable M3 con filtro de texto |
+| `SearchBar` | Barra de búsqueda M3 (con `SearchAnchor`) |
+| `SearchAnchor` | Ancla para búsqueda con vista de resultados |
+| `MenuAnchor` | Menú posicionado con ancla declarativa |
 | `Checkbox` | Casilla de verificación |
-| `Switch` | Interruptor on/off |
-| `Radio` | Botón de opción única |
+| `Switch` | Interruptor on/off (usa `activeThumbColor`) |
+| `Radio` | Botón de opción única (dentro de `RadioGroup`) |
+| `RadioGroup` | Agrupa `Radio` y maneja selección + teclado (3.32+) |
 | `Slider` | Control deslizante |
 | `RangeSlider` | Control de rango |
-| `DatePicker` | Selector de fecha (showDatePicker) |
-| `TimePicker` | Selector de hora (showTimePicker) |
+| `DatePicker` | Selector de fecha (`showDatePicker`) |
+| `TimePicker` | Selector de hora (`showTimePicker`) |
 | `Autocomplete` | Autocompletado con sugerencias |
+| `SwitchListTile` / `CheckboxListTile` / `RadioListTile` | Controles con etiqueta en ListTile |
 
 ## Selectores
 
@@ -59,7 +69,9 @@ Referencia rápida de todos los widgets útiles para apps móviles. Cada entrada
 | `InputChip` | Chip interactivo seleccionable |
 | `FilterChip` | Chip para filtrar (multiselección) |
 | `ChoiceChip` | Chip de selección única |
+| `ActionChip` | Chip que dispara una acción |
 | `ToggleButtons` | Botones de toggle múltiple |
+| `ExpansionTile` | Fila expandible con contenido (usar `ExpansibleController` desde 3.32 para control programático) |
 
 ## Layout
 
@@ -74,6 +86,7 @@ Referencia rápida de todos los widgets útiles para apps móviles. Cada entrada
 | `Positioned` | Posición específica dentro de Stack |
 | `IndexedStack` | Stack con un hijo visible a la vez |
 | `Wrap` | Envoltura automática (como flexbox wrap) |
+| `CarouselView` | Carrusel de tarjetas con snapping (3.35+) |
 
 ## Contenedores
 
@@ -87,7 +100,11 @@ Referencia rápida de todos los widgets útiles para apps móviles. Cada entrada
 | `AspectRatio` | Mantiene relación de aspecto |
 | `ConstrainedBox` | Restricciones de tamaño |
 | `FractionallySizedBox` | Tamaño relativo al padre |
+| `ColoredBox` | Solo color (ligero) |
+| `DecoratedBox` | Solo decoración (ligero) |
 | `Card` | Tarjeta elevada Material |
+| `Card.filled` / `Card.outlined` | Variantes M3 sutiles |
+| `Badge` | Indicador superpuesto (contador/notificación) |
 | `ClipRect` / `ClipRRect` / `ClipOval` | Recorte visual |
 | `SafeArea` | Evita áreas del sistema |
 | `InkWell` | Área táctil con efecto Material |
@@ -99,6 +116,7 @@ Referencia rápida de todos los widgets útiles para apps móviles. Cada entrada
 |---|---|
 | `ListView` | Lista desplazable |
 | `ListView.builder` | Lista virtualizada |
+| `ListView.separated` | Lista con separadores |
 | `GridView` | Cuadrícula desplazable |
 | `CustomScrollView` | Scroll con slivers |
 | `SingleChildScrollView` | Scroll para contenido único |
@@ -144,12 +162,13 @@ Referencia rápida de todos los widgets útiles para apps móviles. Cada entrada
 |---|---|
 | `Scaffold` | Estructura base de pantalla |
 | `AppBar` | Barra superior |
-| `BottomNavigationBar` | Barra de navegación inferior |
-| `NavigationBar` | NavigationBar Material 3 |
-| `NavigationDrawer` | Drawer lateral |
-| `Drawer` | Drawer lateral (legacy) |
+| `NavigationBar` | Barra de navegación inferior M3 |
+| `NavigationDrawer` | Drawer lateral M3 |
+| `NavigationRail` | Barra lateral (tablet/desktop) |
+| `BottomNavigationBar` | Barra inferior (legacy M2) |
+| `Drawer` | Drawer lateral (legacy M2) |
 | `TabBar` + `TabBarView` | Pestañas con vistas |
-| `WillPopScope` | Intercepta botón de retroceso |
+| `PopScope` | Intercepta botón de retroceso (reemplaza `WillPopScope`) |
 | `Hero` | Transición compartida entre pantallas |
 
 ## Datos y estado
@@ -158,7 +177,8 @@ Referencia rápida de todos los widgets útiles para apps móviles. Cada entrada
 |---|---|
 | `FutureBuilder` | Widget reactivo a Future |
 | `StreamBuilder` | Widget reactivo a Stream |
-| `ValueListenableBuilder` | Widget reactivo a ValueNotifier |
+| `ValueListenableBuilder` | Widget reactivo a `ValueNotifier` |
+| `ListenableBuilder` | Widget reactivo a cualquier `Listenable` |
 | `AnimatedBuilder` | Widget reactivo a Animation |
 | `LayoutBuilder` | Widget reactivo a constraints del padre |
 | `OrientationBuilder` | Widget reactivo a orientación |
@@ -174,7 +194,7 @@ Referencia rápida de todos los widgets útiles para apps móviles. Cada entrada
 | `IntrinsicHeight` | Altura intrínseca (mide hijos) |
 | `IntrinsicWidth` | Ancho intrínseco (mide hijos) |
 | `Theme` | Aplica tema a hijos |
-| `MediaQuery` | Información de pantalla |
+| `MediaQuery` | Información de pantalla (usa `sizeOf`/`widthOf`) |
 | `Overlay` | Superposición de capas |
 
 ## Animaciones implícitas
@@ -219,6 +239,12 @@ Referencia rápida de todos los widgets útiles para apps móviles. Cada entrada
 | `NavigationBar` | Barra inferior Material 3 |
 | `NavigationDrawer` | Drawer Material 3 |
 | `NavigationRail` | Barra lateral (tablet/desktop) |
+| `SegmentedButton` | Selección exclusiva segmentada |
+| `DropdownMenu` | Menú desplegable con búsqueda |
+| `SearchBar` + `SearchAnchor` | Búsqueda M3 |
+| `Card.filled` / `Card.outlined` | Tarjetas M3 sutiles |
+| `Badge` | Indicador superpuesto |
+| `CarouselView` | Carrusel M3 (3.35+) |
 
 ## Estructurales (app-level)
 
@@ -255,7 +281,12 @@ Nota: No es necesario usar Cupertino widgets. Puedes usar Material 3 con platfor
 ## 📚 Referencias
 
 - [Flutter | Widget catalog](https://docs.flutter.dev/ui/widgets) — Catálogo completo de widgets por categoría
+- [Flutter | Material 3](https://docs.flutter.dev/ui/material3) — Componentes y estilos M3
 - [Flutter | API reference](https://api.flutter.dev/) — Documentación de la API de Flutter
 - [Flutter | Layouts](https://docs.flutter.dev/ui/layout) — Guía de layouts en Flutter
 
 ---
+
+## Lo que sigue
+
+Este módulo terminó. Continúa con [16-BLOC-CUBIT](../16-BLOC-CUBIT/) para aprender a manejar el estado de tu aplicación con BLoC y Cubit.

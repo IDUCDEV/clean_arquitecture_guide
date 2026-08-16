@@ -6,11 +6,11 @@ Tres patrones comunes para mostrar/ocultar widgets.
 
 ```dart
 // 1. Operador ternario (más común)
-child: state.isLoading
+child: estado == Estado.cargando
     ? const CircularProgressIndicator()
     : const Text('Listo'),
 
-// 2. if-else en collection if (Colecciones)
+// 2. if-else en collection (Colecciones)
 children: [
   const Text('Items'),
   if (items.isEmpty)
@@ -30,63 +30,85 @@ Visibility(
 );
 ```
 
+`Visibility` te permite elegir si el widget conserva espacio (`maintainSize`), estado (`maintainState`) o si se descarta del árbol por completo.
+
 ## Patrón Loaded / Error / Empty / Loading
 
-Estado visual completo.
+Estado visual completo, modelado con un enum o clase sellada.
 
 ```dart
-class EstadoVisual extends StatelessWidget {
-  final String? error;
-  final bool isLoading;
-  final List<dynamic> data;
-  final Widget Function() builder;
+sealed class AsyncState<T> {}
 
-  const EstadoVisual({
-    super.key,
-    this.error,
-    required this.isLoading,
-    required this.data,
-    required this.builder,
-  });
+class AsyncLoading<T> extends AsyncState<T> {}
+class AsyncError<T> extends AsyncState<T> {
+  final String message;
+  AsyncError(this.message);
+}
+class AsyncData<T> extends AsyncState<T> {
+  final T data;
+  AsyncData(this.data);
+}
+
+class EstadoVisual<T> extends StatelessWidget {
+  final AsyncState<T> estado;
+  final Widget Function(T data) builder;
+
+  const EstadoVisual({super.key, required this.estado, required this.builder});
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (error != null) {
-      return Center(child: Text('Error: $error'));
-    }
-    if (data.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.inbox, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
-            Text('Sin datos'),
-          ],
+    return switch (estado) {
+      AsyncLoading() => const Center(child: CircularProgressIndicator()),
+      AsyncError(:final message) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Error: $message'),
+              FilledButton(
+                onPressed: () => {}, // reintentar (dispara nueva carga)
+                child: const Text('Reintentar'),
+              ),
+            ],
+          ),
         ),
-      );
-    }
-    return builder();
+      AsyncData(:final data) when data is List && (data as List).isEmpty =>
+        const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.inbox, size: 64, color: Colors.grey),
+              SizedBox(height: 16),
+              Text('Sin datos'),
+            ],
+          ),
+        ),
+      AsyncData(:final data) => builder(data),
+    };
   }
 }
 ```
 
-Uso:
+Uso (aquí con una clase de estado propia; en el módulo 16 la misma idea se aplica sobre `BlocBuilder`):
 
 ```dart
-BlocBuilder<MiCubit, MiState>(
-  builder: (context, state) {
+class ProductosBody extends StatelessWidget {
+  final AsyncState<List<Producto>> estado;
+
+  const ProductosBody({super.key, required this.estado});
+
+  @override
+  Widget build(BuildContext context) {
     return EstadoVisual(
-      isLoading: state is Loading,
-      error: state is Error ? state.message : null,
-      data: state is Data ? state.items : [],
-      builder: () => ListView(/* ... */),
+      estado: estado,
+      builder: (productos) => ListView.builder(
+        itemCount: productos.length,
+        itemBuilder: (context, index) => ListTile(
+          title: Text(productos[index].nombre),
+        ),
+      ),
     );
-  },
-);
+  }
+}
 ```
 
 ## Patrón Shimmer / Skeleton
@@ -124,7 +146,7 @@ Container(
 
 ## Patrón Sliver (scroll dinámico)
 
-Combina lists, grids y headers en un solo scroll.
+Combina listas, grids y headers en un solo scroll.
 
 ```dart
 CustomScrollView(
@@ -276,8 +298,8 @@ class AccionLista extends StatelessWidget {
 ## 📚 Referencias
 
 - [Flutter | Widget catalog](https://docs.flutter.dev/ui/widgets) — Catálogo completo de widgets por categoría
-- [Flutter | API reference](https://api.flutter.dev/) — Documentación de la API de Flutter
-- [Flutter | Layouts](https://docs.flutter.dev/ui/layout) — Guía de layouts en Flutter
+- [Flutter | Slivers](https://docs.flutter.dev/ui/layout/scrolling/slivers) — Slivers y scroll dinámico
+- [Dart | Pattern matching](https://dart.dev/language/patterns) — `sealed` + `switch` para estados (3.10+)
 
 ---
 

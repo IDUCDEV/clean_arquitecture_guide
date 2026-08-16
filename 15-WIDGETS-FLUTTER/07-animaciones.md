@@ -36,7 +36,22 @@ AnimatedSwitcher(
 );
 ```
 
-Otros: `AnimatedPositioned`, `AnimatedAlign`, `AnimatedSize`, `AnimatedDefaultTextStyle`, `TweenAnimationBuilder`.
+Otros: `AnimatedPositioned`, `AnimatedAlign`, `AnimatedSize`, `AnimatedDefaultTextStyle`, `AnimatedSlide`, `AnimatedScale`, `AnimatedRotation`, `TweenAnimationBuilder`.
+
+`TweenAnimationBuilder` anima desde un valor inicial hacia un valor final sin controller:
+
+```dart
+TweenAnimationBuilder<double>(
+  tween: Tween(begin: 0, end: _progreso),
+  duration: const Duration(milliseconds: 600),
+  builder: (context, value, child) => CircularProgressIndicator(
+    value: value,
+    backgroundColor: Colors.grey[300],
+  ),
+);
+```
+
+> Los widgets implícitos aceptan `AnimationStyle` (desde 3.29) para personalizar duración/curva sin envolverlos.
 
 ## AnimationController
 
@@ -141,7 +156,7 @@ Hero(
 );
 ```
 
-La transición ocurre automáticamente entre `Navigator.push`.
+La transición ocurre automáticamente entre pantallas del mismo `Navigator` (también funciona con `context.push` de go_router).
 
 ## CustomPainter
 
@@ -179,7 +194,7 @@ CustomPaint(
 
 ## StaggeredAnimations
 
-Múltiples animaciones encadenadas con diferentes delays.
+Múltiples animaciones encadenadas con diferentes delays (vía `Interval`).
 
 ```dart
 class _StaggeredState extends State<StaggeredWidget>
@@ -223,7 +238,7 @@ class _StaggeredState extends State<StaggeredWidget>
 ## Lottie / Rive (animaciones JSON)
 
 ```dart
-// pubspec.yaml: lottie: ^3.0.0
+// pubspec.yaml: lottie: ^3.1.0
 
 Lottie.asset(
   'assets/animaciones/loading.json',
@@ -243,6 +258,8 @@ Lottie.asset(
 _ctrl.play();
 ```
 
+`rive` (^0.13) ofrece animaciones interactivas con estados avanzados; ambas son buenas opciones para animaciones diseñadas en Figma/After Effects.
+
 ## Reglas para animaciones
 
 - Prefiere animaciones implícitas (`AnimatedContainer`, `AnimatedOpacity`) para casos simples.
@@ -250,15 +267,17 @@ _ctrl.play();
 - Mantén las animaciones en ~300ms para interacciones táctiles.
 - Usa `Curves.bounceIn` o `easeOutBack` para efectos llamativos controlados.
 - No animes: `opacity` + `size` simultáneamente (causa rebotes).
+- No uses `Opacity` en loops de animación: usa `FadeTransition` (ver capítulo 10).
 
 
 ---
 
 ## 📚 Referencias
 
-- [Flutter | Widget catalog](https://docs.flutter.dev/ui/widgets) — Catálogo completo de widgets por categoría
-- [Flutter | API reference](https://api.flutter.dev/) — Documentación de la API de Flutter
-- [Flutter | Layouts](https://docs.flutter.dev/ui/layout) — Guía de layouts en Flutter
+- [Flutter | Animations guide](https://docs.flutter.dev/ui/animations) — Guía oficial de animaciones
+- [Flutter | Implicit animations](https://docs.flutter.dev/ui/animations/implicit-animations) — Widgets implícitos
+- [Flutter | Hero animations](https://docs.flutter.dev/ui/animations/hero-animations) — Transiciones compartidas
+- [lottie | pub.dev](https://pub.dev/packages/lottie) — Animaciones de After Effects en Flutter
 
 ---
 

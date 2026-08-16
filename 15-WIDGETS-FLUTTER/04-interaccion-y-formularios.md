@@ -70,6 +70,8 @@ class _FormState extends State<FormWidget> {
 }
 ```
 
+Extras útiles: `autofillHints: [AutofillHints.email]` para autocompletado nativo, `onTapOutside` para ocultar teclado, y `enabled: false` para deshabilitar sin perder el valor.
+
 ## Form con validación
 
 ```dart
@@ -101,15 +103,17 @@ Form(
 );
 ```
 
+`_formKey.currentState!.validate()` valida todos los campos y `save()` guarda los valores en los `TextFormField` (si definiste `onSaved`).
+
 ## DropdownButtonFormField
 
-Selección de una opción entre varias.
+Selección de una opción entre varias. Desde Flutter 3.35 usa `initialValue` en lugar de `value`.
 
 ```dart
 String? _rol;
 
 DropdownButtonFormField<String>(
-  value: _rol,
+  initialValue: _rol,
   decoration: const InputDecoration(labelText: 'Rol'),
   items: const [
     DropdownMenuItem(value: 'admin', child: Text('Admin')),
@@ -120,7 +124,24 @@ DropdownButtonFormField<String>(
 );
 ```
 
-## Checkbox, Switch, Radio
+## DropdownMenu (M3)
+
+Alternativa moderna a `DropdownButton` con campo de búsqueda y estilo M3.
+
+```dart
+DropdownMenu<String>(
+  label: const Text('Rol'),
+  initialSelection: _rol,
+  onSelected: (value) => setState(() => _rol = value),
+  dropdownMenuEntries: const [
+    DropdownMenuEntry(value: 'admin', label: 'Admin'),
+    DropdownMenuEntry(value: 'user', label: 'Usuario'),
+    DropdownMenuEntry(value: 'guest', label: 'Invitado'),
+  ],
+);
+```
+
+## Checkbox, Switch, Radio (RadioGroup)
 
 Controles binarios y de selección única.
 
@@ -131,17 +152,43 @@ Checkbox(
   onChanged: (value) => setState(() => _aceptaTerminos = value!),
 );
 
-// Switch
+// Switch — desde 3.35: activeThumbColor (activeColor está deprecado)
 Switch(
   value: _notificaciones,
+  activeThumbColor: Colors.green,
   onChanged: (value) => setState(() => _notificaciones = value),
 );
 
-// Radio
-Radio<String>(
-  value: 'masculino',
+// Radio — desde 3.32/3.35 el grupo se gestiona con RadioGroup
+RadioGroup<String>(
   groupValue: _genero,
-  onChanged: (value) => setState(() => _genero = value!),
+  onChanged: (value) => setState(() => _genero = value),
+  child: const Column(
+    children: [
+      Radio(value: 'masculino'),
+      Radio(value: 'femenino'),
+      Radio(value: 'otro'),
+    ],
+  ),
+);
+```
+
+> En `Radio` los parámetros `groupValue` y `onChanged` están deprecados desde 3.32: el estado del grupo lo maneja `RadioGroup`. Cada `Radio` solo declara su `value`.
+
+## SegmentedButton
+
+Selección exclusiva estilizada (M3), ideal para filtros con pocas opciones.
+
+```dart
+SegmentedButton<String>(
+  segments: const [
+    ButtonSegment(value: 'dia', label: Text('Día'), icon: Icon(Icons.wb_sunny)),
+    ButtonSegment(value: 'mes', label: Text('Mes')),
+    ButtonSegment(value: 'anio', label: Text('Año')),
+  ],
+  selected: {_periodo},
+  onSelectionChanged: (selection) =>
+      setState(() => _periodo = selection.first),
 );
 ```
 
@@ -198,82 +245,94 @@ RangeSlider(
 );
 ```
 
-## Patrón de formulario completo con BLoC
+## Patrón de formulario con estado local (widgets puros)
+
+Con `ValueNotifier` + `ValueListenableBuilder` puedes construir un formulario reactivo sin librerías externas. El botón se habilita/deshabilita según el estado.
 
 ```dart
-class LoginForm extends StatelessWidget {
+class LoginForm extends StatefulWidget {
+  const LoginForm({super.key});
+  @override
+  State<LoginForm> createState() => _LoginFormState();
+}
+
+class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
+  final _enviando = ValueNotifier<bool>(false);
 
-  LoginForm({super.key});
+  @override
+  void dispose() {
+    _emailCtrl.dispose();
+    _passCtrl.dispose();
+    _enviando.dispose();
+    super.dispose();
+  }
+
+  Future<void> _iniciarSesion() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    _enviando.value = true;
+    try {
+      await autenticar(_emailCtrl.text, _passCtrl.text); // tu lógica
+      if (mounted) context.go('/home');
+    } finally {
+      if (mounted) _enviando.value = false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthCubit, AuthState>(
-      listener: (context, state) {
-        if (state is AuthError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
-        }
-        if (state is AuthAuthenticated) {
-          context.go('/home');
-        }
-      },
-      child: Form(
-        key: _formKey,
-        child: Column(
-          children: [
-            TextFormField(
-              controller: _emailCtrl,
-              decoration: const InputDecoration(labelText: 'Email'),
-              validator: (v) => v?.contains('@') == true ? null : 'Email inválido',
-            ),
-            TextFormField(
-              controller: _passCtrl,
-              decoration: const InputDecoration(labelText: 'Contraseña'),
-              obscureText: true,
-              validator: (v) => (v?.length ?? 0) >= 6 ? null : 'Mínimo 6 caracteres',
-            ),
-            BlocBuilder<AuthCubit, AuthState>(
-              builder: (context, state) {
-                return FilledButton(
-                  onPressed: state is AuthLoading
-                      ? null
-                      : () {
-                          if (_formKey.currentState!.validate()) {
-                            context.read<AuthCubit>().login(
-                                  _emailCtrl.text,
-                                  _passCtrl.text,
-                                );
-                          }
-                        },
-                  child: state is AuthLoading
-                      ? const SizedBox(
-                          width: 20, height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Iniciar sesión'),
-                );
-              },
-            ),
-          ],
-        ),
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: [
+          TextFormField(
+            controller: _emailCtrl,
+            decoration: const InputDecoration(labelText: 'Email'),
+            validator: (v) =>
+                v?.contains('@') == true ? null : 'Email inválido',
+          ),
+          TextFormField(
+            controller: _passCtrl,
+            decoration: const InputDecoration(labelText: 'Contraseña'),
+            obscureText: true,
+            validator: (v) =>
+                (v?.length ?? 0) >= 6 ? null : 'Mínimo 6 caracteres',
+          ),
+          ValueListenableBuilder<bool>(
+            valueListenable: _enviando,
+            builder: (context, enviando, child) {
+              return FilledButton(
+                onPressed: enviando ? null : _iniciarSesion,
+                child: enviando
+                    ? const SizedBox(
+                        width: 20, height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Iniciar sesión'),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
 }
 ```
 
+> En el [módulo 16](../16-BLOC-CUBIT/) este mismo formulario se versiona con `BlocProvider` + `BlocListener` + `BlocBuilder`; aquí lo mantenemos en widgets puros porque el tema de esta guía es el catálogo de widgets. La estructura del árbol (`Form` → campos → botón) es idéntica en ambos casos.
+
 
 ---
 
 ## 📚 Referencias
 
-- [Flutter | Widget catalog](https://docs.flutter.dev/ui/widgets) — Catálogo completo de widgets por categoría
-- [Flutter | API reference](https://api.flutter.dev/) — Documentación de la API de Flutter
-- [Flutter | Layouts](https://docs.flutter.dev/ui/layout) — Guía de layouts en Flutter
+- [Flutter | TextFields](https://docs.flutter.dev/ui/widgets/text) — Catálogo de campos de texto
+- [Flutter | Material 3 — Selection controls](https://m3.material.io/components/selection-controls/overview) — Checkbox, Switch, Radio en M3
+- [Flutter | API — RadioGroup](https://api.flutter.dev/flutter/widgets/RadioGroup-class.html) — Grupo de radios con navegación por teclado
+- [Flutter | API — SegmentedButton](https://api.flutter.dev/flutter/material/SegmentedButton-class.html) — Botón segmentado M3
+- [Flutter | Forms](https://docs.flutter.dev/ui/widgets/forms) — Guía de formularios
 
 ---
 

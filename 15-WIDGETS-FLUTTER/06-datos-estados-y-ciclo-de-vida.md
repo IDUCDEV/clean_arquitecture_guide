@@ -2,14 +2,14 @@
 
 ## Flujo de datos en Flutter
 
-Los datos viajan **hacia abajo** por el árbol de widgets. Las notificaciones (callbacks) viajan **hacia arriba**.
+Los datos viajan **hacia abajo** por el árbol de widgets (vía constructores o `InheritedWidget`). Las notificaciones (callbacks) viajan **hacia arriba**.
 
 ```
-Datos → Provider/Cubit → Widget Padre → Widget Hijo
-Callback: Hijo → Padre → Provider/Cubit
+Datos    → Widget Padre → Widget Hijo
+Callback → Hijo → Padre
 ```
 
-Este flujo unidireccional se conoce como *lifting state up*.
+Este flujo unidireccional se conoce como *lifting state up*: el estado se eleva al ancestro común que lo necesita, y baja a los hijos que solo lo muestran.
 
 ## StatefulWidget ciclo de vida
 
@@ -102,6 +102,8 @@ FutureBuilder<List<Producto>>(
 );
 ```
 
+> Almacena el `Future` en una variable/estado si quieres que el reintento cree uno nuevo. Si lo creas directamente en `future:`, cada rebuild lanza una nueva petición.
+
 ## StreamBuilder
 
 Widget reactivo que se actualiza con cada emisión de un `Stream`.
@@ -126,9 +128,11 @@ StreamBuilder<int>(
 );
 ```
 
-## ValueListenableBuilder
+Puedes pasar `initialData` para pintar algo antes de la primera emisión.
 
-Widget reactivo para `ValueNotifier` — estado local simple sin streams.
+## ValueListenableBuilder y ListenableBuilder
+
+Widgets reactivos para `ValueNotifier` y cualquier `Listenable` — estado local simple sin streams.
 
 ```dart
 final _contador = ValueNotifier<int>(0);
@@ -149,7 +153,16 @@ ValueListenableBuilder<int>(
 );
 ```
 
-`ValueNotifier` + `ValueListenableBuilder` es ideal para estado local que no requiere BLoC.
+`ListenableBuilder` es la versión genérica (acepta `ChangeNotifier`, `Animation`, etc. sin desempacar valores):
+
+```dart
+ListenableBuilder(
+  listenable: _modelo, // un ChangeNotifier
+  builder: (context, child) => Text(_modelo.titulo),
+);
+```
+
+`ValueNotifier` + `ValueListenableBuilder` es ideal para estado local que no requiere BLoC. `ChangeNotifier` + `ListenableBuilder` sirve cuando el estado es un objeto completo.
 
 ## TickerProvider
 
@@ -177,6 +190,8 @@ class _AnimacionState extends State<AnimacionWidget>
 }
 ```
 
+Usa `TickerProviderStateMixin` (en vez de `SingleTickerProviderStateMixin`) si necesitas más de un controller.
+
 ## Patrones de carga de datos en initState
 
 ```dart
@@ -184,29 +199,39 @@ class _PaginaState extends State<PaginaWidget> {
   @override
   void initState() {
     super.initState();
-    // Con BLoC: disparar evento
-    context.read<MiCubit>().cargarDatos();
-
-    // Con Future: iniciar carga
-    _initAsync();
+    _cargar();
   }
 
-  Future<void> _initAsync() async {
+  Future<void> _cargar() async {
+    // Con Future: iniciar carga
+    final data = await servicio.fetch();
     // setState seguro porque el widget está montado
     if (!mounted) return;
-    // ...
+    setState(() => _data = data);
   }
 }
 ```
 
-## mounted
+Cuando tu capa de estado viva en otra parte (Cubit/BLoC, módulo 16), `initState` solo dispara la intención:
 
-La propiedad `mounted` indica si el `State` sigue en el árbol.
+```dart
+@override
+void initState() {
+  super.initState();
+  // Adelanto del módulo 16: con BLoC se dispara un evento,
+  // el cubit emite el estado y la UI reacciona.
+  context.read<MiCubit>().cargarDatos();
+}
+```
+
+## mounted y context.mounted
+
+`mounted` indica si el `State` sigue en el árbol. Úsalo antes de tocar el estado después de un `await`.
 
 ```dart
 @override
 Widget build(BuildContext context) {
-  return ElevatedButton(
+  return FilledButton(
     onPressed: () async {
       await Future.delayed(const Duration(seconds: 3));
       // Si el widget ya no está montado, no tocar el estado
@@ -218,14 +243,28 @@ Widget build(BuildContext context) {
 }
 ```
 
+Desde Flutter 3.7 también existe `context.mounted`, útil en funciones que reciben un `BuildContext` sin `State` (por ejemplo, un método de una clase helper):
+
+```dart
+Future<void> irADetalle(BuildContext context) async {
+  await obtenerAlgo();
+  if (!context.mounted) return; // evita usar un context desmontado
+  Navigator.of(context).push(...);
+}
+```
+
+> Diferencia: `mounted` (en el `State`) protege `setState`; `context.mounted` (en el `BuildContext`) protege operaciones que usan el context (navegación, SnackBars, `context.read`).
+
 
 ---
 
 ## 📚 Referencias
 
-- [Flutter | Widget catalog](https://docs.flutter.dev/ui/widgets) — Catálogo completo de widgets por categoría
-- [Flutter | API reference](https://api.flutter.dev/) — Documentación de la API de Flutter
-- [Flutter | Layouts](https://docs.flutter.dev/ui/layout) — Guía de layouts en Flutter
+- [Flutter | StatefulWidget lifecycle](https://docs.flutter.dev/ui/interactivity) — Ciclo de vida y manejo de estado
+- [Flutter | FutureBuilder](https://api.flutter.dev/flutter/widgets/FutureBuilder-class.html) — API de FutureBuilder
+- [Flutter | StreamBuilder](https://api.flutter.dev/flutter/widgets/StreamBuilder-class.html) — API de StreamBuilder
+- [Flutter | ListenableBuilder](https://api.flutter.dev/flutter/widgets/ListenableBuilder-class.html) — Builder reactivo genérico
+- [Flutter | BuildContext.mounted](https://api.flutter.dev/flutter/widgets/BuildContext/mounted.html) — Proteger usos asíncronos de context
 
 ---
 
