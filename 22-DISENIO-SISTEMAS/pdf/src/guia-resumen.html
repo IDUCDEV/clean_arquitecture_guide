@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>GUÍA RESUMEN — Diseño de Sistemas</title>
+<link rel="stylesheet" href="guia-resumen.css">
+</head>
+<body>
+
+<div class="header">
+  <div class="mod">Módulo 22 · Clean Architecture + Flutter + Supabase</div>
+  <h1>GUÍA RESUMEN — Diseño de Sistemas</h1>
+  <div class="sub">Resumen integral para diseñar sistemas a escala con Flutter + Supabase sin volver a leer el módulo completo. Hilo conductor: Estimación de escala → Modelado de datos → Cache → Realtime → CAP/Alta disponibilidad → Seguridad → Observabilidad → Offline → 4 casos integradores.</div>
+</div>
+
+<!-- ================= 0. PLANTILLA ================= -->
+<section>
+  <div class="section-head s-indigo">
+    <span class="num">0</span>
+    <h2>La Plantilla de 10 pasos</h2>
+    <span class="meta">cualquier diseño, en orden</span>
+  </div>
+
+  <table class="flow">
+    <tr>
+      <td><span class="step-n">1</span><span class="step-t">Alcance</span><span class="step-f">qué SÍ y qué NO</span></td>
+      <td><span class="step-n">2</span><span class="step-t">Escala</span><span class="step-f">QPS, storage, ratios</span></td>
+      <td><span class="step-n">3</span><span class="step-t">Datos</span><span class="step-f">entidades, índices, RLS</span></td>
+      <td><span class="step-n">4</span><span class="step-t">Arquitectura</span><span class="step-f">diagrama de cajas</span></td>
+      <td><span class="step-n">5</span><span class="step-t">Componentes</span><span class="step-f">API, DB, cache, CDN</span></td>
+    </tr>
+  </table>
+  <table class="flow">
+    <tr>
+      <td><span class="step-n">6</span><span class="step-t">Decisiones</span><span class="step-f">cada una con su trade-off</span></td>
+      <td><span class="step-n">7</span><span class="step-t">Consistencia</span><span class="step-f">CAP, SLA, patrón</span></td>
+      <td><span class="step-n">8</span><span class="step-t">Seguridad</span><span class="step-f">authn/authz, RLS</span></td>
+      <td><span class="step-n">9</span><span class="step-t">Observabilidad</span><span class="step-f">logs, métricas, alertas</span></td>
+      <td><span class="step-n">10</span><span class="step-t">Riesgos</span><span class="step-f">cuellos de botella futuros</span></td>
+    </tr>
+  </table>
+
+  <div class="callout"><p><strong>Regla de oro:</strong> "Elijo <strong>X</strong> porque el caso es <strong>Y</strong>, y el trade-off aceptable es <strong>Z</strong>." Toda decisión sin trade-off explícito es una decisión incompleta.</p></div>
+
+  <table>
+    <thead><tr><th>Paso</th><th>Qué haces</th><th>Clave</th><th>Dónde aprender más</th></tr></thead>
+    <tbody>
+      <tr><td>1. Alcance</td><td>Usuarios, funcionalidad, latencia, mobile/web, MVP vs maduro</td><td>Define también el <strong>fuera de scope</strong></td><td class="mono">01-clarificar-requisitos.md</td></tr>
+      <tr><td>2. Escala</td><td>QPS lecturas/escrituras, storage, ratio L/E</td><td>Números antes de dibujar</td><td class="mono">02-estimacion-de-escala.md</td></tr>
+      <tr><td>3. Datos</td><td>Entidades, índices, RLS, SQL vs NoSQL</td><td>Índices para los path reales</td><td class="mono">04-modelado-de-datos.md</td></tr>
+      <tr><td>4. Arquitectura</td><td>Diagrama de cajas y flujos</td><td>App → CDN/API → Cache → DB</td><td class="mono">03-componentes-arquitectura.md</td></tr>
+      <tr><td>5. Componentes</td><td>Elegir cada pieza</td><td>Cache, realtime, CDN, Edge</td><td class="mono">03 · 05 · 06</td></tr>
+      <tr><td>6. Decisiones</td><td>Justificar con trade-offs</td><td>"X porque Y, trade-off Z"</td><td class="mono">11-plantilla-diseno-sistema.md</td></tr>
+      <tr><td>7. Consistencia</td><td>Declarar CAP y SLA</td><td>strong vs eventual por dato</td><td class="mono">07-escalabilidad-alta-disponibilidad.md</td></tr>
+      <tr><td>8. Seguridad</td><td>HTTPS, RLS, menor privilegio</td><td>Deny-by-default</td><td class="mono">08-seguridad-en-diseno.md</td></tr>
+      <tr><td>9. Observabilidad</td><td>Métricas + alertas accionables</td><td>Los 3 pilares</td><td class="mono">09-observabilidad-monitoreo.md</td></tr>
+      <tr><td>10. Riesgos</td><td>Cuellos de botella futuros y mitigación</td><td>Cerrar con "el siguiente sería X"</td><td class="mono">11-plantilla-diseno-sistema.md</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout amber"><p><strong>NO hagas:</strong> ✗ diseñar sin clarificar · ✗ dibujar sin números · ✗ decisiones sin trade-off · ✗ olvidar CAP/seguridad/observabilidad · ✗ terminar sin riesgos y evolución.</p></div>
+</section>
+
+<!-- ================= 1. ESCALA ================= -->
+<section>
+  <div class="section-head s-indigo">
+    <span class="num">1</span>
+    <h2>Estimación de Escala</h2>
+    <span class="meta">back-of-the-envelope</span>
+  </div>
+  <p>Antes de dibujar el diagrama, calcula <strong>qué tanto debe aguantar</strong>. Estos números guían todas las demás decisiones (cache, replicas, sharding).</p>
+
+  <h3>Las 4 fórmulas</h3>
+  <table>
+    <thead><tr><th>Métrica</th><th>Fórmula</th><th>Ejemplo (feed)</th></tr></thead>
+    <tbody>
+      <tr><td><strong>QPS lecturas</strong></td><td class="mono">usuarios activos × acciones/usuario ÷ segundos</td><td>10M MAU · 5% pico · 100 lecturas/día → ~1.7K QPS</td></tr>
+      <tr><td><strong>QPS escrituras</strong></td><td class="mono">acciones/día ÷ 86,400</td><td>1.5M posts+likes/día → ~17 QPS</td></tr>
+      <tr><td><strong>Storage</strong></td><td class="mono">filas × bytes × retención</td><td>Media del feed → ~2.7 TB/año</td></tr>
+      <tr><td><strong>Ratio L/E</strong></td><td class="mono">lecturas ÷ escrituras</td><td>~10:1 → sistema read-heavy</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout"><p><strong>Lectura del ratio:</strong> ratio 10:1 → <strong>read-heavy</strong> → el cuello de botella son las lecturas → cache + read replicas. Ratio cercano a 1 o mayor en escrituras → <strong>write-heavy</strong> → el cuello es la DB → particionado/colas.</p></div>
+
+  <p><strong>Latencia vs throughput:</strong> latencia = tiempo de una acción; throughput = acciones por segundo. Problema de latencia = "lento para uno". Problema de throughput = "rápido para uno, se hunde con muchos". Objetivo: <em>maximal throughput con latency aceptable</em>.</p>
+</section>
+
+<!-- ================= 2. DATOS ================= -->
+<section>
+  <div class="section-head s-blue">
+    <span class="num">2</span>
+    <h2>Modelado de Datos</h2>
+    <span class="meta">el primer cuello de botella</span>
+  </div>
+
+  <h3>SQL vs NoSQL</h3>
+  <table>
+    <thead><tr><th>Criterio</th><th>SQL (PostgreSQL/Supabase)</th><th>NoSQL</th></tr></thead>
+    <tbody>
+      <tr><td>Esquema</td><td>Fijo, relacional</td><td>Flexible</td></tr>
+      <tr><td>Transacciones ACID</td><td><strong>Sólidas</strong></td><td>Variables</td></tr>
+      <tr><td>Relaciones/joins</td><td>Nativos</td><td>Se emulan en la app</td></tr>
+      <tr><td>Escalado</td><td>Vertical + réplicas; sharding manual</td><td>Horizontal por diseño</td></tr>
+      <tr><td>Cuándo</td><td><strong>Casi siempre</strong> (empieza aquí)</td><td>Latencia extrema, KV, datos no estructurados</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">Regla práctica: empieza con RDBMS. Postgres (corazón de Supabase) cubre el 90% con JSONB, RLS y realtime.</p>
+
+  <h3>Índices</h3>
+  <p>Aceleran <strong>lecturas</strong> pero frenan <strong>escrituras</strong> y consumen espacio. Se crean para los <strong>path de acceso reales</strong>, no para todo.</p>
+  <pre><span class="k">CREATE INDEX idx_posts_user ON posts (user_id);
+CREATE INDEX idx_posts_user_created ON posts (user_id, created_at DESC);</span></pre>
+
+  <h3>Replicación (más lecturas + tolerancia)</h3>
+  <table>
+    <thead><tr><th>Tipo</th><th>Quién escribe</th><th>Trade-off</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Master-Slave</strong></td><td>Solo el master; slaves leen</td><td>Escrituras pueden tener lag (eventual consistency)</td></tr>
+      <tr><td><strong>Master-Master</strong></td><td>Ambos escriben</td><td>Conflictos entre masters — complejo, evitar al inicio</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Sharding (último recurso)</h3>
+  <p>Dividir la tabla en N bases por un <strong>shard key</strong> (ej. <code>Hash(user_id) % N</code>). Escala escrituras/storage pero rompe joins y complica rebalanceo. <strong>Orden:</strong> índices → cache → réplicas → federación → sharding.</p>
+
+  <h3>Denormalización</h3>
+  <p>Duplicar data a propósito para <strong>leer sin joins</strong>. Leer es rápido, pero cada escritura debe mantener las copias sincronizadas (riesgo de inconsistencia).</p>
+  <table>
+    <thead><tr><th></th><th>Normalizado</th><th>Denormalizado</th></tr></thead>
+    <tbody>
+      <tr><td>Escritura</td><td>Simple (1 lugar)</td><td>Compleja (mantener copias)</td></tr>
+      <tr><td>Lectura</td><td>Joins caros</td><td>Rápida (todo en la fila)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout green"><p><strong>Árbol de decisión:</strong> ¿consulta lenta? → índices + <code>EXPLAIN</code> → ¿lectura repetitiva? → cache → ¿mucha concurrencia? → read replicas → ¿escrituras el cuello? → particionado → ¿nada funciona? → sharding.</p></div>
+</section>
+
+<!-- ================= 3. CACHE ================= -->
+<section>
+  <div class="section-head s-blue">
+    <span class="num">3</span>
+    <h2>Cache y Rendimiento</h2>
+    <span class="meta">la herramienta #1</span>
+  </div>
+
+  <h3>Dónde cachear (de cerca a lejos del usuario)</h3>
+  <table class="flow">
+    <tr>
+      <td><span class="step-n">App</span><span class="step-f">Isar local, HTTP cache</span></td>
+      <td><span class="step-n">CDN</span><span class="step-f">media, estáticos</span></td>
+      <td><span class="step-n">Server</span><span class="step-f">respuestas HTTP/Edge</span></td>
+      <td><span class="step-n">DB</span><span class="step-f">query cache, views</span></td>
+    </tr>
+  </table>
+
+  <h3>Las 4 estrategias de actualización</h3>
+  <table>
+    <thead><tr><th>Estrategia</th><th>Qué hace</th><th>Trade-off</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Cache-aside</strong> (lazy)</td><td>Miss → lee DB → guarda en cache</td><td>Primer acceso lento; cachea solo lo usado ✅ recomendada</td></tr>
+      <tr><td><strong>Write-through</strong></td><td>Escribe cache + DB juntos</td><td>Lecturas siempre frescas; escrituras más lentas</td></tr>
+      <tr><td><strong>Write-behind</strong></td><td>Escribe cache, persiste async</td><td>Escrituras rapidísimas; riesgo de pérdida</td></tr>
+      <tr><td><strong>Refresh-ahead</strong></td><td>Refresca antes de expirar</td><td>Menos misses; puede predecir mal</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>TTL:</strong> tiempo de vida — mientras no expire el dato puede estar <strong>stale</strong>. <strong>Invalidación:</strong> cuando el dato cambia, hay que actualizar el cache (o el usuario ve data vieja). <strong>Eviction:</strong> LRU (Least Recently Used) es lo estándar.</p>
+
+  <div class="callout amber"><p><strong>Cache stampede (miss storm):</strong> si todos los caches expiran a la vez, miles pegan a la DB. Mitigación: <strong>jitter en TTL</strong> + <em>stale-while-revalidate</em>.</p></div>
+
+  <pre><span class="k">// Feed del repo (decisión completa):</span>
+Lectura:  app (Isar) → si miss → API → Redis → si miss → Postgres → cachea → devuelve
+Escritura: crear post → invalida el cache del feed del autor (write-through)
+Justificación: ratio 10:1 read-heavy → cache-aside + invalidación al escribir.</pre>
+</section>
+
+<!-- ================= 4. REALTIME ================= -->
+<section>
+  <div class="section-head s-blue">
+    <span class="num">4</span>
+    <h2>Realtime y Streaming</h2>
+    <span class="meta">cuándo cada técnica</span>
+  </div>
+
+  <h3>Las 4 opciones</h3>
+  <table>
+    <thead><tr><th>Técnica</th><th>Dirección</th><th>Cuándo</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Polling</strong></td><td>Cliente → servidor</td><td>Segundos de latencia, simple (refrescar cada 30s)</td></tr>
+      <tr><td><strong>Long polling</strong></td><td>Cliente mantiene la conexión hasta respuesta</td><td>Sin WebSocket, menos peticiones</td></tr>
+      <tr><td><strong>WebSocket</strong></td><td>Bidireccional full-duplex</td><td>Realtime de verdad (chat, presencia)</td></tr>
+      <tr><td><strong>SSE</strong></td><td>Servidor → cliente (unidireccional)</td><td>Updates solo del servidor</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Asincronía (message/task queues)</h3>
+  <p>Desacoplar el productor del consumidor: el mensaje <strong>espera</strong> si el consumidor cae. En Supabase: trigger en DB → Edge Function → notificación. <strong>Cuidado:</strong> si el consumidor va más lento, la cola crece (backpressure) — monitorear su tamaño.</p>
+
+  <h3>Supabase Realtime (gestionado)</h3>
+  <p>3 canales oficiales: <strong>Postgres Changes</strong> (recibe inserts/updates/deletes), <strong>Broadcast</strong> (mensajes entre clientes), <strong>Presence</strong> (quién está online).</p>
+  <pre>Postgres ──(WAL)──▶ Realtime ──(WebSocket)──▶ Flutter App</pre>
+  <pre><span class="k">supabase.channel('messages:room-1')
+  .onPostgresChanges(event: insert, table: 'messages',
+    callback: (payload) =&gt; emit(Message.fromJson(payload.newRecord)))
+  .subscribe();</span></pre>
+
+  <div class="callout"><p><strong>Árbol de decisión:</strong> ¿&lt;1-2s? → polling · ¿unidireccional? → SSE · ¿bidireccional baja latencia? → <strong>WebSocket (Supabase Realtime)</strong> · ¿algo intermedio? → long polling.</p></div>
+</section>
+
+<!-- ================= 5. CAP ================= -->
+<section>
+  <div class="section-head s-amber">
+    <span class="num">5</span>
+    <h2>Escalabilidad y Alta Disponibilidad</h2>
+    <span class="meta">CAP · scaling · nueves</span>
+  </div>
+
+  <h3>Performance vs Scalability</h3>
+  <p><strong>Performance:</strong> lento para un usuario. <strong>Scalability:</strong> rápido para uno, lento bajo carga. Escalar: primero <strong>vertical</strong> (más CPU/RAM, simple), luego <strong>horizontal</strong> (más máquinas, con load balancing).</p>
+
+  <h3>CAP theorem (elegir 2 de 3)</h3>
+  <p><strong>C</strong>onsistency · <strong>A</strong>vailability · <strong>P</strong>artition tolerance. La red no es confiable → siempre hay particiones → eliges entre C y A.</p>
+  <table>
+    <thead><tr><th></th><th>CP (consistencia)</th><th>AP (disponibilidad)</th></tr></thead>
+    <tbody>
+      <tr><td>Ante partición</td><td>Espera/bloquea hasta estar consistente</td><td>Responde con lo disponible (puede estar viejo)</td></tr>
+      <tr><td>Ideal para</td><td>Pagos, inventario, contadores</td><td>Feeds, chats, notificaciones</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Patrones de consistencia</h3>
+  <table>
+    <thead><tr><th>Patrón</th><th>Qué garantiza</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Weak</strong></td><td>Los reads pueden no ver el write (best-effort)</td></tr>
+      <tr><td><strong>Eventual</strong></td><td>Los reads lo verán eventualmente (ms) — DNS, feeds, likes</td></tr>
+      <tr><td><strong>Strong</strong></td><td>Todos los reads ven el write — RDBMS</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Disponibilidad en números</h3>
+  <table>
+    <thead><tr><th>Disponibilidad</th><th>Downtime/año</th><th>Downtime/día</th></tr></thead>
+    <tbody>
+      <tr><td>99%</td><td>3d 15h</td><td>14m 24s</td></tr>
+      <tr><td>99.9%</td><td>8h 45m</td><td>1m 26s</td></tr>
+      <tr><td>99.99%</td><td>52m 35s</td><td>8.6s</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Failover:</strong> active-passive (standby, más barato) vs active-active (ambos atienden, riesgo de conflictos). <strong>Serie vs paralelo:</strong> componentes en serie <em>multiplican</em> la indisponibilidad; redundancia en paralelo la reduce.</p>
+
+  <div class="callout amber"><p><strong>En Supabase no reinventes la HA:</strong> Auth, DB, Storage y Realtime tienen SLA gestionado. Tu trabajo es: no crear puntos únicos de fallo en tu código, elegir el SLA correcto para el caso y tener cache local (offline) como plan B.</p></div>
+</section>
+
+<!-- ================= 6. SEGURIDAD ================= -->
+<section>
+  <div class="section-head s-amber">
+    <span class="num">6</span>
+    <h2>Seguridad en el Diseño</h2>
+    <span class="meta">defensa en profundidad</span>
+  </div>
+
+  <h3>Capas (ninguna basta sola)</h3>
+  <p>App (secrets nunca en el bundle) → <strong>HTTPS/TLS</strong> → API (Auth + RLS) → DB (menor privilegio + backups cifrados).</p>
+
+  <h3>Authn vs Authz</h3>
+  <p><strong>Authentication:</strong> quién eres (login, OAuth, magic link). <strong>Authorization:</strong> qué puedes hacer (permisos por fila). Error típico: validar solo el login y olvidar la autorización.</p>
+
+  <h3>RLS como capa de autorización</h3>
+  <p>El módulo 03 lo implementa; aquí la visión de diseño: RLS se evalúa <strong>en la DB</strong> (no en la app). Aunque roben un JWT, la policy sigue protegiendo. Cada policy usa <code>auth.uid()</code> (el <code>sub</code> del JWT de Supabase).</p>
+  <pre><span class="k">CREATE POLICY "read_own_drafts" ON posts
+FOR SELECT USING (auth.uid() = user_id AND status = 'draft');</span></pre>
+
+  <h3>Principio de menor privilegio</h3>
+  <table>
+    <thead><tr><th>Quién</th><th>Permisos correctos</th></tr></thead>
+    <tbody>
+      <tr><td>Anon key en la app</td><td>Solo lo público (RLS niega el resto)</td></tr>
+      <tr><td>Service role key</td><td><strong>Nunca</strong> en la app; solo Edge Functions/servidor</td></tr>
+      <tr><td>Edge Functions</td><td>Solo las operaciones que necesitan</td></tr>
+      <tr><td>Storage buckets</td><td>Bucket público vs privado + RLS en storage.objects</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout green"><p><strong>Checklist mínimo:</strong> ✅ HTTPS en todo · ✅ tokens en <code>flutter_secure_storage</code> · ✅ RLS en todas las tablas · ✅ service role solo en backend · ✅ <code>.env</code> en <code>.gitignore</code> · ✅ menor privilegio en roles.</p></div>
+</section>
+
+<!-- ================= 7. OBSERVABILIDAD ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">7</span>
+    <h2>Observabilidad y Resiliencia</h2>
+    <span class="meta">medir, alertar, recuperarse</span>
+  </div>
+
+  <h3>Los 3 pilares</h3>
+  <table>
+    <thead><tr><th>Pilar</th><th>Qué es</th><th>Pregunta que responde</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Logs</strong></td><td>Eventos discretos (JSON, con trace_id)</td><td>¿Qué pasó?</td></tr>
+      <tr><td><strong>Métricas</strong></td><td>Números agregados (USE: Utilización, Saturación, Errores)</td><td>¿Cuánto / con qué frecuencia?</td></tr>
+      <tr><td><strong>Tracing</strong></td><td>Recorrido del request por todos los componentes</td><td>¿Dónde se tardó?</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Alertas accionables (4 pasos)</h3>
+  <p>1) Métrico correcto (error rate, latencia p95) · 2) Umbral realista · 3) Alerta con <strong>link al log/trace</strong> · 4) Solo lo que alguien puede arreglar.</p>
+  <pre><span class="k">ALERTA "Error rate GET /api/feed &gt; 5% durante 5 min"
+ACCIÓN: revisar Edge Function / query de feed / saturación de DB</span></pre>
+
+  <h3>Resiliencia (self-healing)</h3>
+  <table>
+    <thead><tr><th>Técnica</th><th>Qué hace</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Timeouts</strong></td><td>Ningún request se cuelga para siempre</td></tr>
+      <tr><td><strong>Retries + backoff</strong></td><td>Reintenta esperando más cada vez (1s, 2s, 4s…)</td></tr>
+      <tr><td><strong>Circuit breaker</strong></td><td>Tras N fallos, falla rápido en vez de pegarle al servicio caído</td></tr>
+      <tr><td><strong>Fallbacks</strong></td><td>Si la fuente falla, sirve cache / datos locales</td></tr>
+    </tbody>
+  </table>
+
+  <p class="muted">En Supabase los logs de Postgres, Auth, Realtime, Storage y Edge Functions ya son gestionados (dashboard + API). No montes un stack de observabilidad hasta que el tráfico lo justifique.</p>
+</section>
+
+<!-- ================= 8. OFFLINE ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">8</span>
+    <h2>Offline-First y Sincronización</h2>
+    <span class="meta">la red no es confiable</span>
+  </div>
+
+  <h3>Los 4 niveles</h3>
+  <table>
+    <thead><tr><th>Nivel</th><th>Qué guarda</th></tr></thead>
+    <tbody>
+      <tr><td>1. Lectura offline</td><td>Cache de lo ya visto (feed cargado)</td></tr>
+      <tr><td>2. Escrituras offline</td><td>Acciones en cola local (like, mensaje)</td></tr>
+      <tr><td>3. Sync en background</td><td>La cola se envía al reconectar</td></tr>
+      <tr><td>4. Conflict resolution</td><td>Ambos lados editaron lo mismo</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Estrategia recomendada: optimistic UI + cola</h3>
+  <pre><span class="k">1. Usuario da like → cola local + UI actualiza al instante
+2. Sin red: queda "pending" en la cola
+3. Al reconectar: se envía en orden con retries + backoff
+4. Éxito → "synced" · fallo → reintento con límite</span></pre>
+
+  <h3>Conflictos: definirlos ANTES</h3>
+  <table>
+    <thead><tr><th>Política</th><th>Qué pasa</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Last-write-wins (LWW)</strong></td><td>Gana el último <code>updated_at</code>. Simple; pierde trabajo.</td></tr>
+      <tr><td><strong>Merge manual</strong></td><td>Se conservan ambos y el usuario decide</td></tr>
+      <tr><td><strong>Por campo</strong></td><td>El último cambio por cada campo</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout"><p><strong>Por qué funciona con Supabase:</strong> Realtime empuja cambios remotos · RLS decide qué sincronizar · <strong>UUIDs como PK</strong> (sin colisiones de sync) · <code>updated_at</code> para LWW y delta sync. Diseño AP: disponible siempre, consistente eventualmente.</p></div>
+</section>
+
+<!-- ================= 9. CASOS ================= -->
+<section>
+  <div class="section-head s-amber">
+    <span class="num">9</span>
+    <h2>Casos Integradores (decisiones + CAP)</h2>
+    <span class="meta">4 diseños resueltos</span>
+  </div>
+
+  <h3>1 · Feed de Red Social (read-heavy)</h3>
+  <table>
+    <thead><tr><th>Decisión</th><th>Trade-off</th></tr></thead>
+    <tbody>
+      <tr><td>Cache-aside del feed (Redis)</td><td>Primer acceso lento tras expiración</td></tr>
+      <tr><td>Postgres como fuente de verdad</td><td>Consistencia fuerte; escala menor</td></tr>
+      <tr><td>CDN para media</td><td>TTL/invalidación al borrar</td></tr>
+      <tr><td>Cache local Isar (offline)</td><td>Sync = complejidad extra</td></tr>
+    </tbody>
+  </table>
+  <p class="muted"><strong>CAP: AP</strong> (una foto "unos segundos tarde" no es crítico); el post en sí usa strong consistency para no perder publicaciones. Escala: ~1.7K QPS lectura, 10:1.</p>
+
+  <h3>2 · Chat / Mensajería (write-heavy + realtime)</h3>
+  <table>
+    <thead><tr><th>Decisión</th><th>Trade-off</th></tr></thead>
+    <tbody>
+      <tr><td>Realtime (WebSocket) para entregar</td><td>Gestión de conexiones, límites</td></tr>
+      <tr><td>Insert en Postgres como "canal"</td><td>Realtime depende de la DB</td></tr>
+      <tr><td>Cola + optimistic UI</td><td>Complejidad de sincronización</td></tr>
+      <tr><td>UUIDs + LWW por <code>updated_at</code></td><td>IDs más largos</td></tr>
+    </tbody>
+  </table>
+  <p class="muted"><strong>CAP: AP</strong> en la entrega percibida, pero el mensaje <strong>nunca se pierde</strong>: persistencia fuerte en el servidor. RLS crítico: leer solo si participas en la conversación.</p>
+
+  <h3>3 · E-commerce Escalable (dinero + stock)</h3>
+  <table>
+    <thead><tr><th>Decisión</th><th>Trade-off</th></tr></thead>
+    <tbody>
+      <tr><td>Catálogo con cache-aside</td><td>Stock visible puede estar desfasado</td></tr>
+      <tr><td><strong>Checkout transaccional (ACID)</strong></td><td>Checkout más lento que el resto</td></tr>
+      <tr><td>Edge Function para checkout</td><td>Complejidad de despliegue</td></tr>
+      <tr><td>Idempotencia en pagos</td><td>—</td></tr>
+    </tbody>
+  </table>
+  <pre><span class="k">// Evita el oversell (2 compradores, 1 unidad):
+BEGIN;
+SELECT stock FROM products WHERE id = $1 FOR UPDATE;  -- lock
+-- stock &gt;= qty ? resta + inserta order : error "sin stock"
+COMMIT;</span></pre>
+  <p class="muted"><strong>CAP: CP</strong> en checkout (prefiere rechazar antes que dejar pasar un oversell); catálogo AP.</p>
+
+  <h3>4 · SaaS Multi-Tenant (aislamiento)</h3>
+  <table>
+    <thead><tr><th>Decisión</th><th>Trade-off</th></tr></thead>
+    <tbody>
+      <tr><td>Single Postgres + <strong>RLS como aislador</strong></td><td>Políticas complejas; riesgo si una falla</td></tr>
+      <tr><td>Roles por membresía (admin/member/viewer)</td><td>Más SQL de policies</td></tr>
+      <tr><td>Cache namespaced por <code>org_id</code></td><td>Invalidar por tenant al escribir</td></tr>
+      <tr><td>Test de aislamiento en CI</td><td>Suite dedicada</td></tr>
+    </tbody>
+  </table>
+  <pre><span class="k">CREATE POLICY "read_projects_of_my_orgs" ON projects
+FOR SELECT USING (EXISTS (
+  SELECT 1 FROM organization_members m
+  WHERE m.org_id = projects.org_id AND m.user_id = auth.uid()
+));</span></pre>
+  <p class="muted"><strong>CAP: CP</strong> — la consistencia de datos de proyectos importa más que servir data eventual. Riesgo clave: <strong>noisy neighbor</strong> (un tenant saturado) → cuotas y rate limits.</p>
+</section>
+
+<!-- ================= 10. ERRORES ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">10</span>
+    <h2>Errores Comunes</h2>
+    <span class="meta">detectar antes de la entrevista</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Fase</th><th>Error típico</th><th>Solución</th></tr></thead>
+    <tbody>
+      <tr><td>Alcance</td><td>Diseñar sin clarificar · olvidar el fuera de scope</td><td>Preguntar usuarios/carga/latencia ANTES de dibujar</td></tr>
+      <tr><td>Escala</td><td>Sin números · ratios ignorados</td><td>QPS, storage y ratio L/E siempre</td></tr>
+      <tr><td>Datos</td><td>NoSQL "por moda" · indexar todo</td><td>RDBMS primero · índices solo para path reales</td></tr>
+      <tr><td>Cache</td><td>Sin TTL/invalidación · ignorar el stampede</td><td>TTL + jitter + invalidación por escritura</td></tr>
+      <tr><td>Realtime</td><td>WebSocket para todo · solo REST cuando piden realtime</td><td>Árbol de decisión: polling → SSE → WS</td></tr>
+      <tr><td>CAP</td><td>No declararlo · consistencia fuerte en todo</td><td>Elegir CP o AP por dato y justificar</td></tr>
+      <tr><td>Seguridad</td><td>Service role en la app · solo login sin RLS</td><td>Menor privilegio + RLS deny-by-default</td></tr>
+      <tr><td>Observabilidad</td><td>Métricas sin logs/traces · alertas por todo</td><td>Los 3 pilares + alertas accionables</td></tr>
+      <tr><td>Offline</td><td>Sin política de conflictos · IDs autoincrementales</td><td>LWW definido antes + UUIDs como PK</td></tr>
+      <tr><td>Cierre</td><td>Terminar sin riesgos ni evolución</td><td>"El siguiente cuello de botella sería X, lo resuelvo con Y"</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout green"><p><strong>Checklist final de un diseño:</strong> ✅ alcance + fuera de scope · ✅ números justificados · ✅ diagrama · ✅ decisiones con trade-offs · ✅ CAP/SLA declarados · ✅ seguridad + observabilidad · ✅ riesgos y evolución.</p></div>
+</section>
+
+<!-- ================= ANEXO ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">A</span>
+    <h2>Anexo · Índice del módulo (para profundizar)</h2>
+  </div>
+  <table>
+    <thead><tr><th>Necesitas</th><th>Archivo</th></tr></thead>
+    <tbody>
+      <tr><td>Qué es system design y sus atributos (reliability, scalability, maintainability)</td><td class="mono">00-fundamentos-system-design.md</td></tr>
+      <tr><td>Framework de clarificación de requisitos y restricciones</td><td class="mono">01-clarificar-requisitos.md</td></tr>
+      <tr><td>Estimación de escala con ejemplos resueltos</td><td class="mono">02-estimacion-de-escala.md</td></tr>
+      <tr><td>DNS, CDN, Load Balancer, Reverse Proxy, microservicios</td><td class="mono">03-componentes-arquitectura.md</td></tr>
+      <tr><td>Índices, replicación, sharding, denormalización, SQL vs NoSQL</td><td class="mono">04-modelado-de-datos.md</td></tr>
+      <tr><td>Estrategias de cache y latencia vs throughput</td><td class="mono">05-cache-y-rendimiento.md</td></tr>
+      <tr><td>Polling vs WebSocket vs SSE + Supabase Realtime</td><td class="mono">06-realtime-y-streaming.md</td></tr>
+      <tr><td>CAP theorem, scaling, disponibilidad en "nueves"</td><td class="mono">07-escalabilidad-alta-disponibilidad.md</td></tr>
+      <tr><td>RLS, authn vs authz, menor privilegio, defensa en profundidad</td><td class="mono">08-seguridad-en-diseno.md</td></tr>
+      <tr><td>Logs, métricas, tracing, alertas, resiliencia</td><td class="mono">09-observabilidad-monitoreo.md</td></tr>
+      <tr><td>Offline-first, sincronización y conflictos</td><td class="mono">10-offline-first.md</td></tr>
+      <tr><td>Plantilla de 10 pasos reutilizable</td><td class="mono">11-plantilla-diseno-sistema.md</td></tr>
+      <tr><td>Caso resuelto: feed de red social</td><td class="mono">12-caso-feed-red-social.md</td></tr>
+      <tr><td>Caso resuelto: chat / mensajería</td><td class="mono">13-caso-chat-mensajeria.md</td></tr>
+      <tr><td>Caso resuelto: e-commerce escalable</td><td class="mono">14-caso-ecommerce-escalable.md</td></tr>
+      <tr><td>Caso resuelto: SaaS multi-tenant</td><td class="mono">15-caso-saas-multi-tenant.md</td></tr>
+      <tr><td>Ejercicios progresivos + auto-entrevista</td><td class="mono">16-ejercicios-practica.md</td></tr>
+      <tr><td>Libros, guías y recursos verificados</td><td class="mono">17-recursos-externos.md</td></tr>
+      <tr><td>Fuentes que fundamentan el módulo</td><td class="mono">BIBLIOGRAFIA.md</td></tr>
+    </tbody>
+  </table>
+
+  <div class="footer-note"><strong>System design en una línea:</strong> Alcance → Escala → Datos → Arquitectura → Componentes → Decisiones (trade-offs) → CAP/SLA → Seguridad → Observabilidad → Riesgos. · Regla de oro: si cada decisión tiene su trade-off y conoces tu CAP y tu ratio L/E, ya tienes medio diseño.</div>
+</section>
+
+</body>
+</html>

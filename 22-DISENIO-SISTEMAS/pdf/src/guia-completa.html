@@ -1,0 +1,3354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>22 — Diseño de Sistemas</title>
+<link rel="stylesheet" href="guia-completa.css">
+</head>
+<body>
+<div class="cover">
+  <span class="module-tag">Módulo 22</span>
+  <h1>Diseño de<br>Sistemas</h1>
+  <p class="subtitle">Escala un sistema completo con Flutter + Supabase: estimación, modelado de datos, cache, realtime, alta disponibilidad, seguridad y observabilidad. Con plantilla reutilizable y 4 casos integradores.</p>
+  <table class="meta">
+    <tr>
+      <td><span class="label">Enfoque</span><span class="value">System Design Primer + DDIA + Supabase</span></td>
+      <td><span class="label">Stack</span><span class="value">Flutter + Supabase (Postgres, Realtime, Edge)</span></td>
+    </tr>
+    <tr>
+      <td><span class="label">Nivel</span><span class="value">Intermedio a Avanzado</span></td>
+      <td><span class="label">Tiempo estimado</span><span class="value">25–35 horas</span></td>
+    </tr>
+  </table>
+  <div class="tags"><span>Escalabilidad</span><span>Cache</span><span>Realtime</span><span>CAP</span></div>
+</div><div class="toc"><h2>Contenido</h2><p class="toc-count">19 capítulos · Diseño de Sistemas a escala con Flutter + Supabase</p><div class="part">Parte 1 · Fundamentos y escala</div>
+<div class="row"><span class="num">00</span><span class="title">00: Fundamentos de System Design</span></div>
+<div class="row"><span class="num">01</span><span class="title">01: Clarificar Requisitos</span></div>
+<div class="row"><span class="num">02</span><span class="title">02: Estimación de Escala (Back-of-the-Envelope)</span></div>
+<div class="row"><span class="num">03</span><span class="title">03: Componentes de Arquitectura</span></div>
+<div class="part">Parte 2 · Datos y rendimiento</div>
+<div class="row"><span class="num">04</span><span class="title">04: Modelado de Datos a Escala</span></div>
+<div class="row"><span class="num">05</span><span class="title">05: Cache y Rendimiento</span></div>
+<div class="part">Parte 3 · Tiempo real y escalabilidad</div>
+<div class="row"><span class="num">06</span><span class="title">06: Realtime y Streaming</span></div>
+<div class="row"><span class="num">07</span><span class="title">07: Escalabilidad y Alta Disponibilidad</span></div>
+<div class="part">Parte 4 · Seguridad y operación</div>
+<div class="row"><span class="num">08</span><span class="title">08: Seguridad en el Diseño</span></div>
+<div class="row"><span class="num">09</span><span class="title">09: Observabilidad, Monitoreo y Resiliencia</span></div>
+<div class="row"><span class="num">10</span><span class="title">10: Offline-First y Sincronización</span></div>
+<div class="part">Parte 5 · Plantilla y casos integradores</div>
+<div class="row"><span class="num">11</span><span class="title">11: Plantilla de Diseño de Sistema</span></div>
+<div class="row"><span class="num">12</span><span class="title">12: Caso de Estudio — Feed de Red Social</span></div>
+<div class="row"><span class="num">13</span><span class="title">13: Caso de Estudio — Chat / Mensajería</span></div>
+<div class="row"><span class="num">14</span><span class="title">14: Caso de Estudio — E-Commerce Escalable</span></div>
+<div class="row"><span class="num">15</span><span class="title">15: Caso de Estudio — SaaS Multi-Tenant</span></div>
+<div class="part">Parte 6 · Práctica y cierre</div>
+<div class="row"><span class="num">16</span><span class="title">16: Ejercicios de Práctica</span></div>
+<div class="row"><span class="num">17</span><span class="title">17: Recursos Externos</span></div>
+<div class="row"><span class="num">BI</span><span class="title">Bibliografía</span></div></div><div class="chapter"><div class="chapter-head"><span class="num-chip">Capítulo 00</span><div class="kick">Parte 1 · Fundamentos y escala</div><h2>00: Fundamentos de System Design</h2></div><div class="article"><blockquote>
+<p>System Design es el proceso de definir la <strong>arquitectura, las interfaces y los datos</strong> de un sistema completo para que satisfaga requisitos funcionales y no funcionales específicos.</p>
+</blockquote>
+<hr />
+<h2 id="qué-es-system-design">¿Qué es System Design?</h2>
+<p>En el módulo 01 aprendiste a organizar <strong>código</strong> en capas. System Design opera a otra escala: no diseñas una clase, diseñas <strong>el sistema entero</strong> — la app móvil, el backend, la base de datos, la red, la caché y la infraestructura que los sostiene.</p>
+<p>Un sistema está bien diseñado cuando es <strong>reliable (confiable), scalable (escalable) y maintainable (mantenible)</strong>. Estos tres atributos son el marco que usa <em>Designing Data-Intensive Applications</em> (Kleppmann) para evaluar cualquier sistema de datos.</p>
+<pre><code>┌─────────────────────────────────────────────────────────────┐
+│                    SISTEMA COMPLETO                         │
+│                                                             │
+│  ┌──────────┐     ┌─────────────┐     ┌─────────────────┐  │
+│  │ Flutter  │────▶│  API/Realtime│────▶│    Supabase     │  │
+│  │ App      │◀────│  Gateway    │◀────│  (Postgres+...) │  │
+│  └──────────┘     └─────────────┘     └─────────────────┘  │
+│       │  ▲              │  ▲                   │  ▲          │
+│       ▼  │              ▼  │                   ▼  │          │
+│  ┌──────────┐     ┌─────────────┐     ┌─────────────────┐  │
+│  │  Cache    │     │   CDN       │     │  Storage/Queues │  │
+│  │  local    │     │  (imágenes) │     │  Edge Functions │  │
+│  └──────────┘     └─────────────┘     └─────────────────┘  │
+└─────────────────────────────────────────────────────────────┘</code></pre>
+<hr />
+<h2 id="los-3-atributos-clave-ddia">Los 3 atributos clave (DDIA)</h2>
+<p><em>Fuente: Kleppmann, <em>Designing Data-Intensive Applications</em> (O'Reilly).</em></p>
+<h3 id="1-reliability-confiabilidad">1. Reliability (Confiabilidad)</h3>
+<p>"El sistema sigue funcionando correctamente incluso cuando algo sale mal", aunque falle hardware, software o el humano que opera. Eso implica:</p>
+<ul>
+<li>Tolerancia a fallos (fault tolerance): un servidor cae → no se cae todo.</li>
+<li>Manejo de errores del usuario y del sistema.</li>
+<li>Monitoreo para detectar problemas antes de que afecten a los usuarios.</li>
+</ul>
+<h3 id="2-scalability-escalabilidad">2. Scalability (Escalabilidad)</h3>
+<p>"El sistema puede manejar crecimiento de carga sin degradarse". La carga se describe con <strong>parámetros de carga</strong> (load parameters):</p>
+<ul>
+<li>Requests por segundo (RPS/QPS).</li>
+<li>Ratio de lecturas vs escrituras.</li>
+<li>Usuarios activos concurrentes.</li>
+<li>Tamaño de los datos.</li>
+</ul>
+<p>Si el sistema es lento para <strong>un solo usuario</strong>, es un problema de <em>performance</em>. Si es rápido para uno pero lento con mucha carga, es un problema de <em>scalability</em>. <em>(System Design Primer — "Performance vs scalability".)</em></p>
+<h3 id="3-maintainability-mantenibilidad">3. Maintainability (Mantenibilidad)</h3>
+<p>"Distintos tipos de personas (ingenieros, ops) pueden trabajar en el sistema de forma productiva". Se logra con:</p>
+<ul>
+<li><strong>Operabilidad:</strong> logs, métricas, debugging fáciles (módulo 19 del repo).</li>
+<li><strong>Simplicidad:</strong> reducir complejidad accidental.</li>
+<li><strong>Evolvabilidad:</strong> poder cambiar y añadir features sin romper lo existente (módulo 01).</li>
+</ul>
+<hr />
+<h2 id="system-design-vs-clean-architecture-vs-diseño-de-features">System Design vs Clean Architecture vs Diseño de Features</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Clean Architecture (M01)</th>
+<th>Diseño de Features (M02)</th>
+<th>System Design (M22)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Pregunta</strong></td>
+<td>¿Cómo organizo el código?</td>
+<td>¿Qué construyo y cómo encaja?</td>
+<td>¿Cómo funciona el sistema completo?</td>
+</tr>
+<tr>
+<td><strong>Escala</strong></td>
+<td>1 archivo / 1 clase</td>
+<td>1 feature</td>
+<td>Todo el ecosistema</td>
+</tr>
+<tr>
+<td><strong>Artefacto</strong></td>
+<td>Carpetas y clases</td>
+<td>Documento de diseño (FADER)</td>
+<td>Diagrama de componentes + trade-offs</td>
+</tr>
+<tr>
+<td><strong>¿Toca código?</strong></td>
+<td>Sí</td>
+<td>Solo diseño</td>
+<td>Diagramas y decisiones de infraestructura</td>
+</tr>
+<tr>
+<td><strong>Nº de "computadoras"</strong></td>
+<td>1 (el dispositivo)</td>
+<td>1 app + 1 backend</td>
+<td>Muchas (servidores, CDN, replicas)</td>
+</tr>
+</tbody>
+</table>
+<p>Son <strong>capas complementarias</strong>. Puedes tener Clean Architecture impecable y que tu sistema caiga con 100k usuarios por no diseñar el backend. Y a la inversa: una infraestructura perfecta no salva código espagueti.</p>
+<hr />
+<h2 id="los-4-pasos-universales-de-diseño">Los 4 pasos universales de diseño</h2>
+<p><em>Fuente: System Design Primer (donnemartin) y Grokking Modern System Design Interview (Educative).</em></p>
+<pre><code>1. CLARIFICAR   → Definir casos de uso, restricciones y suposiciones.
+                  (¿Quién lo usa? ¿Cuántos usuarios? ¿Ratio lectura/escritura?)
+2. DISEÑAR      → Diseño de alto nivel: componentes principales y conexiones.
+3. PROFUNDIZAR  → Diseño de componentes núcleo: esquema, API, caché.
+4. ESCALAR      → Identificar cuellos de botella y aplicar patrones (LB, cache, sharding).</code></pre>
+<p><strong>Regla de oro:</strong> <em>"Everything is a trade-off"</em> — cada decisión (caché vs consistencia, SQL vs NoSQL, consistencia vs disponibilidad) tiene pros y contras que debes poder justificar.</p>
+<hr />
+<h2 id="errores-comunes-de-principiante">Errores comunes de principiante</h2>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Solución</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Empezar a diseñar sin clarificar requisitos</td>
+<td>Siempre preguntar primero (usuarios, carga, latencia)</td>
+</tr>
+<tr>
+<td>Solo hablar de código</td>
+<td>Hablar de componentes: cliente, API, DB, cache, CDN</td>
+</tr>
+<tr>
+<td>Ignorar el trade-off</td>
+<td>Nombrar explícitamente qué ganas y qué sacrificas</td>
+</tr>
+<tr>
+<td>No mencionar escalabilidad</td>
+<td>Incluir siempre el paso "escalar"</td>
+</tr>
+<tr>
+<td>Inventar números de latencia</td>
+<td>Usar la tabla real de latencias (ver archivo 02)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="fuentes">Fuentes</h2>
+<ul>
+<li><a href="https://dataintensive.net/">Designing Data-Intensive Applications — M. Kleppmann</a></li>
+<li><a href="https://github.com/donnemartin/system-design-primer">The System Design Primer — donnemartin</a></li>
+<li><a href="https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers">Grokking Modern System Design Interview — Educative</a></li>
+</ul>
+<hr />
+<p><strong>Siguiente:</strong> <a href="./01-clarificar-requisitos.md">01-clarificar-requisitos.md</a></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Capítulo 01</span><div class="kick">Parte 1 · Fundamentos y escala</div><h2>01: Clarificar Requisitos</h2></div><div class="article"><blockquote>
+<p>El paso más infravalorado del system design. Una entrevista o un proyecto se ganan o se pierden en los primeros 10 minutos, cuando <strong>claras el problema antes de diseñar</strong>.</p>
+</blockquote>
+<hr />
+<h2 id="por-qué-clarificar-primero">Por qué clarificar primero</h2>
+<p>El system design interview es una <strong>conversación abierta</strong>. Se espera que <em>tú</em> la lideres. Si empiezas a dibujar servidores sin saber cuántos usuarios hay, estás diseñando a ciegas.</p>
+<p><em>Fuente: System Design Primer — "How to approach a system design interview question".</em></p>
+<blockquote>
+<p>Step 1: Outline use cases, constraints, and assumptions. Gather requirements and scope the problem. Ask questions to clarify use cases and constraints.</p>
+</blockquote>
+<hr />
+<h2 id="framework-de-clarificación">Framework de clarificación</h2>
+<h3 id="a-casos-de-uso-qué-hace-el-sistema">A. Casos de uso (¿qué hace el sistema?)</h3>
+<ul>
+<li>¿Quién lo usa? (usuarios, admins, sistemas externos)</li>
+<li>¿Cómo lo usan? (app móvil, web, ambos)</li>
+<li>¿Cuáles son las entradas y salidas del sistema?</li>
+<li>¿Cuál es el caso de uso principal y cuáles son secundarios?</li>
+</ul>
+<h3 id="b-restricciones-cuánto-qué-tan-rápido-cuántos">B. Restricciones (¿cuánto, qué tan rápido, cuántos?)</h3>
+<table>
+<thead>
+<tr>
+<th>Pregunta</th>
+<th>Determina</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>¿Cuántos usuarios totales?</td>
+<td>Complejidad del sistema</td>
+</tr>
+<tr>
+<td>¿Cuántos usuarios concurrentes?</td>
+<td>Capacidad de servidores</td>
+</tr>
+<tr>
+<td>¿Cuántos requests por segundo esperamos?</td>
+<td>Dimensionamiento</td>
+</tr>
+<tr>
+<td>¿Cuánta data por día?</td>
+<td>Almacenamiento</td>
+</tr>
+<tr>
+<td>¿Ratio de lecturas vs escrituras?</td>
+<td>Patrón de cache/replicación</td>
+</tr>
+<tr>
+<td>¿Latencia aceptable?</td>
+<td>Caching, CDN, geografía</td>
+</tr>
+<tr>
+<td>¿Requiere real-time?</td>
+<td>WebSocket vs polling</td>
+</tr>
+<tr>
+<td>¿Disponibilidad requerida?</td>
+<td>Nº de "nueves", failover</td>
+</tr>
+</tbody>
+</table>
+<h3 id="c-suposiciones-lo-que-asumes-y-declaras">C. Suposiciones (lo que asumes y declaras)</h3>
+<p>Todo lo que no te digan, lo <strong>asumes en voz alta</strong> y lo dejas escrito. Ejemplo: <em>"Asumo 100M de lecturas/día y 10M de escrituras/día"</em>. Esto convierte el problema abierto en algo accionable.</p>
+<hr />
+<h2 id="ejemplo-aplicado-al-stack-del-repo-diseña-un-feed-de-posts">Ejemplo aplicado al stack del repo: "Diseña un feed de posts"</h2>
+<p>Aplicando el framework a una feature Flutter + Supabase:</p>
+<pre><code>CASOS DE USO
+- Usuario autenticado ve un feed paginado de posts (principal)
+- Usuario crea un post con imagen (secundario)
+- Usuario da like (secundario)
+
+RESTRICCIONES (las preguntamos)
+- ¿Cuántos usuarios? → 500k registrados, 50k DAU
+- QPS de lecturas?   → 50k DAU × ~10 lecturas/día / 86400s ≈ 6 QPS promedio, picos de 30 QPS
+- Ratio L/E?         → ~10 lecturas por cada escritura
+- Latencia?          → &lt; 500 ms al hacer scroll
+- Realtime?          → No imprescindible, se acepta refresh
+
+SUPOSICIONES DECLARADAS
+- Las imágenes se sirven vía CDN
+- Los posts viven en Postgres (Supabase)
+- Asumo que el pico es 5× el promedio</code></pre>
+<p>Este párrafo de 6 líneas <strong>define todo el diseño posterior</strong>: si el ratio es 10:1, priorizamos cache de lecturas; si es realtime, Supabase Realtime.</p>
+<hr />
+<h2 id="técnica-del-si-no-me-lo-dicen-lo-asumo">Técnica del "si no me lo dicen, lo asumo"</h2>
+<p>En una entrevista el entrevistador suele ser deliberadamente vago. La técnica correcta:</p>
+<pre><code>NO:  &quot;Diseño un feed&quot;  (y empiezas a dibujar)
+SÍ:  &quot;Antes de diseñar necesito saber: ¿cuántos usuarios?, ¿cuántos requests
+      por segundo?, ¿el feed es en tiempo real o con refresh?, ¿las imágenes
+      se sirven por CDN? Si no me lo puedes decir, asumo 50k DAU y ratio 10:1.&quot;</code></pre>
+<p>Esto demuestra criterio y cubre tus espaldas: si asumiste mal, es responsabilidad documentada.</p>
+<hr />
+<h2 id="checklist-de-clarificación">Checklist de clarificación</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" />Usuarios totales y activos (DAU/MAU)</label></li>
+<li><label><input type="checkbox" />Requests por segundo (promedio y pico)</label></li>
+<li><label><input type="checkbox" />Ratio lectura/escritura</label></li>
+<li><label><input type="checkbox" />Almacenamiento esperado (GB/TB por día)</label></li>
+<li><label><input type="checkbox" />Latencia objetivo</label></li>
+<li><label><input type="checkbox" />¿Realtime o no?</label></li>
+<li><label><input type="checkbox" />Disponibilidad objetivo (SLA)</label></li>
+<li><label><input type="checkbox" />Plataformas (móvil, web, ambos)</label></li>
+<li><label><input type="checkbox" />Suposiciones declaradas en voz alta</label></li>
+<li><label><input type="checkbox" />Escenario de crecimiento (¿×10 en 1 año?)</label></li>
+</ul>
+<hr />
+<h2 id="fuentes">Fuentes</h2>
+<ul>
+<li><a href="https://github.com/donnemartin/system-design-primer#how-to-approach-a-system-design-interview-question">The System Design Primer — How to approach a system design interview question</a></li>
+<li><a href="https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers">Grokking Modern System Design Interview — Educative</a></li>
+</ul>
+<hr />
+<p><strong>Siguiente:</strong> <a href="./02-estimacion-de-escala.md">02-estimacion-de-escala.md</a></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Capítulo 02</span><div class="kick">Parte 1 · Fundamentos y escala</div><h2>02: Estimación de Escala (Back-of-the-Envelope)</h2></div><div class="article"><blockquote>
+<p>Traducir usuarios en <strong>requests por segundo, almacenamiento y ancho de banda</strong>. Se llama "back-of-the-envelope" porque se hace a mano, en el dorso de un sobre, con números redondos.</p>
+</blockquote>
+<hr />
+<h2 id="por-qué-estimar">¿Por qué estimar?</h2>
+<p>Estimar antes de diseñar te dice:</p>
+<ul>
+<li>Cuántos servidores/instancias necesitas (coste).</li>
+<li>Si una sola base de datos aguanta o necesitas replicación/sharding.</li>
+<li>Si necesitas CDN para imágenes/videos.</li>
+<li>Si el diseño es viable en la nube elegida (Supabase, AWS, etc.).</li>
+</ul>
+<p><em>Fuente: System Design Primer — "Back-of-the-envelope calculations".</em></p>
+<hr />
+<h2 id="tablas-de-referencia-reales-no-inventadas">Tablas de referencia REALES (no inventadas)</h2>
+<p>Estas son las tablas que cita el System Design Primer. <strong>No las improvises</strong> en una entrevista: memorízalas.</p>
+<h3 id="potencias-de-2-referencia-rápida">Potencias de 2 (referencia rápida)</h3>
+<table>
+<thead>
+<tr>
+<th>Abreviatura</th>
+<th>Bytes</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB</td>
+<td>2^10</td>
+<td>1,024</td>
+</tr>
+<tr>
+<td>MB</td>
+<td>2^20</td>
+<td>~1 millón</td>
+</tr>
+<tr>
+<td>GB</td>
+<td>2^30</td>
+<td>~1 billón</td>
+</tr>
+<tr>
+<td>TB</td>
+<td>2^40</td>
+<td>~1 trillón</td>
+</tr>
+</tbody>
+</table>
+<h3 id="números-de-latencia-que-todo-programador-debería-saber-2020">Números de latencia que todo programador debería saber (2020)</h3>
+<table>
+<thead>
+<tr>
+<th>Operación</th>
+<th>Tiempo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lectura de caché en memoria</td>
+<td>~1 ns</td>
+</tr>
+<tr>
+<td>Compresión/decompresión de 1 KB</td>
+<td>~1-2 µs</td>
+</tr>
+<tr>
+<td>Lectura secuencial de 1 MB en RAM</td>
+<td>~9 µs</td>
+</tr>
+<tr>
+<td>Round-trip de datacenter (misma región)</td>
+<td>~500 µs</td>
+</tr>
+<tr>
+<td>Búsqueda de 1 MB secuencial en SSD</td>
+<td>~150 µs</td>
+</tr>
+<tr>
+<td>Disco rotativo (seek + lectura 1 MB)</td>
+<td>~2-4 ms</td>
+</tr>
+<tr>
+<td>Round-trip en Internet (EE.UU. → Europa)</td>
+<td>~150 ms</td>
+</tr>
+<tr>
+<td>Round-trip en Internet (EE.UU. → Asia)</td>
+<td>~200 ms</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>⚠️ Estos valores los publica el System Design Primer y la comunidad los actualiza periódicamente. Al citarlos, referencia la fuente; son órdenes de magnitud, no medidas exactas.</p>
+</blockquote>
+<hr />
+<h2 id="método-de-4-pasos">Método de 4 pasos</h2>
+<pre><code>1. Encuentra los números base  → usuarios, uso diario
+2. Calcula requests/segundo    → QPS promedio y pico
+3. Calcula almacenamiento      → bytes por día y por año
+4. Calcula ancho de banda      → bytes por segundo</code></pre>
+<hr />
+<h2 id="ejemplo-completo-feed-de-500k-usuarios">Ejemplo completo: feed de 500k usuarios</h2>
+<p>Datos de entrada (de la clarificación del archivo 01):</p>
+<pre><code>Usuarios registrados : 500,000
+Usuarios activos     : 50,000 DAU
+Uso por usuario/día  : 10 lecturas (scroll de feed) + 1 escritura (post)
+Tamaño de un post    : 1 KB de texto + 500 KB de imagen (media)</code></pre>
+<h3 id="paso-2-qps">Paso 2: QPS</h3>
+<pre><code>Lecturas/día  = 50,000 × 10 = 500,000 lecturas
+Escrituras/día = 50,000 × 1  = 50,000 escrituras
+Total/día     = 550,000
+
+Segundos en un día = 86,400
+
+QPS promedio  = 550,000 / 86,400 ≈ 6.4 QPS
+QPS pico      = 6.4 × 5 (factor de pico) ≈ 32 QPS</code></pre>
+<p><strong>Interpretación:</strong> ~32 QPS pico es un número pequeño. Una sola instancia bien configurada lo soporta. La complejidad real vendrá de la <strong>data acumulada</strong> y de <strong>medios</strong>, no del volumen de requests.</p>
+<h3 id="paso-3-almacenamiento">Paso 3: Almacenamiento</h3>
+<pre><code>Posts por día = 50,000
+Texto/día     = 50,000 × 1 KB  = 50 MB/día
+Imágenes/día  = 50,000 × 500 KB = 25 GB/día
+Total/día     ≈ 25 GB/día (dominado por las imágenes)
+
+Total/año     ≈ 25 GB × 365 ≈ 9.1 TB/año</code></pre>
+<p><strong>Interpretación:</strong> 9 TB/año es mucho. Las imágenes <strong>no deben vivir en la base de datos</strong>: van a un object storage (Supabase Storage) servido por CDN. En Postgres solo guardamos la URL.</p>
+<h3 id="paso-4-ancho-de-banda">Paso 4: Ancho de banda</h3>
+<pre><code>QPS promedio = 6.4
+Bytes/request ≈ 500 KB (una imagen por request)
+
+Entrada de escrituras ≈ 50,000 × 500 KB / 86,400 s ≈ 290 KB/s
+Salida de lecturas   ≈ 500,000 × 500 KB / 86,400 s ≈ 2.9 MB/s promedio
+Salida en pico (32 QPS) ≈ 32 × 500 KB ≈ 16 MB/s</code></pre>
+<p><strong>Interpretación:</strong> la salida de 2.9 MB/s promedio (16 MB/s pico) justifica un CDN: los usuarios reciben las imágenes desde el edge más cercano y el backend deja de gastar ese ancho de banda.</p>
+<hr />
+<h2 id="conclusión-del-diseño-qué-nos-dice-la-estimación">Conclusión del diseño (qué nos dice la estimación)</h2>
+<table>
+<thead>
+<tr>
+<th>Hallazgo</th>
+<th>Decisión de diseño</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>QPS pico bajo (~32)</td>
+<td>Una instancia de app basta en el inicio</td>
+</tr>
+<tr>
+<td>9 TB/año de imágenes</td>
+<td>Imágenes → Storage + CDN, nunca en la DB</td>
+</tr>
+<tr>
+<td>Ratio lectura/escritura 10:1</td>
+<td>Cachear el feed de lecturas</td>
+</tr>
+<tr>
+<td>Picos 5× promedio</td>
+<td>Margen de capacidad y auto-scaling</td>
+</tr>
+</tbody>
+</table>
+<p>Este es el ciclo completo: <strong>clarificar → estimar → diseñar informado</strong>.</p>
+<hr />
+<h2 id="errores-comunes">Errores comunes</h2>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Solución</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Calcular QPS sin aclarar usuarios</td>
+<td>Primero clarifica, luego estima</td>
+</tr>
+<tr>
+<td>Guardar imágenes en la DB</td>
+<td>Separar media (Storage/CDN) de metadatos (DB)</td>
+</tr>
+<tr>
+<td>Redondear mal los órdenes de magnitud</td>
+<td>Usar las potencias de 2 de referencia</td>
+</tr>
+<tr>
+<td>Confundir MB con MB decimales</td>
+<td>Ser consistente: usar 2^20 = 1,048,576 bytes</td>
+</tr>
+<tr>
+<td>No declarar suposiciones</td>
+<td>Escribir los números base antes de operar</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="fuentes">Fuentes</h2>
+<ul>
+<li><a href="https://github.com/donnemartin/system-design-primer#back-of-the-envelope-calculations">The System Design Primer — Back-of-the-envelope calculations</a></li>
+<li><a href="https://github.com/donnemartin/system-design-primer#appendix">The System Design Primer — Powers of two table</a></li>
+<li><a href="https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers">Grokking Modern System Design Interview — Back-of-the-Envelope Calculations</a></li>
+</ul>
+<hr />
+<p><strong>Siguiente:</strong> <a href="./03-componentes-arquitectura.md">03-componentes-arquitectura.md</a></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Capítulo 03</span><div class="kick">Parte 1 · Fundamentos y escala</div><h2>03: Componentes de Arquitectura</h2></div><div class="article"><blockquote>
+<p>Los bloques con los que se construye todo sistema escalable. Aprender a <em>nombrar</em> cada componente y <em>justificar</em> su presencia (o ausencia) es la mitad de un system design.</p>
+</blockquote>
+<hr />
+<h2 id="el-mapa-completo">El mapa completo</h2>
+<pre><code>                    ┌──────────────┐
+   Usuario          │     DNS      │  Traduce &quot;miapp.com&quot; → IP
+      │             └──────┬───────┘
+      ▼                    ▼
+  ┌──────────┐     ┌──────────────┐
+  │  CDN     │────▶│  Load        │  Reparte tráfico
+  │ (media,  │     │  Balancer    │  entre servidores
+  │  estático)│    └──────┬───────┘
+  └──────────┘           ▼
+                 ┌──────────────┐     ┌──────────────────┐
+                 │ Reverse Proxy│────▶│  App Layer       │
+                 │ (nivel 7)    │     │  (API, servicios)│
+                 └──────────────┘     └───────┬──────────┘
+                                              ▼
+                                    ┌──────────────────┐
+                                    │  Database        │
+                                    │  (+ replicas,    │
+                                    │   cache, queues) │
+                                    └──────────────────┘</code></pre>
+<p><em>Componentes tomados del índice de topics del System Design Primer.</em></p>
+<hr />
+<h2 id="1-dns-domain-name-system">1. DNS (Domain Name System)</h2>
+<p>Traduce un nombre (<code>miapp.com</code>) a una dirección IP. Es jerárquico y tiene caching en varios niveles (browser, OS, servidores).</p>
+<p><strong>Tipos de registros:</strong></p>
+<ul>
+<li><strong>A record</strong> — nombre → IP.</li>
+<li><strong>CNAME</strong> — nombre → otro nombre.</li>
+<li><strong>MX</strong> — servidores de correo.</li>
+</ul>
+<p><strong>En el diseño:</strong></p>
+<ul>
+<li>El DNS introduce un pequeño delay, mitigado por el TTL (time to live) del caching.</li>
+<li>Servicios gestionados: Cloudflare, Route 53. Pueden enrutar por <strong>latency</strong> o <strong>geolocalización</strong> (para servir la región correcta).</li>
+</ul>
+<hr />
+<h2 id="2-cdn-content-delivery-network">2. CDN (Content Delivery Network)</h2>
+<p>Red global de proxies que sirve contenido desde el nodo <strong>más cercano al usuario</strong>. Ideal para estáticos: HTML/CSS/JS, fotos, videos.</p>
+<h3 id="push-vs-pull-cdn">Push vs Pull CDN</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Push CDN</th>
+<th>Pull CDN</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Quién sube el contenido</td>
+<td>Tú, cuando cambia</td>
+<td>El CDN, en la primera request</td>
+</tr>
+<tr>
+<td>Uso típico</td>
+<td>Poco tráfico, contenido que rara vez cambia</td>
+<td>Tráfico alto, contenido reciente</td>
+</tr>
+<tr>
+<td>Trade-off</td>
+<td>Maximiza almacenamiento</td>
+<td>Minimiza almacenamiento, puede re-pull innecesario</td>
+</tr>
+</tbody>
+</table>
+<h3 id="en-un-stack-flutter--supabase">En un stack Flutter + Supabase</h3>
+<ul>
+<li>Las <strong>imágenes de los posts</strong> van a <strong>Supabase Storage</strong> con CDN/edge de entrega, no a la base de datos (lo calculamos en el archivo 02: 9 TB/año).</li>
+<li>La app apunta a URLs de media, no a endpoints de la API, para ese tráfico.</li>
+</ul>
+<p><em>Fuente: System Design Primer — "Content delivery network".</em></p>
+<hr />
+<h2 id="3-load-balancer">3. Load Balancer</h2>
+<p>Distribuye requests entrantes entre varios servidores. Sus beneficios:</p>
+<ul>
+<li>Evita enviar tráfico a servidores no saludables (health checks).</li>
+<li>Evita sobrecargar un recurso.</li>
+<li>Elimina puntos únicos de fallo.</li>
+<li><strong>SSL termination:</strong> descifra HTTPS para que el backend no lo haga.</li>
+</ul>
+<h3 id="nivel-4-vs-nivel-7">Nivel 4 vs Nivel 7</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Layer 4 (transport)</th>
+<th>Layer 7 (application)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Decide por</td>
+<td>IP origen, IP destino, puerto</td>
+<td>Header, mensaje, cookies</td>
+</tr>
+<tr>
+<td>Tráfico</td>
+<td>Adelanta paquetes (NAT)</td>
+<td>Termina la conexión, lee, decide, reconecta</td>
+</tr>
+<tr>
+<td>Ejemplo</td>
+<td>LB de red</td>
+<td>Nginx, HAProxy (routing por URL)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="algoritmos-de-reparto">Algoritmos de reparto</h3>
+<ul>
+<li>Round robin / weighted round robin</li>
+<li>Least loaded</li>
+<li>Session/cookies (sticky sessions)</li>
+</ul>
+<p><em>Fuente: System Design Primer — "Load balancer".</em></p>
+<hr />
+<h2 id="4-reverse-proxy-servidor-web">4. Reverse Proxy (servidor web)</h2>
+<p>Servidor central que recibe requests y las reenvía a los servidores internos. Diferencia con el LB:</p>
+<blockquote>
+<p>"A load balancer is useful when you have multiple servers. Often, load balancers route traffic to a set of servers serving the same function. A reverse proxy is useful even with just one web server or application server, providing SSL termination, caching, and security benefits."</p>
+</blockquote>
+<p><strong>Beneficios:</strong> terminación SSL, caching de respuestas, compresión, mitigación de DDoS.</p>
+<hr />
+<h2 id="5-application-layer-capa-de-aplicación">5. Application Layer (capa de aplicación)</h2>
+<p>Donde vive la lógica de negocio. Aquí entra la decisión: <strong>monolito vs microservicios</strong>.</p>
+<h3 id="microservicios">Microservicios</h3>
+<ul>
+<li>Descomponen la app en servicios independientes, cada uno con su propia data.</li>
+<li>Añaden complejidad: <strong>service discovery</strong>, comunicacón entre servicios, datos distribuidos.</li>
+<li><strong>Regla práctica del primer</strong>: si tu app cabe en un monolito (Supabase cubre auth, DB, storage, realtime en un solo servicio), no empieces con microservicios.</li>
+</ul>
+<h3 id="en-el-stack-del-repo">En el stack del repo</h3>
+<ul>
+<li><strong>Supabase actúa como "Backend as a Service"</strong>: ya te da Auth, Postgres, Storage, Realtime y Edge Functions como componentes del "application layer" gestionado.</li>
+<li>Las <strong>Edge Functions (Deno)</strong> son el lugar para lógica que no debe vivir en el cliente: webhooks, procesamiento, notificaciones.</li>
+</ul>
+<p><em>Fuente: System Design Primer — "Application layer".</em></p>
+<hr />
+<h2 id="6-service-discovery">6. Service Discovery</h2>
+<p>Cuando hay muchos servicios, un cliente necesita saber <strong>qué instancia</strong> de qué servicio contactar. Mecanismos:</p>
+<ul>
+<li><strong>DNS-based:</strong> el cliente consulta un registro y recibe una IP.</li>
+<li><strong>Service registry:</strong> un registro central (Consul, etcd, ZooKeeper) que guarda instancias vivas.</li>
+</ul>
+<p>En Supabase esto es transparente: el cliente habla con el endpoint gestionado y Supabase balancea internamente.</p>
+<hr />
+<h2 id="7-communication-cómo-se-comunican">7. Communication (cómo se comunican)</h2>
+<table>
+<thead>
+<tr>
+<th>Protocolo</th>
+<th>Uso típico</th>
+<th>Notas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>REST</strong></td>
+<td>APIs CRUD</td>
+<td>Stateless, HTTP, es la base de Supabase REST</td>
+</tr>
+<tr>
+<td><strong>RPC</strong></td>
+<td>Llamadas a funciones</td>
+<td>Supabase RPC (Postgres functions)</td>
+</tr>
+<tr>
+<td><strong>WebSocket</strong></td>
+<td>Realtime bidireccional</td>
+<td>Ver archivo 06</td>
+</tr>
+<tr>
+<td><strong>TCP/UDP</strong></td>
+<td>Capa transporte</td>
+<td>UDP para baja latencia (voz, video)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="cómo-decidir-qué-componentes-usar">Cómo decidir qué componentes usar</h2>
+<p>Pregunta guía por componente:</p>
+<table>
+<thead>
+<tr>
+<th>Componente</th>
+<th>¿Cuándo lo necesito?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CDN</td>
+<td>Imágenes/videos o usuarios geográficamente dispersos</td>
+</tr>
+<tr>
+<td>Load Balancer</td>
+<td>2+ instancias de un mismo servicio</td>
+</tr>
+<tr>
+<td>Reverse Proxy</td>
+<td>Un solo servidor y necesitas SSL/cache/compresión</td>
+</tr>
+<tr>
+<td>Cache (Redis)</td>
+<td>Lecturas repetitivas de los mismos datos</td>
+</tr>
+<tr>
+<td>Message queue</td>
+<td>Trabajo pesado que puede esperar (async)</td>
+</tr>
+<tr>
+<td>Replicas de DB</td>
+<td>Carga de lectura alta (ratio L/E alto)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>No todos los componentes en el diagrama son obligatorios.</strong> Un MVP Flutter + Supabase no necesita un LB propio: Supabase ya lo maneja. El arte está en <strong>justificar cada pieza</strong>.</p>
+<hr />
+<h2 id="fuentes">Fuentes</h2>
+<ul>
+<li><a href="https://github.com/donnemartin/system-design-primer#index-of-system-design-topics">The System Design Primer — Index of system design topics</a></li>
+<li><a href="https://github.com/donnemartin/system-design-primer#domain-name-system">The System Design Primer — DNS</a></li>
+<li><a href="https://github.com/donnemartin/system-design-primer#content-delivery-network">The System Design Primer — CDN</a></li>
+<li><a href="https://github.com/donnemartin/system-design-primer#load-balancer">The System Design Primer — Load balancer / Reverse proxy</a></li>
+<li><a href="https://github.com/donnemartin/system-design-primer#application-layer">The System Design Primer — Application layer</a></li>
+<li><a href="https://bytebytego.com/guides/reverse-proxy-vs-api-gateway-vs-load-balancer">ByteByteGo — Reverse Proxy vs. API Gateway vs. Load Balancer</a></li>
+<li><a href="https://supabase.com/docs/guides/getting-started/features">Supabase — Features</a></li>
+</ul>
+<hr />
+<p><strong>Siguiente:</strong> <a href="./04-modelado-de-datos.md">04-modelado-de-datos.md</a></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Capítulo 04</span><div class="kick">Parte 2 · Datos y rendimiento</div><h2>04: Modelado de Datos a Escala</h2></div><div class="article"><blockquote>
+<p>Diseñar el esquema no solo para que funcione hoy, sino para que sobreviva a millones de filas. Índices, replicación, sharding, denormalización y la decisión SQL vs NoSQL.</p>
+</blockquote>
+<hr />
+<h2 id="el-ciclo-de-vida-de-una-base-de-datos">El ciclo de vida de una base de datos</h2>
+<pre><code>1 fila → 1M filas → 100M filas → 1B filas
+   │        │           │            │
+   │      Índices    Replicas     Sharding
+   │      + cache    (lecturas)   (escrituras)
+   │
+   (aquí vive la mayoría de MVPs)</code></pre>
+<p><em>Fuente: System Design Primer — "Database" section.</em></p>
+<hr />
+<h2 id="1-diseño-del-esquema-relacional">1. Diseño del esquema (relacional)</h2>
+<p>Un buen esquema relacional empieza igual que en el módulo 03 del repo: tablas normalizadas con claves foráneas e índices para las consultas frecuentes.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Posts con índice por usuario y por fecha</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> posts (</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">id</span> UUID <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  user_id UUID <span class="kw">REFERENCES</span> users(<span class="kw">id</span>),</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  image_url TEXT <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  caption TEXT,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  created_at TIMESTAMPTZ <span class="kw">DEFAULT</span> NOW()</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>);</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> idx_posts_user <span class="kw">ON</span> posts(user_id);</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> idx_posts_created <span class="kw">ON</span> posts(created_at <span class="kw">DESC</span>);</span></code></pre></div>
+<p><strong>Regla:</strong> el índice se crea para las <strong>consultas que realmente haces</strong>, no para todas las columnas. Cada índice acelera lecturas pero frena escrituras.</p>
+<hr />
+<h2 id="2-la-decisión-sql-vs-nosql">2. La decisión SQL vs NoSQL</h2>
+<table>
+<thead>
+<tr>
+<th>Criterio</th>
+<th>SQL (PostgreSQL)</th>
+<th>NoSQL (documento/llave-valor)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Esquema</td>
+<td>Fijo, relacional</td>
+<td>Flexible</td>
+</tr>
+<tr>
+<td>Transacciones ACID</td>
+<td>Sólidas</td>
+<td>Variables según motor</td>
+</tr>
+<tr>
+<td>Relaciones/joins</td>
+<td>Nativos</td>
+<td>Se emulan en app</td>
+</tr>
+<tr>
+<td>Escalado</td>
+<td>Vertical + réplicas; sharding manual</td>
+<td>Horizontal por diseño</td>
+</tr>
+<tr>
+<td>Ideal para</td>
+<td>Datos relacionados, transacciones</td>
+<td>Flexibilidad, escrituras masivas</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Supabase usa PostgreSQL.</strong> Para el 90% de las apps Flutter + Supabase, la respuesta es SQL. Los casos NoSQL suelen aparecer a escalas enormes o con datos no estructurados.</p>
+<p><em>Fuente: System Design Primer — "SQL or NoSQL".</em></p>
+<hr />
+<h2 id="3-replicación">3. Replicación</h2>
+<p>Copias de la misma base de datos para alta disponibilidad y/o lecturas distribuidas.</p>
+<h3 id="master-slave-activo-pasivo">Master-Slave (activo-pasivo)</h3>
+<pre><code>   ┌────────┐  writes  ┌───────────┐
+   │  App   │─────────▶│  Master   │
+   └────────┘          └─────┬─────┘
+        │                    │ replication (async)
+        ▼ reads              ▼
+   ┌─────────┐        ┌───────────┐
+   │  App    │────────│  Slaves   │  (lecturas)
+   └─────────┘        └───────────┘</code></pre>
+<ul>
+<li>El master atiende escrituras y se replica a los slaves.</li>
+<li>Los slaves atienden lecturas → más throughput de lectura.</li>
+<li><strong>Trade-off:</strong> si el master muere antes de replicar una escritura, esa escritura se pierde.</li>
+</ul>
+<h3 id="master-master-activo-activo">Master-Master (activo-activo)</h3>
+<ul>
+<li>Ambos atienden escrituras; se replican entre sí.</li>
+<li><strong>Trade-off:</strong> resolución de conflictos entre dos masters; complejidad alta.</li>
+</ul>
+<p><strong>En Supabase/Postgres:</strong> Supabase ofrece réplicas de lectura (read replicas) como función de pago. El diseño se documenta igual; el aprovisionamiento lo gestiona Supabase.</p>
+<hr />
+<h2 id="4-federación-federation">4. Federación (Federation)</h2>
+<p>Dividir las bases de datos <strong>por dominio/función</strong> en vez de por datos:</p>
+<pre><code>Una sola DB            ──▶   DB de usuarios + DB de posts + DB de analytics</code></pre>
+<p><strong>Pros:</strong> menos contención, aislamiento de fallos. <strong>Contras:</strong> joins entre DBs se vuelven costosos; más infraestructura.</p>
+<p><strong>En el diseño Flutter+Supabase:</strong> equivale a separar tablas en esquemas y, a escala mayor, servicios independientes con su propia DB. Para un MVP no se recomienda.</p>
+<hr />
+<h2 id="5-sharding-particionado-horizontal">5. Sharding (particionado horizontal)</h2>
+<p>Distribuir filas de una tabla en <strong>múltiples bases de datos</strong> según una clave (shard key):</p>
+<pre><code>    Hash(user_id) % 3
+   ┌──────┬──────┬──────┐
+   │Shard 0│Shard 1│Shard 2│
+   │  1/3  │  1/3  │  1/3  │
+   └──────┴──────┴──────┘</code></pre>
+<p><strong>Trade-offs del sharding:</strong></p>
+<ul>
+<li><strong>Pros:</strong> escala escrituras y almacenamiento horizontalmente.</li>
+<li><strong>Contras:</strong> joins entre shards, operaciones no distribuidas en app, rebalanceo complejo, agregados difíciles.</li>
+</ul>
+<p><strong>Regla:</strong> sharding es el <strong>último recurso</strong>, después de índices, cache, réplicas y federación. En Supabase, esto se sale del alcance gestionado; a esa escala ya no es una sola instancia de Postgres.</p>
+<hr />
+<h2 id="6-denormalización">6. Denormalización</h2>
+<p>Guardar datos <strong>redundantes</strong> a propósito para evitar joins costosos en las lecturas.</p>
+<pre><code>Normalizado:  posts + join a users para mostrar el nombre del autor
+Denormalizado: posts.autor_name ya guardado en la tabla de posts</code></pre>
+<p><strong>Trade-off:</strong> lees más rápido, pero <strong>escribes más</strong> (mantener la copia sincronizada) y arriesgas inconsistencias.</p>
+<p><strong>Ejemplo real del repo (feed):</strong> en vez de un join <code>posts ⋈ users ⋈ likes</code> en cada scroll, el feed cacheado se guarda <strong>ya ensamblado</strong> (denormalizado) con nombre de autor e imagen. El join se paga una vez al ensamblar el cache, no en cada lectura.</p>
+<hr />
+<h2 id="7-sql-tuning-ajuste-de-consultas">7. SQL tuning (ajuste de consultas)</h2>
+<p>Antes de sharding, primero se optimiza la consulta:</p>
+<ul>
+<li>Usar <strong>índices</strong> adecuados (composite indexes para filtros múltiples).</li>
+<li><strong>EXPLAIN</strong> para ver el plan de ejecución (en Supabase: <code>EXPLAIN ANALYZE</code>).</li>
+<li>Evitar <code>SELECT *</code>, limitar columnas.</li>
+<li>Paginación con <strong>cursor</strong> en vez de <code>OFFSET</code> grande para feeds.</li>
+</ul>
+<hr />
+<h2 id="árbol-de-decisión-de-escalado-de-datos">Árbol de decisión de escalado de datos</h2>
+<pre><code>¿La consulta es lenta?
+ ├─ Sí → ¿Índices? → NO → añade índices + EXPLAIN
+ │                     SÍ → ¿Es por lectura repetitiva? → cache (archivo 05)
+ │                          NO → ¿Muchas lecturas concurrentes? → read replicas
+ │                               ¿Escrituras el cuello? → federación / particionado
+ │                                    ¿Todo lo anterior falla? → sharding
+ └─ No → sigue así</code></pre>
+<hr />
+<h2 id="en-el-stack-supabase-qué-es-de-tu-diseño-y-qué-es-gestionado">En el stack Supabase: qué es de tu diseño y qué es gestionado</h2>
+<table>
+<thead>
+<tr>
+<th>Pieza</th>
+<th>¿La diseñas tú?</th>
+<th>¿La gestiona Supabase?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Esquema, índices, RLS</td>
+<td>✅ Sí (módulo 03 del repo)</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Replicación</td>
+<td>Documentas el diseño</td>
+<td>✅ Read replicas (función)</td>
+</tr>
+<tr>
+<td>Alta disponibilidad/failover</td>
+<td>No</td>
+<td>✅ Gestionado</td>
+</tr>
+<tr>
+<td>Backups</td>
+<td>No</td>
+<td>✅ Gestionado</td>
+</tr>
+<tr>
+<td>Sharding</td>
+<td>Solo a escala gigante</td>
+<td>No (fuera del alcance)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="fuentes">Fuentes</h2>
+<ul>
+<li><a href="https://github.com/donnemartin/system-design-primer#database">The System Design Primer — Database</a></li>
+<li><a href="https://github.com/donnemartin/system-design-primer#sql-or-nosql">The System Design Primer — SQL or NoSQL</a></li>
+<li><a href="https://dataintensive.net/">Designing Data-Intensive Applications — M. Kleppmann</a></li>
+<li><a href="https://supabase.com/docs/guides/database">Supabase Docs — Database</a></li>
+</ul>
+<hr />
+<p><strong>Siguiente:</strong> <a href="./05-cache-y-rendimiento.md">05-cache-y-rendimiento.md</a></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Capítulo 05</span><div class="kick">Parte 2 · Datos y rendimiento</div><h2>05: Cache y Rendimiento</h2></div><div class="article"><blockquote>
+<p>La caché es la herramienta de rendimiento #1 en cualquier sistema: evita rehacer trabajo caro (lecturas a la DB, redes, cálculos). Aprender las estrategias y sus trade-offs es imprescindible.</p>
+</blockquote>
+<hr />
+<h2 id="latencia-vs-throughput">Latencia vs Throughput</h2>
+<p>Antes de cachear, hay que medir bien:</p>
+<ul>
+<li><strong>Latency:</strong> tiempo en realizar una acción o producir un resultado.</li>
+<li><strong>Throughput:</strong> número de acciones o resultados por unidad de tiempo.</li>
+<li><strong>Objetivo general:</strong> <em>"maximal throughput with acceptable latency"</em>.</li>
+</ul>
+<p><em>Fuente: System Design Primer — "Latency vs throughput".</em></p>
+<p>Un problema de latencia = tu sistema es lento para un usuario. Un problema de throughput = es rápido para uno pero se hunde con muchos.</p>
+<hr />
+<h2 id="dónde-poner-cachés-de-cliente-a-servidor">Dónde poner cachés (de cliente a servidor)</h2>
+<pre><code>┌──────────────┐   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
+│  Client      │   │  CDN         │   │  Web server  │   │  Database    │
+│  cache       │   │  caching     │   │  caching     │   │  caching     │
+│ (app local)  │   │ (edge)       │   │ (reverse pr.)│   │ (query/obj)  │
+└──────────────┘   └──────────────┘   └──────────────┘   └──────────────┘
+   más cerca del usuario ──────────────────────────────── más cerca de los datos</code></pre>
+<p><em>Fuente: System Design Primer — "Cache" section.</em></p>
+<table>
+<thead>
+<tr>
+<th>Capa</th>
+<th>Qué cachea</th>
+<th>Ejemplo en Flutter + Supabase</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cliente</td>
+<td>Datos ya vistos, respuestas</td>
+<td>Cache local del feed (Isar, módulo 04 del repo)</td>
+</tr>
+<tr>
+<td>CDN</td>
+<td>Estáticos/media</td>
+<td>Imágenes de Supabase Storage</td>
+</tr>
+<tr>
+<td>Servidor web</td>
+<td>Respuestas HTTP completas</td>
+<td>Reverse proxy, respuestas de API</td>
+</tr>
+<tr>
+<td>Aplicación</td>
+<td>Objetos serializados</td>
+<td>Cache en memoria/Redis de respuestas</td>
+</tr>
+<tr>
+<td>Base de datos</td>
+<td>Resultados de queries</td>
+<td>Query cache, materialized views</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="niveles-de-caché-en-detalle">Niveles de caché en detalle</h2>
+<h3 id="client-caching-en-la-app-flutter">Client caching (en la app Flutter)</h3>
+<ul>
+<li><strong>HTTP caching:</strong> headers <code>Cache-Control</code>, <code>ETag</code> para no re-descargar lo que no cambió.</li>
+<li><strong>Local DB:</strong> guardar en Isar las últimas N páginas del feed → lecturas offline y pantalla instantánea.</li>
+<li><strong>Beneficio enorme:</strong> evita round-trips completos; es la caché más barata.</li>
+</ul>
+<h3 id="cdn-caching">CDN caching</h3>
+<ul>
+<li>Sirve media desde el nodo más cercano (ver archivo 03).</li>
+<li>TTL controla cuánto tiempo el contenido se considera válido.</li>
+</ul>
+<h3 id="web-server--application-caching">Web server / application caching</h3>
+<ul>
+<li>Una caché en memoria (p. ej. Redis o un cache del servidor) guarda las <strong>respuestas frecuentes ya computadas</strong>.</li>
+<li>Para Supabase: las lecturas del feed se pueden cachear en una Edge Function o en un servicio intermedio.</li>
+</ul>
+<h3 id="database-caching">Database caching</h3>
+<ul>
+<li>Resultados de queries frecuentes en memoria (query cache).</li>
+<li><strong>Materialized views</strong> en Postgres para agregados precomputados (ej. conteos de likes).</li>
+</ul>
+<hr />
+<h2 id="estrategias-de-actualización-de-caché">Estrategias de actualización de caché</h2>
+<p><em>Fuente: System Design Primer — "When to update the cache".</em></p>
+<h3 id="1-cache-aside-lazy-loading">1. Cache-aside (lazy loading)</h3>
+<pre><code>App → busca en cache → ¿hit? → devuelve
+                     → ¿miss? → lee de DB → guarda en cache → devuelve</code></pre>
+<ul>
+<li><strong>Pros:</strong> datos solo se cachean si se usan; tolerante a fallos de cache.</li>
+<li><strong>Contras:</strong> primer acceso lento (miss); si el cache muere, la DB recibe todo.</li>
+</ul>
+<h3 id="2-write-through">2. Write-through</h3>
+<ul>
+<li>La escritura va a la caché <strong>y</strong> a la DB en el mismo paso.</li>
+<li><strong>Pros:</strong> consistencia entre cache y DB; lecturas nunca con datos viejos.</li>
+<li><strong>Contras:</strong> cada escritura paga doble (mayor latencia de escritura); riesgo de datos poco usados ocupando cache.</li>
+</ul>
+<h3 id="3-write-behind-write-back">3. Write-behind (write-back)</h3>
+<ul>
+<li>La escritura va solo a la caché y se persiste a la DB <strong>asíncronamente</strong>.</li>
+<li><strong>Pros:</strong> escrituras rapidísimas.</li>
+<li><strong>Contras:</strong> riesgo de perder datos si la caché cae antes de persistir.</li>
+</ul>
+<h3 id="4-refresh-ahead">4. Refresh-ahead</h3>
+<ul>
+<li>La caché se refresca <strong>antes</strong> de que expire si predice que será accedida.</li>
+<li><strong>Pros:</strong> menos misses.</li>
+<li><strong>Contras:</strong> predicción puede equivocarse (work innecesario).</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Estrategia</th>
+<th>Velocidad de lectura</th>
+<th>Consistencia</th>
+<th>Riesgo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cache-aside</td>
+<td>Miss lento</td>
+<td>Stale hasta refresco</td>
+<td>Cache miss storm</td>
+</tr>
+<tr>
+<td>Write-through</td>
+<td>Siempre fresca</td>
+<td>Alta</td>
+<td>Escrituras lentas</td>
+</tr>
+<tr>
+<td>Write-behind</td>
+<td>Alta</td>
+<td>Eventual</td>
+<td>Pérdida de datos</td>
+</tr>
+<tr>
+<td>Refresh-ahead</td>
+<td>Alta</td>
+<td>Eventual</td>
+<td>Work innecesario</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="consideraciones-de-caché-trade-offs">Consideraciones de caché (trade-offs)</h2>
+<ul>
+<li><strong>TTL (expiración):</strong> el contenido puede quedar <strong>stale</strong> (desactualizado) hasta que expire.</li>
+<li><strong>Invalidación:</strong> cuando un dato cambia, hay que invalidar/actualizar el cache — si no, los usuarios ven datos viejos.</li>
+<li><strong>Eviction:</strong> políticas para quitar datos cuando el cache se llena (LRU — Least Recently Used — es la más común).</li>
+<li><strong>Cache stampede (miss storm):</strong> si todos los caches expiran a la vez y miles piden el mismo dato a la DB → desastre. Mitigar con <em>stale-while-revalidate</em> o jitter en TTL.</li>
+</ul>
+<hr />
+<h2 id="diseño-de-caché-para-el-feed-del-repo-decisión-completa">Diseño de caché para el feed del repo (decisión completa)</h2>
+<p>Datos del archivo 02: ratio lectura/escritura 10:1, QPS pico ~32, feed ensamblado caro.</p>
+<p><strong>Diseño elegido (cache-aside + write-through para el feed):</strong></p>
+<pre><code>Lectura:  app → cache local (Isar, última página) → si miss → API → Redis
+                 → si miss → Postgres (ensambla con joins) → guarda en Redis → devuelve
+
+Escritura: cuando se crea un post → se invalida el cache del feed del autor
+           (los feeds de otros se refrescan con cache-aside natural)</code></pre>
+<p><strong>Justificación (trade-offs):</strong></p>
+<ul>
+<li>Cache-aside: el feed es mayormente de <strong>lectura</strong> → ratio 10:1 lo justifica.</li>
+<li>Invalidez al escribir: mantener el feed de cada usuario coherente sin write-through costoso.</li>
+<li>Cache local (Isar): pantalla instantánea + soporte offline (enlaza archivo 10).</li>
+</ul>
+<hr />
+<h2 id="errores-comunes">Errores comunes</h2>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Solución</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cachear todo sin medir</td>
+<td>Primero medir latencia/throughput</td>
+</tr>
+<tr>
+<td>Sin TTL ni invalidación</td>
+<td>Definir TTL y ruta de invalidación por escritura</td>
+</tr>
+<tr>
+<td>Un solo cache global</td>
+<td>Distribuir por capa (cliente, CDN, app, DB)</td>
+</tr>
+<tr>
+<td>Ignorar el cache stampede</td>
+<td>Jitter en TTL + stale-while-revalidate</td>
+</tr>
+<tr>
+<td>Cachear datos que no se leen</td>
+<td>Cache-aside cachea solo lo usado</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="fuentes">Fuentes</h2>
+<ul>
+<li><a href="https://github.com/donnemartin/system-design-primer#cache">The System Design Primer — Cache</a></li>
+<li><a href="https://github.com/donnemartin/system-design-primer#latency-vs-throughput">The System Design Primer — Latency vs throughput</a></li>
+<li><a href="https://bytebytego.com/guides/cache-systems-every-developer-should-know">ByteByteGo — Cache Systems Every Developer Should Know</a></li>
+<li><a href="https://bytebytego.com/guides/top-5-caching-strategies">ByteByteGo — Top 5 Caching Strategies</a></li>
+<li><a href="https://dataintensive.net/">Designing Data-Intensive Applications — M. Kleppmann</a></li>
+</ul>
+<hr />
+<p><strong>Siguiente:</strong> <a href="./06-realtime-y-streaming.md">06-realtime-y-streaming.md</a></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Capítulo 06</span><div class="kick">Parte 3 · Tiempo real y escalabilidad</div><h2>06: Realtime y Streaming</h2></div><div class="article"><blockquote>
+<p>Cómo elegir entre polling, WebSocket y Server-Sent Events, y cómo encaja Supabase Realtime. La decisión de realtime cambia el diseño completo del backend.</p>
+</blockquote>
+<hr />
+<h2 id="las-3-opciones-de-comunicación-en-tiempo-real">Las 3 opciones de comunicación en tiempo real</h2>
+<table>
+<thead>
+<tr>
+<th>Técnica</th>
+<th>Dirección</th>
+<th>Cuándo</th>
+<th>Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Polling</strong></td>
+<td>Cliente → servidor (pregunta)</td>
+<td>Latencias de segundos, simple</td>
+<td>Lista que se refresca cada 30s</td>
+</tr>
+<tr>
+<td><strong>Long polling</strong></td>
+<td>Cliente → servidor (mantiene abierta hasta respuesta)</td>
+<td>Necesito menos polling, sin websocket</td>
+<td>Notificaciones simples</td>
+</tr>
+<tr>
+<td><strong>WebSocket</strong></td>
+<td>Bidireccional, full-duplex</td>
+<td>Realtime de verdad, baja latencia</td>
+<td>Chat, presencia, live updates</td>
+</tr>
+<tr>
+<td><strong>SSE (Server-Sent Events)</strong></td>
+<td>Servidor → cliente (unidireccional)</td>
+<td>Updates unidireccionales</td>
+<td>Feed que se actualiza solo</td>
+</tr>
+</tbody>
+</table>
+<p><em>Fuente: ByteByteGo — "Short/long polling, SSE, WebSocket".</em></p>
+<h3 id="trade-offs">Trade-offs</h3>
+<ul>
+<li><strong>Polling:</strong> simple y funciona en cualquier servidor, pero desperdicia requests (N peticiones por unidad de tiempo aunque no haya datos).</li>
+<li><strong>WebSocket:</strong> conexión persistente bidireccional, baja latencia; más complejo (manejo de conexiones, reconnection, heartbeats), no funciona tras algunos proxies.</li>
+<li><strong>SSE:</strong> más simple que WebSocket (HTTP normal, auto-reconnect), pero unidireccional.</li>
+</ul>
+<hr />
+<h2 id="asincronía-la-pieza-que-falta-en-muchos-diseños">Asincronía: la pieza que falta en muchos diseños</h2>
+<p>No todo tiene que ser síncrono. El System Design Primer lista dos patrones clave:</p>
+<h3 id="message-queues">Message queues</h3>
+<ul>
+<li>El productor encola un mensaje; el consumidor lo procesa cuando puede.</li>
+<li><strong>Desacoplan</strong> componentes: si el consumidor cae, el mensaje espera.</li>
+<li>Ejemplo: <em>"cuando un usuario sube un video, se encola la tarea de transcodificación"</em>.</li>
+</ul>
+<h3 id="task-queues">Task queues</h3>
+<ul>
+<li>Colas de trabajo pesado (ej. enviar emails, generar thumbnails).</li>
+<li><strong>Back pressure:</strong> si el consumidor va más lento que el productor, la cola crece — hay que monitorear su tamaño.</li>
+</ul>
+<p><strong>En Supabase:</strong> las <strong>Edge Functions</strong> + colas/scheduling son el mecanismo para trabajo asíncrono (notificaciones, procesamiento). El trigger clásico del repo: <em>insert en la DB → trigger → Edge Function → notificación</em>.</p>
+<hr />
+<h2 id="supabase-realtime-oficial">Supabase Realtime (oficial)</h2>
+<p>Supabase provee Realtime como servicio gestionado. Los tres canales documentados en la documentación oficial:</p>
+<ol type="1">
+<li><strong>Postgres Changes:</strong> escuchar inserts/updates/deletes en una tabla y recibir el cambio en la app.</li>
+<li><strong>Broadcast:</strong> enviar mensajes arbitrarios entre clientes.</li>
+<li><strong>Presence:</strong> saber quién está conectado (útil para chats y presencia).</li>
+</ol>
+<h3 id="arquitectura-de-supabase-realtime">Arquitectura de Supabase Realtime</h3>
+<p><em>Fuente: <a href="https://supabase.com/docs/guides/realtime/architecture">Supabase Docs — Realtime architecture</a>.</em></p>
+<pre><code>   Postgres ──(WAL)──▶ Realtime ──(WebSocket)──▶ Flutter App
+   (insert/update)     (detecta cambios)         (recibe en vivo)</code></pre>
+<ul>
+<li>La app abre un <strong>WebSocket</strong> a Supabase Realtime.</li>
+<li>El servidor escucha los cambios de Postgres vía el <strong>Write-Ahead Log (WAL)</strong> y los empuja a los clientes suscritos.</li>
+<li>Se puede <strong>filtrar</strong> por evento (INSERT/UPDATE/DELETE), schema, tabla y columnas.</li>
+</ul>
+<h3 id="postgres-changes-en-la-práctica-ejemplo-de-chat-del-repo">Postgres Changes en la práctica (ejemplo de chat del repo)</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="at">final</span> channel <span class="op">=</span> supabase</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>channel(<span class="st">&#39;messages:room-1&#39;</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>onPostgresChanges(</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>      event<span class="op">:</span> PostgresChangeEvent<span class="op">.</span>insert<span class="op">,</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>      schema<span class="op">:</span> <span class="st">&#39;public&#39;</span><span class="op">,</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>      table<span class="op">:</span> <span class="st">&#39;messages&#39;</span><span class="op">,</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>      callback<span class="op">:</span> (payload) <span class="op">{</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">final</span> message <span class="op">=</span> Message<span class="op">.</span>fromJson(payload<span class="op">.</span>newRecord);</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>        <span class="co">// emitir nuevo estado en el Cubit</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>      <span class="op">},</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>subscribe();</span></code></pre></div>
+<p><em>Fuente: <a href="https://supabase.com/docs/guides/realtime/postgres-changes">Supabase Docs — Realtime Postgres Changes</a>.</em></p>
+<h3 id="trade-offs-de-usar-supabase-realtime">Trade-offs de usar Supabase Realtime</h3>
+<table>
+<thead>
+<tr>
+<th>Pros</th>
+<th>Contras</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No gestionas WebSocket servers</td>
+<td>Límites de conexiones por plan</td>
+</tr>
+<tr>
+<td>Se integra con RLS (solo ves lo autorizado)</td>
+<td>Todo el tráfico pasa por Supabase</td>
+</tr>
+<tr>
+<td>Postgres como fuente de verdad</td>
+<td>Para broadcast masivo a millones, arquitectura custom</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="arquitectura-de-chat-con-realtime-resumen-de-diseño">Arquitectura de chat con realtime (resumen de diseño)</h2>
+<pre><code>  ┌──────────────┐   WebSocket    ┌─────────────────┐   WAL    ┌─────────┐
+  │  Flutter App  │◀──────────────│ Supabase Realtime│◀────────│ Postgres│
+  │  (Cubit +    │               └─────────────────┘          │ messages│
+  │   channel)    │                                            └─────────┘
+  └──────────────┘</code></pre>
+<ol type="1">
+<li>App suscribe al channel <code>messages:conversation_id</code> (con filtro de RLS).</li>
+<li>Usuario envía → <strong>insert</strong> en Postgres (vía Supabase REST/RPC).</li>
+<li>Realtime detecta el cambio por WAL y lo empuja a todos los suscritos de la conversación.</li>
+<li>El Cubit emite el nuevo mensaje → la UI se actualiza sola.</li>
+</ol>
+<p><strong>Decisión de diseño a defender:</strong> elegimos WebSocket (via Realtime) porque el caso de uso es <em>chat en vivo</em> (requiere latencia &lt; segundos y bidireccional). Para un feed no-crítico, polling + refresh sería más barato y suficiente.</p>
+<hr />
+<h2 id="árbol-de-decisión-realtime">Árbol de decisión realtime</h2>
+<pre><code>¿La actualización debe verse en &lt; 1-2s?
+ ├─ No → Polling con refresh (ej. feed cada 30s)
+ ├─ Sí → ¿Unidireccional (servidor→cliente)?
+ │        ├─ Sí → SSE / Realtime con broadcast
+ │        └─ No → ¿Bidireccional y baja latencia?
+ │                ├─ Sí → WebSocket (Supabase Realtime)
+ │                └─ No → Long polling</code></pre>
+<hr />
+<h2 id="fuentes">Fuentes</h2>
+<ul>
+<li><a href="https://supabase.com/docs/guides/realtime/architecture">Supabase Docs — Realtime Architecture</a></li>
+<li><a href="https://supabase.com/docs/guides/realtime/postgres-changes">Supabase Docs — Realtime Postgres Changes</a></li>
+<li><a href="https://github.com/donnemartin/system-design-primer#asynchronism">The System Design Primer — Asynchronism</a></li>
+<li><a href="https://bytebytego.com/guides/shortlong-polling-sse-websocket">ByteByteGo — Short/long polling, SSE, WebSocket</a></li>
+</ul>
+<hr />
+<p><strong>Siguiente:</strong> <a href="./07-escalabilidad-alta-disponibilidad.md">07-escalabilidad-alta-disponibilidad.md</a></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Capítulo 07</span><div class="kick">Parte 3 · Tiempo real y escalabilidad</div><h2>07: Escalabilidad y Alta Disponibilidad</h2></div><div class="article"><blockquote>
+<p>Cómo hacer que el sistema soporte más carga y menos caídas. Vertical vs horizontal, CAP theorem, y la disponibilidad medida en "nueves".</p>
+</blockquote>
+<hr />
+<h2 id="performance-vs-scalability">Performance vs Scalability</h2>
+<ul>
+<li><strong>Performance:</strong> tu sistema es lento para <strong>un solo usuario</strong>.</li>
+<li><strong>Scalability:</strong> tu sistema es rápido para uno, pero lento <strong>bajo carga</strong>.</li>
+</ul>
+<p><em>Fuente: System Design Primer — "Performance vs scalability".</em></p>
+<blockquote>
+<p><em>"A service is scalable if it results in increased performance in a manner proportional to resources added."</em></p>
+</blockquote>
+<hr />
+<h2 id="escalado-vertical-vs-horizontal">Escalado vertical vs horizontal</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Vertical (scale up)</th>
+<th>Horizontal (scale out)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cómo</td>
+<td>Más CPU/RAM en la misma máquina</td>
+<td>Más máquinas</td>
+</tr>
+<tr>
+<td>Límite</td>
+<td>Físico (la máquina más grande que exista)</td>
+<td>Casi ilimitado</td>
+</tr>
+<tr>
+<td>Coste</td>
+<td>Caro, con saltos</td>
+<td>Lineal, elástico</td>
+</tr>
+<tr>
+<td>Fallo</td>
+<td>Punto único de fallo</td>
+<td>Tolerante (replicas)</td>
+</tr>
+<tr>
+<td>Complejidad</td>
+<td>Baja</td>
+<td>Alta (LB, coordinación)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Regla:</strong> primero vertical (barato y simple), después horizontal con <strong>load balancing</strong>.</p>
+<p><em>Fuente: System Design Primer — "Horizontal scaling".</em></p>
+<hr />
+<h2 id="cap-theorem">CAP theorem</h2>
+<p>En un sistema distribuido solo puedes garantizar <strong>dos de tres</strong>:</p>
+<ul>
+<li><strong>Consistency:</strong> cada lectura recibe la escritura más reciente, o un error.</li>
+<li><strong>Availability:</strong> cada request recibe una respuesta (aunque no sea la más reciente).</li>
+<li><strong>Partition tolerance:</strong> el sistema sigue operando aunque la red se parta (nodos incomunicados).</li>
+</ul>
+<blockquote>
+<p><em>"Networks aren't reliable, so you'll need to support partition tolerance. You'll need to make a software tradeoff between consistency and availability."</em></p>
+</blockquote>
+<h3 id="cp-vs-ap">CP vs AP</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>CP (consistencia)</th>
+<th>AP (disponibilidad)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ante una partición</td>
+<td>Espera/bloquea hasta estar consistente</td>
+<td>Responde con lo disponible (puede estar viejo)</td>
+</tr>
+<tr>
+<td>Ideal para</td>
+<td>Pagos, inventario, contadores</td>
+<td>Feeds, chats, notificaciones</td>
+</tr>
+<tr>
+<td>Ejemplo</td>
+<td>Postgres replicado con waits</td>
+<td>Cache distribuida, DNS</td>
+</tr>
+</tbody>
+</table>
+<p><strong>En una app Flutter + Supabase:</strong> Postgres por defecto te da consistencia fuerte en una sola instancia. El realtime con cache introduce consistencia eventual donde el negocio lo permita (ej. conteo de likes puede ser eventual; un pago debe ser consistente).</p>
+<p><em>Fuente: System Design Primer — "CAP theorem" + <a href="https://bytebytego.com/guides/cap-theorem-one-of-the-most-misunderstood-terms">ByteByteGo — CAP Theorem: One of the Most Misunderstood Terms</a>.</em></p>
+<hr />
+<h2 id="patrones-de-consistencia">Patrones de consistencia</h2>
+<p><em>Fuente: System Design Primer — "Consistency patterns".</em></p>
+<table>
+<thead>
+<tr>
+<th>Patrón</th>
+<th>Qué garantiza</th>
+<th>Dónde vive</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Weak</strong></td>
+<td>Tras un write, los reads pueden no verlo (best-effort)</td>
+<td>Memcached, VoIP, chat de voz</td>
+</tr>
+<tr>
+<td><strong>Eventual</strong></td>
+<td>Tras un write, los reads lo verán eventualmente (ms)</td>
+<td>DNS, email, feeds</td>
+</tr>
+<tr>
+<td><strong>Strong</strong></td>
+<td>Tras un write, todos los reads lo ven</td>
+<td>Filesystems, RDBMS</td>
+</tr>
+</tbody>
+</table>
+<p><strong>En el feed del repo:</strong> el contador de likes usa consistencia eventual (así se ve en el ejemplo de 05: cache del feed ensamblado). El estado del pago usa consistencia fuerte (Postgres transaccional).</p>
+<hr />
+<h2 id="patrones-de-alta-disponibilidad">Patrones de alta disponibilidad</h2>
+<p><em>Fuente: System Design Primer — "Availability patterns".</em></p>
+<h3 id="fail-over">Fail-over</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Active-passive</th>
+<th>Active-active</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Quién atiende</td>
+<td>Solo el activo; el pasivo en standby</td>
+<td>Ambos</td>
+</tr>
+<tr>
+<td>Heartbeat</td>
+<td>El pasivo detecta caída del activo</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Timeout</td>
+<td>Depende de hot/cold standby</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Coste</td>
+<td>Menor</td>
+<td>Mayor</td>
+</tr>
+<tr>
+<td>Riesgo</td>
+<td>Pérdida de writes no replicados</td>
+<td>Conflictos entre masters</td>
+</tr>
+</tbody>
+</table>
+<h3 id="replication">Replication</h3>
+<p>Ver archivo 04: master-slave (lecturas distribuidas) y master-master.</p>
+<h3 id="disponibilidad-en-números-los-famosos-nueves">Disponibilidad en números (los famosos "nueves")</h3>
+<table>
+<thead>
+<tr>
+<th>Disponibilidad</th>
+<th>Downtime/año</th>
+<th>Downtime/mes</th>
+<th>Downtime/día</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>99%</td>
+<td>3d 15h</td>
+<td>7h 18m</td>
+<td>14m 24s</td>
+</tr>
+<tr>
+<td>99.9%</td>
+<td>8h 45m</td>
+<td>43m 49s</td>
+<td>1m 26s</td>
+</tr>
+<tr>
+<td>99.99%</td>
+<td>52m 35s</td>
+<td>4m 23s</td>
+<td>8.6s</td>
+</tr>
+</tbody>
+</table>
+<p><em>Tabla publicada por el System Design Primer.</em></p>
+<h3 id="componentes-en-serie-vs-en-paralelo">Componentes en serie vs en paralelo</h3>
+<pre><code>En serie:   Availability_total = A_foo × A_bar
+            (0.999 × 0.999 = 0.998 → 99.8%)
+
+En paralelo: Availability_total = 1 − (1 − A_foo) × (1 − A_bar)
+            (1 − 0.001 × 0.001 = 0.999999 → 99.9999%)</code></pre>
+<p><strong>Lectura:</strong> cada componente en serie <em>reduce</em> la disponibilidad total; los componentes redundantes en paralelo la <em>aumentan</em>. Por eso la alta disponibilidad se logra con redundancia (paralelo), no encadenando piezas únicas.</p>
+<hr />
+<h2 id="qué-significa-esto-para-flutter--supabase">Qué significa esto para Flutter + Supabase</h2>
+<table>
+<thead>
+<tr>
+<th>Pieza</th>
+<th>¿De quién es la disponibilidad?</th>
+<th>Nivel típico</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>App en el dispositivo</td>
+<td>Del usuario (fuera de tu control)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Supabase (API, Auth, DB, Storage, Realtime)</td>
+<td>De Supabase (SLA gestionado)</td>
+<td>Alta</td>
+</tr>
+<tr>
+<td>CDN de media</td>
+<td>Del proveedor de CDN</td>
+<td>Muy alta</td>
+</tr>
+<tr>
+<td>Edge Functions</td>
+<td>De Supabase</td>
+<td>Alta</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Diseño que debes defender:</strong> no reinventas la alta disponibilidad para Supabase (es gestionada). Tu responsabilidad es:</p>
+<ol type="1">
+<li><strong>No crear puntos únicos de fallo en tu código</strong> (ej. un <code>Stream</code> que muere sin reconnect).</li>
+<li><strong>Elegir el SLA correcto</strong> para tu caso (un MVP no necesita 99.99%).</li>
+<li><strong>Cache local</strong> para que la app no caiga si la red falla (offline-first, archivo 10).</li>
+</ol>
+<hr />
+<h2 id="árbol-de-decisión-de-escalabilidad">Árbol de decisión de escalabilidad</h2>
+<pre><code>¿Lento con mucha carga?
+ ├─ ¿CPU/RAM saturada? → vertical primero
+ ├─ ¿Lecturas? → cache + read replicas
+ ├─ ¿Escrituras? → federación / particionado
+ ├─ ¿Un servidor único? → LB + horizontal scaling
+ ├─ ¿Caídas? → failover + replicación
+ └─ ¿Todo a la vez? → rediseña (CAP trade-off explícito)</code></pre>
+<hr />
+<h2 id="fuentes">Fuentes</h2>
+<ul>
+<li><a href="https://github.com/donnemartin/system-design-primer#performance-vs-scalability">The System Design Primer — Performance vs scalability</a></li>
+<li><a href="https://github.com/donnemartin/system-design-primer#availability-vs-consistency">The System Design Primer — Availability vs consistency (CAP)</a></li>
+<li><a href="https://github.com/donnemartin/system-design-primer#availability-patterns">The System Design Primer — Availability patterns</a></li>
+<li><a href="https://bytebytego.com/guides/cap-theorem-one-of-the-most-misunderstood-terms">ByteByteGo — CAP Theorem: One of the Most Misunderstood Terms</a></li>
+<li><a href="https://bytebytego.com/guides/how-do-we-design-for-high-availability">ByteByteGo — How to Design for High Availability</a></li>
+<li><a href="https://dataintensive.net/">Designing Data-Intensive Applications — M. Kleppmann</a></li>
+</ul>
+<hr />
+<p><strong>Siguiente:</strong> <a href="./08-seguridad-en-diseno.md">08-seguridad-en-diseno.md</a></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Capítulo 08</span><div class="kick">Parte 4 · Seguridad y operación</div><h2>08: Seguridad en el Diseño</h2></div><div class="article"><blockquote>
+<p>La seguridad se decide en el diseño, no al final. Esquema de cifrado, authn vs authz, HTTPS, TLS y el principio de menor privilegio — siempre con las herramientas que Supabase ya te da.</p>
+</blockquote>
+<hr />
+<h2 id="seguridad-en-capas-defense-in-depth">Seguridad en capas (defense in depth)</h2>
+<pre><code>┌─────────────────────────────────────────────┐
+│  App (Flutter)                               │
+│    · Secrets nunca en el bundle              │
+├─────────────────────────────────────────────┤
+│  Transporte                                  │
+│    · HTTPS / TLS obligatorio                 │
+│    · Certificados válidos                    │
+├─────────────────────────────────────────────┤
+│  API (Supabase)                              │
+│    · Auth (identidad)                        │
+│    · RLS (autorización por fila)             │
+├─────────────────────────────────────────────┤
+│  Base de datos (Postgres)                    │
+│    · Menor privilegio                        │
+│    · Backups cifrados                        │
+└─────────────────────────────────────────────┘</code></pre>
+<hr />
+<h2 id="https-cifrado-en-tránsito">HTTPS (cifrado en tránsito)</h2>
+<ul>
+<li><strong>HTTPS</strong> cifra el tráfico entre la app y el servidor. <em>"HTTPS is the backbone of any secure system."</em> — System Design Primer.</li>
+<li>Protege de <strong>man-in-the-middle</strong> (alguien leyendo/modificando lo que viaja).</li>
+<li>En Supabase, todas las URLs que usas desde la app son <code>https://</code> — el cifrado en tránsito ya está gestionado.</li>
+</ul>
+<p><strong>Configuración que sí te toca:</strong> nunca apuntar la app a URLs <code>http://</code> en producción, y validar el certificado (no desactivar la verificación, ni siquiera "para probar").</p>
+<hr />
+<h2 id="cifrado-en-reposo-at-rest">Cifrado en reposo (at-rest)</h2>
+<table>
+<thead>
+<tr>
+<th>Capa</th>
+<th>Qué cifrar</th>
+<th>Cómo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>En la app</td>
+<td>Datos sensibles locales (tokens)</td>
+<td><code>flutter_secure_storage</code> (Keychain/Keystore)</td>
+</tr>
+<tr>
+<td>Transporte</td>
+<td>Todos los requests</td>
+<td>TLS vía HTTPS de Supabase</td>
+</tr>
+<tr>
+<td>Base de datos</td>
+<td>Datos en el servidor</td>
+<td>Cifrado gestionado por Supabase + columnas sensibles extra</td>
+</tr>
+<tr>
+<td>Secreto del app</td>
+<td>—</td>
+<td>Nunca en el bundle; usar Env vars / <code>.env</code> y no commitear</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="autenticación-vs-autorización-authn-vs-authz">Autenticación vs Autorización (authn vs authz)</h2>
+<ul>
+<li><strong>Authentication (authn):</strong> <em>"quién eres"</em>. Probar identidad (login, OAuth, email magic link).</li>
+<li><strong>Authorization (authz):</strong> <em>"qué puedes hacer"</em>. Decidir permisos sobre esa identidad.</li>
+</ul>
+<p><strong>Error típico:</strong> validar solo authn (que el usuario esté logueado) y olvidar authz (que ese usuario en concreto tenga permiso sobre <strong>esa fila</strong>).</p>
+<h3 id="rol-del-jwt-en-supabase">Rol del JWT en Supabase</h3>
+<ul>
+<li>Al hacer login, Supabase emite un <strong>JWT</strong> (JSON Web Token) con el <code>sub</code> (user id) y los claims de rol.</li>
+<li>El JWT se envía en el header <code>Authorization: Bearer &lt;token&gt;</code> en cada request.</li>
+<li>Los <strong>RLS policies</strong> en Postgres leen ese token (vía <code>auth.uid()</code>) para decidir qué filas puede ver/modificar cada usuario.</li>
+</ul>
+<hr />
+<h2 id="row-level-security-rls-como-diseño-de-autorización">Row Level Security (RLS) como diseño de autorización</h2>
+<p>El módulo 03 del repo ya cubre RLS en detalle. Aquí la <strong>visión de diseñador</strong>:</p>
+<ul>
+<li><strong>RLS es tu authorization layer principal</strong> en Supabase: se evalúa en la DB, no en la app. Aunque alguien llame a la API directamente con un JWT robado, RLS sigue protegiendo.</li>
+<li>Diseño por defecto: <strong>deny by default</strong>, luego políticas explícitas de lectura/escritura.</li>
+<li>Cada política usa <code>auth.uid()</code> (el <code>sub</code> del JWT) → la autorización queda ligada a la identidad autenticada.</li>
+</ul>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Ejemplo: solo el dueño puede ver sus draft posts</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> POLICY <span class="ot">&quot;read_own_drafts&quot;</span> <span class="kw">ON</span> posts</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="cf">FOR</span> <span class="kw">SELECT</span> <span class="kw">USING</span> (</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  auth.<span class="fu">uid</span>() <span class="op">=</span> user_id <span class="kw">AND</span> status <span class="op">=</span> <span class="st">&#39;draft&#39;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>);</span></code></pre></div>
+<hr />
+<h2 id="principio-de-menor-privilegio-least-privilege">Principio de menor privilegio (least privilege)</h2>
+<blockquote>
+<p><em>"Every program and every user of the system should operate using the least set of privileges necessary to complete the job."</em> — Saltzer &amp; Schroeder.</p>
+</blockquote>
+<p>Aplicado al stack:</p>
+<table>
+<thead>
+<tr>
+<th>Quién</th>
+<th>Permisos correctos</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Anon key en la app</td>
+<td>Solo lo público (RLS niega el resto)</td>
+</tr>
+<tr>
+<td>Service role key</td>
+<td><strong>Nunca</strong> en la app; solo servidor/Edge Functions</td>
+</tr>
+<tr>
+<td>Edge Functions</td>
+<td>Solo las operaciones que necesita</td>
+</tr>
+<tr>
+<td>DB roles</td>
+<td>Solo los schemas/tablas que usan</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="principio-de-defensa-en-profundidad">Principio de defensa en profundidad</h2>
+<ul>
+<li>No confiar en <strong>una sola</strong> capa de seguridad (ej. solo login sin RLS, o solo RLS sin HTTPS).</li>
+<li>Cada capa protege si la anterior falla: app segura + TLS + authn + authz + least privilege.</li>
+</ul>
+<p><em>Fuente: System Design Primer — "Security" section + defensa en profundidad clásica (CISSP/OWASP).</em></p>
+<hr />
+<h2 id="errores-de-diseño-de-seguridad-comunes">Errores de diseño de seguridad comunes</h2>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Service role key en el bundle de Flutter</td>
+<td>Mover a Edge Functions / servidor</td>
+</tr>
+<tr>
+<td>Confiar solo en authn (login) sin authz</td>
+<td>Añadir RLS por fila</td>
+</tr>
+<tr>
+<td>Permisos abiertos en Storage buckets</td>
+<td>Bucket público vs privado + RLS en storage.objects</td>
+</tr>
+<tr>
+<td>Desactivar verificación de certificado TLS</td>
+<td>Validar siempre en producción</td>
+</tr>
+<tr>
+<td>Loguear tokens/secrets en logs</td>
+<td>Nunca imprimir secrets; rotar si se filtra</td>
+</tr>
+<tr>
+<td>Cifrar todo sin evaluar riesgo</td>
+<td>Cifrar lo sensible (tokens, PII) — el resto no añade valor</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="checklist-de-seguridad-de-diseño-para-tus-entrevistasproyectos">Checklist de seguridad de diseño (para tus entrevistas/proyectos)</h2>
+<ol type="1">
+<li>✅ Todos los requests por HTTPS.</li>
+<li>✅ Tokens de Supabase en <code>flutter_secure_storage</code>.</li>
+<li>✅ RLS habilitado en todas las tablas de datos del usuario.</li>
+<li>✅ Service role key solo en backend.</li>
+<li>✅ Buckets de Storage con su política (público vs privado).</li>
+<li>✅ No hay secrets en el repo (<code>.env</code> en <code>.gitignore</code>).</li>
+<li>✅ Principio de menor privilegio en roles y Edge Functions.</li>
+<li>✅ Backups y datos sensibles cifrados en reposo.</li>
+</ol>
+<hr />
+<h2 id="fuentes">Fuentes</h2>
+<ul>
+<li><a href="https://github.com/donnemartin/system-design-primer#security">The System Design Primer — Security</a></li>
+<li><a href="https://supabase.com/docs/guides/database/postgres/row-level-security">Supabase Docs — Row Level Security</a></li>
+<li><a href="https://supabase.com/docs/guides/storage/security">Supabase Docs — Storage security (RLS on buckets)</a></li>
+<li><a href="https://web.mit.edu/Saltzer/www/publications/protection/">Saltzer &amp; Schroeder — The Protection of Information in Computer Systems</a></li>
+<li><a href="https://owasp.org/www-project-top-ten/">OWASP Top 10</a></li>
+</ul>
+<hr />
+<p><strong>Siguiente:</strong> <a href="./09-observabilidad-monitoreo.md">09-observabilidad-monitoreo.md</a></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Capítulo 09</span><div class="kick">Parte 4 · Seguridad y operación</div><h2>09: Observabilidad, Monitoreo y Resiliencia</h2></div><div class="article"><blockquote>
+<p>Si no puedes medirlo, no puedes arreglarlo. Logs, métricas, tracing y alerts: el sistema debe decirte cuándo y por qué falla — y cómo recuperarse solo.</p>
+</blockquote>
+<hr />
+<h2 id="observabilidad-vs-monitoreo">Observabilidad vs Monitoreo</h2>
+<ul>
+<li><strong>Monitoreo:</strong> saber si un sistema está "sano" (dashboards, checks).</li>
+<li><strong>Observabilidad:</strong> poder <strong>preguntarle al sistema</strong> qué está pasando ante cualquier condición, incluso las imprevistas.</li>
+</ul>
+<p>La observabilidad se logra con <strong>tres pilares</strong>: logs, métricas y tracing.</p>
+<hr />
+<h2 id="los-tres-pilares">Los tres pilares</h2>
+<table>
+<thead>
+<tr>
+<th>Pilar</th>
+<th>Qué es</th>
+<th>Pregunta que responde</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Logs</strong></td>
+<td>Registro de eventos discretos</td>
+<td><em>¿Qué pasó exactamente?</em></td>
+</tr>
+<tr>
+<td><strong>Métricas</strong></td>
+<td>Medidas agregadas numéricas</td>
+<td><em>¿Cuánto / con qué frecuencia?</em></td>
+</tr>
+<tr>
+<td><strong>Tracing</strong></td>
+<td>Recorrido de un request a través de componentes</td>
+<td><em>¿Dónde se tardó/fracturó?</em></td>
+</tr>
+</tbody>
+</table>
+<h3 id="logs">Logs</h3>
+<ul>
+<li>Estructurados (JSON) para poder filtrarlos.</li>
+<li>Niveles: debug / info / warn / error.</li>
+<li><strong>Cuidado:</strong> logs con PII o secrets = fuga de seguridad (ver archivo 08).</li>
+</ul>
+<h3 id="métricas-con-el-acrónimo-use">Métricas (con el acrónimo USE)</h3>
+<ul>
+<li><strong>U</strong>tilization: % de recurso usado (CPU, memoria, conexiones de DB).</li>
+<li><strong>S</strong>aturation: qué tan lleno está (colas, conexiones pool).</li>
+<li><strong>E</strong>rrors: tasa de fallos, excepciones, 5xx.</li>
+</ul>
+<h3 id="tracing">Tracing</h3>
+<ul>
+<li>Un <strong>trace</strong> sigue un request desde la app hasta la DB pasando por Edge Functions.</li>
+<li>Componentes: <strong>spans</strong> (cada tramo), <strong>trace id</strong> (identificador único del request).</li>
+</ul>
+<hr />
+<h2 id="supabase-lo-que-ya-tienes-sin-montar-infraestructura">Supabase: lo que ya tienes (sin montar infraestructura)</h2>
+<p>Supabase gestionado expone sus propios logs y métricas (dashboard + API de logs) para:</p>
+<ul>
+<li><strong>Postgres:</strong> queries lentas, errores, conexiones.</li>
+<li><strong>Auth:</strong> eventos de login/registro fallidos.</li>
+<li><strong>Realtime:</strong> conexiones y mensajes.</li>
+<li><strong>Storage:</strong> requests a los buckets.</li>
+<li><strong>Edge Functions:</strong> invocaciones, errores, duración.</li>
+</ul>
+<p><em>Fuente: <a href="https://supabase.com/docs/guides/telemetry/logging">Supabase Docs — Logging</a> y <a href="https://supabase.com/docs/guides/telemetry/metrics">Supabase Docs — Metrics</a>.</em></p>
+<p><strong>Decisión de diseño:</strong> para el MVP usas los logs gestionados de Supabase + analytics de la app. No inventas un stack de observabilidad hasta que el tráfico/errores lo justifiquen.</p>
+<hr />
+<h2 id="analytics-y-métricas-en-flutter-lado-cliente">Analytics y métricas en Flutter (lado cliente)</h2>
+<p>En la app necesitas saber cómo se comportan <strong>tus usuarios</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Herramienta</th>
+<th>Para qué</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Crash reporting</td>
+<td>Stacktraces de errores en producción</td>
+</tr>
+<tr>
+<td>Analytics de eventos</td>
+<td>Qué feature se usa, donde se quedan los usuarios</td>
+</tr>
+<tr>
+<td>Custom events</td>
+<td>Métricas de negocio (registro completado, post publicado)</td>
+</tr>
+<tr>
+<td>Screen view</td>
+<td>Navegación y embudos</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="alerting-las-reglas-correctas">Alerting: las reglas correctas</h2>
+<p>Alertar <strong>también es diseño</strong>: alertas mal definidas generan ruido y desensibilizan.</p>
+<h3 id="alertas-en-4-pasos">Alertas en 4 pasos</h3>
+<ol type="1">
+<li><strong>Métrico correcto:</strong> lo que importa al usuario (error rate, latencia p95), no solo del servidor.</li>
+<li><strong>Umbral realista:</strong> alertar antes de que sea un incidente, sin alertar por ruido.</li>
+<li><strong>Alerta accionable:</strong> siempre con el link al log/trace del incidente.</li>
+<li><strong>On-call limitado:</strong> no alertes cosas que nadie puede arreglar.</li>
+</ol>
+<h3 id="ejemplo-para-el-feed-del-repo">Ejemplo para el feed del repo</h3>
+<pre><code>ALERTA &quot;Error rate en GET /api/feed &gt; 5% durante 5 min&quot;
+LINK: Logs filtrados por status_code 5xx + trace_id
+ACCIÓN: revisar Edge Function / query de feed o saturación de la DB</code></pre>
+<hr />
+<h2 id="resiliencia-y-self-healing">Resiliencia y self-healing</h2>
+<p>El sistema debe <strong>recuperarse solo</strong> de fallos transitorios:</p>
+<table>
+<thead>
+<tr>
+<th>Técnica</th>
+<th>Qué hace</th>
+<th>Dónde aplica</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Retries</strong></td>
+<td>Reintenta requests fallidos</td>
+<td>Network de la app, Edge Functions</td>
+</tr>
+<tr>
+<td><strong>Backoff exponencial</strong></td>
+<td>Cada retry espera más (evita sobrecargar al servidor caído)</td>
+<td>Igual que retries</td>
+</tr>
+<tr>
+<td><strong>Timeouts</strong></td>
+<td>Una llamada no puede colgarse para siempre</td>
+<td>Todos los requests de red</td>
+</tr>
+<tr>
+<td><strong>Circuit breaker</strong></td>
+<td>Tras N fallos, "abre el circuito" y falla rápido en vez de seguir pegándole al servicio</td>
+<td>SDK de red, Edge Functions</td>
+</tr>
+<tr>
+<td><strong>Fallbacks</strong></td>
+<td>Si la fuente falla, servir otra cosa (cache, datos locales)</td>
+<td>App con offline-first</td>
+</tr>
+</tbody>
+</table>
+<p><em>Fuente: <a href="https://bytebytego.com/guides/timeouts-retries-and-backoff">ByteByteGo — Timeouts, Retries and Backoff</a>.</em></p>
+<h3 id="el-patrón-básico">El patrón básico</h3>
+<pre><code>request → timeout (ej. 10s)
+        → falla → retry con backoff (1s, 2s, 4s...)
+        → sigue fallando → circuit breaker abre → falla rápido
+        → app usa fallback (cache local) → reporta métrica de error</code></pre>
+<hr />
+<h2 id="diseño-del-plan-de-observabilidad-para-tus-casos-de-estudio">Diseño del plan de observabilidad (para tus casos de estudio)</h2>
+<p>Cada diseño debe responder:</p>
+<ol type="1">
+<li><strong>¿Qué mides?</strong> Error rate, latencia, QPS, saturación de DB.</li>
+<li><strong>¿Dónde?</strong> App (crash + analytics) y Supabase (logs gestionados).</li>
+<li><strong>¿Qué alertas?</strong> Las 3-5 más importantes con umbral accionable.</li>
+<li><strong>¿Cómo se diagnostica?</strong> Cada error debe llevarte del dashboard → log → trace.</li>
+<li><strong>¿Cómo se recupera?</strong> Retries + backoff + circuit breaker + fallback offline.</li>
+</ol>
+<hr />
+<h2 id="errores-comunes-de-diseño-de-observabilidad">Errores comunes de diseño de observabilidad</h2>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Alertas por todo → ruido</td>
+<td>Solo alertas accionables</td>
+</tr>
+<tr>
+<td>Solo metrics sin logs/traces</td>
+<td>Los 3 pilares juntos</td>
+</tr>
+<tr>
+<td>Sin timeouts ni retries</td>
+<td>Timeouts siempre; retries con backoff</td>
+</tr>
+<tr>
+<td>Logs sin estructura</td>
+<td>Logs JSON con trace_id</td>
+</tr>
+<tr>
+<td>Sin fallback</td>
+<td>Cache/offline como plan B de toda lectura</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="fuentes">Fuentes</h2>
+<ul>
+<li><a href="https://bytebytego.com/guides/observability-logs-metrics-tracing">ByteByteGo — Observability (logs, metrics, tracing)</a></li>
+<li><a href="https://bytebytego.com/guides/timeouts-retries-and-backoff">ByteByteGo — Timeouts, Retries and Backoff</a></li>
+<li><a href="https://supabase.com/docs/guides/telemetry/logging">Supabase Docs — Logging</a></li>
+<li><a href="https://supabase.com/docs/guides/telemetry/metrics">Supabase Docs — Metrics</a></li>
+<li><a href="https://www.brendangregg.com/usemethod.html">Brendan Gregg — USE Method</a></li>
+</ul>
+<hr />
+<p><strong>Siguiente:</strong> <a href="./10-offline-first.md">10-offline-first.md</a></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Capítulo 10</span><div class="kick">Parte 4 · Seguridad y operación</div><h2>10: Offline-First y Sincronización</h2></div><div class="article"><blockquote>
+<p>Cómo diseñar la app para que funcione sin red y se sincronice al reconectar. El archivo donde el patrón offline-first (del repositorio) se conecta con el system design.</p>
+</blockquote>
+<hr />
+<h2 id="el-problema-de-diseñar-para-la-nube">El problema de diseñar "para la nube"</h2>
+<p>Las arquitecturas clásicas asumen red disponible. Pero en Flutter móvil <strong>la red no es confiable</strong>: elevadores, metro, avión, batería baja. Si la app muere sin conexión, pierdes usuarios.</p>
+<p><strong>Offline-first</strong> = la app funciona bien <strong>sin red</strong> como estado por defecto, y la nube es la capa de sincronización.</p>
+<hr />
+<h2 id="los-4-niveles-de-tolerancia-offline">Los 4 niveles de tolerancia offline</h2>
+<table>
+<thead>
+<tr>
+<th>Nivel</th>
+<th>Qué guarda</th>
+<th>Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Lectura offline</td>
+<td>Caché de lo ya visto</td>
+<td>Feed ya cargado</td>
+</tr>
+<tr>
+<td>2. Escrituras offline</td>
+<td>Acciones en cola local</td>
+<td>Like, mensaje, borrador</td>
+</tr>
+<tr>
+<td>3. Sync en background</td>
+<td>Cola se envía al reconectar</td>
+<td>Mensajes enviados después</td>
+</tr>
+<tr>
+<td>4. Conflict resolution</td>
+<td>Ambos lados editaron lo mismo</td>
+<td>Editar mismo post en 2 devices</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="estrategias-de-sincronización-con-el-sistema-en-mente">Estrategias de sincronización (con el sistema en mente)</h2>
+<h3 id="1-optimistic-ui--cola-de-escrituras-recomendada-para-mvp">1. Optimistic UI + cola de escrituras (recomendada para MVP)</h3>
+<pre><code>1. Usuario da like → se guarda en cola local + UI actualiza al instante
+2. Sin red: queda en cola con estado &quot;pending&quot;
+3. Al reconectar: se envía a la API en orden
+4. Éxito → se marca &quot;synced&quot;; fallo → retry con backoff</code></pre>
+<h3 id="2-estado-local-first-sync-as-a-service">2. Estado: local-first, sync as a service</h3>
+<ul>
+<li>La DB local (Isar) es la <strong>fuente de verdad para la UI</strong>.</li>
+<li>La nube (Supabase) es la fuente de verdad <strong>del sistema</strong>.</li>
+<li>La sincronización sincroniza estados, no "la base de datos".</li>
+</ul>
+<h3 id="3-conflicto-quién-gana">3. Conflicto: quién gana</h3>
+<ul>
+<li><strong>Last-write-wins (LWW):</strong> gana el último <code>updated_at</code>. Simple, pierde trabajo.</li>
+<li><strong>Merge manual:</strong> ambos cambios se conservan y el usuario decide.</li>
+<li><strong>Por campo:</strong> el último cambio por cada campo.</li>
+</ul>
+<p><strong>Regla de diseño:</strong> define la política de conflictos <strong>antes</strong> de implementar la sincronización. Un conflicto no manejado = datos perdidos silenciosamente.</p>
+<hr />
+<h2 id="sincronización-con-supabase">Sincronización con Supabase</h2>
+<p>La sincronización del offline-first se apoya en los mecanismos ya vistos:</p>
+<table>
+<thead>
+<tr>
+<th>Mecanismo</th>
+<th>Rol en sync</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Realtime (archivo 06)</td>
+<td>Empujar cambios remotos cuando hay red</td>
+</tr>
+<tr>
+<td>RLS (módulo 03)</td>
+<td>El servidor decide qué sincronizar según el usuario</td>
+</tr>
+<tr>
+<td>UUIDs como PK (módulo 03)</td>
+<td>IDs no dependen del orden de creación → sin colisiones de sync</td>
+</tr>
+<tr>
+<td><code>updated_at</code></td>
+<td>Base para LWW y delta sync</td>
+</tr>
+</tbody>
+</table>
+<h3 id="el-loop-de-sincronización">El loop de sincronización</h3>
+<pre><code>┌──────────────────────────────────────────────────┐
+│  App (Flutter)                                    │
+│   ┌───────────┐   escrituras    ┌─────────────┐   │
+│   │  Cola     │────────────────▶│  API/DB     │   │
+│   │  local    │◀─ status ──────┘  (Supabase)  │   │
+│   └───────────┘                                │   │
+│        ▲                                        │   │
+│        │  Realtime push (cambios de otros)      │   │
+│        └────────────────────────────────────────┘   │
+└──────────────────────────────────────────────────┘</code></pre>
+<hr />
+<h2 id="la-decisión-de-consistencia-conecta-con-el-archivo-07">La decisión de consistencia (conecta con el archivo 07)</h2>
+<ul>
+<li>Con <strong>red disponible:</strong> strong consistency vía Supabase/RLS para datos críticos.</li>
+<li>Con <strong>sin red:</strong> consistencia local inmediata (optimistic) + eventual al sincronizar.</li>
+</ul>
+<blockquote>
+<p><em>"You can't have both strong consistency and high availability under network partitions."</em> — CAP (archivo 07).</p>
+</blockquote>
+<p>La app offline-first es <strong>AP por diseño</strong>: disponible siempre, consistente eventualmente.</p>
+<hr />
+<h2 id="detección-de-conectividad-y-scheduling">Detección de conectividad y scheduling</h2>
+<ul>
+<li>Monitorear conectividad (internet_connection_checker) para saber cuándo flushear la cola.</li>
+<li><strong>Ejecutar sync al reconectar</strong>, no en loops ciegos.</li>
+<li>Respetar <strong>batería/banda</strong>: no sincronizar media gigante con datos celulares.</li>
+<li>Tareas en segundo plano: ejecutores periódicos en Flutter (workmanager) — mantener simple en MVP.</li>
+</ul>
+<hr />
+<h2 id="errores-comunes-del-diseño-offline">Errores comunes del diseño offline</h2>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Asumir red siempre disponible</td>
+<td>Asumir lo contrario: offline-first</td>
+</tr>
+<tr>
+<td>IDs autoincrementales en sync</td>
+<td>UUIDs como PK (módulo 03)</td>
+</tr>
+<tr>
+<td>Sin política de conflictos</td>
+<td>Definir LWW / merge por campo antes</td>
+</tr>
+<tr>
+<td>Cola infinita sin backoff</td>
+<td>Retries con backoff + límites</td>
+</tr>
+<tr>
+<td>Sincronizar todo el tiempo</td>
+<td>Sincronizar al reconectar + delta sync</td>
+</tr>
+<tr>
+<td>Estado duplicado (UI y sync separados)</td>
+<td>Un solo estado (local-first) con cola</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="fuentes">Fuentes</h2>
+<ul>
+<li><a href="https://supabase.com/docs/guides/realtime/offline">Supabase Docs — Offline support (Dart/Flutter)</a></li>
+<li><a href="https://dataintensive.net/">Redis/DDIA — Conflict resolution</a> (capítulo sobre multileader y conflictos)</li>
+<li><a href="https://bytebytego.com/guides/offline-first-apps">ByteByteGo — Offline-First Apps</a></li>
+<li>Patrón del repositorio: módulo 04 (cache local Isar + sync)</li>
+</ul>
+<hr />
+<p><strong>Siguiente:</strong> <a href="./11-plantilla-diseno-sistema.md">11-plantilla-diseno-sistema.md</a></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Capítulo 11</span><div class="kick">Parte 5 · Plantilla y casos integradores</div><h2>11: Plantilla de Diseño de Sistema</h2></div><div class="article"><blockquote>
+<p>El proceso reproducible para cualquier pregunta de system design: del requisito al diagrama, con métricas, decisiones y riesgos. Úsalo en los casos de estudio (12-14) y en tus entrevistas.</p>
+</blockquote>
+<hr />
+<h2 id="la-plantilla-10-pasos">La plantilla (10 pasos)</h2>
+<pre><code>1. Alcance y requerimientos       → qué SÍ y qué NO está en el diseño
+2. Estimación de escala           → QPS, storage, ratios (archivo 02)
+3. Modelado de datos              → entidades, índices, RLS (archivo 04)
+4. Arquitectura de alto nivel     → diagrama de cajas y flujos
+5. Componentes clave              → API, DB, cache, CDN, realtime
+6. Decisiones de diseño           → cada una con su trade-off
+7. Consistencia y disponibilidad  → CAP, SLA, patrón elegido
+8. Seguridad                      → authn/authz, RLS, HTTPS (archivo 08)
+9. Observabilidad                → logs, métricas, alertas (archivo 09)
+10. Riesgos y evolución           → cuellos de botella futuros y mitigación</code></pre>
+<hr />
+<h2 id="paso-1-alcance-y-requerimientos">Paso 1: Alcance y requerimientos</h2>
+<p>Antes de dibujar, aclara con el entrevistador/cliente:</p>
+<table>
+<thead>
+<tr>
+<th>Pregunta</th>
+<th>Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>¿Quiénes son los usuarios?</td>
+<td>Consumidores de un feed de fotos</td>
+</tr>
+<tr>
+<td>¿Cuántos?</td>
+<td>10M MAU</td>
+</tr>
+<tr>
+<td>¿Qué funcionalidad principal?</td>
+<td>Ver y publicar posts</td>
+</tr>
+<tr>
+<td>¿Tiempo real o eventual?</td>
+<td>Feed eventual; chat realtime</td>
+</tr>
+<tr>
+<td>¿Mobile, web, ambos?</td>
+<td>Flutter (mobile + web)</td>
+</tr>
+<tr>
+<td>¿Es un MVP o un sistema maduro?</td>
+<td>Determina la complejidad justa</td>
+</tr>
+</tbody>
+</table>
+<p><strong>No olvides:</strong> definir lo que <strong>NO</strong> está en el alcance (fuera de scope) para no diseñar de más.</p>
+<hr />
+<h2 id="paso-2-estimación-de-escala-archivo-02-en-30s">Paso 2: Estimación de escala (archivo 02 en 30s)</h2>
+<pre><code>QPS de lecturas   = usuarios activos × acciones por usuario / segundos
+QPS de escrituras = publicaciones/transacciones por día / 86,400
+Storage           = filas × bytes promedio × retención
+Ratio lectura/escritura = lecturas / escrituras</code></pre>
+<p>Ejemplo del feed: 10M MAU, 5% activos por hora pico, 100 lecturas diarias → QPS de lectura ≈ 1.7K, escrituras ≈ 4/s, ratio ≈ 10:1.</p>
+<hr />
+<h2 id="paso-3-modelado-de-datos-mínimo-viable">Paso 3: Modelado de datos (mínimo viable)</h2>
+<ul>
+<li>Lista de <strong>entidades</strong> con sus campos clave.</li>
+<li><strong>Índices</strong> para los path de acceso reales.</li>
+<li><strong>RLS policies</strong> por entidad (quién lee/escribe).</li>
+<li>Elección: SQL vs NoSQL <strong>justificada</strong> (archivo 04).</li>
+</ul>
+<hr />
+<h2 id="paso-4-arquitectura-de-alto-nivel">Paso 4: Arquitectura de alto nivel</h2>
+<p>Dibuja las cajas: <code>App → CDN/API → (Auth, Cache, DB) → Servicios</code>. Ejemplo genérico:</p>
+<pre><code>┌─────────┐  HTTPS  ┌────────────┐        ┌───────────┐
+│  App    │────────▶│  API       │───────▶│  Cache    │
+└─────────┘         │  (Supabase)│        └───────────┘
+        │           └─────┬──────┘               │
+        │                 ▼                      ▼
+   ┌─────────┐      ┌────────────┐        ┌───────────┐
+   │  CDN    │      │  Auth      │        │  DB (Post)│
+   └─────────┘      └────────────┘        └───────────┘</code></pre>
+<hr />
+<h2 id="paso-5-6-componentes-y-decisiones-de-diseño">Paso 5-6: Componentes y decisiones de diseño</h2>
+<p>Cada componente declarado debe justificarse:</p>
+<table>
+<thead>
+<tr>
+<th>Componente</th>
+<th>Decisión</th>
+<th>Trade-off</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cache</td>
+<td>Cache-aside del feed</td>
+<td>Miss lento, pero solo cachea lo usado</td>
+</tr>
+<tr>
+<td>Realtime</td>
+<td>WebSocket (Realtime)</td>
+<td>Complejidad, límites de conexiones</td>
+</tr>
+<tr>
+<td>CDN</td>
+<td>Para media</td>
+<td>Coste, TTL de invalidación</td>
+</tr>
+<tr>
+<td>DB</td>
+<td>Postgres (Supabase)</td>
+<td>Consistencia fuerte, escala limitada</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Fórmula:</strong> <em>"Elijo X porque el caso es Y, y el trade-off aceptable es Z."</em></p>
+<hr />
+<h2 id="paso-7-consistencia-y-disponibilidad">Paso 7: Consistencia y disponibilidad</h2>
+<p>Declara explícitamente:</p>
+<ul>
+<li><strong>Modelo de consistencia:</strong> strong (Postgres) para datos críticos; eventual (cache, contadores) para el resto.</li>
+<li><strong>SLA objetivo:</strong> cuántos "nueves" y por qué.</li>
+<li><strong>Patrones:</strong> replicas, failover, retries/backoff.</li>
+</ul>
+<hr />
+<h2 id="paso-8-9-seguridad-y-observabilidad">Paso 8-9: Seguridad y observabilidad</h2>
+<ul>
+<li><strong>Seguridad:</strong> HTTPS, RLS deny-by-default, secrets en secure storage, least privilege.</li>
+<li><strong>Observabilidad:</strong> las 3-5 métricas clave, las alertas accionables, cómo se diagnostica cada error.</li>
+</ul>
+<hr />
+<h2 id="paso-10-riesgos-y-evolución">Paso 10: Riesgos y evolución</h2>
+<pre><code>Riesgo detectado        → Mitigación
+-----------------------  → -----------------------------
+QPS pico de escrituras   → Colas + Edge Functions async
+Joins caros en el feed   → Denormalización en cache
+Saturación de una DB     → Replicas de lectura → particionado
+App muerta sin red       → Offline-first (archivo 10)</code></pre>
+<p>Cierra la entrevista/diseño con: <strong>"el siguiente cuello de botella sería X, y lo resolvería con Y"</strong>.</p>
+<hr />
+<h2 id="checklist-final-de-una-respuesta-de-system-design">Checklist final de una respuesta de system design</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" />Alcance claro (incluye fuera de scope)</label></li>
+<li><label><input type="checkbox" />Números justificados (QPS, storage, ratios)</label></li>
+<li><label><input type="checkbox" />Diagrama de alto nivel dibujado</label></li>
+<li><label><input type="checkbox" />Decisiones con trade-offs explícitos</label></li>
+<li><label><input type="checkbox" />Modelo de datos con índices y RLS</label></li>
+<li><label><input type="checkbox" />Consistencia/disponibilidad declaradas</label></li>
+<li><label><input type="checkbox" />Seguridad y observabilidad presentes</label></li>
+<li><label><input type="checkbox" />Riesgos futuros y evolución</label></li>
+</ul>
+<hr />
+<h2 id="fuentes">Fuentes</h2>
+<ul>
+<li><a href="https://github.com/donnemartin/system-design-primer#system-design-topics-start-here">The System Design Primer — Intro</a></li>
+<li><a href="https://bytebytego.com/guides/system-design-interview-guide">ByteByteGo — System Design Interview Guide</a></li>
+<li><a href="https://www.amazon.com/System-Design-Interview-Insiders-Guide/dp/1736049119">System Design Interview — Alex Xu</a></li>
+</ul>
+<hr />
+<p><strong>Siguiente:</strong> <a href="./12-caso-feed-red-social.md">12-caso-feed-red-social.md</a></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Caso 12</span><div class="kick">Parte 5 · Plantilla y casos integradores</div><h2>12: Caso de Estudio — Feed de Red Social</h2></div><div class="article"><blockquote>
+<p>Aplicación de la plantilla (archivo 11) al diseño del feed del proyecto del repositorio. Datos del archivo 02, cache del 05 y realtime del 06, unificados en una arquitectura defendible.</p>
+</blockquote>
+<hr />
+<h2 id="paso-1-alcance-y-requerimientos">Paso 1: Alcance y requerimientos</h2>
+<p><strong>Producto:</strong> feed de fotos estilo Instagram (el feature del repositorio).</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Fuera de scope (este diseño)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Publicar posts</td>
+<td>✅ Editar/borrar, stories, reels, monetización, followers graph</td>
+</tr>
+<tr>
+<td>Ver feed propio</td>
+<td>✅ Notificaciones push, explore page</td>
+</tr>
+<tr>
+<td>Likes</td>
+<td>✅ Comentarios anidados, DMs</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Requerimientos no funcionales:</strong> disponibilidad alta para lectura, latencia percibida &lt; 300ms, funciona offline.</p>
+<hr />
+<h2 id="paso-2-estimación-de-escala">Paso 2: Estimación de escala</h2>
+<p>Del archivo 02 (resumen):</p>
+<table>
+<thead>
+<tr>
+<th>Métrica</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Usuarios</td>
+<td>10M MAU, ~500K DAU</td>
+</tr>
+<tr>
+<td>QPS de lectura (feed)</td>
+<td>~1.7K en pico</td>
+</tr>
+<tr>
+<td>QPS de escritura (posts + likes)</td>
+<td>~17</td>
+</tr>
+<tr>
+<td>Ratio lectura/escritura</td>
+<td>~10:1</td>
+</tr>
+<tr>
+<td>Storage anual</td>
+<td>~2.7 TB de media</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Lectura del diseño:</strong> es un sistema <strong>read-heavy</strong>. Toda la arquitectura se optimiza para lecturas rápidas con escrituras eventuales.</p>
+<hr />
+<h2 id="paso-3-modelado-de-datos">Paso 3: Modelado de datos</h2>
+<p>Entidades principales:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>users(<span class="kw">id</span>, username, avatar_url)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>posts(<span class="kw">id</span>, user_id → users, image_url, caption, created_at)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>likes(user_id, post_id)            <span class="co">-- tabla puente</span></span></code></pre></div>
+<ul>
+<li><strong>Índices:</strong> <code>posts(user_id, created_at DESC)</code>, <code>likes(post_id)</code>.</li>
+<li><strong>RLS:</strong> lecturas públicas (<code>anon</code> puede SELECT); escrituras solo dueño (<code>auth.uid() = user_id</code>).</li>
+<li><strong>Elección:</strong> Postgres/SQL por las relaciones posts↔︎users↔︎likes y transacciones de escritura.</li>
+</ul>
+<hr />
+<h2 id="paso-4-5-arquitectura-de-alto-nivel">Paso 4-5: Arquitectura de alto nivel</h2>
+<pre><code>┌─────────┐          ┌────────────────────────────────────┐
+│  Flutter│          │            Supabase                 │
+│   App   │          │  ┌─────────┐  ┌─────────────────┐   │
+│  cache  │─ HTTPS ─▶│  │  API/   │──▶│  Postgres      │   │
+│  (Isar) │◀─────────│  │  Auth   │  │  (RLS + índices)│   │
+└─────────┘  Realtime│  └─────────┘  └───────┬─────────┘   │
+        ▲            │  ┌─────────┐          │WAL          │
+        │            │  │  Cache  │◀─────────┘             │
+   ┌────┴────┐       │  │  feed   │         Realtime       │
+   │  CDN    │       │  └─────────┘                        │
+   │ media   │       └────────────────────────────────────┘
+   └─────────┘</code></pre>
+<p><strong>Componentes:</strong></p>
+<ol type="1">
+<li><strong>App (Flutter):</strong> cache local Isar de la última página del feed (archivo 10).</li>
+<li><strong>Supabase API + Auth:</strong> lectura del feed, publicación, likes.</li>
+<li><strong>Postgres:</strong> fuente de verdad; RLS autoriza por fila.</li>
+<li><strong>Cache (Redis):</strong> feed ensamblado por usuario.</li>
+<li><strong>CDN:</strong> media (imágenes del feed).</li>
+<li><strong>Realtime:</strong> (opcional en feed) likes que llegan en vivo.</li>
+</ol>
+<hr />
+<h2 id="paso-6-decisiones-de-diseño-con-trade-offs">Paso 6: Decisiones de diseño con trade-offs</h2>
+<table>
+<thead>
+<tr>
+<th>Decisión</th>
+<th>Por qué</th>
+<th>Trade-off aceptado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cache-aside en el feed (archivo 05)</td>
+<td>Lecturas 10:1, feed ensamblado caro</td>
+<td>Primer acceso tras expiración es lento</td>
+</tr>
+<tr>
+<td>Postgres como fuente de verdad</td>
+<td>Consistencia fuerte + RLS nativo</td>
+<td>Escala menor que NoSQL puro</td>
+</tr>
+<tr>
+<td>CDN para media</td>
+<td>Latencia global de imágenes</td>
+<td>TTL e invalidación por borrado</td>
+</tr>
+<tr>
+<td>Offline-first con cache local</td>
+<td>App útil sin red (archivo 10)</td>
+<td>Sincronización = complejidad extra</td>
+</tr>
+<tr>
+<td>Contadores eventuales</td>
+<td>Likes no críticos en tiempo real</td>
+<td>Valor de likes puede quedar desfasado</td>
+</tr>
+</tbody>
+</table>
+<h3 id="el-flujo-del-feed-leer">El flujo del feed (leer)</h3>
+<pre><code>1. App pide página de feed
+2. ¿Cache local tiene y es fresca? → devuelve (offline)
+3. Si no → GET /feed (Supabase)
+4. ¿Redis tiene el feed ensamblado? → devuelve
+5. Si no → Postgres ensambla joins → se guarda en Redis → devuelve
+6. La app guarda en Isar para la próxima</code></pre>
+<h3 id="el-flujo-de-publicar-escribir">El flujo de publicar (escribir)</h3>
+<pre><code>1. Usuario publica → insert en Postgres (RLS valida dueño)
+2. Se invalida el cache del feed del autor (write-through)
+3. Media sube a Storage → CDN invalida la versión vieja
+4. Realtime (opcional) avisa a seguidores conectados</code></pre>
+<hr />
+<h2 id="paso-7-consistencia-y-disponibilidad">Paso 7: Consistencia y disponibilidad</h2>
+<ul>
+<li><strong>Modelo:</strong> fuerte en escritura (Postgres transaccional), eventual en lecturas (cache + Realtime).</li>
+<li><strong>SLA:</strong> lectura 99.9%, escritura 99.9% (nueves del archivo 07).</li>
+<li><strong>Patrones:</strong> retries + backoff en la app, cache local como fallback sin red.</li>
+</ul>
+<p><strong>Justificación CAP:</strong> el feed prioriza <strong>AP</strong> (siempre responde, eventualmente consistente) porque una foto "unos segundos tarde" no es crítico. El <em>post</em> en sí usa strong consistency para no perder publicaciones.</p>
+<hr />
+<h2 id="paso-8-9-seguridad-y-observabilidad">Paso 8-9: Seguridad y observabilidad</h2>
+<p><strong>Seguridad:</strong></p>
+<ul>
+<li>HTTPS en todo, tokens en secure storage.</li>
+<li>RLS deny-by-default; lecturas públicas solo del feed público.</li>
+<li>Service role key solo en backend/Edge Functions.</li>
+</ul>
+<p><strong>Observabilidad (lo mínimo que mide):</strong> | Métrica | Alerta | |---|---| | Error rate del feed &gt; 5% | Revisar query/Edge Function | | Latencia p95 del feed &gt; 500ms | Revisar cache/Redis | | Falla de escrituras | Backoff + alerta | | Cache miss rate alto | Revisar TTL y prefetch |</p>
+<hr />
+<h2 id="paso-10-riesgos-y-evolución">Paso 10: Riesgos y evolución</h2>
+<table>
+<thead>
+<tr>
+<th>Riesgo</th>
+<th>Mitigación</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Crecimiento a 100M MAU</td>
+<td>Replicas de lectura, particionado por usuario</td>
+</tr>
+<tr>
+<td>Media ocupa mucho storage/CDN</td>
+<td>Compresión, jerarquía de cache media</td>
+</tr>
+<tr>
+<td>Feed global (seguir a todos)</td>
+<td>Precomputar timeline (fanout on write)</td>
+</tr>
+<tr>
+<td>Saturar Postgres con joins</td>
+<td>Denormalización + materialized views</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="fuentes-del-caso">Fuentes del caso</h2>
+<ul>
+<li><a href="https://github.com/donnemartin/system-design-primer#designing-a-social-news-feed">The System Design Primer — Example: designing a social news feed</a></li>
+<li><a href="https://bytebytego.com/guides/design-instagram-feed">ByteByteGo — Design Facebook/Instagram Feed</a></li>
+<li>Archivos 02, 04, 05, 06 y 10 de este módulo.</li>
+</ul>
+<hr />
+<p><strong>Siguiente:</strong> <a href="./13-caso-chat-mensajeria.md">13-caso-chat-mensajeria.md</a></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Caso 13</span><div class="kick">Parte 5 · Plantilla y casos integradores</div><h2>13: Caso de Estudio — Chat / Mensajería</h2></div><div class="article"><blockquote>
+<p>Aplicación de la plantilla al diseño de un chat en vivo con Supabase Realtime. Los módulos 05 (realtime) y 10 (offline) se unen aquí en una arquitectura concreta.</p>
+</blockquote>
+<hr />
+<h2 id="paso-1-alcance-y-requerimientos">Paso 1: Alcance y requerimientos</h2>
+<p><strong>Producto:</strong> chat de mensajería 1:1 y grupal.</p>
+<table>
+<thead>
+<tr>
+<th>Incluido</th>
+<th>Fuera de scope (este diseño)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mensajes 1:1 y grupos</td>
+<td>Llamadas de voz/video</td>
+</tr>
+<tr>
+<td>Realtime (WebSocket)</td>
+<td>Encrypted E2E avanzado (clave rotativa)</td>
+</tr>
+<tr>
+<td>Offline + cola de envío</td>
+<td>Edición/borrado de mensajes</td>
+</tr>
+<tr>
+<td>Presencia (online/offline)</td>
+<td>Buscador full-text de mensajes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>No funcionales:</strong> latencia de entrega &lt; 500ms en línea, mensajes <strong>nunca se pierden</strong>, funciona offline y sincroniza al reconectar.</p>
+<hr />
+<h2 id="paso-2-estimación-de-escala">Paso 2: Estimación de escala</h2>
+<table>
+<thead>
+<tr>
+<th>Métrica</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Usuarios</td>
+<td>5M MAU, 200K DAU</td>
+</tr>
+<tr>
+<td>Mensajes por día</td>
+<td>~10M</td>
+</tr>
+<tr>
+<td>QPS de escritura</td>
+<td>~115 msg/s</td>
+</tr>
+<tr>
+<td>Conexiones WebSocket activas (pico)</td>
+<td>~50K</td>
+</tr>
+<tr>
+<td>Storage mensajes/año</td>
+<td>~11 GB de texto</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Lectura:</strong> es un sistema <strong>write-heavy + realtime</strong>. El cuello de botella es la entrega en vivo, no el almacenamiento.</p>
+<hr />
+<h2 id="paso-3-modelado-de-datos">Paso 3: Modelado de datos</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>conversations(<span class="kw">id</span>, <span class="kw">type</span>, created_at)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>conversation_participants(conversation_id, user_id)  <span class="co">-- membresía</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>messages(<span class="kw">id</span>, conversation_id, sender_id, content, created_at)</span></code></pre></div>
+<ul>
+<li><strong>Índices:</strong> <code>messages(conversation_id, created_at)</code>; <code>conversation_participants(user_id)</code>.</li>
+<li><strong>RLS:</strong> un usuario solo lee mensajes de conversaciones donde <strong>participa</strong> (<code>auth.uid() IN participant list</code>).</li>
+<li><strong>UUIDs como PK</strong> (módulo 03): necesarios para colisiones de offline.</li>
+</ul>
+<hr />
+<h2 id="paso-4-5-arquitectura-de-alto-nivel">Paso 4-5: Arquitectura de alto nivel</h2>
+<pre><code>  Usuario A                                   Usuario B
+┌──────────┐                              ┌──────────┐
+│  App A   │                              │  App B   │
+│  cola +  │                              │  cola +  │
+│  cache   │                              │  cache   │
+└────┬─────┘                              └────▲─────┘
+     │ 1. insert (REST/RPC)                   │
+     ▼                                        │ 3. WebSocket push
+┌─────────────────────────────────────────────┴─────┐
+│               Supabase                             │
+│   ┌─────────────┐   WAL   ┌────────────┐           │
+│   │   Postgres  │────────▶│  Realtime  │───────────┘
+│   │  messages   │         │ (WebSocket)│
+│   └─────────────┘         └────────────┘
+└─────────────────────────────────────────────────────┘</code></pre>
+<p><strong>Componentes:</strong></p>
+<ol type="1">
+<li><strong>App (Flutter):</strong> cache local (Isar) + cola de escrituras offline.</li>
+<li><strong>Supabase Postgres:</strong> fuente de verdad; RLS por participación.</li>
+<li><strong>Supabase Realtime:</strong> Postgres Changes + Presence.</li>
+<li><strong>API/RPC:</strong> <code>send_message</code> como transacción validada.</li>
+</ol>
+<hr />
+<h2 id="paso-6-decisiones-de-diseño-con-trade-offs">Paso 6: Decisiones de diseño con trade-offs</h2>
+<table>
+<thead>
+<tr>
+<th>Decisión</th>
+<th>Por qué</th>
+<th>Trade-off aceptado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Realtime/WebSocket (archivo 06)</td>
+<td>Latencia &lt; 500ms y bidireccional</td>
+<td>Gestión de conexiones, límites</td>
+</tr>
+<tr>
+<td>Insert en Postgres como "canal"</td>
+<td>Un solo mecanismo de persistencia + entrega</td>
+<td>Realtime depende de la DB</td>
+</tr>
+<tr>
+<td>Offline + cola con optimistic UI</td>
+<td>No perder mensajes sin red</td>
+<td>Complejidad de sincronización</td>
+</tr>
+<tr>
+<td>Presence con Realtime</td>
+<td>Saber quién está en línea sin polling</td>
+<td>Solo muestra en sesiones activas</td>
+</tr>
+<tr>
+<td>UUIDs + <code>updated_at</code></td>
+<td>Sincronización sin colisiones (LWW)</td>
+<td>IDs más largos</td>
+</tr>
+</tbody>
+</table>
+<h3 id="flujo-de-envío-de-mensaje-online">Flujo de envío de mensaje (online)</h3>
+<pre><code>1. App muestra el mensaje al instante (optimistic UI) y lo guarda en cola
+2. App inserta en Postgres vía RPC (RLS valida participación)
+3. Postgres persiste → Realtime detecta el insert por WAL
+4. Realtime empuja a todos los suscritos de la conversación (App B)
+5. App B recibe y actualiza su UI; App A marca su mensaje como &quot;synced&quot;</code></pre>
+<h3 id="flujo-de-envío-offline">Flujo de envío (offline)</h3>
+<pre><code>1. Sin red: mensaje queda en cola local, marcado &quot;pending&quot;
+2. Al reconectar: cola se envía en orden con retries + backoff
+3. Éxito → &quot;synced&quot;; fallo → reintentos con límite y alerta</code></pre>
+<h3 id="conflicto-lww">Conflicto (LWW)</h3>
+<pre><code>Dos devices editando/creando el mismo mensaje → gana el que tenga
+updated_at más reciente. Definido ANTES de implementar (archivo 10).</code></pre>
+<hr />
+<h2 id="paso-7-consistencia-y-disponibilidad">Paso 7: Consistencia y disponibilidad</h2>
+<ul>
+<li><strong>Modelo:</strong> strong en la entrega de un mensaje (insert transaccional), eventual en el orden percibido por cada cliente (caché local).</li>
+<li><strong>SLA:</strong> entrega online 99.9%; offline eventual (sin SLA de tiempo).</li>
+<li><strong>Patrones:</strong> retries + backoff en cola, reconnect automático del WebSocket, cache local como única UI en modo offline.</li>
+</ul>
+<p><strong>Justificación CAP:</strong> el chat es <strong>AP</strong> en la entrega percibida (siempre responde, orden eventual) pero el mensaje <strong>no se pierde</strong> — la persistencia es fuerte en el servidor.</p>
+<hr />
+<h2 id="paso-8-9-seguridad-y-observabilidad">Paso 8-9: Seguridad y observabilidad</h2>
+<p><strong>Seguridad:</strong></p>
+<ul>
+<li>RLS: leer mensajes <strong>solo</strong> si participas en la conversación (crítico en chats).</li>
+<li>Presence/Postgres Changes con RLS: no exponer mensajes de chats ajenos.</li>
+<li>HTTPS + tokens en secure storage.</li>
+</ul>
+<p><strong>Observabilidad:</strong> | Métrica | Alerta | |---|---| | Latencia de entrega &gt; 500ms | Revisar Realtime/DB | | Mensajes en cola creciendo | Revisar conectividad/API | | Error rate de send &gt; 2% | Revisar RPC/RLS | | Conexiones Realtime cercanas al límite | Reducir suscripciones por cliente |</p>
+<hr />
+<h2 id="paso-10-riesgos-y-evolución">Paso 10: Riesgos y evolución</h2>
+<table>
+<thead>
+<tr>
+<th>Riesgo</th>
+<th>Mitigación</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Escalar WebSockets (500K+ conexiones)</td>
+<td>Capa de gateway de websockets / servicios dedicados</td>
+</tr>
+<tr>
+<td>Cola offline gigante al reconectar</td>
+<td>Sincronizar por lotes + delta sync</td>
+</tr>
+<tr>
+<td>Realtime filtra mensajes ajenos</td>
+<td>RLS en los canales; test de aislamiento</td>
+</tr>
+<tr>
+<td>Orden de mensajes en multi-device</td>
+<td>Clocks monotónicos + LWW por <code>updated_at</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="fuentes-del-caso">Fuentes del caso</h2>
+<ul>
+<li><a href="https://supabase.com/docs/guides/realtime/postgres-changes">Supabase Docs — Realtime Postgres Changes</a></li>
+<li><a href="https://supabase.com/docs/guides/realtime/presence">Supabase Docs — Realtime Presence</a></li>
+<li><a href="https://bytebytego.com/guides/design-chat-system">ByteByteGo — Design a Real-time Chat System</a></li>
+<li>Archivos 06 y 10 de este módulo.</li>
+</ul>
+<hr />
+<p><strong>Siguiente:</strong> <a href="./14-caso-ecommerce-escalable.md">14-caso-ecommerce-escalable.md</a></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Caso 14</span><div class="kick">Parte 5 · Plantilla y casos integradores</div><h2>14: Caso de Estudio — E-Commerce Escalable</h2></div><div class="article"><blockquote>
+<p>Aplicación de la plantilla a un e-commerce: catálogo, carrito, checkout e inventario. Aquí la <strong>consistencia fuerte</strong> importa (dinero y stock), a diferencia de feed y chat.</p>
+</blockquote>
+<hr />
+<h2 id="paso-1-alcance-y-requerimientos">Paso 1: Alcance y requerimientos</h2>
+<p><strong>Producto:</strong> tienda online con catálogo, carrito y checkout.</p>
+<table>
+<thead>
+<tr>
+<th>Incluido</th>
+<th>Fuera de scope (este diseño)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Catálogo + búsqueda + productos</td>
+<td>Recomendaciones ML</td>
+</tr>
+<tr>
+<td>Carrito (guardado por usuario)</td>
+<td>Wishlist, reviews</td>
+</tr>
+<tr>
+<td>Checkout + pago (mock)</td>
+<td>Envíos/tracking físico, marketplaces</td>
+</tr>
+<tr>
+<td>Inventario/stock</td>
+<td>Multi-moneda, cupones complejos</td>
+</tr>
+</tbody>
+</table>
+<p><strong>No funcionales:</strong> lecturas del catálogo muy rápidas; <strong>checkout sin race conditions</strong>; el stock <strong>no puede sobregirar</strong>; alta disponibilidad en ventas.</p>
+<hr />
+<h2 id="paso-2-estimación-de-escala">Paso 2: Estimación de escala</h2>
+<table>
+<thead>
+<tr>
+<th>Métrica</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Productos en catálogo</td>
+<td>500K</td>
+</tr>
+<tr>
+<td>Visitas diarias</td>
+<td>100K (10:1 lectura/escritura)</td>
+</tr>
+<tr>
+<td>Checkouts/día (pico)</td>
+<td>10K</td>
+</tr>
+<tr>
+<td>QPS de catálogo</td>
+<td>~1.1K</td>
+</tr>
+<tr>
+<td>QPS de checkout (pico, Black Friday ×10)</td>
+<td>~11 → 115</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Lectura:</strong> catálogo es read-heavy; <strong>checkout es write-heavy crítico</strong> con consistencia fuerte.</p>
+<hr />
+<h2 id="paso-3-modelado-de-datos">Paso 3: Modelado de datos</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>products(<span class="kw">id</span>, name, price_cents, stock_available, created_at)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>cart_items(user_id, product_id, quantity)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>orders(<span class="kw">id</span>, user_id, status, total_cents, created_at)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>order_items(order_id, product_id, qty, unit_price_cents)</span></code></pre></div>
+<ul>
+<li><strong>Índices:</strong> <code>products</code> por nombre/categoría; <code>cart_items(user_id)</code>; <code>orders(user_id, created_at)</code>.</li>
+<li><strong>RLS:</strong> carrito y órdenes solo del propio usuario; catálogo público.</li>
+<li><strong>Consistencia del stock:</strong> actualizar stock <strong>dentro de la misma transacción</strong> del checkout, no de forma asíncrona.</li>
+</ul>
+<hr />
+<h2 id="paso-4-5-arquitectura-de-alto-nivel">Paso 4-5: Arquitectura de alto nivel</h2>
+<pre><code>┌─────────┐              ┌─────────────────────────────────────┐
+│  Flutter│              │               Supabase              │
+│   App   │── HTTPS ───▶ │  ┌────────────┐   ┌──────────────┐  │
+│  cache  │              │  │  API/Auth  │──▶│  Postgres    │  │
+│ catálogo│◀──────────── │  └────────────┘   │  (RLS, ACID, │  │
+└─────────┘   CDN        │  ┌────────────┐   │  transactions)│  │
+        ▲                │  │  Cache     │──▶└──────────────┘  │
+        │                │  │ (catálogo) │                     │
+        │                │  └────────────┘                     │
+┌───────┴───────┐        │  ┌────────────┐                     │
+│  Edge Func.   │        │  │  Payments  │ (mock provider)     │
+│  checkout     │        │  └────────────┘                     │
+└───────────────┘        └─────────────────────────────────────┘</code></pre>
+<p><strong>Componentes:</strong></p>
+<ol type="1">
+<li><strong>App:</strong> cache del catálogo (lee rápido, offline del catálogo).</li>
+<li><strong>CDN:</strong> imágenes de productos.</li>
+<li><strong>Cache:</strong> catálogo/búsqueda.</li>
+<li><strong>Postgres:</strong> carrito, órdenes, stock — con transacciones.</li>
+<li><strong>Edge Function (checkout):</strong> lógica crítica con pago.</li>
+</ol>
+<hr />
+<h2 id="paso-6-decisiones-de-diseño-con-trade-offs">Paso 6: Decisiones de diseño con trade-offs</h2>
+<table>
+<thead>
+<tr>
+<th>Decisión</th>
+<th>Por qué</th>
+<th>Trade-off aceptado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Catálogo con cache-aside</td>
+<td>Lecturas 10:1, sin datos críticos</td>
+<td>Stock visible puede estar desfasado (mostrar "últimas unidades")</td>
+</tr>
+<tr>
+<td><strong>Checkout transaccional (ACID)</strong></td>
+<td>Dinero y stock no admiten eventual</td>
+<td>Checkout es más lento que el resto</td>
+</tr>
+<tr>
+<td>Edge Function para checkout</td>
+<td>Lógica crítica aislada + pago</td>
+<td>Complejidad de despliegue</td>
+</tr>
+<tr>
+<td>Stock con cola asíncrona (para cupos)</td>
+<td>Ventas masivas</td>
+<td>Backpressure + monitoreo de cola</td>
+</tr>
+<tr>
+<td>RLS por usuario en carrito/órdenes</td>
+<td>Aislamiento de datos</td>
+<td>Nada accesible vía API directa</td>
+</tr>
+</tbody>
+</table>
+<h3 id="flujo-del-checkout-sin-race-condition">Flujo del checkout (sin race condition)</h3>
+<pre><code>1. App envía orden a la Edge Function
+2. Edge Function abre transacción en Postgres:
+   a. SELECT stock FOR UPDATE del producto  ← evita oversell
+   b. valida stock &gt;= qty; si no → error &quot;sin stock&quot;
+   c. resta stock, inserta order + order_items
+   d. COMMIT
+3. Se llama al provider de pago (mock) → estado &quot;paid&quot;
+4. Se invalida el cache del producto (stock nuevo)</code></pre>
+<blockquote>
+<p>El <code>FOR UPDATE</code> (locking) dentro de la transacción es lo que <strong>previene dos compradores</strong> de llevarse la última unidad simultáneamente.</p>
+</blockquote>
+<hr />
+<h2 id="paso-7-consistencia-y-disponibilidad">Paso 7: Consistencia y disponibilidad</h2>
+<ul>
+<li><strong>Modelo:</strong> strong consistency en checkout (ACID), eventual en catálogo (cache).</li>
+<li><strong>SLA:</strong> checkout 99.99% (dinero en juego); catálogo 99.9%.</li>
+<li><strong>Patrones:</strong> idempotencia en pagos (mismo order id no paga dos veces), retries con backoff en la app, fallback de catálogo con cache local.</li>
+</ul>
+<p><strong>Justificación CAP:</strong> el checkout elige <strong>CP</strong> (prefiere rechazar una venta antes que dejar pasar un oversell); el catálogo elige <strong>AP</strong> (siempre muestra productos, aunque el stock exacto sea eventual).</p>
+<hr />
+<h2 id="paso-8-9-seguridad-y-observabilidad">Paso 8-9: Seguridad y observabilidad</h2>
+<p><strong>Seguridad:</strong></p>
+<ul>
+<li>Precios/total <strong>nunca vienen de la app</strong> (se calculan en el servidor).</li>
+<li>Idempotencia: el cliente no puede duplicar cargos.</li>
+<li>RLS por usuario; service role solo en la Edge Function.</li>
+<li>Cifrado de datos de pago (PII) — PCI-DSS si es producción real.</li>
+</ul>
+<p><strong>Observabilidad:</strong> | Métrica | Alerta | |---|---| | Tasa de checkout fallidos &gt; 1% | Revisar transacciones/pago | | Stock en 0 con pedidos fallidos | Revisar locking y cola | | Latencia de checkout p95 &gt; 2s | Revisar Edge Function/DB | | Errores de pago | Revisar provider + idempotencia |</p>
+<hr />
+<h2 id="paso-10-riesgos-y-evolución">Paso 10: Riesgos y evolución</h2>
+<table>
+<thead>
+<tr>
+<th>Riesgo</th>
+<th>Mitigación</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Oversell en pico</td>
+<td>Transacciones + FOR UPDATE + verificación final</td>
+</tr>
+<tr>
+<td>Cache del stock desactualizado</td>
+<td>Mostrar "pocas unidades" + invalidación al vender</td>
+</tr>
+<tr>
+<td>Pago fallido a mitad del checkout</td>
+<td>Estados de orden (pending/paid/failed) + reintento idempotente</td>
+</tr>
+<tr>
+<td>Escalar checkout</td>
+<td>Particionar órdenes por usuario; colas por lote</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="fuentes-del-caso">Fuentes del caso</h2>
+<ul>
+<li><a href="https://bytebytego.com/guides/ecommerce-system">ByteByteGo — How to Design an E-commerce System</a></li>
+<li><a href="https://bytebytego.com/guides/flash-sale-system">ByteByteGo — How to Design a Flash Sale System</a></li>
+<li><a href="https://supabase.com/docs/guides/database/postgres/transactions">Supabase Docs — PostgreSQL Transactions</a></li>
+<li><a href="https://dataintensive.net/">Designing Data-Intensive Applications — M. Kleppmann</a> (transacciones y aislamiento)</li>
+</ul>
+<hr />
+<p><strong>Siguiente:</strong> <a href="./15-caso-saas-multi-tenant.md">15-caso-saas-multi-tenant.md</a></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Caso 15</span><div class="kick">Parte 5 · Plantilla y casos integradores</div><h2>15: Caso de Estudio — SaaS Multi-Tenant</h2></div><div class="article"><blockquote>
+<p>Aplicación de la plantilla a una plataforma SaaS donde muchos clientes (tenants) comparten la misma infraestructura. El aislamiento entre tenants es el problema de diseño central.</p>
+</blockquote>
+<hr />
+<h2 id="paso-1-alcance-y-requerimientos">Paso 1: Alcance y requerimientos</h2>
+<p><strong>Producto:</strong> SaaS de gestión de proyectos (tipo Notion/Trello) con múltiples organizaciones.</p>
+<table>
+<thead>
+<tr>
+<th>Incluido</th>
+<th>Fuera de scope (este diseño)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Organizaciones + membresías</td>
+<td>Billing/planes reales</td>
+</tr>
+<tr>
+<td>Proyectos y tareas por org</td>
+<td>Integraciones de terceros</td>
+</tr>
+<tr>
+<td>Permisos por rol (admin/member/viewer)</td>
+<td>Multi-region</td>
+</tr>
+<tr>
+<td>Uso compartido de infraestructura</td>
+<td>White-labeling</td>
+</tr>
+</tbody>
+</table>
+<p><strong>No funcionales:</strong> aislamiento <strong>estricto</strong> entre tenants (un tenant no puede ver datos de otro), escala de miles de tenants, disponibilidad alta.</p>
+<hr />
+<h2 id="paso-2-estimación-de-escala">Paso 2: Estimación de escala</h2>
+<table>
+<thead>
+<tr>
+<th>Métrica</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tenants activos</td>
+<td>5K</td>
+</tr>
+<tr>
+<td>Usuarios totales</td>
+<td>500K (100 por tenant)</td>
+</tr>
+<tr>
+<td>Filas de tareas</td>
+<td>50M</td>
+</tr>
+<tr>
+<td>QPS total</td>
+<td>~1K</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Lectura:</strong> la complejidad no está en la escala bruta, sino en <strong>cómo aislar 5K tenants</strong> dentro de una sola base de datos.</p>
+<hr />
+<h2 id="paso-3-modelado-de-datos-el-corazón-del-saas">Paso 3: Modelado de datos (el corazón del SaaS)</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>organizations(<span class="kw">id</span>, name, <span class="kw">plan</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>organization_members(org_id, user_id, <span class="kw">role</span>)   <span class="co">-- &#39;admin&#39; | &#39;member&#39; | &#39;viewer&#39;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>projects(<span class="kw">id</span>, org_id, name, created_at)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>tasks(<span class="kw">id</span>, project_id, title, status, assignee_id, created_at)</span></code></pre></div>
+<ul>
+<li><strong>Índices:</strong> <code>projects(org_id)</code>, <code>tasks(project_id)</code>, <code>organization_members(user_id)</code>.</li>
+<li><strong>RLS (lo más importante):</strong> toda consulta se filtra por membresía. Un usuario solo ve tareas si es miembro de la org del proyecto.</li>
+</ul>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> POLICY <span class="ot">&quot;read_projects_of_my_orgs&quot;</span> <span class="kw">ON</span> projects</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="cf">FOR</span> <span class="kw">SELECT</span> <span class="kw">USING</span> (</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">EXISTS</span> (</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="dv">1</span> <span class="kw">FROM</span> organization_members m</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">WHERE</span> m.org_id <span class="op">=</span> projects.org_id</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>      <span class="kw">AND</span> m.user_id <span class="op">=</span> auth.<span class="fu">uid</span>()</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>);</span></code></pre></div>
+<ul>
+<li><strong>Multiplicador de aislamiento:</strong> el mismo patrón se replica en <code>tasks</code>, <code>comments</code>, etc. Cada tabla con FK a <code>projects</code>/<code>orgs</code> requiere su política.</li>
+</ul>
+<hr />
+<h2 id="paso-4-5-arquitectura-de-alto-nivel">Paso 4-5: Arquitectura de alto nivel</h2>
+<pre><code>┌─────────┐          ┌───────────────────────────────────────┐
+│  Flutter│          │              Supabase                  │
+│   App   │          │  ┌────────────┐  ┌───────────────────┐ │
+│  cache  │── HTTPS─▶│  │  API/Auth  │──│  Postgres         │ │
+└─────────┘          │  └────────────┘  │  RLS = isolation  │ │
+        ▲            │                   │  layer            │ │
+        │            │  ┌────────────┐  └───────────────────┘ │
+   ┌────┴────┐       │  │  Cache per │                        │
+   │  CDN    │       │  │  tenant    │                        │
+   └─────────┘       │  └────────────┘                        │
+                    └─────────────────────────────────────────┘</code></pre>
+<p><strong>Componentes:</strong></p>
+<ol type="1">
+<li><strong>App:</strong> cache local por tenant (el cache de un tenant nunca contamina otro).</li>
+<li><strong>Supabase Auth + API:</strong> identidad y requests.</li>
+<li><strong>Postgres con RLS:</strong> el aislador de tenants (deny-by-default + políticas por membresía).</li>
+<li><strong>Cache por tenant:</strong> claves namespaced por <code>org_id</code>.</li>
+</ol>
+<hr />
+<h2 id="paso-6-decisiones-de-diseño-con-trade-offs">Paso 6: Decisiones de diseño con trade-offs</h2>
+<table>
+<thead>
+<tr>
+<th>Decisión</th>
+<th>Por qué</th>
+<th>Trade-off aceptado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Single-tenant DB + RLS</strong></td>
+<td>Un solo Postgres para todos (barato, simple)</td>
+<td>Políticas RLS complejas; riesgo si una política falla</td>
+</tr>
+<tr>
+<td>RLS como único control de aislamiento</td>
+<td>Se evalúa en el servidor; la app no puede saltárselo</td>
+<td>Todo nuevo acceso requiere su política</td>
+</tr>
+<tr>
+<td>Roles por membresía (admin/member/viewer)</td>
+<td>Permisos por fila, no por app</td>
+<td>Políticas por rol = más SQL</td>
+</tr>
+<tr>
+<td>Cache namespaced por tenant</td>
+<td>No filtrar datos entre tenants</td>
+<td>Invalidate por tenant al escribir</td>
+</tr>
+<tr>
+<td>Row Level Security test en CI</td>
+<td>Prevenir fuga entre tenants</td>
+<td>Test suite dedicada de aislamiento</td>
+</tr>
+</tbody>
+</table>
+<h3 id="el-patrón-de-aislamiento-que-se-repite">El patrón de aislamiento que se repite</h3>
+<pre><code>1. El usuario se autentica → JWT con auth.uid()
+2. Cada query pasa por RLS → solo filas cuya org lo incluye como miembro
+3. Los permisos por rol (admin puede borrar, viewer solo lee) se
+   codifican en políticas RLS adicionales
+4. Ninguna query en la app usa el service role (se saltaría RLS)</code></pre>
+<hr />
+<h2 id="paso-7-consistencia-y-disponibilidad">Paso 7: Consistencia y disponibilidad</h2>
+<ul>
+<li><strong>Modelo:</strong> strong consistency (un Postgres transaccional para todos los tenants).</li>
+<li><strong>SLA:</strong> 99.9% (los tenants dependen del SaaS).</li>
+<li><strong>Patrones:</strong> retries/backoff en la app, cache local como fallback de lectura.</li>
+</ul>
+<p><strong>Justificación CAP:</strong> es un sistema <strong>CP por defecto</strong> — la consistencia de datos de proyectos importa más que servir data eventual. La alta disponibilidad se consigue con la infraestructura gestionada de Supabase, no con consistencia eventual.</p>
+<hr />
+<h2 id="paso-8-9-seguridad-y-observabilidad">Paso 8-9: Seguridad y observabilidad</h2>
+<p><strong>Seguridad (crítica en multi-tenant):</strong></p>
+<ul>
+<li>RLS deny-by-default en <strong>todas</strong> las tablas con datos de tenant.</li>
+<li>Test de aislamiento: simular 2 usuarios de orgs distintas y verificar que <strong>no</strong> se cruzan datos.</li>
+<li>Service role key nunca en la app (rompería el aislamiento).</li>
+<li>Auditoría de quién accede a qué org.</li>
+</ul>
+<p><strong>Observabilidad:</strong> | Métrica | Alerta | |---|---| | Fuga potencial de RLS (test en CI falla) | Bloquear merge | | Latencia por tenant (un tenant pesado) | Revisar "noisy neighbor" | | Queries sin RLS detectadas | Logs de plan de ejecución | | Cache invalidado por tenant | Monitorear miss rate por org |</p>
+<hr />
+<h2 id="paso-10-riesgos-y-evolución">Paso 10: Riesgos y evolución</h2>
+<table>
+<thead>
+<tr>
+<th>Riesgo</th>
+<th>Mitigación</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Un tenant satura la DB (noisy neighbor)</td>
+<td>Cuotas por tenant, pooling, rate limits</td>
+</tr>
+<tr>
+<td>RLS mal escrita filtra datos</td>
+<td>Test de aislamiento automatizado en CI</td>
+</tr>
+<tr>
+<td>Escalar a miles de tenants pesados</td>
+<td>Schema-per-tenant o database-per-tenant (extremos)</td>
+</tr>
+<tr>
+<td>Roles complejos</td>
+<td>Tabla de permisos + policies parametrizadas</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="fuentes-del-caso">Fuentes del caso</h2>
+<ul>
+<li><a href="https://supabase.com/docs/guides/database/postgres/row-level-security">Supabase Docs — Row Level Security</a> (multi-tenant section)</li>
+<li><a href="https://supabase.com/docs/guides/database/postgres/row-level-security#multi-tenant-applications">Supabase Docs — Making RLS Easier (multi-tenant patterns)</a></li>
+<li><a href="https://bytebytego.com/guides/multi-tenant-architecture">ByteByteGo — Multi-tenant architecture</a></li>
+<li><a href="https://martinfowler.com/bliki/MultiTenant.html">Martin Fowler — MultiTenant</a></li>
+</ul>
+<hr />
+<p><strong>Siguiente:</strong> <a href="./16-ejercicios-practica.md">16-ejercicios-practica.md</a></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Capítulo 16</span><div class="kick">Parte 6 · Práctica y cierre</div><h2>16: Ejercicios de Práctica</h2></div><div class="article"><blockquote>
+<p>Ejercicios progresivos para interiorizar el system design: de problemas cortos a casos completos con la plantilla del archivo 11.</p>
+</blockquote>
+<hr />
+<h2 id="nivel-1-conceptos-rápidos-5-min-cu">Nivel 1: Conceptos rápidos (5 min c/u)</h2>
+<ol type="1">
+<li>Explica <strong>latencia vs throughput</strong> con un ejemplo de una cafetería.</li>
+<li>Dada una tabla de <code>posts</code> con 50M de filas, ¿qué dos índices crearías primero y por qué?</li>
+<li>¿Cuándo elegirías <strong>SQL</strong> sobre <strong>NoSQL</strong>? Da un caso donde NoSQL gane.</li>
+<li>Dibuja de memoria las diferencias entre <strong>master-slave</strong> y <strong>master-master</strong>.</li>
+<li>¿Qué estrategia de caché usarías para un feed y por qué?</li>
+<li>Explica <strong>CAP</strong> con las letras y un ejemplo de cada par.</li>
+<li>¿Qué es el <em>cache stampede</em> y cómo lo mitigas?</li>
+<li>Diferencia <strong>autenticación</strong> vs <strong>autorización</strong> con un ejemplo de RLS.</li>
+<li>¿Cuándo usarías <strong>long polling</strong> en vez de <strong>WebSocket</strong>?</li>
+<li>Define los 3 pilares de la observabilidad y qué pregunta responde cada uno.</li>
+</ol>
+<hr />
+<h2 id="nivel-2-decisiones-con-trade-offs-10-min-cu">Nivel 2: Decisiones con trade-offs (10 min c/u)</h2>
+<ol type="1">
+<li><strong>Feed:</strong> ¿precomputar el timeline (fanout on write) o ensamblar al leer (fanout on read)? ¿Qué métricas te harían cambiar de opción?</li>
+<li><strong>Chat:</strong> ¿guardar mensajes en Postgres y emitir por Realtime, o usar un message broker? ¿Dónde está la fuente de verdad?</li>
+<li><strong>E-commerce:</strong> un producto con 1 unidad en stock. Dos usuarios compran a la vez. Diseña la secuencia que evita el oversell.</li>
+<li><strong>SaaS:</strong> si un tenant empieza a hacer queries que saturan la DB, ¿qué 3 medidas aplicas y en qué orden?</li>
+<li><strong>Offline:</strong> diseña la cola de sincronización de likes. ¿Cómo evitas re-envíos duplicados?</li>
+</ol>
+<hr />
+<h2 id="nivel-3-mini-casos-15-20-min-cu--usa-la-plantilla-del-archivo-11">Nivel 3: Mini-casos (15-20 min c/u) — usa la plantilla del archivo 11</h2>
+<h3 id="caso-a-app-de-recordatorios-con-cuentas">Caso A: App de recordatorios con cuentas</h3>
+<ul>
+<li>1M usuarios, notificaciones push, sincronización multi-device.</li>
+<li><strong>Extras:</strong> latencia de push &lt; 30s, offline obligatorio, RLS para aislamiento por usuario.</li>
+</ul>
+<h3 id="caso-b-plataforma-de-encuestas-en-vivo">Caso B: Plataforma de encuestas en vivo</h3>
+<ul>
+<li>Encuestas con resultados en tiempo real mientras el público vota.</li>
+<li><strong>Extras:</strong> 100K votos en 10 min, resultados via realtime, sin sobrecargar la DB con writes individuales (agrega en batch).</li>
+</ul>
+<h3 id="caso-c-saas-de-inventario-multi-tenant">Caso C: SaaS de inventario multi-tenant</h3>
+<ul>
+<li>Múltiples comercios gestionan stock y órdenes.</li>
+<li><strong>Extras:</strong> aislamiento estricto entre tenants, inventario con consistencia fuerte, reportes (read-heavy).</li>
+</ul>
+<hr />
+<h2 id="nivel-4-casos-completos-45-60-min--con-checklist">Nivel 4: Casos completos (45-60 min) — con checklist</h2>
+<p>Diseña (plantilla completa del archivo 11) uno de estos:</p>
+<h3 id="1-instagramfeed-con-videos-cortos">1. Instagram/feed con videos cortos</h3>
+<p>Incluye: feed, likes, comentarios, media. Extras: ranking del feed, recomendación, offline.</p>
+<h3 id="2-whatsapptelegram">2. WhatsApp/Telegram</h3>
+<p>Incluye: 1:1, grupos, realtime, offline, presencia. Extras: edición de mensajes, media en mensajes.</p>
+<h3 id="3-e-commerce-con-flash-sales">3. E-commerce con flash sales</h3>
+<p>Incluye: catálogo, carrito, checkout, stock. Extras: 10× tráfico en minutos, colas, idempotencia.</p>
+<h3 id="4-notiontrello-multi-tenant">4. Notion/Trello multi-tenant</h3>
+<p>Incluye: orgs, permisos por rol, proyectos. Extras: aislamiento RLS, auditoría, migraciones de esquema.</p>
+<p><strong>Checklist obligatorio:</strong></p>
+<ul class="task-list">
+<li><label><input type="checkbox" />Alcance + fuera de scope</label></li>
+<li><label><input type="checkbox" />QPS, storage, ratios estimados</label></li>
+<li><label><input type="checkbox" />Diagrama de alto nivel</label></li>
+<li><label><input type="checkbox" />Modelo de datos con índices y RLS</label></li>
+<li><label><input type="checkbox" />3+ decisiones con trade-offs</label></li>
+<li><label><input type="checkbox" />Consistencia/disponibilidad (CAP) declarada</label></li>
+<li><label><input type="checkbox" />Seguridad y observabilidad</label></li>
+<li><label><input type="checkbox" />3 riesgos + mitigaciones</label></li>
+</ul>
+<hr />
+<h2 id="nivel-5-auto-entrevista-modo-entrevistador">Nivel 5: Auto-entrevista (modo entrevistador)</h2>
+<p>Graba tu respuesta de 45 min a un caso y evalúate:</p>
+<ol type="1">
+<li>¿Clarifiqué el alcance antes de diseñar? ✅/❌</li>
+<li>¿Estimé números antes de dibujar? ✅/❌</li>
+<li>¿Justifiqué cada decisión con un trade-off? ✅/❌</li>
+<li>¿Declaré CAP/consistencia explícitamente? ✅/❌</li>
+<li>¿Mencioné seguridad y observabilidad sin que me lo pidan? ✅/❌</li>
+<li>¿Cerré con riesgos y evolución? ✅/❌</li>
+</ol>
+<p><strong>Métricas de mejora:</strong> por cada caso resuelto, intenta reducir el tiempo de los pasos 1-2 a &lt; 5 min (son los que más se repiten en entrevistas).</p>
+<hr />
+<h2 id="fuentes-para-corregir">Fuentes para corregir</h2>
+<ul>
+<li><a href="https://github.com/donnemartin/system-design-primer#system-design-topics-start-here">The System Design Primer — Solutions</a></li>
+<li><a href="https://www.amazon.com/System-Design-Interview-Insiders-Guide/dp/1736049119">System Design Interview — Alex Xu</a></li>
+<li><a href="https://bytebytego.com/blog/system-design-interview-questions">ByteByteGo — System Design interview problems</a></li>
+</ul>
+<hr />
+<p><strong>Siguiente:</strong> <a href="./17-recursos-externos.md">17-recursos-externos.md</a></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Capítulo 17</span><div class="kick">Parte 6 · Práctica y cierre</div><h2>17: Recursos Externos</h2></div><div class="article"><blockquote>
+<p>Los recursos que se usaron y los que sirven para profundizar. Nada de "listas interminables": cada enlace tiene un <strong>cuándo usarlo</strong>.</p>
+</blockquote>
+<hr />
+<h2 id="fundamentales-estudiar-primero">Fundamentales (estudiar primero)</h2>
+<table>
+<thead>
+<tr>
+<th>Recurso</th>
+<th>Qué aporta</th>
+<th>Cuándo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/donnemartin/system-design-primer">The System Design Primer</a></td>
+<td>Base teórica completa + casos resueltos</td>
+<td>Lee toda la sección de topics; es la columna del curso</td>
+</tr>
+<tr>
+<td><a href="https://dataintensive.net/">Designing Data-Intensive Applications</a> (Kleppmann)</td>
+<td>El libro de referencia de datos, consistencia y replicación</td>
+<td>Después de dominar el primer</td>
+</tr>
+<tr>
+<td><a href="https://www.amazon.com/System-Design-Interview-Insiders-Guide/dp/1736049119">System Design Interview — Alex Xu</a></td>
+<td>Framework de entrevista y casos paso a paso</td>
+<td>Cuando prepares entrevistas</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="guías-cortas-y-visuales-para-consultar">Guías cortas y visuales (para consultar)</h2>
+<table>
+<thead>
+<tr>
+<th>Recurso</th>
+<th>Cuándo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://bytebytego.com/guides">ByteByteGo — Guides</a></td>
+<td>Diagramas rápidos por tema (cache, chat, e-commerce, multi-tenant)</td>
+</tr>
+<tr>
+<td><a href="https://bytebytego.com/guides/cap-theorem-one-of-the-most-misunderstood-terms">ByteByteGo — CAP Theorem</a></td>
+<td>Si CAP te confunde (a todos nos pasa)</td>
+</tr>
+<tr>
+<td><a href="https://bytebytego.com/guides/top-5-caching-strategies">ByteByteGo — Caching strategies</a></td>
+<td>Cuando dudes entre cache-aside/write-through</td>
+</tr>
+<tr>
+<td><a href="https://www.brendangregg.com/usemethod.html">Brendan Gregg — USE Method</a></td>
+<td>Para métricas de rendimiento</td>
+</tr>
+<tr>
+<td><a href="https://aws.amazon.com/architecture/">AWS Architecture Center</a></td>
+<td>Casos reales de arquitecturas cloud</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="supabase-el-stack-del-repositorio">Supabase (el stack del repositorio)</h2>
+<table>
+<thead>
+<tr>
+<th>Recurso</th>
+<th>Cuándo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://supabase.com/docs/guides/database">Supabase Docs — Database</a></td>
+<td>RLS, índices, transacciones en Postgres</td>
+</tr>
+<tr>
+<td><a href="https://supabase.com/docs/guides/realtime">Supabase Docs — Realtime</a></td>
+<td>Postgres Changes, Presence, Broadcast</td>
+</tr>
+<tr>
+<td><a href="https://supabase.com/docs/guides/auth">Supabase Docs — Auth</a></td>
+<td>JWT, authn/authz, magic links</td>
+</tr>
+<tr>
+<td><a href="https://supabase.com/docs/guides/functions">Supabase Docs — Edge Functions</a></td>
+<td>Lógica de backend asíncrona (colas, checkout)</td>
+</tr>
+<tr>
+<td><a href="https://supabase.com/docs/guides/telemetry">Supabase Docs — Logging/Metrics</a></td>
+<td>Observabilidad gestionada</td>
+</tr>
+<tr>
+<td><a href="https://github.com/supabase/supabase/tree/master/examples">Supabase — The Next.js Starter</a></td>
+<td>Ejemplos oficiales multi-caso</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="simuladores--práctica-activa">Simuladores / práctica activa</h2>
+<table>
+<thead>
+<tr>
+<th>Recurso</th>
+<th>Qué hacer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/donnemartin/system-design-primer#system-design-topics-start-here">System Design Primer — Solutions</a></td>
+<td>Corregir los ejercicios del archivo 16</td>
+</tr>
+<tr>
+<td><a href="https://bytebytego.com/blog/system-design-interview-questions">ByteByteGo — Interview problems</a></td>
+<td>Casos extra para el Nivel 4</td>
+</tr>
+<tr>
+<td><a href="https://martin.kleppmann.com/">Kleppmann's blog</a></td>
+<td>Profundización en consistencia y streaming</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="orden-de-estudio-sugerido">Orden de estudio sugerido</h2>
+<pre><code>1. System Design Primer (topics)           → teoría base
+2. Archivos 00-11 de este módulo           → teoría aplicada al stack
+3. Casos 12-15 (plantilla)                 → ver el framework en acción
+4. Ejercicios 16                          → practicar
+5. DDIA / Alex Xu                          → profundizar y preparar entrevista
+6. Supabase docs                           → cuando implementes</code></pre>
+<hr />
+<h2 id="regla-de-oro">Regla de oro</h2>
+<blockquote>
+<p>No leas 10 recursos a la vez. <strong>Uno a la vez</strong>, con el objetivo de resolver el siguiente ejercicio. El System Design Primer es el único que vale leer de principio a fin; el resto es consulta puntual.</p>
+</blockquote>
+<hr />
+<p><strong>Siguiente:</strong> <a href="./BIBLIOGRAFIA.md">BIBLIOGRAFIA.md</a></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Anexo</span><div class="kick">Parte 6 · Práctica y cierre</div><h2>Bibliografía</h2></div><div class="article"><blockquote>
+<p>Fuentes principales de este módulo, con el motivo de su inclusión. Formato: autor — título — motivo.</p>
+</blockquote>
+<hr />
+<h2 id="libros">Libros</h2>
+<ul>
+<li><strong>Martin Kleppmann</strong> — <em>Designing Data-Intensive Applications</em> — La referencia definitiva sobre datos distribuidos: replicación, particionado, transacciones, consistencia. Base teórica de los archivos 04, 07 y 14.</li>
+<li><strong>Alex Xu</strong> — <em>System Design Interview (Vol. 1 y 2)</em> — Framework de entrevistas y casos resueltos paso a paso. Base de la plantilla del archivo 11 y del Nivel 4 del archivo 16.</li>
+<li><strong>Donne Martin</strong> — <em>The System Design Primer</em> — Compendio gratuito de todo lo que un system designer necesita: conceptos, trade-offs, casos. Es la columna vertebral del curso (usado como fuente primaria en 00-10).</li>
+<li><strong>Brendan Gregg</strong> — <em>Systems Performance</em> — Métricas y metodología USE para diagnóstico de rendimiento. Referencia puntual del archivo 09.</li>
+</ul>
+<hr />
+<h2 id="documentación-oficial">Documentación oficial</h2>
+<ul>
+<li><strong>Supabase Docs</strong> — <em>Database / Realtime / Auth / Functions / Telemetry</em> — Documentación del stack del repositorio; usada para RLS (03), Realtime (06), seguridad (08) y observabilidad (09).</li>
+<li><strong>Saltzer &amp; Schroeder</strong> — <em>The Protection of Information in Computer Systems</em> — Paper clásico del principio de menor privilegio (archivo 08).</li>
+<li><strong>OWASP</strong> — <em>OWASP Top 10</em> — Marco de riesgos de seguridad en aplicaciones web (archivo 08).</li>
+</ul>
+<hr />
+<h2 id="artículos-y-guías-en-línea">Artículos y guías en línea</h2>
+<ul>
+<li><strong>ByteByteGo</strong> — <em>Caching strategies, CAP theorem, Short/long polling vs SSE vs WebSocket, Timeouts &amp; Retries, Observability, Chat/E-commerce/Multi-tenant designs</em> — Diagramas y explicaciones concisas que sustentan los archivos 05, 06, 07, 09, 12, 13, 14 y 15.</li>
+<li><strong>Brendan Gregg</strong> — <em>The USE Method</em> — Guía corta de métricas de rendimiento (archivo 09).</li>
+</ul>
+<hr />
+<h2 id="criterio-de-inclusión">Criterio de inclusión</h2>
+<ol type="1">
+<li>Todo lo citado se <strong>usó</strong> en algún archivo de este módulo (nada decorativo).</li>
+<li>Se priorizaron fuentes <strong>libres/gratuitas</strong> (System Design Primer, docs oficiales, ByteByteGo, papers clásicos).</li>
+<li>Los libros (Kleppmann, Xu) aparecen como <strong>profundización</strong>, no como requisito para empezar.</li>
+</ol>
+</div></div>
+</body>
+</html>
