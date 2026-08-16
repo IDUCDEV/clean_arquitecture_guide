@@ -32,7 +32,7 @@ Clean Architecture es una forma de organizar el código en **capas independiente
 
 ## 📁 Estructura de la Guía
 
-La guía está organizada en **22 módulos numerados** para seguir un orden de aprendizaje lógico:
+La guía está organizada en **23 módulos numerados** para seguir un orden de aprendizaje lógico:
 
 ```
 00-DISENIO-PRODUCTO-MVP/       → Diseño de producto y Design Sprint
@@ -57,6 +57,7 @@ La guía está organizada en **22 módulos numerados** para seguir un orden de a
 19-MONITOREO-PRODUCCION/       → Crashlytics, Sentry y monitoreo
 20-RESOLUCION-PROBLEMAS-ALGORITMOS/ → Protocolo de resolución de problemas algorítmicos
 21-COMUNICACION-EQUIPO/        → Code reviews, colaboración y trabajo en equipo
+22-DISENIO-SISTEMAS/           → System design para entrevistas y sistemas a escala
 ```
 
 ---
@@ -439,6 +440,35 @@ La guía está organizada en **22 módulos numerados** para seguir un orden de a
 
 ---
 
+### 🏗️ Sección 22: Diseño de Sistemas (System Design)
+
+| Archivo | Descripción |
+|---------|-------------|
+| [README.md](./22-DISENIO-SISTEMAS/README.md) | Índice de la sección |
+| [00-fundamentos-system-design.md](./22-DISENIO-SISTEMAS/00-fundamentos-system-design.md) | Qué es, atributos clave (reliability, scalability, maintainability) |
+| [01-clarificar-requisitos.md](./22-DISENIO-SISTEMAS/01-clarificar-requisitos.md) | Framework de clarificación de requisitos y restricciones |
+| [02-estimacion-de-escala.md](./22-DISENIO-SISTEMAS/02-estimacion-de-escala.md) | Cálculo de QPS, almacenamiento y ancho de banda |
+| [03-componentes-arquitectura.md](./22-DISENIO-SISTEMAS/03-componentes-arquitectura.md) | DNS, CDN, Load Balancer, Reverse Proxy, microservicios |
+| [04-modelado-de-datos.md](./22-DISENIO-SISTEMAS/04-modelado-de-datos.md) | Índices, replicación, sharding, denormalización |
+| [05-cache-y-rendimiento.md](./22-DISENIO-SISTEMAS/05-cache-y-rendimiento.md) | Estrategias de caching y latencia vs throughput |
+| [06-realtime-y-streaming.md](./22-DISENIO-SISTEMAS/06-realtime-y-streaming.md) | Polling vs WebSocket vs SSE, Supabase Realtime |
+| [07-escalabilidad-alta-disponibilidad.md](./22-DISENIO-SISTEMAS/07-escalabilidad-alta-disponibilidad.md) | Scaling vertical/horizontal, CAP theorem, disponibilidad en números |
+| [08-seguridad-en-diseno.md](./22-DISENIO-SISTEMAS/08-seguridad-en-diseno.md) | RLS, authn vs authz, HTTPS, menor privilegio |
+| [09-observabilidad-monitoreo.md](./22-DISENIO-SISTEMAS/09-observabilidad-monitoreo.md) | Logs, métricas, tracing, alertas, resiliencia |
+| [10-offline-first.md](./22-DISENIO-SISTEMAS/10-offline-first.md) | Offline-first, sincronización y conflictos |
+| [11-plantilla-diseno-sistema.md](./22-DISENIO-SISTEMAS/11-plantilla-diseno-sistema.md) | Plantilla de 10 pasos para cualquier diseño |
+| [12-caso-feed-red-social.md](./22-DISENIO-SISTEMAS/12-caso-feed-red-social.md) | Caso integrador: feed con cache, paginación y realtime |
+| [13-caso-chat-mensajeria.md](./22-DISENIO-SISTEMAS/13-caso-chat-mensajeria.md) | Caso integrador: chat 1:1 y grupal con realtime |
+| [14-caso-ecommerce-escalable.md](./22-DISENIO-SISTEMAS/14-caso-ecommerce-escalable.md) | Caso integrador: catálogo, carrito, pagos e inventario |
+| [15-caso-saas-multi-tenant.md](./22-DISENIO-SISTEMAS/15-caso-saas-multi-tenant.md) | Caso integrador: multi-tenant con RLS por tenant |
+| [16-ejercicios-practica.md](./22-DISENIO-SISTEMAS/16-ejercicios-practica.md) | Ejercicios progresivos + auto-entrevista |
+| [17-recursos-externos.md](./22-DISENIO-SISTEMAS/17-recursos-externos.md) | Libros, guías y recursos verificados |
+| [BIBLIOGRAFIA.md](./22-DISENIO-SISTEMAS/BIBLIOGRAFIA.md) | Fuentes que fundamentan cada decisión del módulo |
+
+**Contenido:** Fundamentos de system design, clarificación de requisitos, estimación de escala, componentes de arquitectura, modelado de datos, cache y rendimiento, realtime y streaming, escalabilidad y alta disponibilidad (CAP), seguridad en el diseño, observabilidad, offline-first, plantilla reutilizable, 4 casos integradores (Feed, Chat, E-commerce, SaaS) y ejercicios de práctica.
+
+---
+
 ## 🚀 Orden de Aprendizaje Sugerido
 
 ```
@@ -479,6 +509,8 @@ La guía está organizada en **22 módulos numerados** para seguir un orden de a
 17-MANTENIMIENTO-DEPENDENCIAS → Mantenimiento (6-8 h)
     ↓
 21-COMUNICACION-EQUIPO        → Comunicación y trabajo en equipo (5-8 h)
+    ↓
+22-DISENIO-SISTEMAS           → System design (25-35 h) — ideal tras 03-SUPABASE y 20
 ```
 
 ---

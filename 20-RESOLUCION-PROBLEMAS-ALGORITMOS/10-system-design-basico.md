@@ -246,4 +246,8 @@ class ChatCubit extends Cubit<ChatState> {
 
 ---
 
+---
+
+> **¿Quieres la versión completa?** Este archivo es el intro de 45 minutos. El módulo **22-DISENIO-SISTEMAS** lo expande con teoría (estimación de escala, cache, realtime, CAP, seguridad, observabilidad), una **plantilla de 10 pasos** y 4 casos integradores resueltos (Feed, Chat, E-commerce, SaaS): [📐 22-DISENIO-SISTEMAS](../22-DISENIO-SISTEMAS/README.md)
+
 **Siguiente:** [11-errores-comunes-patron.md](./11-errores-comunes-patron.md)

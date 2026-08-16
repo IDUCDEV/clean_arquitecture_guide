@@ -1,6 +1,6 @@
 # Índice General
 
-Mapa de navegación cruzada entre los 22 módulos de la guía.
+Mapa de navegación cruzada entre los 23 módulos de la guía.
 
 ---
 
@@ -30,6 +30,7 @@ Mapa de navegación cruzada entre los 22 módulos de la guía.
 | Makefile | [10-MAKEFILE](./10-MAKEFILE/) | [03-SUPABASE/PARTE-3-CI_CD/01](./03-SUPABASE/PARTE-3-CI_CD/01-makefile-universal.md) (Makefile universal Supabase) |
 | Pencil (diseño) | [08-PENCIL](./08-PENCIL/) | [15-WIDGETS-FLUTTER](./15-WIDGETS-FLUTTER/) (de diseño a implementación) |
 | Programación funcional | [06-NIVEL-EXPERTO/01](./06-NIVEL-EXPERTO/01-fpdart-result-pattern.md) | [01-CLEAN-ARCHITECTURE/05a-b](./01-CLEAN-ARCHITECTURE/05a-domain-layer.md) (Either en UseCases), [09-ESTRUCTURA-DATOS-OOP/03](./09-ESTRUCTURA-DATOS-OOP/03-metodos-funcionales-listas.md) (map, where, fold) |
+| System design | [22-DISENIO-SISTEMAS](./22-DISENIO-SISTEMAS/) | [20-RESOLUCION-PROBLEMAS-ALGORITMOS/10](./20-RESOLUCION-PROBLEMAS-ALGORITMOS/10-system-design-basico.md) (intro de 45 min), [03-SUPABASE](./03-SUPABASE/) (backend real), [19-MONITOREO-PRODUCCION](./19-MONITOREO-PRODUCCION/) (observabilidad en producción) |
 
 ---
 
@@ -37,11 +38,11 @@ Mapa de navegación cruzada entre los 22 módulos de la guía.
 
 | Tipo | Dónde encontrarlo |
 |---|---|
-| **Teoría / Conceptos** | 01 (Clean Arch), 02 (Diseño), 09 (OOP), 10 (Make), 11 (GitHub Actions), 12 (Git flow), 15 (Widgets), 16/01-02 (BLoC) |
+| **Teoría / Conceptos** | 01 (Clean Arch), 02 (Diseño), 09 (OOP), 10 (Make), 11 (GitHub Actions), 12 (Git flow), 15 (Widgets), 16/01-02 (BLoC), 22/00-11 (System Design) |
 | **SQL / PostgreSQL** | 03/PARTE-0/01 (Fundamentos SQL), 03/PARTE-0/02 (PostgreSQL: constraints, indexes, functions, triggers, JSONB, RPC) |
 | **Ejemplos con código** | 01/05a-c (CRUD), 02/05a-d (casos reales), 16/07-12,18 (BLoC), 20/05 (patrones con template Dart) |
 | **Ejercicios prácticos** | 02/01a-04a (Carrito), 05/01a-06c (Testing), 09/08-10 (OOP), 10/07 (Make), 11/07 (Actions), 20/07 (10 ejercicios algorítmicos) |
-| **Casos integradores** | 02/05 (Reservas), 02/05b (E-learning), 02/05c (Facturación), 02/05d (Delivery), 16/17 (E-commerce) |
+| **Casos integradores** | 02/05 (Reservas), 02/05b (E-learning), 02/05c (Facturación), 02/05d (Delivery), 16/17 (E-commerce), 22/12-15 (Feed, Chat, E-commerce, SaaS) |
 | **Referencia rápida** | 15/11 (arsenal de widgets), 01/08 (templates), 03/PARTE-3-CI_CD/01 (Makefile universal), 18/01-06 (cheatsheet debugging), 18/02-10 (cheatsheet DevTools) |
 | **CI/CD / Automatización** | 03/PARTE-3-CI_CD, 10, 11, 14/05 |
 | **Prompts para IA** | 07/01 (framework AIDR), 07/02 (caso reservas) |
@@ -58,7 +59,7 @@ Mapa de navegación cruzada entre los 22 módulos de la guía.
 |---|---|---|
 | **Principiante** | 02 (Diseño), 01 (Clean Arch), 09 (OOP básico) | 20-30 h |
 | **Intermedio** | 15 (Widgets), 16/01-09 (BLoC básico), 05 (Testing), 03 (Supabase), 18/01 (VSCode debugging), 20 (Resolución problemas) | 40-60 h |
-| **Avanzado** | 16/10-18 (BLoC avanzado), 06 (Nivel experto), 07 (IA), 18/02 (DevTools avanzado), 18/03 (Optimizacion rendimiento) | 25-35 h |
+| **Avanzado** | 16/10-18 (BLoC avanzado), 06 (Nivel experto), 07 (IA), 18/02 (DevTools avanzado), 18/03 (Optimizacion rendimiento), 22 (System Design) | 25-35 h |
 | **DevOps** | 10 (Make), 11 (Actions), 12 (Git flow), 13 (Edge), 14 (Play Store), 17 (Mantenimiento) | 25-35 h |
 | **Soft Skills** | 21 (Comunicacion y trabajo en equipo) | 5-8 h |
 
@@ -90,6 +91,7 @@ Mapa de navegación cruzada entre los 22 módulos de la guía.
 | 19-MONITOREO-PRODUCCION | `README.md` | `01-firebase-crashlytics/08-practicas-crashlytics.md` (prácticas Crashlytics), `02-sentry/09-practicas-sentry.md` (prácticas Sentry) |
 | 20-RESOLUCION-PROBLEMAS-ALGORITMOS | `README.md` | `03-reconocimiento-patrones.md` (corazón de la guía), `05-patrones-avanzados.md` (templates Dart) |
 | 21-COMUNICACION-EQUIPO | `README.md` | `01-code-reviews-efectivos.md` (code reviews), `03-git-workflow-equipe.md` (Git en equipo) |
+| 22-DISENIO-SISTEMAS | `README.md` | `11-plantilla-diseno-sistema.md` (plantilla reutilizable), `12-caso-feed-red-social.md` (caso integrador) |
 
 ---
 

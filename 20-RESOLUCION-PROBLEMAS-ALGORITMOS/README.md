@@ -59,6 +59,7 @@ Tiempo estimado: 25-35 horas
 | **09-ESTRUCTURA-DATOS-OOP** | Predecesor. Allí aprendes *cómo* usar List, Set, Map y OOP en Dart. Aquí aprendes *cuándo* elegir cada uno para resolver un problema. |
 | **01-CLEAN-ARCHITECTURE** | Complementario. Clean Architecture organiza código de producción; esta guía resuelve problemas aislados de algoritmos. |
 | **16-BLOC-CUBIT** | Indirecto. Los patrones de resolución de problemas se aplican también al diseño de BLoCs (pensamiento en estados y transiciones). |
+| **22-DISENIO-SISTEMAS** | Continuación. El archivo `10-system-design-basico.md` es el intro de 45 min; el módulo 22 lo expande con la plantilla completa y casos integradores. |
 
 ---
 
