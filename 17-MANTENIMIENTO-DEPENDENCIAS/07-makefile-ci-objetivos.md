@@ -122,17 +122,17 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@v3
         with:
-          flutter-version: '3.41.0'
+          flutter-version: '3.47.0'
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
           cache-dependency-path: apps/web/package-lock.json
 
@@ -187,7 +187,7 @@ jobs:
 # Continuación del workflow semanal
 - name: Create issue if outdated
   if: steps.flutter-audit.outputs.has_outdated == 'true'
-  uses: actions/github-script@v7
+  uses: actions/github-script@v9
   with:
     script: |
       const fs = require('fs');
@@ -272,7 +272,7 @@ jobs:
 
 - [GitHub | Schedule events in Actions](https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#schedule) — Disparadores `cron` en workflows
 - [Dart | Pub deps](https://dart.dev/tools/pub/cmd/pub-deps) — Comando `dart pub deps`
-- [npm Docs | npm-audit](https://docs.npmjs.com/cli/v10/commands/npm-audit) — Comando `npm audit`
+- [npm Docs | npm-audit](https://docs.npmjs.com/cli/v12/commands/npm-audit) — Comando `npm audit`
 
 ---
 

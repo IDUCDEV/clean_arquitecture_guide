@@ -17,9 +17,10 @@ Showing outdated packages.
 [*] indicates versions that are not mutually compatible.
 
 Package Name       Current  Upgradable  Resolvable  Latest
-flutter_bloc       9.1.0    9.2.0       9.3.0       10.0.0
-dio                5.3.3    5.4.0       5.4.1       6.0.0
-equatable          2.0.5    2.0.7       2.0.7       2.0.7
+dio                5.9.0    5.11.0      5.11.0      5.11.0
+equatable          2.0.5    2.1.0       2.1.0       2.1.0
+flutter_bloc       9.1.0    9.1.1       9.1.1       9.1.1
+go_router          17.4.1   17.5.0      17.5.0      17.5.0
 ```
 
 | Columna | Significado |
@@ -130,7 +131,7 @@ flutter test -j 1
 
 # 6. Commit
 git add pubspec.yaml pubspec.lock lib/
-git commit -m "fix(deps): update supabase_flutter to 2.6.0"
+git commit -m "fix(deps): update supabase_flutter to 2.17.2"
 ```
 
 ### 3.3 Casos Especiales por Paquete
@@ -228,8 +229,8 @@ Escenario: Acaban de publicar `fpdart 2.0.0` con breaking changes. Tu proyecto u
 - [Dart | Pub outdated](https://dart.dev/tools/pub/cmd/pub-outdated) — Comando `dart pub outdated`
 - [Dart | Pub upgrade](https://dart.dev/tools/pub/cmd/pub-upgrade) — Comando `dart pub upgrade`
 - [Dart | dart fix](https://dart.dev/tools/dart-fix) — Migraciones automáticas de código
-- [npm Docs | npm-outdated](https://docs.npmjs.com/cli/v10/commands/npm-outdated) — Comando `npm outdated`
-- [npm Docs | npm-audit](https://docs.npmjs.com/cli/v10/commands/npm-audit) — Comando `npm audit`
+- [npm Docs | npm-outdated](https://docs.npmjs.com/cli/v12/commands/npm-outdated) — Comando `npm outdated`
+- [npm Docs | npm-audit](https://docs.npmjs.com/cli/v12/commands/npm-audit) — Comando `npm audit`
 
 ---
 

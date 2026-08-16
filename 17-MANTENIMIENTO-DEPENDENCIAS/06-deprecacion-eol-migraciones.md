@@ -32,7 +32,7 @@
 
 ```bash
 # Última publicación en pub.dev
-dart pub outdated <paquete>
+dart pub outdated | grep <paquete>
 
 # Verificar estado del repo
 # 1. Ir a github.com/<user>/<repo>
@@ -126,9 +126,9 @@ Flutter stable:
   N-1 o anterior → Sin soporte oficial garantizado
 ```
 
-Ejemplo con Flutter 3.41.0 actual:
-- 3.41.0 → soporte activo
-- 3.32.0 → sin soporte oficial garantizado
+Ejemplo con Flutter 3.47.0 actual (agosto 2026):
+- 3.47.0 → soporte activo
+- 3.44.0 → release anterior, sin soporte oficial garantizado
 
 > En la práctica, el ecosistema suele mantener N-1 funcional porque los paquetes rara vez exigen la versión más reciente. Sin embargo, **no hay parches de seguridad garantizados** para versiones anteriores a la última estable.
 
@@ -139,9 +139,13 @@ gantt
     title Flutter Release Timeline
     dateFormat  YYYY-MM
     section Stable
-    Flutter 3.24  :2024-08, 2024-12
-    Flutter 3.32  :2024-12, 2025-04
-    Flutter 3.41  :2025-04, 2025-08
+    Flutter 3.29  :2025-02, 2025-05
+    Flutter 3.32  :2025-05, 2025-08
+    Flutter 3.35  :2025-08, 2025-11
+    Flutter 3.38  :2025-11, 2026-02
+    Flutter 3.41  :2026-02, 2026-05
+    Flutter 3.44  :2026-05, 2026-08
+    Flutter 3.47  :2026-08, 2026-11
 ```
 
 > Google publica ~4 releases estables al año (~3 meses entre releases). La [compatibility policy](https://docs.flutter.dev/release/compatibility-policy) oficial solo garantiza soporte para la versión estable más reciente; el estimado de ~8 meses de soporte activo por versión es una **inferencia basada en el ciclo de releases**, no una política publicada.
@@ -163,7 +167,7 @@ environment:
 
 ```yaml
 environment:
-  sdk: ^3.11.0  # <= Actualizar cuando migres Flutter
+  sdk: ^3.13.0  # <= Actualizar cuando migres Flutter (Dart 3.13 con Flutter 3.47)
 ```
 
 `dart fix --apply` es particularmente útil después de cambiar la constraint del SDK:

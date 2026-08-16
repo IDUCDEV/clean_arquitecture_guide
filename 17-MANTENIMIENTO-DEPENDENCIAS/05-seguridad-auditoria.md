@@ -41,7 +41,7 @@ osv query --package supabase-flutter
 # O usando la API directamente
 curl -X POST https://api.osv.dev/v1/query \
   -H "Content-Type: application/json" \
-  -d '{"package": {"name": "supabase-flutter", "ecosystem": "Pub"}, "version": "2.5.0"}'
+  -d '{"package": {"name": "supabase-flutter", "ecosystem": "Pub"}, "version": "2.17.2"}'
 ```
 
 ### 2.2 GitHub Advisory Database
@@ -163,12 +163,12 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Flutter audit
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v3
         with:
-          flutter-version: '3.41.0'
+          flutter-version: '3.47.0'
       - name: Dart deps audit
         run: |
           dart pub deps --json > /tmp/deps.json
@@ -223,7 +223,7 @@ jobs:
 1. Ejecuta `dart pub deps --json` en tu proyecto y extrae las dependencias directas con `jq`
 2. Consulta el GitHub Advisory Database para `Pub` ecosystem y encuentra una CVE reciente
 3. Integra `npm audit --audit-level=high` en el workflow `nextjs-ci.yml` del monorepo
-4. Simula un escenario: se descubre CVE crítica en `dio` 5.3.3 — ¿cuál es tu plan de acción?
+4. Simula un escenario: se descubre CVE crítica en `dio` 5.9.0 — ¿cuál es tu plan de acción?
 
 ---
 
@@ -242,7 +242,7 @@ jobs:
 
 - [OSV.dev | API](https://google.github.io/osv.dev/post-v1-query/) — Consulta de vulnerabilidades por paquete y versión
 - [GitHub | Advisory Database](https://github.com/advisories) — Base de datos de CVEs con filtro por ecosistema
-- [npm Docs | npm-audit](https://docs.npmjs.com/cli/v10/commands/npm-audit) — Comando `npm audit`
+- [npm Docs | npm-audit](https://docs.npmjs.com/cli/v12/commands/npm-audit) — Comando `npm audit`
 - [FIRST | CVSS v3.1](https://www.first.org/cvss/v3-1/) — Especificación del sistema de puntuación CVSS
 - [GitHub | Dependabot security updates](https://docs.github.com/en/code-security/dependabot/dependabot-security-updates/configuring-dependabot-security-updates) — Security updates automáticos
 

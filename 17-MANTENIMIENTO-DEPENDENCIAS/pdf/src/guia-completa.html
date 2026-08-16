@@ -1,0 +1,1883 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>17 — Mantenimiento de Dependencias</title>
+<link rel="stylesheet" href="guia-completa.css">
+</head>
+<body>
+<div class="cover">
+  <span class="module-tag">Módulo 17</span>
+  <h1>Mantenimiento de<br>Dependencias</h1>
+  <p class="subtitle">Ciclo de vida completo de las dependencias en un monorepo Flutter + Supabase: estrategia de versionado, actualización segura, automatización con Dependabot y Renovate, mantenimiento del SDK (Flutter, Node, Supabase CLI), auditoría de seguridad y migraciones ante deprecación.</p>
+  <table class="meta">
+    <tr>
+      <td><span class="label">Enfoque</span><span class="value">Versionado y salud de dependencias</span></td>
+      <td><span class="label">Stack</span><span class="value">Flutter + Dart + npm + Actions</span></td>
+    </tr>
+    <tr>
+      <td><span class="label">Nivel</span><span class="value">Básico a Avanzado</span></td>
+      <td><span class="label">Tiempo estimado</span><span class="value">6–8 horas</span></td>
+    </tr>
+  </table>
+  <div class="tags"><span>Dependabot</span><span>Renovate</span><span>pub</span><span>npm</span><span>Flutter</span><span>Seguridad</span></div>
+</div><div class="toc"><h2>Contenido</h2><p class="toc-count">7 capítulos · Mantenimiento de dependencias (Flutter + npm + GitHub Actions)</p><div class="part">Parte 1 · Estrategia y flujo de actualización</div>
+<div class="row"><span class="num">01</span><span class="title">01 — Fundamentos de Dependencias</span></div>
+<div class="row"><span class="num">02</span><span class="title">02 — Flujo de Actualización</span></div>
+<div class="part">Parte 2 · Automatización y SDK</div>
+<div class="row"><span class="num">03</span><span class="title">03 — Automatización: Dependabot y Renovate</span></div>
+<div class="row"><span class="num">04</span><span class="title">04 — Mantenimiento del SDK y Ecosistema</span></div>
+<div class="part">Parte 3 · Seguridad y ciclo de vida</div>
+<div class="row"><span class="num">05</span><span class="title">05 — Seguridad y Auditoría</span></div>
+<div class="row"><span class="num">06</span><span class="title">06 — Deprecación, EOL y Migraciones</span></div>
+<div class="part">Parte 4 · Operación continua</div>
+<div class="row"><span class="num">07</span><span class="title">07 — Makefile y CI para Mantenimiento Continuo</span></div></div><div class="chapter"><div class="chapter-head"><span class="num-chip">Capítulo 01</span><div class="kick">Parte 1 · Estrategia y flujo de actualización</div><h2>01 — Fundamentos de Dependencias</h2></div><div class="article"><blockquote>
+<p>Cómo declarar dependencias correctamente, entender el lockfile y resolver conflictos.</p>
+</blockquote>
+<hr />
+<h2 id="1-estrategia-de-versionado">1. Estrategia de Versionado</h2>
+<h3 id="11-rangos-caret-">1.1 Rangos Caret (<code>^</code>)</h3>
+<p>El <code>^</code> es el más usado en pubspec.yaml:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dependencies</span><span class="kw">:</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">flutter_bloc</span><span class="kw">:</span><span class="at"> ^9.1.1</span><span class="co">   # &gt;=9.1.1 y &lt;10.0.0</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">equatable</span><span class="kw">:</span><span class="at"> ^2.1.0</span><span class="co">      # &gt;=2.1.0 y &lt;3.0.0</span></span></code></pre></div>
+<p><strong>Significado:</strong> <code>^versión</code> equivale a <code>&gt;=versión &lt;siguiente-versión-mayor</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Constraint</th>
+<th>Rango real</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>^1.2.3</code></td>
+<td><code>&gt;=1.2.3 &lt;2.0.0</code></td>
+</tr>
+<tr>
+<td><code>^0.1.2</code></td>
+<td><code>&gt;=0.1.2 &lt;0.2.0</code></td>
+</tr>
+<tr>
+<td><code>^0.0.1</code></td>
+<td><code>&gt;=0.0.1 &lt;0.0.2</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Regla de oro:</strong> Usa caret para librerías y paquetes de utility. Permite recibir bugfixes y features menores automáticamente.</p>
+<h3 id="12-pinning-exacto">1.2 Pinning Exacto</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dependencies</span><span class="kw">:</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">next</span><span class="kw">:</span><span class="at"> </span><span class="fl">16.3.1</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">react</span><span class="kw">:</span><span class="at"> </span><span class="fl">19.2.8</span></span></code></pre></div>
+<p><strong>Cuándo usarlo:</strong></p>
+<ul>
+<li>Frameworks críticos (Next.js, React)</li>
+<li>Paquetes where un cambio menor puede romper la app</li>
+<li>Dependencias que controlas tú y quieres releases explícitos</li>
+</ul>
+<p><strong>Desventaja:</strong> No recibes ni siquiera parches de seguridad automáticos. Cada actualización es manual.</p>
+<h3 id="13-sha-pinning-github-actions">1.3 SHA Pinning (GitHub Actions)</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1</span></span></code></pre></div>
+<p>Esto es <strong>pinning absoluto</strong>. Ni siquiera la etiqueta <code>v7</code> puede cambiar por debajo. Es la práctica más segura para CI/CD.</p>
+<h3 id="14-otras-formas-de-declarar">1.4 Otras Formas de Declarar</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Rango abierto (no recomendado)</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">paquete</span><span class="kw">:</span><span class="at"> any</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Rango exacto</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">paquete</span><span class="kw">:</span><span class="at"> </span><span class="st">&#39;&gt;=1.0.0 &lt;2.0.0&#39;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Sin límite inferior (riesgoso)</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">paquete</span><span class="kw">:</span><span class="at"> </span><span class="st">&#39;&lt;3.0.0&#39;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Git dependency</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">paquete</span><span class="kw">:</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">git</span><span class="kw">:</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">url</span><span class="kw">:</span><span class="at"> https://github.com/user/paquete.git</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">ref</span><span class="kw">:</span><span class="at"> main</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Path dependency (local)</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">paquete</span><span class="kw">:</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">path</span><span class="kw">:</span><span class="at"> ../mi-paquete</span></span></code></pre></div>
+<blockquote>
+<p>Las dependencias Git y path <strong>no deberían llegar a producción</strong> salvo que sea estrictamente necesario.</p>
+</blockquote>
+<hr />
+<h2 id="2-pubspeclock">2. <code>pubspec.lock</code></h2>
+<h3 id="21-qué-es">2.1 ¿Qué es?</h3>
+<p>El lockfile <strong>congela</strong> las versiones exactas que resuelve pub después de leer las constraints.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pubspec.lock (fragmento)</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">packages</span><span class="kw">:</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">flutter_bloc</span><span class="kw">:</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">dependency</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;direct main&quot;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">source</span><span class="kw">:</span><span class="at"> hosted</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">version</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;9.1.1&quot;</span></span></code></pre></div>
+<h3 id="22-se-comitea">2.2 ¿Se comitea?</h3>
+<table>
+<thead>
+<tr>
+<th>Tipo de proyecto</th>
+<th>¿Lockfile en git?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>App</strong></td>
+<td>✅ Sí — para que todos los devs usen las mismas versiones exactas</td>
+</tr>
+<tr>
+<td><strong>Librería/Paquete</strong></td>
+<td>❌ No — el lockfile no se distribuye; cada consumidor resuelve sus propias versiones</td>
+</tr>
+</tbody>
+</table>
+<h3 id="23-conflictos-en-merge">2.3 Conflictos en Merge</h3>
+<p>Cuando dos ramas agregan paquetes diferentes:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;&lt;&lt;&lt;&lt;&lt;&lt;</span> HEAD</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="ex">version:</span> <span class="st">&quot;9.1.1&quot;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ex">=======</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="ex">version:</span> <span class="st">&quot;10.0.0&quot;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;&gt;&gt;&gt;&gt;</span> feature</span></code></pre></div>
+<p><strong>Solución:</strong> Ejecuta <code>dart pub get</code> después del merge. Dart reconstruirá el lockfile resolviendo ambos conjuntos de dependencias.</p>
+<hr />
+<h2 id="3-resolución-de-conflictos">3. Resolución de Conflictos</h2>
+<h3 id="31-dart-pub-deps">3.1 <code>dart pub deps</code></h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Árbol completo</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> pub deps</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Solo dependencias directas</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> pub deps <span class="at">--no-dev</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Formato JSON para CI</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> pub deps <span class="at">--json</span></span></code></pre></div>
+<h3 id="32-dependency_overrides">3.2 <code>dependency_overrides</code></h3>
+<p>Úsalo <strong>temporalmente</strong> para forzar una versión cuando dos paquetes requieren versiones incompatibles:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dependency_overrides</span><span class="kw">:</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">collection</span><span class="kw">:</span><span class="at"> ^1.18.0</span></span></code></pre></div>
+<blockquote>
+<p>Esto es un parche temporal. El objetivo es que el mantenedor del paquete upstream actualice su constraint.</p>
+</blockquote>
+<h3 id="32-pubspec_overridesyaml">3.2 pubspec_overrides.yaml</h3>
+<p>A partir de Dart 3.8, pub admite <code>pubspec_overrides.yaml</code> como alternativa para overrides locales:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pubspec_overrides.yaml (NO se comitea)</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dependency_overrides</span><span class="kw">:</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">collection</span><span class="kw">:</span><span class="at"> ^1.19.0</span></span></code></pre></div>
+<p>A diferencia de <code>dependency_overrides</code> en <code>pubspec.yaml</code>, este archivo <strong>no se comitea</strong> (debe estar en <code>.gitignore</code>). Es ideal para overrides de desarrollo que no deben afectar al resto del equipo.</p>
+<hr />
+<h3 id="33-problema-típico">3.3 Problema Típico</h3>
+<pre><code>Because every version of flutter_bloc depends on bloc ^9.0.0
+  and every version of bloc 10.x depends on bloc &gt;=10.0.0,
+  flutter_bloc is incompatible with bloc ^10.0.0.</code></pre>
+<p><strong>Diagnóstico:</strong></p>
+<ol type="1">
+<li><code>dart pub deps</code> muestra el árbol</li>
+<li>Identifica qué paquete está causando la incompatibilidad</li>
+<li>Busca si hay una versión más nueva del paquete que resuelva el conflicto</li>
+<li>Si no, usa <code>dependency_overrides</code> o espera a que los mantenedores actualicen</li>
+</ol>
+<hr />
+<h2 id="4-convención-del-proyecto-real">4. Convención del Proyecto Real</h2>
+<p>El monorepo de referencia usa esta estrategia:</p>
+<table>
+<thead>
+<tr>
+<th>Tipo</th>
+<th>Convención</th>
+<th>Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Librerías Flutter</td>
+<td>Caret <code>^</code></td>
+<td><code>flutter_bloc: ^9.1.1</code></td>
+</tr>
+<tr>
+<td>Frameworks web</td>
+<td>Pinning exacto</td>
+<td><code>"next": "16.3.1"</code></td>
+</tr>
+<tr>
+<td>GitHub Actions</td>
+<td>SHA pinning</td>
+<td><code>actions/checkout@3d3c42e...</code></td>
+</tr>
+<tr>
+<td>Supabase config</td>
+<td>Major version</td>
+<td><code>major_version = 17</code></td>
+</tr>
+<tr>
+<td>Deno Edge Functions</td>
+<td>Rango major</td>
+<td><code>@supabase/supabase-js@2</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-ejercicio">5. Ejercicio</h2>
+<p>Dado este <code>pubspec.yaml</code> con conflictos:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dependencies</span><span class="kw">:</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">flutter_bloc</span><span class="kw">:</span><span class="at"> ^9.1.1</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">bloc</span><span class="kw">:</span><span class="at"> ^10.0.0</span><span class="co">  # incompatible con flutter_bloc ^9.1.1</span></span></code></pre></div>
+<p>Pasos:</p>
+<ol type="1">
+<li>Ejecuta <code>dart pub deps</code> para ver el error</li>
+<li>Identifica la versión de <code>bloc</code> que necesita <code>flutter_bloc</code></li>
+<li>Decide: ¿bajas <code>bloc</code> o esperas a <code>flutter_bloc</code> 10.x?</li>
+<li>Documenta la decisión en un ADR</li>
+</ol>
+<hr />
+<h2 id="resumen">Resumen</h2>
+<ol type="1">
+<li><strong>Caret</strong> (<code>^</code>) para librerías — flexibilidad controlada</li>
+<li><strong>Pinning exacto</strong> para frameworks críticos</li>
+<li><strong>SHA</strong> para Actions de CI/CD</li>
+<li><strong><code>pubspec.lock</code></strong> se comitea en apps</li>
+<li><strong><code>dependency_overrides</code></strong> solo como parche temporal</li>
+<li><strong><code>dart pub deps</code></strong> es tu herramienta de diagnóstico</li>
+</ol>
+<hr />
+<h2 id="books-referencias">📚 Referencias</h2>
+<ul>
+<li><a href="https://dart.dev/tools/pub/dependencies">Dart | Pub dependencies</a> — Sintaxis de versionado y tipos de dependencias</li>
+<li><a href="https://dart.dev/tools/pub/cmd/pub-deps">Dart | Pub deps</a> — Comando <code>dart pub deps</code></li>
+<li><a href="https://dart.dev/tools/pub/cmd/pub-upgrade">Dart | Pub upgrade</a> — Comando <code>dart pub upgrade</code> y lockfile</li>
+<li><a href="https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-third-party-actions">GitHub | Security hardening for Actions</a> — SHA pinning en acciones de CI/CD</li>
+</ul>
+<hr />
+<blockquote>
+<p>📖 <strong>Siguiente:</strong> <a href="./02-flujo-actualizacion.md">02-flujo-actualizacion.md</a> — Cómo actualizar dependencias sin romper el proyecto</p>
+</blockquote>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Capítulo 02</span><div class="kick">Parte 1 · Estrategia y flujo de actualización</div><h2>02 — Flujo de Actualización</h2></div><div class="article"><blockquote>
+<p>Cómo actualizar dependencias Flutter y npm de forma segura, sin romper el proyecto.</p>
+</blockquote>
+<hr />
+<h2 id="1-dart-pub-outdated">1. <code>dart pub outdated</code></h2>
+<h3 id="11-leer-la-salida">1.1 Leer la Salida</h3>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> pub outdated</span></code></pre></div>
+<pre><code>Showing outdated packages.
+[*] indicates versions that are not mutually compatible.
+
+Package Name       Current  Upgradable  Resolvable  Latest
+dio                5.9.0    5.11.0      5.11.0      5.11.0
+equatable          2.0.5    2.1.0       2.1.0       2.1.0
+flutter_bloc       9.1.0    9.1.1       9.1.1       9.1.1
+go_router          17.4.1   17.5.0      17.5.0      17.5.0</code></pre>
+<table>
+<thead>
+<tr>
+<th>Columna</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Current</strong></td>
+<td>Lo que tienes instalado</td>
+</tr>
+<tr>
+<td><strong>Upgradable</strong></td>
+<td>Versión a la que puedes subir con <code>dart pub upgrade</code> (solo patch/minor)</td>
+</tr>
+<tr>
+<td><strong>Resolvable</strong></td>
+<td>Versión máxima que pub puede resolver sin cambiar <code>pubspec.yaml</code></td>
+</tr>
+<tr>
+<td><strong>Latest</strong></td>
+<td>Última versión publicada (puede ser major)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="12-priorizar-actualizaciones">1.2 Priorizar Actualizaciones</h3>
+<ol type="1">
+<li><strong>Patch</strong> (3.0.0 → 3.0.1) — seguras, merge automático</li>
+<li><strong>Minor</strong> (3.0.0 → 3.1.0) — revisar changelog</li>
+<li><strong>Major</strong> (3.0.0 → 4.0.0) — planificar migración</li>
+</ol>
+<hr />
+<h2 id="2-dart-pub-upgrade">2. <code>dart pub upgrade</code></h2>
+<h3 id="21-upgrade-normal">2.1 Upgrade Normal</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Actualiza todo a la versión resolvable</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> pub upgrade</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Actualiza un paquete específico</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> pub upgrade flutter_bloc</span></code></pre></div>
+<p>Esto actualiza solo <strong>dentro de la constraint</strong>. Si tienes <code>^9.1.0</code>, subirá a <code>9.x.x</code> pero nunca a <code>10.0.0</code>.</p>
+<h3 id="22-upgrade-con-major-versions">2.2 Upgrade con Major Versions</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Activar explícitamente major versions</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> pub upgrade <span class="at">--major-versions</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Para un solo paquete</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> pub upgrade flutter_bloc <span class="at">--major-versions</span></span></code></pre></div>
+<p>Esto <strong>modifica <code>pubspec.yaml</code></strong> para actualizar la constraint: <code>^9.1.0</code> → <code>^10.0.0</code>.</p>
+<blockquote>
+<p><strong>⚠️ Precaución:</strong> No ejecutes <code>--major-versions</code> en todos los paquetes a la vez. Hazlo de uno en uno, revisando breaking changes.</p>
+</blockquote>
+<h3 id="23-equivalente-npm">2.3 Equivalente npm</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Mostrar desactualizados</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> outdated</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Actualizar dentro de semver</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> update</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Actualizar a latest (cambia package.json)</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install next@latest</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Auditoría de seguridad</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> audit</span></code></pre></div>
+<hr />
+<h2 id="3-proceso-seguro-de-upgrade">3. Proceso Seguro de Upgrade</h2>
+<h3 id="31-flujo">3.1 Flujo</h3>
+<pre><code>1. Leer CHANGELOG del paquete
+       ↓
+2. Buscar migration guide (GitHub releases / docs)
+       ↓
+3. dart pub upgrade &lt;paquete&gt;
+       ↓
+4. dart pub outdated (verificar que todo esté bien)
+       ↓
+5. dart fix --apply --dry-run
+   dart fix --apply
+       ↓
+6. Ejecutar tests: flutter test -j 1
+       ↓
+7. Ejecutar build_runner si aplica
+       ↓
+8. Compilar: flutter analyze
+       ↓
+9. Commit separado con mensaje semántico</code></pre>
+<h3 id="32-ejemplo-real-supabase_flutter">3.2 Ejemplo Real: <code>supabase_flutter</code></h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Ver versión actual</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">grep</span> supabase_flutter pubspec.lock</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Revisar changelog</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># https://github.com/supabase/supabase-flutter/releases</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Actualizar</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> pub upgrade supabase_flutter</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Migrar si hay breaking changes</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co"># - Revisar cambios en supabase_flutter (ej: nueva inicialización)</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> fix <span class="at">--apply</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="co"># 5. Testear</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="ex">flutter</span> analyze</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="ex">flutter</span> test <span class="at">-j</span> 1</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="co"># 6. Commit</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add pubspec.yaml pubspec.lock lib/</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">&quot;fix(deps): update supabase_flutter to 2.17.2&quot;</span></span></code></pre></div>
+<h3 id="33-casos-especiales-por-paquete">3.3 Casos Especiales por Paquete</h3>
+<table>
+<thead>
+<tr>
+<th>Paquete</th>
+<th>Qué revisar post-upgrade</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>supabase_flutter</code></td>
+<td>Cambios en inicialización, nuevas tablas de auth</td>
+</tr>
+<tr>
+<td><code>flutter_bloc</code> / <code>bloc</code></td>
+<td>Nuevos métodos en BlocObserver, cambios en HydratedBloc</td>
+</tr>
+<tr>
+<td><code>fpdart</code></td>
+<td>Cambios en Either/TaskEither API (Dart 3 pattern matching)</td>
+</tr>
+<tr>
+<td><code>go_router</code></td>
+<td>Cambios en ShellRoute, StatefulShellRoute, redirect</td>
+</tr>
+<tr>
+<td><code>dio</code></td>
+<td>Interceptors, cancelación de requests, multipart</td>
+</tr>
+<tr>
+<td><code>isar_community</code></td>
+<td>Regenerar archivos <code>.g.dart</code> con build_runner</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4-dart-fix---apply">4. <code>dart fix --apply</code></h2>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ver qué cambios haría</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> fix <span class="at">--dry-run</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Aplicar cambios automáticos</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> fix <span class="at">--apply</span></span></code></pre></div>
+<p><code>dart fix</code> aplica migraciones automáticas del SDK de Dart. Es el <strong>primer paso</strong> después de cualquier upgrade. No cubre migraciones de paquetes de terceros.</p>
+<hr />
+<h2 id="5-build-runner-y-code-generation">5. Build Runner y Code Generation</h2>
+<p>Después de actualizar paquetes que usan code generation:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Limpiar caché primero</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> run build_runner clean</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Regenerar todo</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> run build_runner build <span class="at">--delete-conflicting-outputs</span></span></code></pre></div>
+<p>Problema común: <code>build_runner</code> queda en versión incompatible. Si falla, actualiza <code>build_runner</code> primero.</p>
+<hr />
+<h2 id="6-npm-upgrade-en-web">6. npm: Upgrade en Web</h2>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ver todo</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> outdated</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Actualizar todo</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> update</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Paquete específico</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install next@latest</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Verificar vulnerabilidades</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> audit</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Fix automático (solo patch)</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> audit fix</span></code></pre></div>
+<p><strong>Convención del monorepo:</strong> Next.js y React están exact-pinned. Se actualizan manualmente revisando el migration guide.</p>
+<hr />
+<h2 id="7-ejercicio">7. Ejercicio</h2>
+<p>Escenario: Acaban de publicar <code>fpdart 2.0.0</code> con breaking changes. Tu proyecto usa <code>^1.2.0</code>.</p>
+<ol type="1">
+<li>Revisa el changelog de fpdart en GitHub</li>
+<li>Ejecuta <code>dart pub upgrade fpdart --major-versions</code></li>
+<li>Corre <code>dart fix --dry-run</code> y <code>dart fix --apply</code></li>
+<li>Si fallan los tests, identifica qué cambió</li>
+<li>Actualiza el código para la nueva API</li>
+<li>Commit con mensaje semántico</li>
+</ol>
+<hr />
+<h2 id="resumen">Resumen</h2>
+<ol type="1">
+<li><strong><code>dart pub outdated</code></strong> — diagnóstico, no acción</li>
+<li><strong><code>dart pub upgrade</code></strong> — actualiza dentro de constraints</li>
+<li><strong><code>--major-versions</code></strong> — solo para un paquete a la vez</li>
+<li><strong>Siempre</strong> leer CHANGELOG antes de actualizar</li>
+<li><strong>Siempre</strong> correr <code>dart fix --apply</code> después</li>
+<li><strong>Siempre</strong> tests + analyze antes de commitear</li>
+</ol>
+<hr />
+<h2 id="books-referencias">📚 Referencias</h2>
+<ul>
+<li><a href="https://dart.dev/tools/pub/cmd/pub-outdated">Dart | Pub outdated</a> — Comando <code>dart pub outdated</code></li>
+<li><a href="https://dart.dev/tools/pub/cmd/pub-upgrade">Dart | Pub upgrade</a> — Comando <code>dart pub upgrade</code></li>
+<li><a href="https://dart.dev/tools/dart-fix">Dart | dart fix</a> — Migraciones automáticas de código</li>
+<li><a href="https://docs.npmjs.com/cli/v12/commands/npm-outdated">npm Docs | npm-outdated</a> — Comando <code>npm outdated</code></li>
+<li><a href="https://docs.npmjs.com/cli/v12/commands/npm-audit">npm Docs | npm-audit</a> — Comando <code>npm audit</code></li>
+</ul>
+<hr />
+<blockquote>
+<p>📖 <strong>Siguiente:</strong> <a href="./03-automatizacion-dependabot-renovate.md">03-automatizacion-dependabot-renovate.md</a> — Automatizar actualizaciones con Dependabot y Renovate</p>
+</blockquote>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Capítulo 03</span><div class="kick">Parte 2 · Automatización y SDK</div><h2>03 — Automatización: Dependabot y Renovate</h2></div><div class="article"><blockquote>
+<p>Configura bots de actualización como parte del workflow del equipo.</p>
+</blockquote>
+<hr />
+<h2 id="1-dependabot">1. Dependabot</h2>
+<h3 id="11-configuración-básica">1.1 Configuración Básica</h3>
+<div class="sourceCode" id="cb1"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># .github/dependabot.yml</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">version</span><span class="kw">:</span><span class="at"> </span><span class="dv">2</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">updates</span><span class="kw">:</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">package-ecosystem</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;github-actions&quot;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">directory</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;/&quot;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">schedule</span><span class="kw">:</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">interval</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;weekly&quot;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">open-pull-requests-limit</span><span class="kw">:</span><span class="at"> </span><span class="dv">5</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">package-ecosystem</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;npm&quot;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">directory</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;/apps/web&quot;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">schedule</span><span class="kw">:</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">interval</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;weekly&quot;</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">open-pull-requests-limit</span><span class="kw">:</span><span class="at"> </span><span class="dv">5</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">package-ecosystem</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;pub&quot;</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">directory</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;/apps/mobile&quot;</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">schedule</span><span class="kw">:</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">interval</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;weekly&quot;</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">open-pull-requests-limit</span><span class="kw">:</span><span class="at"> </span><span class="dv">5</span></span></code></pre></div>
+<p>Esta es la configuración real del monorepo de referencia.</p>
+<h3 id="12-personalización">1.2 Personalización</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">updates</span><span class="kw">:</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">package-ecosystem</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;pub&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">directory</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;/apps/mobile&quot;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">schedule</span><span class="kw">:</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">interval</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;weekly&quot;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">day</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;monday&quot;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">time</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;09:00&quot;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">timezone</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;America/Caracas&quot;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">open-pull-requests-limit</span><span class="kw">:</span><span class="at"> </span><span class="dv">10</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">reviewers</span><span class="kw">:</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="st">&quot;isaac-urdaneta&quot;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">assignees</span><span class="kw">:</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="st">&quot;isaac-urdaneta&quot;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">labels</span><span class="kw">:</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="st">&quot;dependencies&quot;</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="st">&quot;flutter&quot;</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">allow</span><span class="kw">:</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">dependency-type</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;direct&quot;</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ignore</span><span class="kw">:</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">dependency-name</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;flutter_bloc&quot;</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">update-types</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="st">&quot;version-update:semver-major&quot;</span><span class="kw">]</span></span></code></pre></div>
+<h3 id="13-parámetros-clave">1.3 Parámetros Clave</h3>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Qué hace</th>
+<th>Recomendación</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>schedule.interval</code></td>
+<td>Frecuencia de chequeo</td>
+<td><code>weekly</code> (evita ruido diario)</td>
+</tr>
+<tr>
+<td><code>open-pull-requests-limit</code></td>
+<td>Máx PRs abiertos simultáneos</td>
+<td><code>5-10</code> (no inundar)</td>
+</tr>
+<tr>
+<td><code>reviewers</code></td>
+<td>Quién revisa los PRs</td>
+<td>El team lead o dueño del módulo</td>
+</tr>
+<tr>
+<td><code>allow</code></td>
+<td>Filtrar qué actualizar</td>
+<td><code>direct</code> (solo directas, no transitivas)</td>
+</tr>
+<tr>
+<td><code>ignore</code></td>
+<td>Excluir paquetes específicos</td>
+<td>Solo para updates problemáticos conocidos</td>
+</tr>
+<tr>
+<td><code>target-branch</code></td>
+<td>Rama base de los PRs</td>
+<td><code>dev</code> si usas Git Flow</td>
+</tr>
+</tbody>
+</table>
+<h3 id="14-grupos-groups">1.4 Grupos (<code>groups</code>)</h3>
+<p>Desde 2023, Dependabot permite agrupar dependencias relacionadas en un <strong>solo PR</strong>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">package-ecosystem</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;pub&quot;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">directory</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;/apps/mobile&quot;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">schedule</span><span class="kw">:</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">interval</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;weekly&quot;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">groups</span><span class="kw">:</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">bloc-family</span><span class="kw">:</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">patterns</span><span class="kw">:</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="kw">-</span><span class="at"> </span><span class="st">&quot;bloc&quot;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="kw">-</span><span class="at"> </span><span class="st">&quot;flutter_bloc&quot;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="kw">-</span><span class="at"> </span><span class="st">&quot;bloc_test&quot;</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">exclude-patterns</span><span class="kw">:</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="kw">-</span><span class="at"> </span><span class="st">&quot;bloc*&quot;</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="kw">-</span><span class="at"> </span><span class="st">&quot;*.test&quot;</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">patch-updates</span><span class="kw">:</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">update-types</span><span class="kw">:</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="kw">-</span><span class="at"> </span><span class="st">&quot;patch&quot;</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">patterns</span><span class="kw">:</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="kw">-</span><span class="at"> </span><span class="st">&quot;*&quot;</span></span></code></pre></div>
+<p><strong>Recomendaciones:</strong></p>
+<ul>
+<li>Agrupa <strong>patch updates</strong> en un solo PR (bajo riesgo)</li>
+<li>Agrupa <strong>familias de paquetes</strong> (<code>bloc</code>, <code>go_router</code>, <code>supabase</code>) para revisarlas juntas</li>
+<li><strong>Nunca agrupes major updates</strong> — cada uno merece su propia migración</li>
+</ul>
+<h3 id="15-caso-real-monitorear-root-packagejson">1.5 Caso Real: Monitorear root <code>package.json</code></h3>
+<p>El monorepo actual no cubre el <code>package.json</code> raíz (commitlint, husky, commitizen):</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">package-ecosystem</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;npm&quot;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">directory</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;/&quot;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">schedule</span><span class="kw">:</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">interval</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;monthly&quot;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">open-pull-requests-limit</span><span class="kw">:</span><span class="at"> </span><span class="dv">3</span></span></code></pre></div>
+<p>Estas dependencias de tooling cambian poco, por eso <code>monthly</code> es suficiente.</p>
+<h3 id="16-dependabot-security-updates">1.6 Dependabot Security Updates</h3>
+<p>GitHub habilita automáticamente PRs de seguridad para CVEs conocidas. No necesita configuración en <code>dependabot.yml</code>, se activa desde Settings → Code security → Dependabot security updates.</p>
+<hr />
+<h2 id="2-renovate">2. Renovate</h2>
+<h3 id="21-por-qué-usar-renovate">2.1 ¿Por qué usar Renovate?</h3>
+<table>
+<thead>
+<tr>
+<th>Aspecto</th>
+<th>Dependabot</th>
+<th>Renovate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Configuración</td>
+<td>YAML simple, opciones limitadas</td>
+<td>JSON/JS, altamente configurable</td>
+</tr>
+<tr>
+<td>Agrupación de PRs</td>
+<td><code>groups</code> (desde 2023) para version y security updates</td>
+<td><code>groupName</code> para agrupar por tipo</td>
+</tr>
+<tr>
+<td>Schedule por paquete</td>
+<td>No</td>
+<td>Sí, por regex</td>
+</tr>
+<tr>
+<td>Auto-merge condicional</td>
+<td>Limitado</td>
+<td>Sí, con reglas</td>
+</tr>
+<tr>
+<td>Dashboard</td>
+<td>No</td>
+<td>Panel web con estado</td>
+</tr>
+<tr>
+<td>Onboarding</td>
+<td>No</td>
+<td>PR de configuración inicial</td>
+</tr>
+</tbody>
+</table>
+<h3 id="22-configuración-mínima">2.2 Configuración Mínima</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">renovate.json</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;$schema&quot;</span><span class="fu">:</span> <span class="st">&quot;https://docs.renovatebot.com/renovate-schema.json&quot;</span><span class="fu">,</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;extends&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;config:recommended&quot;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;labels&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;dependencies&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;schedule&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;before 9am on monday&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;packageRules&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;matchPackageNames&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;flutter_bloc&quot;</span><span class="ot">,</span> <span class="st">&quot;bloc&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;groupName&quot;</span><span class="fu">:</span> <span class="st">&quot;bloc packages&quot;</span><span class="fu">,</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;automerge&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;matchUpdateTypes&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;patch&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;automerge&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;automergeType&quot;</span><span class="fu">:</span> <span class="st">&quot;pr&quot;</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;matchPackageNames&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;next&quot;</span><span class="ot">,</span> <span class="st">&quot;react&quot;</span><span class="ot">,</span> <span class="st">&quot;react-dom&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;enabled&quot;</span><span class="fu">:</span> <span class="kw">false</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h3 id="23-agrupación-inteligente">2.3 Agrupación Inteligente</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;packageRules&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;matchPackagePatterns&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;*&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;groupName&quot;</span><span class="fu">:</span> <span class="st">&quot;all dependencies&quot;</span><span class="fu">,</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;groupSlug&quot;</span><span class="fu">:</span> <span class="st">&quot;all-deps&quot;</span><span class="fu">,</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;schedule&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;before 9am on monday&quot;</span><span class="ot">]</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Cuándo agrupar:</strong></p>
+<ul>
+<li>Paquetes del mismo ecosistema (<code>bloc</code>, <code>flutter_bloc</code>, <code>bloc_test</code>)</li>
+<li>Patch updates (bajo riesgo)</li>
+<li>Dev dependencies</li>
+</ul>
+<p><strong>Cuándo NO agrupar:</strong></p>
+<ul>
+<li>Major updates (riesgo alto)</li>
+<li>Paquetes con migraciones complejas</li>
+</ul>
+<hr />
+<h2 id="3-flujo-de-trabajo-con-prs-de-dependencias">3. Flujo de Trabajo con PRs de Dependencias</h2>
+<h3 id="31-revisión">3.1 Revisión</h3>
+<pre><code>1. Dependabot/Renovate abre PR
+       ↓
+2. CI corre automáticamente (tests + analyze)
+       ↓
+3. Revisar: ¿CI pasa? ¿Hay breaking changes?
+       ↓
+4. Si CI pasa + es patch/minor → merge aprobado
+       ↓
+5. Si es major → revisar changelog manualmente
+       ↓
+6. Merge con squash + mensaje semántico</code></pre>
+<h3 id="32-estrategia-de-auto-merge">3.2 Estrategia de Auto-Merge</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Dependabot no tiene auto-merge nativo. La forma recomendada por GitHub es</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># combinar dependabot/fetch-metadata + gh pr merge --auto (el PR espera a que CI pase).</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># .github/workflows/auto-merge-deps.yml</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">name</span><span class="kw">:</span><span class="at"> Auto-merge dependencies</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="fu">on</span><span class="kw">:</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">pull_request</span><span class="kw">:</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">types</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">opened</span><span class="kw">,</span><span class="at"> synchronize</span><span class="kw">]</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="fu">permissions</span><span class="kw">:</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">pull-requests</span><span class="kw">:</span><span class="at"> write</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">contents</span><span class="kw">:</span><span class="at"> write</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="fu">jobs</span><span class="kw">:</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">auto-merge</span><span class="kw">:</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">if</span><span class="kw">:</span><span class="at"> github.actor == &#39;dependabot[bot]&#39; || github.actor == &#39;renovate[bot]&#39;</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">runs-on</span><span class="kw">:</span><span class="at"> ubuntu-latest</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">steps</span><span class="kw">:</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/checkout@v7</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Fetch dependabot metadata</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">id</span><span class="kw">:</span><span class="at"> meta</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">if</span><span class="kw">:</span><span class="at"> github.actor == &#39;dependabot[bot]&#39;</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> dependabot/fetch-metadata@v3</span></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">compat-lookup</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Auto-merge patch &amp; minor updates</span></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">if</span><span class="kw">:</span><span class="at"> steps.meta.outputs.update-type == &#39;version-update:semver-patch&#39; || steps.meta.outputs.update-type == &#39;version-update:semver-minor&#39;</span></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">run</span><span class="kw">:</span><span class="at"> gh pr merge --auto --squash &quot;$PR_URL&quot;</span></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">env</span><span class="kw">:</span></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">PR_URL</span><span class="kw">:</span><span class="at"> ${{ github.event.pull_request.html_url }}</span></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">GH_TOKEN</span><span class="kw">:</span><span class="at"> ${{ secrets.GITHUB_TOKEN }}</span></span></code></pre></div>
+<h3 id="33-mensajes-de-commit">3.3 Mensajes de Commit</h3>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Patch</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">chore</span><span class="er">(</span><span class="ex">deps</span><span class="kw">)</span><span class="bu">:</span> update dependency flutter_bloc to 9.1.1</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Minor</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="ex">feat</span><span class="er">(</span><span class="ex">deps</span><span class="kw">)</span><span class="bu">:</span> update dependency dio to 5.11.0</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Major</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="ex">chore</span><span class="er">(</span><span class="ex">deps</span><span class="kw">)</span><span class="bu">:</span> migrate flutter_bloc from 9.x to 10.x</span></code></pre></div>
+<hr />
+<h2 id="4-ci-de-auditoría-semanal">4. CI de Auditoría Semanal</h2>
+<p>Workflow que corre <code>dart pub outdated</code> semanal y crea un issue si hay dependencias atrasadas:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">name</span><span class="kw">:</span><span class="at"> Weekly dependency audit</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">on</span><span class="kw">:</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">schedule</span><span class="kw">:</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> </span><span class="fu">cron</span><span class="kw">:</span><span class="at"> </span><span class="st">&#39;0 9 * * 1&#39;</span><span class="co">  # Lunes 9am</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="fu">jobs</span><span class="kw">:</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">audit</span><span class="kw">:</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">runs-on</span><span class="kw">:</span><span class="at"> ubuntu-latest</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">steps</span><span class="kw">:</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/checkout@v7</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> subosito/flutter-action@v3</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">flutter-version</span><span class="kw">:</span><span class="at"> </span><span class="st">&#39;3.47.0&#39;</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Check outdated</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">id</span><span class="kw">:</span><span class="at"> outdated</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="fu">        run</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>          dart pub outdated --no-dev &gt; /tmp/outdated.txt</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>          cat /tmp/outdated.txt</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>          if grep -q &quot;up-to-date&quot; /tmp/outdated.txt; then</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>            echo &quot;All up to date&quot;</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>          else</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>            echo &quot;has_outdated=true&quot; &gt;&gt; $GITHUB_OUTPUT</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>          fi</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">working-directory</span><span class="kw">:</span><span class="at"> apps/mobile</span></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Create issue</span></span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">if</span><span class="kw">:</span><span class="at"> steps.outdated.outputs.has_outdated == &#39;true&#39;</span></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/github-script@v9</span></span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a><span class="fu">          script</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>            const fs = require(&#39;fs&#39;);</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>            const outdated = fs.readFileSync(&#39;/tmp/outdated.txt&#39;, &#39;utf8&#39;);</span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>            github.rest.issues.create({</span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>              owner: context.repo.owner,</span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>              repo: context.repo.repo,</span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>              title: &#39;📦 Dependencies weekly audit&#39;,</span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>              body: &#39;```\n&#39; + outdated + &#39;\n```&#39;,</span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>              labels: [&#39;dependencies&#39;, &#39;automated&#39;]</span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a>            });</span></code></pre></div>
+<hr />
+<h2 id="5-ejercicio">5. Ejercicio</h2>
+<p>Configura Dependabot para un monorepo con estas características:</p>
+<ul>
+<li>Flutter en <code>apps/mobile/</code> (pub)</li>
+<li>Next.js en <code>apps/web/</code> (npm)</li>
+<li>Tooling en raíz <code>package.json</code> (npm)</li>
+<li>GitHub Actions en <code>/</code> (github-actions)</li>
+</ul>
+<p>Incluye:</p>
+<ul>
+<li>Schedule: Flutter lunes, web martes, tooling mensual, Actions semanal</li>
+<li>Límite: 5 PRs para Flutter, 3 para web</li>
+<li>Revisores: <code>team-flutter</code> y <code>team-web</code></li>
+<li>Labels: <code>dependencies</code> + <code>ecosystem:{{name}}</code></li>
+<li>Ignorar major updates de <code>flutter_bloc</code> temporalmente</li>
+</ul>
+<hr />
+<h2 id="resumen">Resumen</h2>
+<ol type="1">
+<li><strong>Dependabot</strong> es simple y funciona — ideal para empezar</li>
+<li><strong>Renovate</strong> es más potente — útil si necesitas control fino</li>
+<li><strong>Auto-merge</strong> solo para patch/minor que pasen CI</li>
+<li><strong>Auditoría semanal</strong> en CI para detectar dependencias atrasadas</li>
+<li><strong>Revisión manual</strong> siempre para major updates</li>
+</ol>
+<hr />
+<h2 id="books-referencias">📚 Referencias</h2>
+<ul>
+<li><a href="https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuring-dependabot-version-updates">GitHub | Configuring Dependabot version updates</a> — Configuración de <code>dependabot.yml</code></li>
+<li><a href="https://docs.github.com/en/code-security/dependabot/dependabot-security-updates/configuring-dependabot-security-updates">GitHub | Dependabot security updates</a> — Security updates automáticos</li>
+<li><a href="https://docs.renovatebot.com/configuration-options/">Renovate Docs | Configuration options</a> — Opciones de configuración</li>
+<li><a href="https://docs.renovatebot.com/presets-config/#configrecommended">Renovate Docs | Preset config:recommended</a> — Preset recomendado</li>
+</ul>
+<hr />
+<blockquote>
+<p>📖 <strong>Siguiente:</strong> <a href="./04-mantenimiento-sdk-ecosistema.md">04-mantenimiento-sdk-ecosistema.md</a> — Mantener el SDK del proyecto</p>
+</blockquote>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Capítulo 04</span><div class="kick">Parte 2 · Automatización y SDK</div><h2>04 — Mantenimiento del SDK y Ecosistema</h2></div><div class="article"><blockquote>
+<p>Mantén las herramientas base del proyecto sincronizadas: Flutter, Supabase CLI y Node.js.</p>
+</blockquote>
+<hr />
+<h2 id="1-flutter-sdk">1. Flutter SDK</h2>
+<h3 id="11-el-problema">1.1 El Problema</h3>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Dev 1: Flutter 3.41.0</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Dev 2: Flutter 3.44.0</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># CI/CD: Flutter 3.47.0</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Misma base de código, diferentes versiones → resultados diferentes</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># &quot;En mi máquina funciona&quot; → versión incorrecta</span></span></code></pre></div>
+<h3 id="12-fvm-al-rescate">1.2 FVM al Rescate</h3>
+<blockquote>
+<p>📖 La instalación y uso de FVM está cubierta en <a href="../12-GIT-FLOW-CONVENTIONAL-COMMITS/04-fvm-version-management.md">12-GIT-FLOW/04-fvm-version-management.md</a>. Aquí solo se cubre el aspecto de mantenimiento.</p>
+</blockquote>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># apps/mobile/.fvm/flutter_sdk_version</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">3.47.0</span></span></code></pre></div>
+<p><strong>Checklist de mantenimiento:</strong></p>
+<ul>
+<li>✅ Todos los devs usan <code>fvm flutter</code> en vez de <code>flutter</code> directamente</li>
+<li>✅ VS Code configurado con <code>dart.flutterSdkPath: ".fvm/flutter_sdk"</code></li>
+<li>✅ CI/CD hardcodea la versión en el workflow YAML</li>
+<li>✅ IDE y CLI leen la misma versión</li>
+</ul>
+<h3 id="13-cuándo-actualizar-flutter">1.3 Cuándo Actualizar Flutter</h3>
+<table>
+<thead>
+<tr>
+<th>Señal</th>
+<th>Acción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Nueva versión stable</td>
+<td>Esperar 1-2 semanas *</td>
+</tr>
+<tr>
+<td>Release de Dart con features que necesitas</td>
+<td>Actualizar inmediatamente</td>
+</tr>
+<tr>
+<td>CVE de seguridad en Flutter/Dart</td>
+<td>Actualizar urgente</td>
+</tr>
+<tr>
+<td>Paquete que requieres necesita SDK más nuevo</td>
+<td>Actualizar</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>* Buena práctica basada en experiencia del ecosistema, no es política oficial de Google.</p>
+</blockquote>
+<h3 id="14-proceso-de-upgrade">1.4 Proceso de Upgrade</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Verificar compatibilidad sin cambiar</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">fvm</span> flutter <span class="at">--version</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ex">fvm</span> releases                 <span class="co"># ver versiones estables disponibles</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Instalar nueva versión</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="ex">fvm</span> install 3.47.0</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="ex">fvm</span> use 3.47.0</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Probar localmente</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="ex">fvm</span> flutter pub get</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="ex">fvm</span> flutter analyze</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="ex">fvm</span> flutter test <span class="at">-j</span> 1</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="ex">fvm</span> dart fix <span class="at">--dry-run</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Actualizar CI/CD</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Cambiar flutter-version: &#39;3.44.0&#39; → &#39;3.47.0&#39; en workflows</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Actualizar GitHub Variable si usas una</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="co"># 5. Commit</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add apps/mobile/.fvm/flutter_sdk_version</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">&quot;chore(sdk): bump Flutter from 3.44.0 to 3.47.0&quot;</span></span></code></pre></div>
+<h3 id="15-centralización-de-versiones">1.5 Centralización de Versiones</h3>
+<p>El monorepo referencia la versión de Flutter en múltiples lugares:</p>
+<pre><code>.github/workflows/ci-quality.yml:        flutter-version: &#39;3.47.0&#39;
+.github/workflows/flutter-android-release.yml: flutter-version: &#39;3.47.0&#39;
+apps/mobile/.fvm/flutter_sdk_version:    3.47.0
+.github/variables/FLUTTER_VERSION:       3.47.0</code></pre>
+<p><strong>Práctica recomendada:</strong> Usa GitHub Variables o un archivo <code>.github/workflows/config/versions.env</code> para centralizar:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># En un workflow</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Setup Flutter</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> subosito/flutter-action@v3</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">flutter-version</span><span class="kw">:</span><span class="at"> ${{ vars.FLUTTER_VERSION }}</span></span></code></pre></div>
+<p>Así cambias la versión en un solo lugar.</p>
+<hr />
+<h2 id="2-supabase-cli">2. Supabase CLI</h2>
+<h3 id="21-versiones-en-configtoml">2.1 Versiones en <code>config.toml</code></h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode toml"><code class="sourceCode toml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># supabase/config.toml</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">project_id</span> <span class="op">=</span> <span class="st">&quot;rifa-gestion&quot;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="dt">major_version</span> <span class="op">=</span> <span class="st">&quot;17&quot;</span>      <span class="co"># PostgreSQL</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="dt">deno_version</span> <span class="op">=</span> <span class="st">&quot;2&quot;</span>         <span class="co"># Deno runtime</span></span></code></pre></div>
+<h3 id="22-verificar-versiones">2.2 Verificar Versiones</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Versión de la CLI</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">supabase</span> <span class="at">--version</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Estado del stack local</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="ex">supabase</span> status</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Migraciones pendientes vs aplicadas</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="ex">supabase</span> migration list</span></code></pre></div>
+<h3 id="23-actualizar-supabase-cli">2.3 Actualizar Supabase CLI</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Instalar/actualizar CLI</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> upgrade supabase/tap/supabase   <span class="co"># macOS</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install <span class="at">-g</span> supabase              <span class="co"># npm</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># o descargar release de GitHub</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Reiniciar stack local después de upgrade</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="ex">supabase</span> stop</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="ex">supabase</span> start</span></code></pre></div>
+<h3 id="24-cambiar-versión-de-postgresql">2.4 Cambiar Versión de PostgreSQL</h3>
+<div class="sourceCode" id="cb9"><pre class="sourceCode toml"><code class="sourceCode toml"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># El cambio de major_version requiere reiniciar el stack</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># ¡Cuidado! Puede causar incompatibilidades en migraciones</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="dt">major_version</span> <span class="op">=</span> <span class="st">&quot;17&quot;</span></span></code></pre></div>
+<blockquote>
+<p>Cambiar de una major de PostgreSQL a otra (p. ej. 15 → 17) requiere verificar que todas las extensiones y queries sean compatibles.</p>
+</blockquote>
+<hr />
+<h2 id="3-nodejs">3. Node.js</h2>
+<h3 id="31-nvmrc">3.1 <code>.nvmrc</code></h3>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># .nvmrc en apps/web/</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">24</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Usar la versión del proyecto</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="ex">nvm</span> use</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Saber qué versión tienes</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="ex">node</span> <span class="at">--version</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Instalar una versión específica</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="ex">nvm</span> install 24</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="ex">nvm</span> use 24</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;24&quot;</span> <span class="op">&gt;</span> .nvmrc</span></code></pre></div>
+<h3 id="32-engines-en-packagejson">3.2 <code>engines</code> en package.json</h3>
+<div class="sourceCode" id="cb12"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">apps/web/package.json</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;engines&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;node&quot;</span><span class="fu">:</span> <span class="st">&quot;&gt;=22.0.0&quot;</span><span class="fu">,</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;npm&quot;</span><span class="fu">:</span> <span class="st">&quot;&gt;=10.0.0&quot;</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>Esto da una advertencia temprana si alguien usa una versión incorrecta:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> npm install</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> WARN EBADENGINE Unsupported engine {</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="ex">package:</span> <span class="st">&#39;web&#39;</span>,</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="ex">required:</span> { node: <span class="st">&#39;&gt;=22.0.0&#39;</span> },</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="ex">current:</span> { node: <span class="st">&#39;20.0.0&#39;</span> }</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="er">}</span></span></code></pre></div>
+<h3 id="33-cuándo-actualizar-node">3.3 Cuándo Actualizar Node</h3>
+<table>
+<thead>
+<tr>
+<th>Versión</th>
+<th>Estado</th>
+<th>Acción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Node 18</td>
+<td>EOL (Abril 2025)</td>
+<td>Migrar ya</td>
+</tr>
+<tr>
+<td>Node 20</td>
+<td>EOL (Abril 2026)</td>
+<td>Migrar a 22 o 24</td>
+</tr>
+<tr>
+<td>Node 22</td>
+<td>Maintenance LTS</td>
+<td>Mantener, planificar migración</td>
+</tr>
+<tr>
+<td>Node 24 (Krypton)</td>
+<td>Active LTS (actual)</td>
+<td>Usar (recomendado)</td>
+</tr>
+<tr>
+<td>Node 26</td>
+<td>Current</td>
+<td>No recomendado para producción hasta su LTS (oct 2026)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Regla:</strong> Usa siempre la versión LTS activa que usa tu CI/CD.</p>
+<hr />
+<h2 id="4-política-de-versiones-por-ecosistema">4. Política de Versiones por Ecosistema</h2>
+<table>
+<thead>
+<tr>
+<th>Herramienta</th>
+<th>Dónde se declara</th>
+<th>Cadencia de actualización</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Flutter SDK</td>
+<td><code>.fvm/flutter_sdk_version</code></td>
+<td>Cada 2-3 meses (cada release estable)</td>
+</tr>
+<tr>
+<td>Dart SDK</td>
+<td>Atado a Flutter</td>
+<td>Automática con Flutter</td>
+</tr>
+<tr>
+<td>Supabase CLI</td>
+<td>Sistema / npm global</td>
+<td>Mensual</td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td><code>supabase/config.toml</code></td>
+<td>Solo si nuevas features lo requieren</td>
+</tr>
+<tr>
+<td>Deno runtime</td>
+<td><code>supabase/config.toml</code></td>
+<td>Cada 3-6 meses</td>
+</tr>
+<tr>
+<td>Node.js</td>
+<td><code>.nvmrc</code> + <code>engines</code></td>
+<td>Cada ciclo LTS (~12 meses)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-ejercicio">5. Ejercicio</h2>
+<p>Tu equipo trabaja en el monorepo. Flutter acaba de lanzar 3.47.0, Node 24 es ahora Active LTS, y Supabase CLI 2.1x tiene cambios importantes.</p>
+<ol type="1">
+<li>Actualiza Flutter a 3.47.0 siguiendo el proceso de 1.4</li>
+<li>Actualiza los 3 workflows que hardcodean la versión</li>
+<li>Actualiza <code>.nvmrc</code> a Node 24</li>
+<li>Actualiza <code>engines</code> en <code>apps/web/package.json</code></li>
+<li>Actualiza Supabase CLI y verifica <code>supabase status</code></li>
+<li>Commitea cada cambio por separado con mensajes semánticos</li>
+</ol>
+<hr />
+<h2 id="resumen">Resumen</h2>
+<ol type="1">
+<li><strong>FVM</strong> asegura que todos usen la misma versión de Flutter</li>
+<li><strong>Centraliza</strong> la versión en GitHub Variables o un archivo <code>.env</code></li>
+<li><strong>Espera 1-2 semanas</strong> antes de adoptar un nuevo Flutter stable (buena práctica empírica, no política oficial)</li>
+<li><strong>Supabase CLI</strong> se actualiza independientemente del proyecto</li>
+<li><strong>Node.js</strong> se declara en <code>.nvmrc</code> y <code>engines</code></li>
+<li>Cada ecosistema tiene su propia cadencia de actualización</li>
+</ol>
+<hr />
+<h2 id="books-referencias">📚 Referencias</h2>
+<ul>
+<li><a href="https://docs.flutter.dev/release/compatibility-policy">Flutter | Compatibility policy</a> — Política de soporte de versiones</li>
+<li><a href="https://docs.flutter.dev/release/archive">Flutter | SDK archive</a> — Historial de releases estables</li>
+<li><a href="https://fvm.app">FVM</a> — Flutter Version Management</li>
+<li><a href="https://docs.npmjs.com/cli/v12/configuring-npm/package-json#engines">Node.js | package.json engines</a> — Campo <code>engines</code> en package.json</li>
+</ul>
+<hr />
+<blockquote>
+<p>📖 <strong>Siguiente:</strong> <a href="./05-seguridad-auditoria.md">05-seguridad-auditoria.md</a> — Auditoría de seguridad en dependencias</p>
+</blockquote>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Capítulo 05</span><div class="kick">Parte 3 · Seguridad y ciclo de vida</div><h2>05 — Seguridad y Auditoría</h2></div><div class="article"><blockquote>
+<p>Detecta y responde a vulnerabilidades en dependencias de forma sistemática.</p>
+</blockquote>
+<hr />
+<h2 id="1-dart-pub-deps-como-herramienta-de-auditoría">1. <code>dart pub deps</code> como Herramienta de Auditoría</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Árbol completo con versiones exactas</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> pub deps</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Formato JSON para procesar en CI</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> pub deps <span class="at">--json</span> <span class="op">&gt;</span> deps.json</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Solo dependencias principales (sin dev)</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> pub deps <span class="at">--no-dev</span></span></code></pre></div>
+<p>Con <code>dart pub deps --json</code> puedes analizar el árbol con <code>jq</code>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extraer todas las dependencias directas</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> deps.json <span class="kw">|</span> <span class="ex">jq</span> <span class="st">&#39;.packages | to_entries[] | select(.value.kind == &quot;direct main&quot;) | {name: .key, version: .value.version}&#39;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Buscar un paquete específico</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> deps.json <span class="kw">|</span> <span class="ex">jq</span> <span class="st">&#39;.packages | to_entries[] | select(.key == &quot;supabase_flutter&quot;)&#39;</span></span></code></pre></div>
+<hr />
+<h2 id="2-osvdev-y-github-advisory-database">2. OSV.dev y GitHub Advisory Database</h2>
+<h3 id="21-consultar-vulnerabilidades-conocidas">2.1 Consultar Vulnerabilidades Conocidas</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Usando OSV.dev CLI (Open Source Vulnerabilities)</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install osv</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ex">osv</span> query <span class="at">--package</span> supabase-flutter</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># O usando la API directamente</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST https://api.osv.dev/v1/query <span class="dt">\</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;package&quot;: {&quot;name&quot;: &quot;supabase-flutter&quot;, &quot;ecosystem&quot;: &quot;Pub&quot;}, &quot;version&quot;: &quot;2.17.2&quot;}&#39;</span></span></code></pre></div>
+<h3 id="22-github-advisory-database">2.2 GitHub Advisory Database</h3>
+<ul>
+<li>URL: <code>https://github.com/advisories?query=ecosystem%3Apub</code></li>
+<li>Filtra por ecosistema <code>Pub</code> (Dart/Flutter) o <code>npm</code></li>
+<li>Cada advisory incluye: descripción, severidad (CVSS), versión afectada, versión corregida</li>
+</ul>
+<hr />
+<h2 id="3-npm-audit">3. <code>npm audit</code></h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Auditoría completa</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> audit</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Solo vulnerabilidades altas y críticas</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> audit <span class="at">--audit-level</span><span class="op">=</span>high</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Fix automático (patch seguro)</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> audit fix</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Fix solo para vulnerabilidades altas</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> audit fix <span class="at">--audit-level</span><span class="op">=</span>high</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Formato JSON para CI</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> audit <span class="at">--json</span> <span class="op">&gt;</span> audit-report.json</span></code></pre></div>
+<h3 id="31-integrar-en-ci">3.1 Integrar en CI</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fragmento de nextjs-ci.yml</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> npm audit</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">  run</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    npm audit --audit-level=high</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">working-directory</span><span class="kw">:</span><span class="at"> apps/web</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">continue-on-error</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span><span class="co">  # No bloquear el build, pero reportar</span></span></code></pre></div>
+<hr />
+<h2 id="4-dependabot-security-updates">4. Dependabot Security Updates</h2>
+<p>A diferencia de los <strong>version updates</strong> (PRs semanales), los <strong>security updates</strong> son PRs automáticos que GitHub crea cuando se detecta una CVE en una dependencia del proyecto.</p>
+<h3 id="41-activación">4.1 Activación</h3>
+<p>Settings → Code security → Dependabot → Dependabot security updates → Enable</p>
+<h3 id="42-flujo">4.2 Flujo</h3>
+<pre><code>1. GitHub detecta CVE en una dependencia del proyecto
+       ↓
+2. Crea PR automático con la versión parcheada
+       ↓
+3. CI corre automáticamente
+       ↓
+4. Tú revisas y mergeas
+       ↓
+5. GitHub marca la vulnerabilidad como resuelta</code></pre>
+<h3 id="43-diferencia-con-version-updates">4.3 Diferencia con Version Updates</h3>
+<table>
+<thead>
+<tr>
+<th>Aspecto</th>
+<th>Version Updates</th>
+<th>Security Updates</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gatillo</td>
+<td>Schedule (config en <code>dependabot.yml</code>)</td>
+<td>CVE detectada (automático)</td>
+</tr>
+<tr>
+<td>Prioridad</td>
+<td>Baja</td>
+<td>Alta</td>
+</tr>
+<tr>
+<td>Auto-creación</td>
+<td>Configurable</td>
+<td>Siempre</td>
+</tr>
+<tr>
+<td>Se puede desactivar</td>
+<td>Sí (en <code>dependabot.yml</code>)</td>
+<td>Sí (Settings)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-severidades-cvss">5. Severidades CVSS</h2>
+<pre class="mermaid"><code>graph LR
+    A[CVSS Score] --&gt; B[0.1-3.9: Low]
+    A --&gt; C[4.0-6.9: Medium]
+    A --&gt; D[7.0-8.9: High]
+    A --&gt; E[9.0-10.0: Critical]</code></pre>
+<h3 id="51-matriz-de-respuesta">5.1 Matriz de Respuesta</h3>
+<table>
+<thead>
+<tr>
+<th>Severidad</th>
+<th>Acción</th>
+<th>Plazo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Critical</strong> (9.0-10.0)</td>
+<td>Actualizar inmediatamente. Parche manual si no hay fix</td>
+<td>&lt; 24h</td>
+</tr>
+<tr>
+<td><strong>High</strong> (7.0-8.9)</td>
+<td>Actualizar en el próximo ciclo de trabajo</td>
+<td>&lt; 1 semana</td>
+</tr>
+<tr>
+<td><strong>Medium</strong> (4.0-6.9)</td>
+<td>Planificar en el próximo sprint</td>
+<td>&lt; 1 mes</td>
+</tr>
+<tr>
+<td><strong>Low</strong> (0.1-3.9)</td>
+<td>Documentar y revisar en mantenimiento trimestral</td>
+<td>&lt; 3 meses</td>
+</tr>
+</tbody>
+</table>
+<h3 id="52-sin-parche-disponible">5.2 Sin Parche Disponible</h3>
+<p>Si hay CVE crítica pero no hay versión parcheada:</p>
+<ol type="1">
+<li>Evaluar si la vulnerabilidad afecta tu caso de uso</li>
+<li>Si afecta: buscar paquete alternativo</li>
+<li>Si no afecta: documentar la decisión y monitorear</li>
+<li>Crear un issue para dar seguimiento</li>
+</ol>
+<hr />
+<h2 id="6-estrategia-de-seguridad-en-ci">6. Estrategia de Seguridad en CI</h2>
+<h3 id="61-pipeline-ideal">6.1 Pipeline Ideal</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">name</span><span class="kw">:</span><span class="at"> Security audit</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">on</span><span class="kw">:</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">schedule</span><span class="kw">:</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> </span><span class="fu">cron</span><span class="kw">:</span><span class="at"> </span><span class="st">&#39;0 6 * * 1&#39;</span><span class="co">  # Cada lunes</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">push</span><span class="kw">:</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">branches</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">main</span><span class="kw">,</span><span class="at"> dev</span><span class="kw">]</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="fu">jobs</span><span class="kw">:</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">audit</span><span class="kw">:</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">runs-on</span><span class="kw">:</span><span class="at"> ubuntu-latest</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">steps</span><span class="kw">:</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/checkout@v7</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co">      # Flutter audit</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> subosito/flutter-action@v3</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">flutter-version</span><span class="kw">:</span><span class="at"> </span><span class="st">&#39;3.47.0&#39;</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Dart deps audit</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="fu">        run</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>          dart pub deps --json &gt; /tmp/deps.json</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>          dart pub outdated --no-dev &gt; /tmp/outdated.txt</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">working-directory</span><span class="kw">:</span><span class="at"> apps/mobile</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a><span class="co">      # npm audit</span></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> npm audit</span></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">run</span><span class="kw">:</span><span class="at"> npm audit --audit-level=high</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">working-directory</span><span class="kw">:</span><span class="at"> apps/web</span></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">continue-on-error</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a><span class="co">      # Publicar reporte</span></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Upload audit report</span></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/upload-artifact@v4</span></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">name</span><span class="kw">:</span><span class="at"> security-audit</span></span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a><span class="fu">          path</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>            /tmp/deps.json</span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>            /tmp/outdated.txt</span></code></pre></div>
+<h3 id="62-gate-en-prs">6.2 Gate en PRs</h3>
+<div class="sourceCode" id="cb9"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Bloquear PRs si hay CVE conocida en nuevas dependencias</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Check for known vulnerabilities</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">  run</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    dart pub deps --json | jq -r &#39;</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>      .packages | to_entries[] | </span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>      &quot;\(.key)@\(.value.version)&quot;</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    &#39; | while read pkg; do</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>      echo &quot;Checking $pkg...&quot;</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>      # Consultar OSV.dev API</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>      name=$(echo $pkg | cut -d@ -f1)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>      version=$(echo $pkg | cut -d@ -f2)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>      response=$(curl -s -X POST https://api.osv.dev/v1/query \</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>        -d &quot;{\&quot;package\&quot;: {\&quot;name\&quot;: \&quot;$name\&quot;, \&quot;ecosystem\&quot;: \&quot;Pub\&quot;}, \&quot;version\&quot;: \&quot;$version\&quot;}&quot;)</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>      if echo &quot;$response&quot; | grep -q &#39;&quot;vulns&quot;&#39;; then</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>        echo &quot;VULNERABILITY FOUND in $pkg&quot;</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>        echo &quot;$response&quot;</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>        exit 1</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>      fi</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    done</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">working-directory</span><span class="kw">:</span><span class="at"> apps/mobile</span></span></code></pre></div>
+<hr />
+<h2 id="7-ejercicio">7. Ejercicio</h2>
+<ol type="1">
+<li>Ejecuta <code>dart pub deps --json</code> en tu proyecto y extrae las dependencias directas con <code>jq</code></li>
+<li>Consulta el GitHub Advisory Database para <code>Pub</code> ecosystem y encuentra una CVE reciente</li>
+<li>Integra <code>npm audit --audit-level=high</code> en el workflow <code>nextjs-ci.yml</code> del monorepo</li>
+<li>Simula un escenario: se descubre CVE crítica en <code>dio</code> 5.9.0 — ¿cuál es tu plan de acción?</li>
+</ol>
+<hr />
+<h2 id="resumen">Resumen</h2>
+<ol type="1">
+<li><strong><code>dart pub deps</code></strong> es tu primera herramienta de auditoría</li>
+<li><strong>OSV.dev</strong> y <strong>GitHub Advisory Database</strong> para consultar CVE conocidas</li>
+<li><strong><code>npm audit</code></strong> para dependencias web</li>
+<li><strong>Dependabot Security Updates</strong> para PRs automáticos de seguridad</li>
+<li><strong>Matriz de respuesta CVSS</strong>: Critical &lt;24h, High &lt;1sem, Medium &lt;1mes</li>
+<li><strong>Gate en CI</strong> para bloquear nuevas dependencias con vulnerabilidades conocidas</li>
+</ol>
+<hr />
+<h2 id="books-referencias">📚 Referencias</h2>
+<ul>
+<li><a href="https://google.github.io/osv.dev/post-v1-query/">OSV.dev | API</a> — Consulta de vulnerabilidades por paquete y versión</li>
+<li><a href="https://github.com/advisories">GitHub | Advisory Database</a> — Base de datos de CVEs con filtro por ecosistema</li>
+<li><a href="https://docs.npmjs.com/cli/v12/commands/npm-audit">npm Docs | npm-audit</a> — Comando <code>npm audit</code></li>
+<li><a href="https://www.first.org/cvss/v3-1/">FIRST | CVSS v3.1</a> — Especificación del sistema de puntuación CVSS</li>
+<li><a href="https://docs.github.com/en/code-security/dependabot/dependabot-security-updates/configuring-dependabot-security-updates">GitHub | Dependabot security updates</a> — Security updates automáticos</li>
+</ul>
+<hr />
+<blockquote>
+<p>📖 <strong>Siguiente:</strong> <a href="./06-deprecacion-eol-migraciones.md">06-deprecacion-eol-migraciones.md</a> — Deprecación y migraciones</p>
+</blockquote>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Capítulo 06</span><div class="kick">Parte 3 · Seguridad y ciclo de vida</div><h2>06 — Deprecación, EOL y Migraciones</h2></div><div class="article"><blockquote>
+<p>Identifica cuándo un paquete o herramienta está llegando a su fin y planifica la migración.</p>
+</blockquote>
+<hr />
+<h2 id="1-señales-de-deprecación">1. Señales de Deprecación</h2>
+<h3 id="11-indicadores-tempranos">1.1 Indicadores Tempranos</h3>
+<table>
+<thead>
+<tr>
+<th>Señal</th>
+<th>Riesgo</th>
+<th>Acción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sin commits en &gt;12 meses *</td>
+<td>Alto</td>
+<td>Buscar alternativa</td>
+</tr>
+<tr>
+<td>Issues sin respuesta del maintainer</td>
+<td>Alto</td>
+<td>Evaluar fork o alternativa</td>
+</tr>
+<tr>
+<td>Discord/reddit recomendando migrar</td>
+<td>Medio</td>
+<td>Investigar</td>
+</tr>
+<tr>
+<td>Package no soporta última versión de Dart</td>
+<td>Alto</td>
+<td>Migrar urgente</td>
+</tr>
+<tr>
+<td>El paquete tiene dependencias obsoletas a su vez</td>
+<td>Medio</td>
+<td>Monitorear</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>* Heurística basada en actividad del ecosistema open-source. No es una regla formal: algunos paquetes maduros tienen pocos commits pero siguen siendo funcionales y estables.</p>
+</blockquote>
+<h3 id="12-ejemplos-reales-en-el-ecosistema-dartflutter">1.2 Ejemplos Reales en el Ecosistema Dart/Flutter</h3>
+<table>
+<thead>
+<tr>
+<th>Paquete Obsoleto</th>
+<th>Reemplazo</th>
+<th>Razón</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>hive</code> / <code>hive_flutter</code></td>
+<td><code>isar_community</code></td>
+<td>Hive sin mantenimiento activo, Isar es más rápido y moderno</td>
+</tr>
+<tr>
+<td><code>pennylane</code></td>
+<td><code>fpdart</code></td>
+<td>pennylane no migró a Dart 3; fpdart tiene pattern matching, Either, Option</td>
+</tr>
+<tr>
+<td><code>built_value</code></td>
+<td><code>freezed</code> / <code>json_serializable</code></td>
+<td>built_value es verboso; freezed es más idiomático en Dart 3</td>
+</tr>
+<tr>
+<td><code>dartson</code></td>
+<td><code>json_serializable</code></td>
+<td>dartson abandonado desde Dart 2</td>
+</tr>
+<tr>
+<td><code>flutter_auth</code> / <code>firebase_auth</code></td>
+<td><code>supabase_flutter</code></td>
+<td>Depende del backend; migración a Supabase si aplica</td>
+</tr>
+</tbody>
+</table>
+<h3 id="13-cómo-detectar">1.3 Cómo Detectar</h3>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Última publicación en pub.dev</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> pub outdated <span class="kw">|</span> <span class="fu">grep</span> <span class="op">&lt;</span>paquete<span class="op">&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Verificar estado del repo</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Ir a github.com/&lt;user&gt;/&lt;repo&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Ver pestaña &quot;Insights&quot; → &quot;Contributors&quot;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Último commit, últimas releases</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Verificar compatibilidad con Dart actual</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># pub.dev → Analysis tab</span></span></code></pre></div>
+<hr />
+<h2 id="2-proceso-de-migración">2. Proceso de Migración</h2>
+<h3 id="21-flujo-general">2.1 Flujo General</h3>
+<pre><code>1. Investigar alternativa madura
+   - Comunidad activa
+   - Soportada activamente
+   - Compatible con Dart/Flutter actual
+       ↓
+2. Probar en rama separada
+   git checkout -b migrate/fpdart-2.0
+       ↓
+3. Crear capa de compatibilidad temporal
+   - Wrapper/facade para aislar el cambio
+       ↓
+4. Migrar gradualmente
+   - Feature flags si es grande
+   - Un módulo a la vez
+       ↓
+5. Eliminar dependencia antigua
+   - dart pub remove &lt;paquete&gt;
+   - Revisar imports huérfanos
+       ↓
+6. Correr tests completos
+       ↓
+7. Actualizar guías del equipo
+   - ADR de la decisión
+   - Documentar breaking changes</code></pre>
+<h3 id="22-ejemplo-migrar-pennylane--fpdart">2.2 Ejemplo: Migrar pennylane → fpdart</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// ANTES: pennylane (Dart 2)</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>Either<span class="op">&lt;</span>Failure<span class="op">,</span> User<span class="op">&gt;</span> getUser(<span class="dt">String</span> id) <span class="op">{</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">return</span> Right(user);</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">// DESPUÉS: fpdart (Dart 3)</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>Either<span class="op">&lt;</span>Failure<span class="op">,</span> User<span class="op">&gt;</span> getUser(<span class="dt">String</span> id) <span class="op">{</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">return</span> Either<span class="op">.</span>right(user);</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Cambios comunes:</p>
+<ul>
+<li><code>Right(value)</code> → <code>Either.right(value)</code></li>
+<li><code>Left(value)</code> → <code>Either.left(value)</code></li>
+<li><code>Option.of(value)</code> → <code>Option.fromNullable(value)</code></li>
+<li>Pattern matching con Dart 3 (<code>switch</code> + <code>sealed class</code>)</li>
+</ul>
+<h3 id="23-estrategia-capa-de-compatibilidad">2.3 Estrategia: Capa de Compatibilidad</h3>
+<p>Para migraciones grandes, crea un wrapper:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">// lib/core/compat/either_compat.dart</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">// Temporal: migrando de pennylane a fpdart</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="st">&#39;package:fpdart/fpdart.dart&#39;</span> <span class="kw">as</span> fpdart;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="st">&#39;package:pennylane/pennylane.dart&#39;</span> <span class="kw">as</span> penny;</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co">// Re-exportar la nueva implementación</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="kw">export</span> <span class="st">&#39;package:fpdart/fpdart.dart&#39;</span>;</span></code></pre></div>
+<p>Luego, módulo por módulo, cambias los imports del wrapper al paquete final.</p>
+<hr />
+<h2 id="3-eol-de-flutter-y-dart">3. EOL de Flutter y Dart</h2>
+<h3 id="31-política-de-soporte-de-google">3.1 Política de Soporte de Google</h3>
+<p>Según la <a href="https://docs.flutter.dev/release/compatibility-policy">compatibility policy</a> oficial, solo la última versión estable recibe soporte activo con parches completos:</p>
+<pre><code>Flutter stable:
+  N (latest)     → Soporte activo (parches completos)
+  N-1 o anterior → Sin soporte oficial garantizado</code></pre>
+<p>Ejemplo con Flutter 3.47.0 actual (agosto 2026):</p>
+<ul>
+<li>3.47.0 → soporte activo</li>
+<li>3.44.0 → release anterior, sin soporte oficial garantizado</li>
+</ul>
+<blockquote>
+<p>En la práctica, el ecosistema suele mantener N-1 funcional porque los paquetes rara vez exigen la versión más reciente. Sin embargo, <strong>no hay parches de seguridad garantizados</strong> para versiones anteriores a la última estable.</p>
+</blockquote>
+<h3 id="32-calendario-de-releases">3.2 Calendario de Releases</h3>
+<pre class="mermaid"><code>gantt
+    title Flutter Release Timeline
+    dateFormat  YYYY-MM
+    section Stable
+    Flutter 3.29  :2025-02, 2025-05
+    Flutter 3.32  :2025-05, 2025-08
+    Flutter 3.35  :2025-08, 2025-11
+    Flutter 3.38  :2025-11, 2026-02
+    Flutter 3.41  :2026-02, 2026-05
+    Flutter 3.44  :2026-05, 2026-08
+    Flutter 3.47  :2026-08, 2026-11</code></pre>
+<blockquote>
+<p>Google publica ~4 releases estables al año (~3 meses entre releases). La <a href="https://docs.flutter.dev/release/compatibility-policy">compatibility policy</a> oficial solo garantiza soporte para la versión estable más reciente; el estimado de ~8 meses de soporte activo por versión es una <strong>inferencia basada en el ciclo de releases</strong>, no una política publicada.</p>
+</blockquote>
+<h3 id="33-qué-pasa-si-no-actualizas">3.3 Qué Pasa si No Actualizas</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pubspec.yaml</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">environment</span><span class="kw">:</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">sdk</span><span class="kw">:</span><span class="at"> ^3.8.0</span><span class="co">  # &lt;= Si tu SDK está por debajo del mínimo que requiere un paquete</span></span></code></pre></div>
+<ul>
+<li>El paquete deja de recibir updates</li>
+<li>Nuevos paquetes pueden no ser compatibles</li>
+<li>Vulnerabilidades de seguridad no se parchean</li>
+<li><code>dart pub get</code> empieza a fallar con versiones nuevas</li>
+</ul>
+<h3 id="34-actualizar-dart-sdk">3.4 Actualizar Dart SDK</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">environment</span><span class="kw">:</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">sdk</span><span class="kw">:</span><span class="at"> ^3.13.0</span><span class="co">  # &lt;= Actualizar cuando migres Flutter (Dart 3.13 con Flutter 3.47)</span></span></code></pre></div>
+<p><code>dart fix --apply</code> es particularmente útil después de cambiar la constraint del SDK:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Después de actualizar el SDK constraint</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> fix <span class="at">--dry-run</span>   <span class="co"># Ver qué cambios sugiere</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> fix <span class="at">--apply</span>     <span class="co"># Aplicar cambios automáticos</span></span></code></pre></div>
+<hr />
+<h2 id="4-eol-de-paquetes-específicos-del-proyecto">4. EOL de Paquetes Específicos del Proyecto</h2>
+<h3 id="41-monitoreo-proactivo">4.1 Monitoreo Proactivo</h3>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Script para detectar paquetes sin actualizar en &gt;1 año</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> pub deps <span class="at">--json</span> <span class="kw">|</span> <span class="ex">jq</span> <span class="at">-r</span> <span class="st">&#39;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="st">  .packages | to_entries[] | </span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="st">  select(.key as $p | [</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="st">    &quot;flutter&quot;, &quot;flutter_test&quot;, &quot;intl&quot;, &quot;collection&quot;, &quot;meta&quot;,</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="st">    &quot;async&quot;, &quot;typed_data&quot;, &quot;vector_math&quot;, &quot;material_color_utilities&quot;</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="st">  ] | contains([$p]) | not) |</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="st">  &quot;\(.key) \(.value.version)&quot;</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="st">&#39;</span> <span class="kw">|</span> <span class="cf">while</span> <span class="bu">read</span> <span class="va">name</span> <span class="va">version</span><span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="bu">echo</span> <span class="st">&quot;Checking </span><span class="va">$name</span><span class="st"> </span><span class="va">$version</span><span class="st">...&quot;</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Consultar pub.dev API</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  <span class="va">last_updated</span><span class="op">=</span><span class="va">$(</span><span class="ex">curl</span> <span class="at">-s</span> <span class="st">&quot;https://pub.dev/api/packages/</span><span class="va">$name</span><span class="st">&quot;</span> <span class="kw">|</span> <span class="ex">jq</span> <span class="at">-r</span> <span class="st">&#39;.lastUpdated&#39;</span><span class="va">)</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="bu">echo</span> <span class="st">&quot;  Last updated: </span><span class="va">$last_updated</span><span class="st">&quot;</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<h3 id="42-registro-de-decisiones-adr">4.2 Registro de Decisiones (ADR)</h3>
+<p>Cuando decides adoptar o reemplazar un paquete, documenta:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu"># ADR-007: Migrar de pennylane a fpdart</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">## Contexto</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>pennylane no ha recibido actualizaciones en 18 meses.</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>No soporta Dart 3 features (pattern matching, sealed classes).</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="fu">## Decisión</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>Migrar a fpdart 1.x, que tiene comunidad activa,</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>soporta Dart 3, y tiene mejor integración con bloc.</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="fu">## Consecuencias</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Wrapper temporal en lib/core/compat/</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Migración módulo por módulo en 2 sprints</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>-1 dependencia obsoleta, +1 dependencia activa</span></code></pre></div>
+<hr />
+<h2 id="5-estrategia-de-long-term-support-lts">5. Estrategia de Long Term Support (LTS)</h2>
+<p>Para proyectos en producción:</p>
+<table>
+<thead>
+<tr>
+<th>Nivel</th>
+<th>Práctica</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Gold</strong></td>
+<td>Flutter stable + 1 release atrás; paquetes actualizados a minor más reciente</td>
+</tr>
+<tr>
+<td><strong>Silver</strong></td>
+<td>Flutter stable actual; paquetes actualizados a última major</td>
+</tr>
+<tr>
+<td><strong>Bronze</strong></td>
+<td>Flutter sin actualizar por &gt;6 meses; paquetes con 2+ majors de retraso</td>
+</tr>
+</tbody>
+</table>
+<p>El monorepo debería aspirar a <strong>Gold</strong>: Flutter stable, paquetes en minor más reciente, con Dependabot para patch y minor automáticos.</p>
+<hr />
+<h2 id="6-ejercicio">6. Ejercicio</h2>
+<ol type="1">
+<li>Identifica un paquete en tu <code>pubspec.yaml</code> que no se haya actualizado en &gt;12 meses</li>
+<li>Busca alternativas maduras (pub.dev, GitHub stars, fecha de último commit)</li>
+<li>Crea un plan de migración con capa de compatibilidad</li>
+<li>Documenta la decisión como ADR</li>
+<li>Ejecuta la migración y verifica con <code>flutter analyze</code> + <code>flutter test</code></li>
+</ol>
+<hr />
+<h2 id="resumen">Resumen</h2>
+<ol type="1">
+<li><strong>12 meses sin commits</strong> = bandera roja (heurística, no regla formal)</li>
+<li><strong>Migración gradual</strong>: capa de compatibilidad + feature flags</li>
+<li><strong><code>dart fix --apply</code></strong> después de cambiar SDK constraint</li>
+<li><strong>ADR</strong> para documentar decisiones de reemplazo</li>
+<li><strong>Flutter EOL</strong>: ~8 meses de soporte activo (inferencia del ciclo de releases, no política oficial)</li>
+<li><strong>Nivel Gold</strong>: Flutter stable + paquetes al día</li>
+</ol>
+<hr />
+<h2 id="books-referencias">📚 Referencias</h2>
+<ul>
+<li><a href="https://docs.flutter.dev/release/compatibility-policy">Flutter | Compatibility policy</a> — Política oficial de soporte de versiones</li>
+<li><a href="https://docs.flutter.dev/release/archive">Flutter | SDK archive</a> — Historial de releases estables</li>
+<li><a href="https://dart.dev/tools/dart-fix">Dart | dart fix</a> — Migraciones automáticas de código</li>
+<li><a href="https://adr.github.io/">ADR | Architecture Decision Records</a> — Patrón para documentar decisiones técnicas</li>
+</ul>
+<hr />
+<blockquote>
+<p>📖 <strong>Siguiente:</strong> <a href="./07-makefile-ci-objetivos.md">07-makefile-ci-objetivos.md</a> — Targets de dependencias en Makefile y CI</p>
+</blockquote>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Capítulo 07</span><div class="kick">Parte 4 · Operación continua</div><h2>07 — Makefile y CI para Mantenimiento Continuo</h2></div><div class="article"><blockquote>
+<p>Extiende el Makefile y los workflows CI para monitorear la salud de las dependencias automáticamente.</p>
+</blockquote>
+<hr />
+<h2 id="1-targets-de-dependencias-en-el-makefile">1. Targets de Dependencias en el Makefile</h2>
+<blockquote>
+<p>📖 La sintaxis básica de Makefile se cubre en <a href="../10-MAKEFILE/02-sintaxis-basica.md">10-MAKEFILE/02-sintaxis-basica.md</a>. Aquí solo se muestran targets específicos de dependencias.</p>
+</blockquote>
+<h3 id="11-targets-existentes">1.1 Targets Existentes</h3>
+<div class="sourceCode" id="cb1"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ya existentes en el Makefile del monorepo</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="dv">deps:</span><span class="dt"> deps-mobile deps-web        </span><span class="co"># Instalar todas las dependencias</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="dv">deps-mobile:</span><span class="dt">                       </span><span class="co"># flutter pub get</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="dv">deps-web:</span><span class="dt">                          </span><span class="co"># npm install</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="dv">outdated:</span><span class="dt">                          </span><span class="co"># flutter pub outdated</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="dv">upgrade:</span><span class="dt">                           </span><span class="co"># flutter pub upgrade + npm update</span></span></code></pre></div>
+<h3 id="12-nuevos-targets-propuestos">1.2 Nuevos Targets Propuestos</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ─── Dependencies maintenance ───────────────────────────────────</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ot">.PHONY:</span><span class="dt"> audit dep-report check-constraints dep-tree deps-security</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Auditoría completa de seguridad</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="dv">audit:</span><span class="dt"> audit-mobile audit-web audit-actions</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="er">    </span><span class="ch">@</span><span class="fu">echo </span><span class="st">&quot;✅ Security audit complete&quot;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="dv">audit-mobile:</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="er">    </span><span class="ch">@</span><span class="fu">echo </span><span class="st">&quot;🔍 Auditing Flutter dependencies...&quot;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="ch">@</span><span class="fu">cd apps/mobile &amp;&amp; dart pub get &amp;&amp; dart pub deps --json &gt; /tmp/deps-mobile.json</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="ch">@</span><span class="fu">cd apps/mobile &amp;&amp; dart pub outdated --no-dev</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="dv">audit-web:</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="er">    </span><span class="ch">@</span><span class="fu">echo </span><span class="st">&quot;🔍 Auditing npm dependencies...&quot;</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="ch">@</span><span class="fu">cd apps/web &amp;&amp; npm audit --audit-level=high</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="dv">audit-actions:</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="er">    </span><span class="ch">@</span><span class="fu">echo </span><span class="st">&quot;🔍 Checking GitHub Actions versions...&quot;</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    <span class="ch">@</span><span class="fu">for f in .github/workflows/*.yml; do </span><span class="ch">\</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="fu">        echo </span><span class="st">&quot;Checking </span><span class="ch">$$</span><span class="st">f...&quot;</span><span class="fu">; </span><span class="ch">\</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="fu">        grep -n </span><span class="st">&quot;uses:&quot;</span><span class="fu"> </span><span class="ch">$$</span><span class="fu">f | grep -v </span><span class="st">&quot;@&quot;</span><span class="fu"> &amp;&amp; echo </span><span class="st">&quot;  ⚠️  Unpinned action in </span><span class="ch">$$</span><span class="st">f&quot;</span><span class="fu"> || true; </span><span class="ch">\</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="fu">    done</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Reporte de estado de dependencias en markdown</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="dv">dep-report:</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="er">    </span><span class="ch">@</span><span class="fu">echo </span><span class="st">&quot;# 📦 Estado de Dependencias\n&quot;</span><span class="fu"> &gt; /tmp/dep-report.md</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    <span class="ch">@</span><span class="fu">echo </span><span class="st">&quot;## Flutter\n&quot;</span><span class="fu"> &gt;&gt; /tmp/dep-report.md</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    <span class="ch">@</span><span class="fu">cd apps/mobile &amp;&amp; dart pub outdated --no-dev &gt;&gt; /tmp/dep-report.md</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    <span class="ch">@</span><span class="fu">echo </span><span class="st">&quot;\n## npm\n&quot;</span><span class="fu"> &gt;&gt; /tmp/dep-report.md</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    <span class="ch">@</span><span class="fu">cd apps/web &amp;&amp; npm outdated --json 2&gt;/dev/null | jq -r </span><span class="st">&#39;to_entries[] | &quot;* \(.key): \(.value.current) → \(.value.latest)&quot;&#39;</span><span class="fu"> &gt;&gt; /tmp/dep-report.md 2&gt;/dev/null || echo </span><span class="st">&quot;  All up to date&quot;</span><span class="fu"> &gt;&gt; /tmp/dep-report.md</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>    <span class="ch">@</span><span class="fu">echo </span><span class="st">&quot;\n📄 Report generated: /tmp/dep-report.md&quot;</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>    <span class="ch">@</span><span class="fu">cat /tmp/dep-report.md</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="co"># Verificar constraints de pubspec.yaml</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="dv">check-constraints:</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="er">    </span><span class="ch">@</span><span class="fu">echo </span><span class="st">&quot;🔍 Checking dependency constraints...&quot;</span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>    <span class="ch">@</span><span class="fu">cd apps/mobile &amp;&amp; </span><span class="ch">\</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="fu">        ( dart pub deps 2&gt;&amp;1 | grep -q </span><span class="st">&quot;Conflict&quot;</span><span class="fu"> &amp;&amp; </span><span class="ch">\</span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a><span class="fu">        echo </span><span class="st">&quot;❌ Dependency conflicts found!&quot;</span><span class="fu"> || </span><span class="ch">\</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a><span class="fu">        echo </span><span class="st">&quot;✅ No dependency conflicts&quot;</span><span class="fu"> )</span></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>    <span class="ch">@</span><span class="fu">cd apps/mobile &amp;&amp; </span><span class="ch">\</span></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="fu">        ( dart pub outdated 2&gt;&amp;1 | grep -q </span><span class="st">&quot;overridden&quot;</span><span class="fu"> &amp;&amp; </span><span class="ch">\</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="fu">        echo </span><span class="st">&quot;⚠️  dependency_overrides in use (should be temporary)&quot;</span><span class="fu"> || </span><span class="ch">\</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a><span class="fu">        echo </span><span class="st">&quot;✅ No overrides&quot;</span><span class="fu"> )</span></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="co"># Árbol completo de dependencias</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a><span class="dv">dep-tree:</span></span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a><span class="er">    </span><span class="ch">@</span><span class="fu">cd apps/mobile &amp;&amp; dart pub deps</span></span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a><span class="co"># Escanear dependencias con vulnerabilidades conocidas</span></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a><span class="dv">deps-security:</span></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a><span class="er">    </span><span class="ch">@</span><span class="fu">echo </span><span class="st">&quot;🔐 Scanning dependencies for known vulnerabilities...&quot;</span></span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>    <span class="ch">@</span><span class="fu">cd apps/mobile &amp;&amp; dart pub deps --json | </span><span class="ch">\</span></span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a><span class="fu">        jq -r </span><span class="st">&#39;.packages | to_entries[] | &quot;\(.key)@\(.value.version)&quot;&#39;</span><span class="fu"> | </span><span class="ch">\</span></span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a><span class="fu">        while read pkg; do </span><span class="ch">\</span></span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a><span class="fu">            response=</span><span class="ch">$$</span><span class="fu">(curl -s -o /dev/null -w </span><span class="st">&quot;%{http_code}&quot;</span><span class="fu"> </span><span class="ch">\</span></span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a><span class="fu">                </span><span class="st">&quot;https://api.osv.dev/v1/query&quot;</span><span class="fu"> </span><span class="ch">\</span></span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a><span class="fu">                -d </span><span class="st">&quot;{\&quot;</span><span class="fu">package\</span><span class="st">&quot;:{\&quot;</span><span class="fu">name\</span><span class="st">&quot;:\&quot;</span><span class="ch">$$</span><span class="fu">(echo </span><span class="ch">$$</span><span class="fu">pkg | cut -d@ -f1 | sed </span><span class="st">&#39;s/-/_/g&#39;</span><span class="fu">)\</span><span class="st">&quot;, </span><span class="ch">\</span></span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a><span class="st">                \&quot;</span><span class="fu">ecosystem\</span><span class="st">&quot;:\&quot;</span><span class="fu">Pub\</span><span class="st">&quot;},\&quot;</span><span class="fu">version\</span><span class="st">&quot;:\&quot;</span><span class="ch">$$</span><span class="fu">(echo </span><span class="ch">$$</span><span class="fu">pkg | cut -d@ -f2)\</span><span class="st">&quot;}&quot;</span><span class="fu">); </span><span class="ch">\</span></span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a><span class="fu">            [ </span><span class="st">&quot;</span><span class="ch">$$</span><span class="st">response&quot;</span><span class="fu"> != </span><span class="st">&quot;200&quot;</span><span class="fu"> ] || echo </span><span class="st">&quot;⚠️  </span><span class="ch">$$</span><span class="st">pkg may have vulnerabilities&quot;</span><span class="fu">; </span><span class="ch">\</span></span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a><span class="fu">        done</span></span></code></pre></div>
+<hr />
+<h2 id="2-uso-en-el-día-a-día">2. Uso en el Día a Día</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Antes de un release</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> audit          <span class="co"># Auditoría completa</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> dep-report     <span class="co"># Reporte de estado</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Semanalmente</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> check-constraints   <span class="co"># Verificar que no hay conflictos</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> outdated            <span class="co"># Ver qué se puede actualizar</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Cuando actualizas Flutter SDK</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> deps           <span class="co"># Reinstalar dependencias</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> check-constraints</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> audit</span></code></pre></div>
+<hr />
+<h2 id="3-workflows-ci-de-monitoreo">3. Workflows CI de Monitoreo</h2>
+<h3 id="31-auditoría-semanal-automática">3.1 Auditoría Semanal Automática</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># .github/workflows/deps-audit.yml</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">name</span><span class="kw">:</span><span class="at"> Weekly dependency audit</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">on</span><span class="kw">:</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">schedule</span><span class="kw">:</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> </span><span class="fu">cron</span><span class="kw">:</span><span class="at"> </span><span class="st">&#39;0 9 * * 1&#39;</span><span class="co">  # Lunes 9am UTC</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="fu">jobs</span><span class="kw">:</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">audit</span><span class="kw">:</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">runs-on</span><span class="kw">:</span><span class="at"> ubuntu-latest</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">steps</span><span class="kw">:</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/checkout@v7</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Setup Flutter</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> subosito/flutter-action@v3</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">flutter-version</span><span class="kw">:</span><span class="at"> </span><span class="st">&#39;3.47.0&#39;</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Setup Node</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/setup-node@v7</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">node-version</span><span class="kw">:</span><span class="at"> </span><span class="st">&#39;24&#39;</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">cache</span><span class="kw">:</span><span class="at"> </span><span class="st">&#39;npm&#39;</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">cache-dependency-path</span><span class="kw">:</span><span class="at"> apps/web/package-lock.json</span></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Flutter audit</span></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">id</span><span class="kw">:</span><span class="at"> flutter-audit</span></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a><span class="fu">        run</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>          cd apps/mobile</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>          dart pub get</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>          dart pub outdated --no-dev &gt; /tmp/flutter-outdated.txt</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>          echo &quot;has_outdated=false&quot; &gt;&gt; $GITHUB_OUTPUT</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> npm audit</span></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">id</span><span class="kw">:</span><span class="at"> npm-audit</span></span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a><span class="fu">        run</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>          cd apps/web</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>          npm audit --json &gt; /tmp/npm-audit.json 2&gt;&amp;1 || true</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>          echo &quot;audit_done=true&quot; &gt;&gt; $GITHUB_OUTPUT</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Upload audit artifacts</span></span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/upload-artifact@v4</span></span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">name</span><span class="kw">:</span><span class="at"> dependency-audit-${{ github.run_id }}</span></span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a><span class="fu">          path</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>            /tmp/flutter-outdated.txt</span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>            /tmp/npm-audit.json</span></code></pre></div>
+<h3 id="32-gate-en-prs">3.2 Gate en PRs</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fragmento para agregar a ci-quality.yml</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Check dependency health</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">  run</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    cd apps/mobile</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    dart pub deps --json &gt; /tmp/deps.json</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    # Verificar dependency_overrides (deben ser temporales)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    if grep -q &quot;dependency_overrides&quot; pubspec.yaml; then</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>      echo &quot;⚠️  Warning: dependency_overrides found in pubspec.yaml&quot;</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    fi</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> npm audit gate</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="fu">  run</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    cd apps/web</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    npm audit --audit-level=high || \</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>      (echo &quot;❌ High/critical vulnerabilities found&quot;; exit 1)</span></code></pre></div>
+<h3 id="33-issue-automático-por-dependencias-atrasadas">3.3 Issue Automático por Dependencias Atrasadas</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Continuación del workflow semanal</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Create issue if outdated</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">if</span><span class="kw">:</span><span class="at"> steps.flutter-audit.outputs.has_outdated == &#39;true&#39;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/github-script@v9</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="fu">    script</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>      const fs = require(&#39;fs&#39;);</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>      const outdated = fs.readFileSync(&#39;/tmp/flutter-outdated.txt&#39;, &#39;utf8&#39;);</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>      // Verificar si ya existe un issue abierto similar</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>      const issues = await github.rest.issues.listForRepo({</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>        owner: context.repo.owner,</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>        repo: context.repo.repo,</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>        state: &#39;open&#39;,</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>        labels: [&#39;dependencies&#39;, &#39;automated&#39;]</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>      });</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>      if (issues.data.length === 0) {</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>        await github.rest.issues.create({</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>          owner: context.repo.owner,</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>          repo: context.repo.repo,</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>          title: &#39;📦 Weekly dependency report&#39;,</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>          body: &#39;```\n&#39; + outdated + &#39;\n```\n_Automated report_&#39;,</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>          labels: [&#39;dependencies&#39;, &#39;automated&#39;]</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>        });</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>      }</span></code></pre></div>
+<hr />
+<h2 id="4-checklist-de-mantenimiento-regular">4. Checklist de Mantenimiento Regular</h2>
+<h3 id="diario--por-pr">Diario / Por PR</h3>
+<ul class="task-list">
+<li><label><input type="checkbox" /><code>flutter analyze</code> pasa sin errores</label></li>
+<li><label><input type="checkbox" />CI verde</label></li>
+</ul>
+<h3 id="semanal-lunes">Semanal (Lunes)</h3>
+<ul class="task-list">
+<li><label><input type="checkbox" /><code>make audit</code> — revisar dependencias</label></li>
+<li><label><input type="checkbox" />Revisar PRs abiertos de Dependabot/Renovate</label></li>
+<li><label><input type="checkbox" />Mergear patch y minor que pasen CI</label></li>
+</ul>
+<h3 id="mensual">Mensual</h3>
+<ul class="task-list">
+<li><label><input type="checkbox" /><code>make dep-report</code> — generar reporte</label></li>
+<li><label><input type="checkbox" />Revisar issues de seguridad pendientes</label></li>
+<li><label><input type="checkbox" />Actualizar <code>pubspec.lock</code> y <code>package-lock.json</code></label></li>
+</ul>
+<h3 id="trimestral">Trimestral</h3>
+<ul class="task-list">
+<li><label><input type="checkbox" />Verificar si hay paquetes deprecados (06)</label></li>
+<li><label><input type="checkbox" />Revisar si Flutter tiene nueva versión stable</label></li>
+<li><label><input type="checkbox" />Evaluar migración de SDK si aplica</label></li>
+<li><label><input type="checkbox" />Actualizar documentación del proyecto</label></li>
+</ul>
+<h3 id="anual">Anual</h3>
+<ul class="task-list">
+<li><label><input type="checkbox" />Auditoría completa de seguridad</label></li>
+<li><label><input type="checkbox" />Revisar EOL de Node.js</label></li>
+<li><label><input type="checkbox" />Evaluar todas las dependencias contra alternativas</label></li>
+<li><label><input type="checkbox" />Actualizar Flutter SDK si está 2+ releases atrás</label></li>
+</ul>
+<hr />
+<h2 id="5-ejercicio">5. Ejercicio</h2>
+<ol type="1">
+<li>Agrega los targets <code>audit</code>, <code>dep-report</code>, <code>check-constraints</code> al Makefile del monorepo</li>
+<li>Crea un workflow semanal de auditoría que corra <code>make audit</code></li>
+<li>Configura un gate en <code>ci-quality.yml</code> que ejecute <code>npm audit --audit-level=high</code></li>
+<li>Prueba los targets localmente:
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> audit</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> dep-report</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> check-constraints</span></code></pre></div></li>
+</ol>
+<hr />
+<h2 id="resumen">Resumen</h2>
+<ol type="1">
+<li><strong>Makefile targets</strong> extienden los existentes con auditoría y reportes</li>
+<li><strong>CI semanal</strong> corre automáticamente y crea issues si hay problemas</li>
+<li><strong>Gate en PRs</strong> bloquea códigos con dependencias vulnerables</li>
+<li><strong>Checklist</strong> de mantenimiento: diario, semanal, mensual, trimestral y anual</li>
+<li><strong>Madurez</strong>: estos targets convierten el mantenimiento de rutina en algo automático</li>
+</ol>
+<hr />
+<h2 id="books-referencias">📚 Referencias</h2>
+<ul>
+<li><a href="https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#schedule">GitHub | Schedule events in Actions</a> — Disparadores <code>cron</code> en workflows</li>
+<li><a href="https://dart.dev/tools/pub/cmd/pub-deps">Dart | Pub deps</a> — Comando <code>dart pub deps</code></li>
+<li><a href="https://docs.npmjs.com/cli/v12/commands/npm-audit">npm Docs | npm-audit</a> — Comando <code>npm audit</code></li>
+</ul>
+<hr />
+<blockquote>
+<p><strong>Fin del módulo 17.</strong> Sigue practicando con el checklist de mantenimiento regular. Cada dependencia que actualices te hará más rápido en la próxima.</p>
+</blockquote>
+</div></div>
+</body>
+</html>

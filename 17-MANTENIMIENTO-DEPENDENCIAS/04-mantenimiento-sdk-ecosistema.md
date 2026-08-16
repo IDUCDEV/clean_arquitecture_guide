@@ -9,9 +9,9 @@
 ### 1.1 El Problema
 
 ```bash
-# Dev 1: Flutter 3.16.0
-# Dev 2: Flutter 3.22.0
-# CI/CD: Flutter 3.24.0
+# Dev 1: Flutter 3.41.0
+# Dev 2: Flutter 3.44.0
+# CI/CD: Flutter 3.47.0
 
 # Misma base de código, diferentes versiones → resultados diferentes
 # "En mi máquina funciona" → versión incorrecta
@@ -23,7 +23,7 @@
 
 ```bash
 # apps/mobile/.fvm/flutter_sdk_version
-3.41.0
+3.47.0
 ```
 
 **Checklist de mantenimiento:**
@@ -48,11 +48,11 @@
 ```bash
 # 1. Verificar compatibilidad sin cambiar
 fvm flutter --version
-flutter upgrade --verify-only
+fvm releases                 # ver versiones estables disponibles
 
 # 2. Instalar nueva versión
-fvm install 3.44.0
-fvm use 3.44.0
+fvm install 3.47.0
+fvm use 3.47.0
 
 # 3. Probar localmente
 fvm flutter pub get
@@ -61,12 +61,12 @@ fvm flutter test -j 1
 fvm dart fix --dry-run
 
 # 4. Actualizar CI/CD
-# Cambiar flutter-version: '3.41.0' → '3.44.0' en workflows
+# Cambiar flutter-version: '3.44.0' → '3.47.0' en workflows
 # Actualizar GitHub Variable si usas una
 
 # 5. Commit
 git add apps/mobile/.fvm/flutter_sdk_version
-git commit -m "chore(sdk): bump Flutter from 3.41.0 to 3.44.0"
+git commit -m "chore(sdk): bump Flutter from 3.44.0 to 3.47.0"
 ```
 
 ### 1.5 Centralización de Versiones
@@ -74,10 +74,10 @@ git commit -m "chore(sdk): bump Flutter from 3.41.0 to 3.44.0"
 El monorepo referencia la versión de Flutter en múltiples lugares:
 
 ```
-.github/workflows/ci-quality.yml:        flutter-version: '3.41.0'
-.github/workflows/flutter-android-release.yml: flutter-version: '3.41.0'
-apps/mobile/.fvm/flutter_sdk_version:    3.41.0
-.github/variables/FLUTTER_VERSION:       3.41.0
+.github/workflows/ci-quality.yml:        flutter-version: '3.47.0'
+.github/workflows/flutter-android-release.yml: flutter-version: '3.47.0'
+apps/mobile/.fvm/flutter_sdk_version:    3.47.0
+.github/variables/FLUTTER_VERSION:       3.47.0
 ```
 
 **Práctica recomendada:** Usa GitHub Variables o un archivo `.github/workflows/config/versions.env` para centralizar:
@@ -85,7 +85,7 @@ apps/mobile/.fvm/flutter_sdk_version:    3.41.0
 ```yaml
 # En un workflow
 - name: Setup Flutter
-  uses: subosito/flutter-action@v2
+  uses: subosito/flutter-action@v3
   with:
     flutter-version: ${{ vars.FLUTTER_VERSION }}
 ```
@@ -139,7 +139,7 @@ supabase start
 major_version = "17"
 ```
 
-> Cambiar de PostgreSQL 15 a 17 requiere verificar que todas las extensiones y queries sean compatibles.
+> Cambiar de una major de PostgreSQL a otra (p. ej. 15 → 17) requiere verificar que todas las extensiones y queries sean compatibles.
 
 ---
 
@@ -149,7 +149,7 @@ major_version = "17"
 
 ```bash
 # .nvmrc en apps/web/
-20
+24
 ```
 
 ```bash
@@ -160,9 +160,9 @@ nvm use
 node --version
 
 # Instalar una versión específica
-nvm install 22
-nvm use 22
-echo "22" > .nvmrc
+nvm install 24
+nvm use 24
+echo "24" > .nvmrc
 ```
 
 ### 3.2 `engines` en package.json
@@ -171,8 +171,8 @@ echo "22" > .nvmrc
 // apps/web/package.json
 {
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
   }
 }
 ```
@@ -183,8 +183,8 @@ Esto da una advertencia temprana si alguien usa una versión incorrecta:
 $ npm install
 npm WARN EBADENGINE Unsupported engine {
   package: 'web',
-  required: { node: '>=18.0.0' },
-  current: { node: '16.0.0' }
+  required: { node: '>=22.0.0' },
+  current: { node: '20.0.0' }
 }
 ```
 
@@ -192,10 +192,11 @@ npm WARN EBADENGINE Unsupported engine {
 
 | Versión | Estado | Acción |
 |---|---|---|
-| Node 18 | EOL Abril 2025 | Migrar a 20 o 22 |
-| Node 20 | Active LTS (actual) | Mantener |
-| Node 22 | Active LTS (2025-2026) | Preparar migración |
-| Node 23 | Current | No recomendado para producción |
+| Node 18 | EOL (Abril 2025) | Migrar ya |
+| Node 20 | EOL (Abril 2026) | Migrar a 22 o 24 |
+| Node 22 | Maintenance LTS | Mantener, planificar migración |
+| Node 24 (Krypton) | Active LTS (actual) | Usar (recomendado) |
+| Node 26 | Current | No recomendado para producción hasta su LTS (oct 2026) |
 
 **Regla:** Usa siempre la versión LTS activa que usa tu CI/CD.
 
@@ -216,11 +217,11 @@ npm WARN EBADENGINE Unsupported engine {
 
 ## 5. Ejercicio
 
-Tu equipo trabaja en el monorepo. Flutter acaba de lanzar 3.44.0, Node 22 es ahora LTS, y Supabase CLI 2.0 tiene cambios importantes.
+Tu equipo trabaja en el monorepo. Flutter acaba de lanzar 3.47.0, Node 24 es ahora Active LTS, y Supabase CLI 2.1x tiene cambios importantes.
 
-1. Actualiza Flutter a 3.44.0 siguiendo el proceso de 1.4
+1. Actualiza Flutter a 3.47.0 siguiendo el proceso de 1.4
 2. Actualiza los 3 workflows que hardcodean la versión
-3. Actualiza `.nvmrc` a Node 22
+3. Actualiza `.nvmrc` a Node 24
 4. Actualiza `engines` en `apps/web/package.json`
 5. Actualiza Supabase CLI y verifica `supabase status`
 6. Commitea cada cambio por separado con mensajes semánticos
@@ -243,7 +244,7 @@ Tu equipo trabaja en el monorepo. Flutter acaba de lanzar 3.44.0, Node 22 es aho
 - [Flutter | Compatibility policy](https://docs.flutter.dev/release/compatibility-policy) — Política de soporte de versiones
 - [Flutter | SDK archive](https://docs.flutter.dev/release/archive) — Historial de releases estables
 - [FVM](https://fvm.app) — Flutter Version Management
-- [Node.js | package.json engines](https://docs.npmjs.com/cli/v10/configuring-npm/package-json#engines) — Campo `engines` en package.json
+- [Node.js | package.json engines](https://docs.npmjs.com/cli/v12/configuring-npm/package-json#engines) — Campo `engines` en package.json
 
 ---
 

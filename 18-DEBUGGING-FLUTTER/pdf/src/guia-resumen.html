@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>GUÍA RESUMEN — Debugging Flutter</title>
+<link rel="stylesheet" href="guia-resumen.css">
+</head>
+<body>
+
+<div class="header">
+  <div class="mod">Módulo 18 · Clean Architecture + Flutter + Supabase</div>
+  <h1>GUÍA RESUMEN — Debugging Flutter</h1>
+  <div class="sub">Resumen integral del debugging y la optimización en Flutter sin volver a leer el módulo completo. Hilo conductor: Modos de ejecución → launch.json y breakpoints → Debug Console → DevTools (Inspector, Performance, Memory, CPU, Network, Logging, App Size) → Rendimiento (rebuilds, memory leaks, rendering) → Debugging asíncrono → Workflow por tipo de bug.</div>
+</div>
+
+<!-- ================= 0. MODOS DE EJECUCIÓN ================= -->
+<section>
+  <div class="section-head s-deep">
+    <span class="num">0</span>
+    <h2>Modos de ejecución y fundamentos</h2>
+    <span class="meta">debug · profile · release</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Modo</th><th>Para qué</th><th>Optimizaciones</th></tr></thead>
+    <tbody>
+      <tr><td><strong>debug</strong></td><td>Depurar con breakpoints, hot reload</td><td>Ninguna (lento)</td></tr>
+      <tr><td><strong>profile</strong></td><td><strong>Medir rendimiento</strong> (siempre aquí)</td><td>Mayoría habilitadas</td></tr>
+      <tr><td><strong>release</strong></td><td>Publicar, verificar builds</td><td>Todas</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout"><p><strong>Regla de oro:</strong> para debugging usa <code>debug</code>; para medir performance usa <code>profile</code> — nunca midas en debug (el JIT distorsiona todo). Flag clave: <code>--dart-define</code> para config por entorno y <code>--start-paused</code> para esperar al debugger.</p></div>
+</section>
+
+<!-- ================= 1. LAUNCH.JSON Y BREAKPOINTS ================= -->
+<section>
+  <div class="section-head s-soft">
+    <span class="num">1</span>
+    <h2>launch.json y breakpoints</h2>
+    <span class="meta">F5 · logpoints · conditionals</span>
+  </div>
+
+  <p><code>launch.json</code> define configuraciones reutilizables: nombre, programa, <code>--dart-define</code>, device, args. Con una configuración <code>flutter attach</code> puedes conectar el debugger a un app ya corriendo (sin <code>--debug-port</code>).</p>
+
+  <table>
+    <thead><tr><th>Breakpoint</th><th>Uso</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Normal</strong></td><td>Pausa la ejecución en una línea</td></tr>
+      <tr><td><strong>Conditional</strong></td><td>Pausa solo si la condición es true</td></tr>
+      <tr><td><strong>Logpoint</strong></td><td>Imprime en Debug Console sin pausar (reemplaza <code>print()</code>)</td></tr>
+      <tr><td><strong>Function</strong></td><td>Pausa al entrar a una función</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout"><p><strong>Regla:</strong> usa logpoints en lugar de <code>print()</code> para debugging temporal — no contaminan el código y se pueden dejar activos sin pausar la app.</p></div>
+</section>
+
+<!-- ================= 2. INSERCIÓN Y CONSOLA ================= -->
+<section>
+  <div class="section-head s-soft">
+    <span class="num">2</span>
+    <h2>Inspección de datos y Debug Console</h2>
+    <span class="meta">VARIABLES · WATCH · REPL</span>
+  </div>
+
+  <ul>
+    <li><strong>VARIABLES:</strong> valores de las variables locales durante el pause.</li>
+    <li><strong>WATCH:</strong> expresiones que se reevalúan en cada pause (ej. <code>user.name</code>, <code>items.length</code>).</li>
+    <li><strong>Debug Console = REPL:</strong> ejecuta código Dart en el contexto actual de la sesión (crear objetos, llamar métodos).</li>
+    <li><strong>Multi-target:</strong> launch.json con configuraciones por device (android, ios, chrome) y debugging remoto por red.</li>
+  </ul>
+
+  <div class="callout"><p><strong>Flujo típico:</strong> breakpoint → inspeccionar VARIABLES → evaluar expresiones en Debug Console → avanzar con F10/F11/F5 (Step Over/Into/Continue).</p></div>
+</section>
+
+<!-- ================= 3. FUNDAMENTOS DE DEVTOOLS ================= -->
+<section>
+  <div class="section-head s-deep">
+    <span class="num">3</span>
+    <h2>Fundamentos de Flutter DevTools</h2>
+    <span class="meta">dart devtools · vistas</span>
+  </div>
+
+  <p>DevTools es la suite de profiling y diagnóstico de Flutter. Se abre con <code>dart devtools &lt;vm-service-uri&gt;</code> (URI posicional del VM Service) o desde VS Code con el comando <code>Dart: Open DevTools</code>.</p>
+
+  <table>
+    <thead><tr><th>Vista</th><th>Para qué</th></tr></thead>
+    <tbody>
+      <tr><td>Flutter Inspector</td><td>Widget tree, layout, constraints</td></tr>
+      <tr><td>Performance</td><td>Frames, jank, flame chart</td></tr>
+      <tr><td>Memory</td><td>Heap, leaks, GC, snapshots</td></tr>
+      <tr><td>CPU Profiler</td><td>Flame chart por sampling</td></tr>
+      <tr><td>Network</td><td>Requests HTTP y WebSocket</td></tr>
+      <tr><td>Debugger</td><td>Breakpoints sincronizados con VS Code</td></tr>
+      <tr><td>Logging</td><td>Logs de <code>package:logging</code> y print</td></tr>
+      <tr><td>App Size</td><td>Análisis del tamaño del build</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout"><p><strong>Configuración:</strong> <code>dart.devToolsTheme</code> y <code>dart.devToolsBrowser</code> en settings de VS Code. El Debugger de DevTools comparte el mismo VM Service que VS Code: los breakpoints se sincronizan automáticamente.</p></div>
+</section>
+
+<!-- ================= 4. INSPECTOR Y PERFORMANCE ================= -->
+<section>
+  <div class="section-head s-deep">
+    <span class="num">4</span>
+    <h2>Flutter Inspector y Performance</h2>
+    <span class="meta">widget tree · frames · jank</span>
+  </div>
+
+  <p><strong>Flutter Inspector:</strong> explora el widget tree, selecciona widgets, inspecciona propiedades y constraints. Usa <strong>Select Widget Mode</strong> para encontrar dónde se ve mal un widget. MediaQuery responsive: <code>MediaQuery.sizeOf(context)</code>.</p>
+
+  <p><strong>Performance View:</strong> graba el timeline y muestra cada frame. Un frame debe completarse en <strong>&lt;16.6ms (60fps)</strong>.</p>
+
+  <table>
+    <thead><tr><th>Señal</th><th>Significado</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Frame rojo</strong></td><td>UI thread lento (build/layout)</td></tr>
+      <tr><td><strong>Frame morado</strong></td><td>Raster thread lento (paint/compositing)</td></tr>
+      <tr><td><strong>Build time &gt; 8ms</strong></td><td>Rebuilds excesivos en listas</td></tr>
+      <tr><td><strong>Enhance Tracing</strong></td><td>Widget rebuilds por elemento</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout"><p><strong>Diagnóstico:</strong> graba 5-10 segundos de interacción → identifica el frame más lento → analiza el flame chart → clasifica (build vs raster).</p></div>
+</section>
+
+<!-- ================= 5. CPU Y MEMORY ================= -->
+<section>
+  <div class="section-head s-soft">
+    <span class="num">5</span>
+    <h2>CPU Profiler y Memory View</h2>
+    <span class="meta">sampling · heap · GC</span>
+  </div>
+
+  <p><strong>CPU Profiler:</strong> muestrea la CPU (sample rate por defecto) y genera un flame chart: qué función consume más tiempo de ejecución.</p>
+
+  <table>
+    <thead><tr><th>Memoria</th><th>Uso</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Take Heap Snapshot</strong></td><td>Estado de la memoria en un momento</td></tr>
+      <tr><td><strong>Diff Snapshot</strong></td><td>Compara dos momentos → detecta clases que crecen</td></tr>
+      <tr><td><strong>GC</strong></td><td>Colecciones de basura del isolate</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout"><p><strong>Detectar leaks:</strong> snapshot base → navegar 5-10 veces a la pantalla sospechosa → diff snapshot → buscar <code>StreamSubscription</code>, <code>TextEditingController</code>, <code>Timer</code>, <code>AnimationController</code> que crecen → <strong>fix:</strong> cancelar/cerrar en <code>dispose()</code>.</p></div>
+</section>
+
+<!-- ================= 6. NETWORK, LOGGING Y DEBUGGER ================= -->
+<section>
+  <div class="section-head s-soft">
+    <span class="num">6</span>
+    <h2>Network, Logging y Debugger View</h2>
+    <span class="meta">requests · niveles · logpoints</span>
+  </div>
+
+  <ul>
+    <li><strong>Network:</strong> lista requests HTTP/WebSocket, ver body, headers y status code. Útil para APIs (Supabase, dio). Copia como cURL para probar fuera.</li>
+    <li><strong>Logging:</strong> interpreta niveles de <code>package:logging</code> (FINE, INFO, WARNING, SEVERE, SHOUT) + prints. Filtros por nivel mínimo, texto y tag.</li>
+    <li><strong>Debugger View:</strong> alternativa de DevTools al debugging de VS Code: pausa, variables, call stack y <strong>logpoints</strong>, todo en el navegador.</li>
+  </ul>
+
+  <div class="callout"><p><strong>Recomendación:</strong> Network View para debugging de API, Debug Console para lógica, Logging para trazas largas. Para debugging extensivo, VS Code es más rápido en el día a día.</p></div>
+</section>
+
+<!-- ================= 7. APP SIZE ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">7</span>
+    <h2>App Size: reducir el tamaño del build</h2>
+    <span class="meta">analyze-size · límites de stores</span>
+  </div>
+
+  <pre><span class="k">flutter build apk --analyze-size
+flutter build appbundle --analyze-size
+flutter build ios --analyze-size</span></pre>
+
+  <ul>
+    <li><strong>Google Play:</strong> límite 200 MB para AAB.</li>
+    <li><strong>App Store:</strong> 2 GB binario; &gt;200 MB no descargable por datos móviles.</li>
+    <li><strong>Deferred imports</strong> para código pesado (solo web).</li>
+    <li>Mayores culpables: assets sin comprimir, imágenes enormes, dependencias no usadas (usa <code>flutter pub deps</code> y remueve).</li>
+  </ul>
+
+  <div class="callout"><p><strong>Pipeline:</strong> <code>--analyze-size</code> genera un reporte visual en Chrome DevTools App Size → identificar el paquete/asset dominante → optimizar (imágenes, <code>shrink</code>, <code>--split-debug-info</code>).</p></div>
+</section>
+
+<!-- ================= 8. RENDIMIENTO: REBUILDS ================= -->
+<section>
+  <div class="section-head s-deep">
+    <span class="num">8</span>
+    <h2>Rendimiento: rebuilds, const y RepaintBoundary</h2>
+    <span class="meta">build · paint · 60fps</span>
+  </div>
+
+  <p>Cada frame tiene 2 fases: <strong>build/layout</strong> (UI thread) y <strong>paint/raster</strong> (raster thread). El objetivo: mantener ambas &lt; 8ms.</p>
+
+  <table>
+    <thead><tr><th>Técnica</th><th>Efecto</th></tr></thead>
+    <tbody>
+      <tr><td><code>const</code></td><td>Widgets estáticos no se reconstruyen (reducción del 50-80% en UIs estáticas)</td></tr>
+      <tr><td><code>ListView.builder</code></td><td>Solo construye items visibles</td></tr>
+      <tr><td><code>BlocSelector</code> / <code>buildWhen</code></td><td>Rebuilds selectivos del subtree</td></tr>
+      <tr><td><code>RepaintBoundary</code></td><td>Aísla el repintado (animaciones en listas)</td></tr>
+      <tr><td><code>shouldRepaint</code></td><td><code>CustomPainter</code> solo repinta si cambia</td></tr>
+      <tr><td>Extraer widgets</td><td>Cada widget se reconstruye de forma independiente</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout"><p><strong>Regla:</strong> solo optimiza donde tengas un problema medible en profile mode. Agregar <code>RepaintBoundary</code> incorrectamente puede <em>empeorar</em> el rendimiento.</p></div>
+</section>
+
+<!-- ================= 9. LEAKS Y RENDERING COMPLEJO ================= -->
+<section>
+  <div class="section-head s-soft">
+    <span class="num">9</span>
+    <h2>Memory leaks y rendering complejo</h2>
+    <span class="meta">dispose · slivers · imágenes</span>
+  </div>
+
+  <h3>Patrones de leak (y su fix)</h3>
+  <ul>
+    <li><code>StreamSubscription</code> → guardar referencia y <code>cancel()</code> en <code>dispose()</code>.</li>
+    <li><code>TextEditingController</code> / <code>ScrollController</code> → <code>dispose()</code> (y <code>removeListener</code>).</li>
+    <li><code>Timer.periodic</code> → <code>cancel()</code> en <code>dispose()</code>.</li>
+    <li><code>setState</code> después de <code>await</code> → <code>if (!mounted) return</code>.</li>
+  </ul>
+
+  <h3>Rendering complejo</h3>
+  <ul>
+    <li><code>ListView.builder</code> vs <code>ListView</code>: lazily built siempre para &gt;20 items.</li>
+    <li><code>CustomScrollView</code> + Slivers para layouts de scroll complejos; <code>SliverFixedExtentList</code> si el alto es fijo.</li>
+    <li>Imágenes: <code>cacheWidth</code>/<code>cacheHeight</code> según el tamaño de display + <code>precacheImage</code>.</li>
+    <li>Evita <code>Opacity</code> sobre subtrees grandes; usa <code>AnimatedOpacity</code> o <code>IgnorePointer</code>.</li>
+  </ul>
+
+  <div class="callout"><p><strong>Memoria por imagen:</strong> 4000×3000 = 48 MB sin <code>cacheWidth</code>; con redimensión a 200×150 ≈ 120 KB. La diferencia es ~400×.</p></div>
+</section>
+
+<!-- ================= 10. PRÁCTICAS Y CHEATSHEETS ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">10</span>
+    <h2>Prácticas y cheatsheets</h2>
+    <span class="meta">escenarios reales · ejercicio integrador</span>
+  </div>
+
+  <p><strong>Prácticas VS Code (07):</strong> debugging de BLoC/Cubit, Supabase, GoRouter y UI + ejercicio integrador de pagos.</p>
+  <p><strong>Prácticas DevTools (18):</strong> cinco ejercicios guiados + integrador para diagnosticar una app "enferma".</p>
+  <p><strong>Prácticas de optimización (24):</strong> seis escenarios: lista congelada (<code>ListView.builder</code>), login parpadeante (<code>BlocSelector</code>), chat con leak (<code>dispose()</code>), dashboard pesado (secciones), imágenes lentas (<code>cacheWidth</code>), app que crece (controllers).</p>
+
+  <table>
+    <thead><tr><th>Cheatsheet</th><th>Clave</th></tr></thead>
+    <tbody>
+      <tr><td><strong>06 (VS Code)</strong></td><td>F5/F9/F10/F11, logpoints, Run without Debugging <code>Ctrl+F5</code></td></tr>
+      <tr><td><strong>17 (DevTools)</strong></td><td>Vista por escenario de debugging</td></tr>
+      <tr><td><strong>23 (Optimización)</strong></td><td>Problema → causa → solución → DevTools View; métricas saludables; mitos</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout"><p><strong>Métricas saludables:</strong> build/raster &lt; 4ms (excelente) · FPS 60 · memory growth 0 MB/min · app startup &lt; 1s · profundidad del árbol &lt; 15.</p></div>
+</section>
+
+<!-- ================= 11. ASÍNCRONO Y WORKFLOW ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">11</span>
+    <h2>Debugging asíncrono y workflow por tipo de bug</h2>
+    <span class="meta">futures · streams · event loop</span>
+  </div>
+
+  <p><strong>Los 5 bugs asíncronos:</strong> Future que nunca completa (falta try/catch) · setState sin <code>mounted</code> check · llamadas secuenciales innecesarias (usa <code>Future.wait</code>) · stream sin cancelar · <code>Completer</code> manual innecesario.</p>
+
+  <p><strong>Patrón de carga segura:</strong> try/catch alrededor del await + estado de loading/error/data + timeout (<code>fetch().timeout(...)</code>) + trabajo pesado delegado a <code>compute()</code> para no bloquear el UI thread.</p>
+
+  <table>
+    <thead><tr><th>Tipo de bug</th><th>Herramienta principal</th></tr></thead>
+    <tbody>
+      <tr><td>UI se ve mal</td><td>Flutter Inspector → Select Widget</td></tr>
+      <tr><td>Estado inconsistente</td><td>Prints + Bloc Inspector</td></tr>
+      <tr><td>App lenta</td><td>Performance View (frames &gt;16ms)</td></tr>
+      <tr><td>API falla</td><td>Network View + cURL</td></tr>
+      <tr><td>Memory leak</td><td>Memory View → diff snapshots</td></tr>
+      <tr><td>Build error</td><td>Leer el error completo</td></tr>
+      <tr><td>Hot Reload no funciona</td><td>Hot Restart (no recarga initState/main/imports)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout"><p><strong>Framework general:</strong> REPRODUCIR → AISLAR → DIAGNOSTICAR → CORREGIR → VERIFICAR.</p></div>
+</section>
+
+<!-- ================= ANEXO ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">A</span>
+    <h2>Anexo · Índice del módulo (para profundizar)</h2>
+  </div>
+  <table>
+    <thead><tr><th>Necesitas</th><th>Archivo</th></tr></thead>
+    <tbody>
+      <tr><td>Modos debug/profile/release, componentes del debugger</td><td class="mono">01-fundamentos-debugging.md</td></tr>
+      <tr><td>launch.json, flutter attach, dart-define, args</td><td class="mono">02-configuracion-launch-json.md</td></tr>
+      <tr><td>Breakpoints conditional/function/logpoint, práctica con streams</td><td class="mono">03-breakpoints-avanzados.md</td></tr>
+      <tr><td>VARIABLES, WATCH, Debug Console como REPL</td><td class="mono">04-inspeccion-datos-consola.md</td></tr>
+      <tr><td>Multi-device, debugging remoto por red</td><td class="mono">05-multi-target-remoto.md</td></tr>
+      <tr><td>Atajos VS Code, hot reload/restart</td><td class="mono">06-cheatsheet-vscode.md</td></tr>
+      <tr><td>Escenarios BLoC/Supabase/GoRouter/UI + integrador</td><td class="mono">07-practicas-vscode.md</td></tr>
+      <tr><td>Cómo abrir DevTools, configuración</td><td class="mono">08-fundamentos-devtools.md</td></tr>
+      <tr><td>Widget tree, Select Widget, layout debugging</td><td class="mono">09-inspector-layout.md</td></tr>
+      <tr><td>Frames, flame chart, Enhance Tracing</td><td class="mono">10-performance-view.md</td></tr>
+      <tr><td>Sampling y flame chart de CPU</td><td class="mono">11-cpu-profiler.md</td></tr>
+      <tr><td>Heap, snapshots, GC, detección de leaks</td><td class="mono">12-memory-profiler.md</td></tr>
+      <tr><td>Requests HTTP, Supabase</td><td class="mono">13-network-view.md</td></tr>
+      <tr><td>Breakpoints y logpoints en DevTools</td><td class="mono">14-debugger-view.md</td></tr>
+      <tr><td>Niveles de package:logging, filtros</td><td class="mono">15-logging-view.md</td></tr>
+      <tr><td>analyze-size, límites de stores</td><td class="mono">16-app-size.md</td></tr>
+      <tr><td>Vista por escenario de debugging</td><td class="mono">17-cheatsheet-devtools.md</td></tr>
+      <tr><td>Ejercicios guiados + integrador</td><td class="mono">18-practicas-devtools.md</td></tr>
+      <tr><td>Modos, 60fps, herramientas de medición</td><td class="mono">19-fundamentos-rendimiento.md</td></tr>
+      <tr><td>const, builder, RepaintBoundary, BlocSelector</td><td class="mono">20-optimizar-rebuilds.md</td></tr>
+      <tr><td>Dispose, subscriptions, timers</td><td class="mono">21-memory-leak-detection.md</td></tr>
+      <tr><td>ListView.builder, Slivers, imágenes, CustomPainter</td><td class="mono">22-rendering-complejo.md</td></tr>
+      <tr><td>Tablas de diagnóstico, mitos, métricas</td><td class="mono">23-cheatsheet-optimizacion.md</td></tr>
+      <tr><td>6 escenarios reales + app "enferma"</td><td class="mono">24-practicas-optimizacion.md</td></tr>
+      <tr><td>5 bugs asíncronos, streams, isolates</td><td class="mono">25-debugging-asincrono.md</td></tr>
+      <tr><td>Workflow por tipo de bug + cheat sheet</td><td class="mono">26-workflow-debugging-por-tipo.md</td></tr>
+    </tbody>
+  </table>
+
+  <div class="footer-note"><strong>Debugging Flutter en una línea:</strong> corre en debug para depurar, en profile para medir · pausa con breakpoints y logpoints · inspecciona con Debug Console · diagnostica con DevTools (frames, heap, requests) · optimiza rebuilds y rendering solo donde haya un problema medible · cancela subscriptions en dispose · y sigue el workflow: reproducir → aislar → diagnosticar → corregir → verificar.</div>
+</section>
+
+</body>
+</html>

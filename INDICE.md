@@ -19,7 +19,7 @@ Mapa de navegación cruzada entre los 23 módulos de la guía.
 | Git y automatización | [12-GIT-FLOW-CONVENTIONAL-COMMITS](./12-GIT-FLOW-CONVENTIONAL-COMMITS/) | [10-MAKEFILE](./10-MAKEFILE/) (Make + Git hooks), [11-GITHUB-ACTIONS](./11-GITHUB-ACTIONS/) (CI/CD) |
 | CI/CD | [11-GITHUB-ACTIONS](./11-GITHUB-ACTIONS/) | [10-MAKEFILE](./10-MAKEFILE/) (Make en CI), [14-GOOGLE-PLAY-RELEASE/05](./14-GOOGLE-PLAY-RELEASE/05-ci-cd-automatizado.md) (deploy automático) |
 | Mantenimiento de dependencias | [17-MANTENIMIENTO-DEPENDENCIAS](./17-MANTENIMIENTO-DEPENDENCIAS/) | [12-GIT-FLOW](./12-GIT-FLOW-CONVENTIONAL-COMMITS/) (FVM), [10-MAKEFILE](./10-MAKEFILE/) (targets), [11-GITHUB-ACTIONS](./11-GITHUB-ACTIONS/) (CI/CD) |
-| Debugging Flutter | [18-DEBUGGING-FLUTTER](./18-DEBUGGING-FLUTTER/) | [05-TESTING](./05-TESTING/) (testing), [16-BLOC-CUBIT](./16-BLOC-CUBIT/) (debug BLoC), [17-MANTENIMIENTO-DEPENDENCIAS](./17-MANTENIMIENTO-DEPENDENCIAS/) (dep debug), [18/03](./18-DEBUGGING-FLUTTER/03-optimizacion-rendimiento/) (optimizacion) |
+| Debugging Flutter | [18-DEBUGGING-FLUTTER](./18-DEBUGGING-FLUTTER/) | [05-TESTING](./05-TESTING/) (testing), [16-BLOC-CUBIT](./16-BLOC-CUBIT/) (debug BLoC), [17-MANTENIMIENTO-DEPENDENCIAS](./17-MANTENIMIENTO-DEPENDENCIAS/) (dep debug), [18/19-24](./18-DEBUGGING-FLUTTER/19-fundamentos-rendimiento.md) (optimización) |
 | Comunicacion y trabajo en equipo | [21-COMUNICACION-EQUIPO](./21-COMUNICACION-EQUIPO/) | [12-GIT-FLOW](./12-GIT-FLOW-CONVENTIONAL-COMMITS/) (Git workflow), [01-CLEAN-ARCHITECTURE](./01-CLEAN-ARCHITECTURE/) (code review de arquitectura) |
 | Monitoreo en producción | [19-MONITOREO-PRODUCCION](./19-MONITOREO-PRODUCCION/) | [18-DEBUGGING-FLUTTER](./18-DEBUGGING-FLUTTER/) (debugging), [11-GITHUB-ACTIONS](./11-GITHUB-ACTIONS/) (CI/CD para uploads de symbols), [16-BLOC-CUBIT](./16-BLOC-CUBIT/) (errores en state management) |
 | Edge Functions | [13-EDGE-FUNCTIONS-DENO](./13-EDGE-FUNCTIONS-DENO/) | [03-SUPABASE](./03-SUPABASE/) (backend Supabase) |
@@ -43,11 +43,11 @@ Mapa de navegación cruzada entre los 23 módulos de la guía.
 | **Ejemplos con código** | 01/05a-c (CRUD), 02/05a-d (casos reales), 16/07-12,18 (BLoC), 20/05 (patrones con template Dart) |
 | **Ejercicios prácticos** | 02/01a-04a (Carrito), 05/01a-06c (Testing), 09/08-10 (OOP), 10/07 (Make), 11/07 (Actions), 20/07 (10 ejercicios algorítmicos) |
 | **Casos integradores** | 02/05 (Reservas), 02/05b (E-learning), 02/05c (Facturación), 02/05d (Delivery), 16/17 (E-commerce), 22/12-15 (Feed, Chat, E-commerce, SaaS) |
-| **Referencia rápida** | 15/11 (arsenal de widgets), 01/08 (templates), 03/PARTE-3-CI_CD/01 (Makefile universal), 18/01-06 (cheatsheet debugging), 18/02-10 (cheatsheet DevTools) |
+| **Referencia rápida** | 15/11 (arsenal de widgets), 01/08 (templates), 03/PARTE-3-CI_CD/01 (Makefile universal), 18/06 (cheatsheet debugging VSCode), 18/17 (cheatsheet DevTools) |
 | **CI/CD / Automatización** | 03/PARTE-3-CI_CD, 10, 11, 14/05 |
 | **Prompts para IA** | 07/01 (framework AIDR), 07/02 (caso reservas) |
-| **Debugging / Diagnóstico** | 18/01 (VSCode debugging), 18/02 (DevTools), 18/01-06 (cheatsheets), 18/02-10 (cheatsheets) |
-| **Optimizacion de rendimiento** | 18/03 (optimizacion-rendimiento), 18/03-01 a 06 (fundamentos, rebuilds, memoria, rendering, cheatsheet, practicas) |
+| **Debugging / Diagnóstico** | 18/01-07 (VSCode debugging), 18/08-18 (DevTools), 18/25 (debugging asíncrono), 18/26 (workflow por tipo de bug) |
+| **Optimización de rendimiento** | 18/19-24 (fundamentos, rebuilds, memoria, rendering, cheatsheet, practicas) |
 | **Comunicacion / Soft skills** | 21/01-08 (code reviews, colaboracion, Git workflow, comunicacion tecnica, herramientas, cheatsheet, practicas, anti-patrones) |
 | **Monitoreo en producción** | 19/01 (Crashlytics), 19/02 (Sentry), 19/03 (Comparación), 19/01-07 (cheatsheet Crashlytics), 19/02-08 (cheatsheet Sentry) |
 
@@ -58,8 +58,8 @@ Mapa de navegación cruzada entre los 23 módulos de la guía.
 | Nivel | Módulos | Tiempo estimado |
 |---|---|---|
 | **Principiante** | 02 (Diseño), 01 (Clean Arch), 09 (OOP básico) | 20-30 h |
-| **Intermedio** | 15 (Widgets), 16/01-09 (BLoC básico), 05 (Testing), 03 (Supabase), 18/01 (VSCode debugging), 20 (Resolución problemas) | 40-60 h |
-| **Avanzado** | 16/10-18 (BLoC avanzado), 06 (Nivel experto), 07 (IA), 18/02 (DevTools avanzado), 18/03 (Optimizacion rendimiento), 22 (System Design) | 25-35 h |
+| **Intermedio** | 15 (Widgets), 16/01-09 (BLoC básico), 05 (Testing), 03 (Supabase), 18/01-07 (VSCode debugging), 20 (Resolución problemas) | 40-60 h |
+| **Avanzado** | 16/10-18 (BLoC avanzado), 06 (Nivel experto), 07 (IA), 18/08-18 (DevTools avanzado), 18/19-24 (Optimización rendimiento), 22 (System Design) | 25-35 h |
 | **DevOps** | 10 (Make), 11 (Actions), 12 (Git flow), 13 (Edge), 14 (Play Store), 17 (Mantenimiento) | 25-35 h |
 | **Soft Skills** | 21 (Comunicacion y trabajo en equipo) | 5-8 h |
 
@@ -87,7 +87,7 @@ Mapa de navegación cruzada entre los 23 módulos de la guía.
 | 15-WIDGETS-FLUTTER | `README.md` | `11-arsenal-completo-widgets.md` |
 | 16-BLOC-CUBIT | `README.md` | `17-proyecto-integrador.md` (integrador) |
 | 17-MANTENIMIENTO-DEPENDENCIAS | `README.md` | `03-automatizacion-dependabot-renovate.md` |
-| 18-DEBUGGING-FLUTTER | `README.md` | `01-debugging-vscode/07-practicas-vscode.md` (prácticas VSCode), `02-flutter-devtools/11-practicas-devtools.md` (prácticas DevTools), `03-optimizacion-rendimiento/06-practicas-optimizacion.md` (prácticas optimizacion) |
+| 18-DEBUGGING-FLUTTER | `README.md` | `07-practicas-vscode.md` (prácticas VSCode), `18-practicas-devtools.md` (prácticas DevTools), `24-practicas-optimizacion.md` (prácticas optimización) |
 | 19-MONITOREO-PRODUCCION | `README.md` | `01-firebase-crashlytics/08-practicas-crashlytics.md` (prácticas Crashlytics), `02-sentry/09-practicas-sentry.md` (prácticas Sentry) |
 | 20-RESOLUCION-PROBLEMAS-ALGORITMOS | `README.md` | `03-reconocimiento-patrones.md` (corazón de la guía), `05-patrones-avanzados.md` (templates Dart) |
 | 21-COMUNICACION-EQUIPO | `README.md` | `01-code-reviews-efectivos.md` (code reviews), `03-git-workflow-equipe.md` (Git en equipo) |

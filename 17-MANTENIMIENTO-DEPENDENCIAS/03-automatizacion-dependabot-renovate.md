@@ -70,7 +70,37 @@ updates:
 | `ignore` | Excluir paquetes específicos | Solo para updates problemáticos conocidos |
 | `target-branch` | Rama base de los PRs | `dev` si usas Git Flow |
 
-### 1.4 Caso Real: Monitorear root `package.json`
+### 1.4 Grupos (`groups`)
+
+Desde 2023, Dependabot permite agrupar dependencias relacionadas en un **solo PR**:
+
+```yaml
+  - package-ecosystem: "pub"
+    directory: "/apps/mobile"
+    schedule:
+      interval: "weekly"
+    groups:
+      bloc-family:
+        patterns:
+          - "bloc"
+          - "flutter_bloc"
+          - "bloc_test"
+        exclude-patterns:
+          - "bloc*"
+          - "*.test"
+      patch-updates:
+        update-types:
+          - "patch"
+        patterns:
+          - "*"
+```
+
+**Recomendaciones:**
+- Agrupa **patch updates** en un solo PR (bajo riesgo)
+- Agrupa **familias de paquetes** (`bloc`, `go_router`, `supabase`) para revisarlas juntas
+- **Nunca agrupes major updates** — cada uno merece su propia migración
+
+### 1.5 Caso Real: Monitorear root `package.json`
 
 El monorepo actual no cubre el `package.json` raíz (commitlint, husky, commitizen):
 
@@ -84,7 +114,7 @@ El monorepo actual no cubre el `package.json` raíz (commitlint, husky, commitiz
 
 Estas dependencias de tooling cambian poco, por eso `monthly` es suficiente.
 
-### 1.5 Dependabot Security Updates
+### 1.6 Dependabot Security Updates
 
 GitHub habilita automáticamente PRs de seguridad para CVEs conocidas. No necesita configuración en `dependabot.yml`, se activa desde Settings → Code security → Dependabot security updates.
 
@@ -97,7 +127,7 @@ GitHub habilita automáticamente PRs de seguridad para CVEs conocidas. No necesi
 | Aspecto | Dependabot | Renovate |
 |---|---|---|
 | Configuración | YAML simple, opciones limitadas | JSON/JS, altamente configurable |
-| Agrupación de PRs | Solo security updates (`groups`, desde 2024); version updates no | `groupName` para agrupar por tipo |
+| Agrupación de PRs | `groups` (desde 2023) para version y security updates | `groupName` para agrupar por tipo |
 | Schedule por paquete | No | Sí, por regex |
 | Auto-merge condicional | Limitado | Sí, con reglas |
 | Dashboard | No | Panel web con estado |
@@ -180,8 +210,8 @@ GitHub habilita automáticamente PRs de seguridad para CVEs conocidas. No necesi
 ### 3.2 Estrategia de Auto-Merge
 
 ```yaml
-# Dependabot no soporta auto-merge nativo.
-# Necesitas un workflow aparte:
+# Dependabot no tiene auto-merge nativo. La forma recomendada por GitHub es
+# combinar dependabot/fetch-metadata + gh pr merge --auto (el PR espera a que CI pase).
 
 # .github/workflows/auto-merge-deps.yml
 name: Auto-merge dependencies
@@ -189,16 +219,30 @@ on:
   pull_request:
     types: [opened, synchronize]
 
+permissions:
+  pull-requests: write
+  contents: write
+
 jobs:
   auto-merge:
     if: github.actor == 'dependabot[bot]' || github.actor == 'renovate[bot]'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: ahmadnassri/action-dependabot-auto-merge@v2
+      - uses: actions/checkout@v7
+
+      - name: Fetch dependabot metadata
+        id: meta
+        if: github.actor == 'dependabot[bot]'
+        uses: dependabot/fetch-metadata@v3
         with:
-          target: minor
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          compat-lookup: true
+
+      - name: Auto-merge patch & minor updates
+        if: steps.meta.outputs.update-type == 'version-update:semver-patch' || steps.meta.outputs.update-type == 'version-update:semver-minor'
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ### 3.3 Mensajes de Commit
@@ -208,7 +252,7 @@ jobs:
 chore(deps): update dependency flutter_bloc to 9.1.1
 
 # Minor
-feat(deps): update dependency dio to 5.4.0
+feat(deps): update dependency dio to 5.11.0
 
 # Major
 chore(deps): migrate flutter_bloc from 9.x to 10.x
@@ -230,10 +274,10 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v3
         with:
-          flutter-version: '3.41.0'
+          flutter-version: '3.47.0'
 
       - name: Check outdated
         id: outdated
@@ -249,7 +293,7 @@ jobs:
 
       - name: Create issue
         if: steps.outdated.outputs.has_outdated == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');

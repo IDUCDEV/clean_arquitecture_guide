@@ -12,8 +12,8 @@ El `^` es el más usado en pubspec.yaml:
 
 ```yaml
 dependencies:
-  flutter_bloc: ^9.1.0   # >=9.1.0 y <10.0.0
-  equatable: ^2.0.5      # >=2.0.5 y <3.0.0
+  flutter_bloc: ^9.1.1   # >=9.1.1 y <10.0.0
+  equatable: ^2.1.0      # >=2.1.0 y <3.0.0
 ```
 
 **Significado:** `^versión` equivale a `>=versión <siguiente-versión-mayor`.
@@ -30,8 +30,8 @@ dependencies:
 
 ```yaml
 dependencies:
-  next: 16.2.4
-  react: 19.2.4
+  next: 16.3.1
+  react: 19.2.8
 ```
 
 **Cuándo usarlo:**
@@ -44,10 +44,10 @@ dependencies:
 ### 1.3 SHA Pinning (GitHub Actions)
 
 ```yaml
-- uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+- uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 ```
 
-Esto es **pinning absoluto**. Ni siquiera la etiqueta `v4` puede cambiar por debajo. Es la práctica más segura para CI/CD.
+Esto es **pinning absoluto**. Ni siquiera la etiqueta `v7` puede cambiar por debajo. Es la práctica más segura para CI/CD.
 
 ### 1.4 Otras Formas de Declarar
 
@@ -88,7 +88,7 @@ packages:
   flutter_bloc:
     dependency: "direct main"
     source: hosted
-    version: "9.1.0"
+    version: "9.1.1"
 ```
 
 ### 2.2 ¿Se comitea?
@@ -104,7 +104,7 @@ Cuando dos ramas agregan paquetes diferentes:
 
 ```bash
 <<<<<<< HEAD
-    version: "9.1.0"
+    version: "9.1.1"
 =======
     version: "10.0.0"
 >>>>>>> feature
@@ -176,9 +176,9 @@ El monorepo de referencia usa esta estrategia:
 
 | Tipo | Convención | Ejemplo |
 |---|---|---|
-| Librerías Flutter | Caret `^` | `flutter_bloc: ^9.1.0` |
-| Frameworks web | Pinning exacto | `"next": "16.2.4"` |
-| GitHub Actions | SHA pinning | `actions/checkout@34e11...` |
+| Librerías Flutter | Caret `^` | `flutter_bloc: ^9.1.1` |
+| Frameworks web | Pinning exacto | `"next": "16.3.1"` |
+| GitHub Actions | SHA pinning | `actions/checkout@3d3c42e...` |
 | Supabase config | Major version | `major_version = 17` |
 | Deno Edge Functions | Rango major | `@supabase/supabase-js@2` |
 
@@ -190,8 +190,8 @@ Dado este `pubspec.yaml` con conflictos:
 
 ```yaml
 dependencies:
-  flutter_bloc: ^9.1.0
-  bloc: ^10.0.0  # incompatible con flutter_bloc ^9.1.0
+  flutter_bloc: ^9.1.1
+  bloc: ^10.0.0  # incompatible con flutter_bloc ^9.1.1
 ```
 
 Pasos:

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>GUÍA RESUMEN — Mantenimiento de Dependencias</title>
+<link rel="stylesheet" href="guia-resumen.css">
+</head>
+<body>
+
+<div class="header">
+  <div class="mod">Módulo 17 · Clean Architecture + Flutter + Supabase</div>
+  <h1>GUÍA RESUMEN — Mantenimiento de Dependencias</h1>
+  <div class="sub">Resumen integral del mantenimiento de dependencias en un monorepo Flutter + Supabase sin volver a leer el módulo completo. Hilo conductor: Estrategia de versionado → Flujo de actualización → Automatización (Dependabot/Renovate) → SDK y ecosistema → Seguridad y auditoría → Deprecación y EOL → Operación continua (Makefile/CI).</div>
+</div>
+
+<!-- ================= 0. ESTRATEGIA ================= -->
+<section>
+  <div class="section-head s-deep">
+    <span class="num">0</span>
+    <h2>Estrategia de versionado</h2>
+    <span class="meta">caret · pinning · lockfile</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Constraint</th><th>Rango real</th><th>Uso recomendado</th></tr></thead>
+    <tbody>
+      <tr><td><code>^9.1.1</code> (caret)</td><td><code>&gt;=9.1.1 &lt;10.0.0</code></td><td>Librerías Flutter/Dart: <code>flutter_bloc: ^9.1.1</code>, <code>equatable: ^2.1.0</code></td></tr>
+      <tr><td><code>16.3.1</code> (exacto)</td><td>Solo esa versión</td><td>Frameworks críticos web: <code>next: 16.3.1</code>, <code>react: 19.2.8</code></td></tr>
+      <tr><td>SHA (1 commit)</td><td>Inmutable</td><td>GitHub Actions: <code>actions/checkout@3d3c42e...</code></td></tr>
+      <tr><td><code>any</code> / rangos</td><td>Muy abiertos</td><td>Solo <code>path</code> y <code>git</code> locales; no en producción</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Lockfile</h3>
+  <ul>
+    <li><strong>Apps:</strong> <code>pubspec.lock</code> se <strong>comitea</strong> → todos usan versiones exactas.</li>
+    <li><strong>Librerías:</strong> no se comitea; cada consumidor resuelve.</li>
+    <li><strong>Conflicto de merge:</strong> correr <code>dart pub get</code> reconstruye el lockfile.</li>
+  </ul>
+
+  <h3>Overrides (temporales)</h3>
+  <p><code>dependency_overrides:</code> en <code>pubspec.yaml</code> fuerza una versión cuando dos paquetes chocan. Desde Dart 3.8 existe <code>pubspec_overrides.yaml</code> (no se comitea, va en <code>.gitignore</code>) para overrides de desarrollo. Ambos son parches: el objetivo es que el mantenedor upstream actualice su constraint.</p>
+
+  <div class="callout"><p><strong>Regla de oro:</strong> caret para librerías · pinning exacto para frameworks críticos · SHA para Actions · y <code>dart pub deps</code> como herramienta de diagnóstico de conflictos.</p></div>
+</section>
+
+<!-- ================= 1. FLUJO DE ACTUALIZACIÓN ================= -->
+<section>
+  <div class="section-head s-amber">
+    <span class="num">1</span>
+    <h2>Flujo de actualización</h2>
+    <span class="meta">outdated · upgrade · fix · test</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Columna <code>pub outdated</code></th><th>Significado</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Current</strong></td><td>Lo que tienes instalado</td></tr>
+      <tr><td><strong>Upgradable</strong></td><td>Máximo con <code>dart pub upgrade</code> (patch/minor)</td></tr>
+      <tr><td><strong>Resolvable</strong></td><td>Máximo que pub resuelve sin tocar <code>pubspec.yaml</code></td></tr>
+      <tr><td><strong>Latest</strong></td><td>Última publicada (puede ser major)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Proceso seguro</h3>
+  <pre><span class="k">1. Leer CHANGELOG + migration guide
+2. dart pub upgrade &lt;paquete&gt;
+3. dart pub outdated   (verificar)
+4. dart fix --apply    (migraciones del SDK)
+5. flutter analyze
+6. flutter test -j 1
+7. build_runner: dart run build_runner build --delete-conflicting-outputs
+8. Commit separado semántico: fix(deps): update supabase_flutter to 2.17.2</span></pre>
+
+  <p><code>dart pub upgrade --major-versions</code> modifica <code>pubspec.yaml</code>. <strong>⚠️ Un paquete a la vez</strong>, nunca todos juntos. Equivalente npm: <code>npm outdated</code> → <code>npm update</code> → <code>npm install next@latest</code> → <code>npm audit</code>.</p>
+
+  <div class="callout amber"><p><strong>Revisar por paquete:</strong> <code>supabase_flutter</code> (inicialización), <code>flutter_bloc</code> (BlocObserver), <code>fpdart</code> (Either/TaskEither), <code>go_router</code> (ShellRoute/redirect), <code>dio</code> (interceptors/multipart), <code>isar_community</code> (regenerar <code>.g.dart</code>).</p></div>
+</section>
+
+<!-- ================= 2. AUTOMATIZACIÓN ================= -->
+<section>
+  <div class="section-head s-amber">
+    <span class="num">2</span>
+    <h2>Automatización: Dependabot y Renovate</h2>
+    <span class="meta">bots de actualización</span>
+  </div>
+
+  <p><strong>Dependabot</strong> — YAML simple, ideal para empezar. Ecosistemas del monorepo: <code>github-actions</code> (/), <code>npm</code> (<code>apps/web</code>), <code>pub</code> (<code>apps/mobile</code>), schedule <code>weekly</code>, límite 5–10 PRs.</p>
+
+  <p><strong>Grupos</strong> (desde 2023): agrupa familias (<code>bloc</code>, <code>flutter_bloc</code>, <code>bloc_test</code>) o patch updates en un solo PR. Nunca agrupes majors.</p>
+
+  <p><strong>Renovate</strong> — más potente: <code>extends: ["config:recommended"]</code>, <code>groupName</code>, schedules por paquete, dashboard, onboarding. Útil cuando necesitas control fino.</p>
+
+  <h3>Auto-merge (recomendación oficial GitHub)</h3>
+  <pre><span class="k">dependabot/fetch-metadata@v3  →  outputs.update-type
+gh pr merge --auto --squash "$PR_URL"   (solo patch/minor que pasen CI)</span></pre>
+
+  <div class="callout"><p><strong>Auditoría semanal:</strong> workflow con <code>cron</code> que corre <code>dart pub outdated --no-dev</code>, detecta atrasadas y crea un issue automático con <code>actions/github-script@v9</code>. Revisión manual SIEMPRE para majors.</p></div>
+</section>
+
+<!-- ================= 3. SDK Y ECOSISTEMA ================= -->
+<section>
+  <div class="section-head s-soft">
+    <span class="num">3</span>
+    <h2>SDK y ecosistema</h2>
+    <span class="meta">FVM · Supabase CLI · Node</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Herramienta</th><th>Dónde se declara</th><th>Cadencia</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Flutter SDK</strong></td><td><code>.fvm/flutter_sdk_version</code> (3.47.0) + GitHub Variable <code>FLUTTER_VERSION</code></td><td>Cada release estable (2–3 meses)</td></tr>
+      <tr><td><strong>Dart SDK</strong></td><td>Atado a Flutter (3.47 → Dart 3.13), <code>sdk: ^3.13.0</code></td><td>Automática</td></tr>
+      <tr><td><strong>Supabase CLI</strong></td><td>Sistema / npm global</td><td>Mensual (v2.114+)</td></tr>
+      <tr><td><strong>PostgreSQL</strong></td><td><code>supabase/config.toml</code> → <code>major_version = "17"</code></td><td>Si las features lo requieren</td></tr>
+      <tr><td><strong>Deno</strong></td><td><code>supabase/config.toml</code> → <code>deno_version = "2"</code></td><td>Cada 3–6 meses</td></tr>
+      <tr><td><strong>Node.js</strong></td><td><code>.nvmrc</code> (24) + <code>engines</code> (<code>&gt;=22</code>)</td><td>Cada ciclo LTS</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Estado Node LTS (2026)</h3>
+  <table>
+    <thead><tr><th>Versión</th><th>Estado</th><th>Acción</th></tr></thead>
+    <tbody>
+      <tr><td>Node 18</td><td>EOL (2025)</td><td>Migrar ya</td></tr>
+      <tr><td>Node 20</td><td>EOL (abril 2026)</td><td>Migrar a 22 o 24</td></tr>
+      <tr><td>Node 22</td><td>Maintenance LTS</td><td>Mantener / planificar</td></tr>
+      <tr><td><strong>Node 24 (Krypton)</strong></td><td><strong>Active LTS</strong></td><td>Usar (recomendado)</td></tr>
+      <tr><td>Node 26</td><td>Current</td><td>Solo experimentación</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Flutter:</strong> usa <code>fvm install</code>/<code>fvm use</code>, centraliza la versión en GitHub Variables y <code>flutter-action@v3</code> lee <code>${{ vars.FLUTTER_VERSION }}</code>. Espera 1–2 semanas antes de adoptar un stable nuevo (buena práctica empírica).</p>
+</section>
+
+<!-- ================= 4. SEGURIDAD ================= -->
+<section>
+  <div class="section-head s-soft">
+    <span class="num">4</span>
+    <h2>Seguridad y auditoría</h2>
+    <span class="meta">OSV · npm audit · CVSS</span>
+  </div>
+
+  <ul>
+    <li><strong>Árbol:</strong> <code>dart pub deps --json</code> + <code>jq</code> para extraer dependencias directas.</li>
+    <li><strong>CVE conocidas:</strong> OSV.dev API (<code>POST /v1/query</code>, ecosistema <code>Pub</code>) y GitHub Advisory Database.</li>
+    <li><strong>Web:</strong> <code>npm audit</code> / <code>npm audit --audit-level=high</code> / <code>--json</code> para CI.</li>
+    <li><strong>Dependabot security updates:</strong> PRs automáticos por CVE (Settings → Code security).</li>
+  </ul>
+
+  <h3>Matriz de respuesta CVSS</h3>
+  <table>
+    <thead><tr><th>Severidad</th><th>Acción</th><th>Plazo</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Critical</strong> (9.0–10.0)</td><td>Actualizar ya · parche manual si no hay fix</td><td>&lt; 24h</td></tr>
+      <tr><td><strong>High</strong> (7.0–8.9)</td><td>Próximo ciclo de trabajo</td><td>&lt; 1 semana</td></tr>
+      <tr><td><strong>Medium</strong> (4.0–6.9)</td><td>Próximo sprint</td><td>&lt; 1 mes</td></tr>
+      <tr><td><strong>Low</strong> (0.1–3.9)</td><td>Documentar · revisión trimestral</td><td>&lt; 3 meses</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout"><p><strong>Gate en CI:</strong> por cada paquete del árbol (<code>nombre@versión</code>) consulta OSV.dev; si hay <code>vulns</code>, falla el build. Es lo que convierte la auditoría en algo reactivo, no manual.</p></div>
+</section>
+
+<!-- ================= 5. DEPRECACIÓN ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">5</span>
+    <h2>Deprecación, EOL y migraciones</h2>
+    <span class="meta">banderas rojas · ADR</span>
+  </div>
+
+  <p><strong>Señales:</strong> sin commits &gt;12 meses, issues sin respuesta, paquete que no soporta la última Dart, dependencias obsoletas en cadena (heurística, no regla formal). Ejemplos reales: <code>hive</code> → <code>isar_community</code>, <code>pennylane</code> → <code>fpdart</code>, <code>built_value</code> → <code>freezed</code>/<code>json_serializable</code>, <code>dartson</code> → <code>json_serializable</code>.</p>
+
+  <h3>Proceso de migración</h3>
+  <pre><span class="k">Investigar alternativa → rama separada → capa de compatibilidad (wrapper)
+→ migración gradual (feature flags, un módulo a la vez)
+→ dart pub remove &lt;paquete&gt; → tests completos → ADR + guías del equipo</span></pre>
+
+  <h3>EOL de Flutter/Dart</h3>
+  <p>Solo la última stable (3.47.0) tiene soporte activo garantizado; 3.44.0 es la anterior. Sin parches de seguridad garantizados para versiones viejas. Cadencia ~3 meses entre releases.</p>
+  <p>Tras actualizar la constraint del SDK (<code>sdk: ^3.13.0</code>), corre <code>dart fix --apply</code>. Documenta cada reemplazo como <strong>ADR</strong> (contexto, decisión, consecuencias). Objetivo del monorepo: nivel <strong>Gold</strong> (Flutter stable + paquetes en minor más reciente).</p>
+</section>
+
+<!-- ================= 6. OPERACIÓN CONTINUA ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">6</span>
+    <h2>Operación continua: Makefile y CI</h2>
+    <span class="meta">auditoría automatizada</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Target / workflow</th><th>Qué hace</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">make audit</td><td>Auditoría completa: mobile (<code>pub deps --json</code>) + web (<code>npm audit</code>) + Actions sin pin</td></tr>
+      <tr><td class="mono">make dep-report</td><td>Reporte markdown del estado de dependencias</td></tr>
+      <tr><td class="mono">make check-constraints</td><td>Detecta conflictos y <code>dependency_overrides</code> no temporales</td></tr>
+      <tr><td class="mono">make dep-tree / deps-security</td><td>Árbol completo / escaneo OSV por paquete</td></tr>
+      <tr><td>CI semanal</td><td><code>cron</code> + <code>flutter-action@v3</code> (3.47.0) + <code>setup-node@v7</code> (24); crea issue si hay atrasadas</td></tr>
+      <tr><td>Gate en PRs</td><td>Bloquea si hay high/critical en <code>npm audit</code> o <code>dependency_overrides</code> persistentes</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Checklist</h3>
+  <ul class="checklist">
+    <li><strong>Por PR:</strong> analyze sin errores, CI verde.</li>
+    <li><strong>Semanal:</strong> <code>make audit</code>, mergear patch/minor que pasen CI.</li>
+    <li><strong>Mensual:</strong> <code>make dep-report</code>, issues de seguridad, lockfiles al día.</li>
+    <li><strong>Trimestral:</strong> paquetes deprecados, nueva stable de Flutter, docs.</li>
+    <li><strong>Anual:</strong> auditoría completa, EOL de Node, Flutter 2+ releases atrás.</li>
+  </ul>
+
+  <div class="callout green"><p><strong>Madurez:</strong> estos targets convierten el mantenimiento de rutina en algo automático, medible y con dueño en el equipo.</p></div>
+</section>
+
+<!-- ================= ANEXO ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">A</span>
+    <h2>Anexo · Índice del módulo (para profundizar)</h2>
+  </div>
+  <table>
+    <thead><tr><th>Necesitas</th><th>Archivo</th></tr></thead>
+    <tbody>
+      <tr><td>Caret, pinning exacto, SHA, lockfile, conflictos, overrides</td><td class="mono">01-fundamentos-dependencias.md</td></tr>
+      <tr><td>pub outdated/upgrade, --major-versions, dart fix, build_runner, casos por paquete</td><td class="mono">02-flujo-actualizacion.md</td></tr>
+      <tr><td>dependabot.yml, grupos, Renovate, auto-merge, auditoría semanal</td><td class="mono">03-automatizacion-dependabot-renovate.md</td></tr>
+      <tr><td>FVM, centralización de versiones, Supabase CLI, .nvmrc, engines, LTS Node</td><td class="mono">04-mantenimiento-sdk-ecosistema.md</td></tr>
+      <tr><td>dart pub deps --json, OSV, GitHub Advisory DB, npm audit, CVSS, gates</td><td class="mono">05-seguridad-auditoria.md</td></tr>
+      <tr><td>Señales de deprecación, migración con wrapper, EOL Flutter/Dart, ADR</td><td class="mono">06-deprecacion-eol-migraciones.md</td></tr>
+      <tr><td>Makefile targets, CI de monitoreo, issue automático, checklist regular</td><td class="mono">07-makefile-ci-objetivos.md</td></tr>
+    </tbody>
+  </table>
+
+  <div class="footer-note"><strong>Mantenimiento de dependencias en una línea:</strong> declara con intención (caret/SHA/pinning) → actualiza con flujo seguro → automatiza con bots + auditoría semanal → mantén el SDK sincronizado → responde por CVSS → migra con ADR ante deprecación → y opera con Makefile + CI. · Regla de oro: cada actualización debe pasar por CI y tener un mensaje semántico.</div>
+</section>
+
+</body>
+</html>
