@@ -1,4 +1,4 @@
-# Nivel Experto: Build Runner Ecosystem
+# 🚀 Nivel Experto: Build Runner Ecosystem
 
 > build_runner es el motor de generación de código en Dart/Flutter. Entender cómo funciona es clave para dominar el ecosistema de codegen.
 
@@ -576,3 +576,16 @@ dart run build_runner build --delete-conflicting-outputs
 - [build_config documentation](https://pub.dev/packages/build_config)
 - [source_gen package](https://pub.dev/packages/source_gen)
 - [Isar Community Generator](https://pub.dev/packages/isar_community_generator)
+
+---
+
+## Ver también
+
+- [`06-json-serializable-freezed.md`](./06-json-serializable-freezed.md) — Serialización con json_serializable + Freezed
+- [`07-retrofit-api-client.md`](./07-retrofit-api-client.md) — Clientes HTTP con Retrofit
+
+---
+
+## En el siguiente módulo
+
+**→ [06-json-serializable-freezed.md](./06-json-serializable-freezed.md)** — json_serializable y Freezed para data classes

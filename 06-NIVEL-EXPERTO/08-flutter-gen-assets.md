@@ -1,4 +1,4 @@
-# Nivel Experto: Flutter Gen - Assets, Splash, Iconos y Localización
+# 🚀 Nivel Experto: Flutter Gen - Assets, Splash, Iconos y Localización
 
 > Flutter tiene un sistema de generación de código integrado para assets, localización y configuración visual. Este archivo cubre las 4 herramientas esenciales que todo proyecto profesional usa.
 
@@ -494,3 +494,16 @@ flutter gen-l10n
 - [flutter_gen pub.dev](https://pub.dev/packages/flutter_gen)
 - [Flutter Internationalization Guide](https://docs.flutter.dev/ui/accessibility-and-internationalization/internationalization)
 - [ARB Format Specification](https://github.com/google/app-resource-bundle)
+
+---
+
+## Ver también
+
+- [`07-retrofit-api-client.md`](./07-retrofit-api-client.md) — Clientes HTTP con Retrofit
+- [`15-DISEÑO-RESPONSIVO`](../15-DISEÑO-RESPONSIVO/README.md) — Diseño responsivo y adaptativo
+
+---
+
+## En el siguiente módulo
+
+**→ [09-dart3-pattern-matching-nativo.md](./09-dart3-pattern-matching-nativo.md)** — Dart 3 Pattern Matching nativo

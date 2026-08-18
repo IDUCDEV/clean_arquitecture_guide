@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Guía Resumen — Módulo 06: Nivel Experto</title>
+  <link rel="stylesheet" href="guia-resumen.css">
+</head>
+<body>
+
+<!-- ==================== PORTADA ==================== -->
+<div class="cover">
+  <h1>Módulo 06: Nivel Experto</h1>
+  <h2>Programación Funcional, DI, Build Runner, Dart 3 y Debugging</h2>
+  <p class="meta">Guía de Referencia Rápida — Flutter Clean Architecture with Supabase</p>
+</div>
+
+<!-- ==================== PARTE I ==================== -->
+<div class="section-head">
+  <h2>PARTE I — Programación Funcional</h2>
+</div>
+
+<div class="topic">
+  <h3>01. fpdart: Result Pattern con Either y Option</h3>
+  <p><strong>Objetivo:</strong> Eliminar exceptions del dominio usando tipos funcionales.</p>
+
+  <table class="flow">
+    <tr>
+      <td>Dart tradicional</td>
+      <td class="arrow">→</td>
+      <td>fpdart</td>
+    </tr>
+    <tr>
+      <td>try-catch / null</td>
+      <td class="arrow">→</td>
+      <td>Either&lt;L, R&gt; / Option&lt;A&gt;</td>
+    </tr>
+    <tr>
+      <td>Excepciones ocultas</td>
+      <td class="arrow">→</td>
+      <td>Errores explícitos en tipo</td>
+    </tr>
+  </table>
+
+  <div class="callout">
+    <div class="callout-title">Conceptos Clave</div>
+    <ul>
+      <li><code>Either&lt;L, R&gt;</code>: izquierda (error) | derecha (éxito)</li>
+      <li><code>Option&lt;A&gt;</code>: Some(value) | None — reemplaza null</li>
+      <li><code>TaskEither&lt;L, A&gt;</code>: Either diferido (async)</li>
+      <li><code>flatMap</code>: encadenar operaciones que retornan Either</li>
+      <li><code>fold</code>: convertir Either a valor final en Cubit</li>
+    </ul>
+  </div>
+
+  <div class="key-points">
+    <strong>Puntos Clave:</strong>
+    <ul>
+      <li>Repository retorna <code>Either&lt;Failure, T&gt;</code></li>
+      <li>UseCase propagar con <code>flatMap</code></li>
+      <li>Cubit consumir con <code>fold</code>: left → error state, right → success state</li>
+      <li><code>TaskEither</code> para operaciones async antes de ejecutar</li>
+    </ul>
+  </div>
+
+  <div class="tip">
+    <strong>Tip:</strong> <code>TaskEither.sequence()</code> ejecuta múltiples tareas en paralelo y retorna <code>Either&lt;L, List&lt;R&gt;&gt;</code>.
+  </div>
+</div>
+
+<!-- ==================== PARTE II ==================== -->
+<div class="section-head">
+  <h2>PARTE II — Dependency Injection y Arquitectura</h2>
+</div>
+
+<div class="topic">
+  <h3>02. DI Automatizada con Injectable + GetIt</h3>
+  <p><strong>Objetivo:</strong> Inyección de dependencias con code generation.</p>
+
+  <div class="callout">
+    <div class="callout-title">Flujo Injectable</div>
+    <p><code>@Injectable()</code> → <code>build_runner</code> → <code>injection.config.dart</code> → <code>GetIt</code></p>
+  </div>
+
+  <table>
+    <tr><th>Anotación</th><th>Alcance</th><th>Uso típico</th></tr>
+    <tr><td><code>@Injectable()</code></td><td>Instancia nueva cada vez</td><td>UseCases, Services</td></tr>
+    <tr><td><code>@singleton</code></td><td>Una sola instancia</td><td>API clients, DB</td></tr>
+    <tr><td><code>@lazySingleton</code></td><td>Lazy + una instancia</td><td>Config, prefs</td></tr>
+    <tr><td><code>@injectable</code></td><td>Factory parametrizado</td><td>Parámetros dinámicos</td></tr>
+  </table>
+
+  <div class="key-points">
+    <strong>Reglas de Oro:</strong>
+    <ul>
+      <li>Un <code>@module</code> por librería externa (SharedPreferences, etc.)</li>
+      <li>Un <code>@Environment('dev')</code> para cada configuración</li>
+      <li>Usar <code>get_it</code> + <code>injectable</code> en combo</li>
+      <li>Tests: <code>GetIt.instance.reset()</code> + <code>registerFactory</code></li>
+    </ul>
+  </div>
+</div>
+
+<div class="topic">
+  <h3>03. Comunicación entre Features con Event Bus</h3>
+  <p><strong>Objetivo:</strong> Desacoplar features sin dependencias directas.</p>
+
+  <table class="flow">
+    <tr>
+      <td>Feature A</td>
+      <td class="arrow">→</td>
+      <td>Event Bus</td>
+      <td class="arrow">→</td>
+      <td>Feature B</td>
+    </tr>
+  </table>
+
+  <div class="callout">
+    <div class="callout-title">Patrones de Comunicación</div>
+    <ul>
+      <li><strong>Event Bus:</strong> <code>StreamController&lt;Event&gt;</code> central</li>
+      <li><strong>Service Locator:</strong> <code>GetIt</code> como intermediario</li>
+      <li><strong>Callback injection:</strong> Funciones pasadas como parámetros</li>
+      <li><strong>Reactive:</strong> Streams combinados con <code>combineLatest</code></li>
+    </ul>
+  </div>
+
+  <div class="tip">
+    <strong>Tip:</strong> Usar <code>BLoCListener</code> para reaccionar a eventos de otros features sin importar el BLoC directamente.
+  </div>
+</div>
+
+<div class="topic">
+  <h3>04. Patrones Reactivos con Streams y StreamUseCase</h3>
+  <p><strong>Objetivo:</strong> Datos en tiempo real con patrones de backpressure.</p>
+
+  <div class="callout">
+    <div class="callout-title">Operadores Esenciales</div>
+    <table>
+      <tr><th>Operador</th><th>Función</th></tr>
+      <tr><td><code>map</code></td><td>Transforma cada evento</td></tr>
+      <tr><td><code>where</code></td><td>Filtra eventos</td></tr>
+      <tr><td><code>debounce</code></td><td>Ignora eventos rápidos</td></tr>
+      <tr><td><code>throttle</code></td><td>Limita frecuencia</td></tr>
+      <tr><td><code>sample</code></td><td>Toma el último valor en intervalo</td></tr>
+      <tr><td><code>switchMap</code></td><td>Cambia a nuevo stream</td></tr>
+      <tr><td><code>combineLatest</code></td><td>Combina múltiples streams</td></tr>
+    </table>
+  </div>
+
+  <div class="key-points">
+    <strong>Arquitectura:</strong>
+    <ul>
+      <li>DataSource → Stream (Supabase Realtime, WebSocket)</li>
+      <li>Repository → Stream transformado</li>
+      <li>StreamUseCase → Lógica de negocio reactiva</li>
+      <li>Cubit → <code>StreamSubscription</code> con <code>cancel()</code> en <code>close()</code></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== PARTE III ==================== -->
+<div class="section-head">
+  <h2>PARTE III — Build Runner y Code Generation</h2>
+</div>
+
+<div class="topic">
+  <h3>05. Build Runner: Comandos y Arquitectura</h3>
+  <p><strong>Objetivo:</strong> Dominar el ecosistema de generación de código.</p>
+
+  <table>
+    <tr><th>Comando</th><th>Uso</th></tr>
+    <tr><td><code>dart run build_runner build</code></td><td>Build completo</td></tr>
+    <tr><td><code>--delete-conflicting-outputs</code></td><td>Eliminar conflictos (siempre usar)</td></tr>
+    <tr><td><code>watch</code></td><td>Modo observación para desarrollo</td></tr>
+    <tr><td><code>clean</code></td><td>Limpiar archivos generados</td></tr>
+  </table>
+
+  <div class="callout">
+    <div class="callout-title">Arquitectura Build Runner</div>
+    <p><code>Builder</code> → <code>BuilderDefinition</code> → <code>build.yaml</code> → <code>source_gen</code></p>
+    <p>Cada paquete registra Builders que transforman archivos fuente en archivos generados.</p>
+  </div>
+
+  <div class="key-points">
+    <strong>Mejores Prácticas:</strong>
+    <ul>
+      <li>Los <code>.g.dart</code> se comitan en el repo</li>
+      <li><code>analysis_options.yaml</code> debe excluir archivos generados</li>
+      <li>Usar <code>Makefile</code> o scripts para estandarizar comandos</li>
+    </ul>
+  </div>
+</div>
+
+<div class="topic">
+  <h3>06. json_serializable y Freezed</h3>
+  <p><strong>Objetivo:</strong> Data classes inmutables con serialización automática.</p>
+
+  <table class="flow">
+    <tr>
+      <td>Clase anotada</td>
+      <td class="arrow">→</td>
+      <td>build_runner</td>
+      <td class="arrow">→</td>
+      <td>.g.dart + .freezed.dart</td>
+    </tr>
+  </table>
+
+  <div class="callout">
+    <div class="callout-title">Combinación Ideal</div>
+    <ul>
+      <li><code>@freezed</code>: inmutabilidad, copyWith, ==, hashCode</li>
+      <li><code>@JsonSerializable()</code>: fromJson / toJson automáticos</li>
+      <li>Freezed genera la estructura, json_serializable la serialización</li>
+    </ul>
+  </div>
+
+  <div class="tip">
+    <strong>Regla:</strong> Si un modelo tiene 3+ campos, usa freezed + json_serializable. El tiempo ahorrado justifica la configuración inicial.
+  </div>
+</div>
+
+<div class="topic">
+  <h3>07. Retrofit: Clientes HTTP Generados</h3>
+  <p><strong>Objetivo:</strong> APIs tipadas con interceptors y generación automática.</p>
+
+  <div class="callout">
+    <div class="callout-title">Pilares de Retrofit</div>
+    <ul>
+      <li><code>@RestApi()</code>: define la interfaz HTTP</li>
+      <li><code>@GET/@POST/@PUT/@DELETE</code>: endpoints anotados</li>
+      <li>Dio: motor HTTP subyacente</li>
+      <li>Interceptors: auth, logging, retry, errores</li>
+    </ul>
+  </div>
+
+  <div class="key-points">
+    <strong>Integración:</strong>
+    <ul>
+      <li>Retrofit + json_serializable: modelos generados automáticamente</li>
+      <li>Retrofit + injectable: cliente registrado en DI</li>
+      <li>Retrofit + freezed: respuestas inmutables con patrón Either</li>
+    </ul>
+  </div>
+</div>
+
+<div class="topic">
+  <h3>08. Flutter Gen: Assets, Splash, Iconos y Localización</h3>
+  <p><strong>Objetivo:</strong> Gestión segura de assets e internacionalización.</p>
+
+  <div class="callout">
+    <div class="callout-title">Herramientas del Ecosistema</div>
+    <ul>
+      <li><strong>flutter_native_splash:</strong> splash screen nativa por plataforma</li>
+      <li><strong>flutter_launcher_icons:</strong> iconos de app generados</li>
+      <li><strong>flutter_gen:</strong> assets tipados con <code>GenAssets</code></li>
+      <li><strong>l10n:</strong> localización con ARB files</li>
+    </ul>
+  </div>
+
+  <div class="tip">
+    <strong>Tip:</strong> Activar <code>generate: true</code> en <code>pubspec.yaml</code> habilita todo el ecosistema de code generation para assets y localización.
+  </div>
+</div>
+
+<!-- ==================== PARTE IV ==================== -->
+<div class="section-head">
+  <h2>PARTE IV — Dart 3 y Debugging</h2>
+</div>
+
+<div class="topic">
+  <h3>09. Dart 3 Pattern Matching Nativo</h3>
+  <p><strong>Objetivo:</strong> Manejo exhaustivo de tipos sin dependencias externas.</p>
+
+  <div class="callout">
+    <div class="callout-title">Sintaxis Dart 3</div>
+    <pre><code>switch (valor) {
+  int n when n > 0  =&gt; 'Positivo',
+  0                 =&gt; 'Cero',
+  int n             =&gt; 'Negativo',
+  String s          =&gt; 'Texto: $s',
+  _                 =&gt; 'Otro tipo',
+}</code></pre>
+  </div>
+
+  <div class="key-points">
+    <strong>Características:</strong>
+    <ul>
+      <li><strong>Sealed classes:</strong> jerarquías de tipos con cases exhaustivos</li>
+      <li><strong>Guards:</strong> <code>when</code> para condiciones adicionales</li>
+      <li><strong>Destructuring:</strong> extraer campos de objetos y listas</li>
+      <li><strong>Alternatives:</strong> <code>||</code> para combinar patrones</li>
+      <li>Sin dependencias externas — compilador fuerza exhaustividad</li>
+    </ul>
+  </div>
+
+  <div class="tip">
+    <strong>vs fpdart:</strong> Dart 3 pattern matching es ideal para estados sealed. fpdart (Either/Option) es mejor para flujos funcionales encadenados.
+  </div>
+</div>
+
+<div class="topic">
+  <h3>10. Debugging build_runner y Code Generation</h3>
+  <p><strong>Objetivo:</strong> Diagnosticar y resolver problemas comunes de generación.</p>
+
+  <div class="callout">
+    <div class="callout-title">Errores Frecuentes</div>
+    <table>
+      <tr><th>Error</th><th>Causa</th><th>Solución</th></tr>
+      <tr><td><code>Conflicting outputs</code></td><td>Archivos .g.dart huérfanos</td><td><code>--delete-conflicting-outputs</code></td></tr>
+      <tr><td><code>Could not find</code></td><td>import no resuelto</td><td><code>flutter pub get</code></td></tr>
+      <tr><td><code>Cyclic dependency</code></td><td>imports circulares</td><td>Reorganizar imports</td></tr>
+      <tr><td><code>Build failed</code></td><td>Error en anotación</td><td>Revisar sintaxis de anotaciones</td></tr>
+    </table>
+  </div>
+
+  <div class="key-points">
+    <strong>Checklist de Debugging:</strong>
+    <ul>
+      <li><code>flutter pub get</code> ejecutado?</li>
+      <li><code>dart analyze</code> sin errores?</li>
+      <li>¿Hay imports circulares?</li>
+      <li>¿Se usa <code>--delete-conflicting-outputs</code>?</li>
+      <li>¿Se limpió con <code>clean</code> antes?</li>
+    </ul>
+  </div>
+
+  <div class="tip">
+    <strong>Comando de emergencia:</strong> <code>dart run build_runner clean && dart run build_runner build --delete-conflicting-outputs</code>
+  </div>
+</div>
+
+</body>
+</html>

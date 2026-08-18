@@ -1,4 +1,4 @@
-# 10: Debugging build_runner
+# 🚀 Nivel Experto: Debugging build_runner
 
 > build_runner es poderoso pero frustrante cuando falla. Aquí están los errores más comunes y cómo arreglarlos.
 
@@ -125,5 +125,16 @@ dart run build_runner build --dry-run
 ```
 
 ---
+
+## Ver también
+
+- [`05-build-runner-ecosystem.md`](./05-build-runner-ecosystem.md) — Ecosistema completo de build_runner
+- [`06-json-serializable-freezed.md`](./06-json-serializable-freezed.md) — json_serializable y Freezed
+
+---
+
+## Fin del módulo 06
+
+Has completado el **Nivel Experto** de Flutter Clean Architecture. Los patrones funcionales, la inyección de dependencias automatizada, el ecosistema de code generation y las técnicas de debugging te dan las herramientas para construir aplicaciones robustas y mantenibles.
 
 **Volver al índice:** [README.md](./README.md)

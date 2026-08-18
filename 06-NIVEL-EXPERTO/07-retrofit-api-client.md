@@ -1,4 +1,4 @@
-# Nivel Experto: Retrofit - Clientes HTTP Generados
+# 🚀 Nivel Experto: Retrofit - Clientes HTTP Generados
 
 > Retrofit genera automáticamente clientes HTTP a partir de anotaciones. Es el estándar para consumir APIs REST en Flutter profesional.
 
@@ -639,3 +639,16 @@ class UserCubit extends Cubit<UserState> {
 - [Dio pub.dev](https://pub.dev/packages/dio)
 - [Retrofit Generator](https://pub.dev/packages/retrofit_generator)
 - [Dio Interceptors Guide](https://docs.flutter.dev/data-and-backend/networking)
+
+---
+
+## Ver también
+
+- [`08-HTTP`](../08-HTTP/README.md) — Conceptos básicos de HTTP y Dio
+- [`04-ALMACENAMIENTO-LOCAL`](../04-ALMACENAMIENTO-LOCAL/README.md) — Persistencia local con drift, Hive
+
+---
+
+## En el siguiente módulo
+
+**→ [08-flutter-gen-assets.md](./08-flutter-gen-assets.md)** — Flutter Gen: assets, splash, iconos y localización

@@ -1087,3 +1087,16 @@ class MyClass {}
 - [Documentación oficial Injectable](https://pub.dev/packages/injectable)
 - [Ejemplos de Injectable](https://github.com/NicholasAnnesley/injectable_examples)
 - [Talk: Dependency Injection Done Right](https://www.youtube.com/watch?v=...)
+
+---
+
+## Ver también
+
+- [`14-LOADED`](../14-LOADED/README.md) — Patrón Loaded con dependencias y estado inicial
+- [`17-CLEAN-ARCHITECTURE`](../17-CLEAN-ARCHITECTURE/README.md) — Arquitectura limpia y separación de capas
+
+---
+
+## En el siguiente módulo
+
+**→ [03-comunicacion-features.md](./03-comunicacion-features.md)** — Comunicación entre features con Event Bus

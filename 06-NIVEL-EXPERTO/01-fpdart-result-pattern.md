@@ -1043,3 +1043,16 @@ when(() => mockRepo.getUser(any())).thenAnswer(...);
 - [Documentación oficial fpdart](https://pub.dev/packages/fpdart)
 - [FP in Dart - Francesco Gullà](https://francescogulla.com/fpdart)
 - [Railway Oriented Programming](https://fsharpforfunandprofit.com/posts/recipe-revisited/) - El concepto fundamental de Either
+
+---
+
+## Ver también
+
+- [`04-ALMACENAMIENTO-LOCAL`](../04-ALMACENAMIENTO-LOCAL/README.md) — Persistencia de datos con drift, Hive, SharedPreferences
+- [`16-BLOC-CUBIT`](../16-BLOC-CUBIT/README.md) — Gestión de estado con BLoC/Cubit
+
+---
+
+## En el siguiente módulo
+
+**→ [02-di-injectable.md](./02-di-injectable.md)** — Dependency Injection automatizada con Injectable y GetIt

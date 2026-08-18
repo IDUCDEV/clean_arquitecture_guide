@@ -1,4 +1,4 @@
-# Nivel Experto: json_serializable y Freezed
+# 🚀 Nivel Experto: json_serializable y Freezed
 
 > La combinación de json_serializable + freezed elimina TODO el boilerplate de modelos: serialización, inmutabilidad, igualdad, copia, y pattern matching.
 
@@ -555,3 +555,16 @@ targets:
 - [freezed pub.dev](https://pub.dev/packages/freezed)
 - [Freezed Documentation](https://freezed.dev/docs)
 - [JSON Serialization Guide](https://docs.flutter.dev/data-and-backend/serialization/json)
+
+---
+
+## Ver también
+
+- [`05-build-runner-ecosystem.md`](./05-build-runner-ecosystem.md) — Ecosistema de build_runner
+- [`13-MANUAL-JSON`](../13-MANUAL-JSON/README.md) — Serialización manual alternativa
+
+---
+
+## En el siguiente módulo
+
+**→ [07-retrofit-api-client.md](./07-retrofit-api-client.md)** — Clientes HTTP generados con Retrofit

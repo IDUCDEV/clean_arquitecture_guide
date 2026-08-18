@@ -1083,3 +1083,16 @@ Cubit → DeviceService (interfaz) → DeviceServiceImpl → Platform Channels
 - [The Power of Event Bus](https://blog.novoda.com/the-power-of-event-bus/)
 - [Modular Architecture in Flutter](https://www.raywenderlich.com/10404758-building-a-modular-architecture-in-flutter)
 - [BLoC Communication](https://bloclibrary.dev/#/architecture)
+
+---
+
+## Ver también
+
+- [`16-BLOC-CUBIT`](../16-BLOC-CUBIT/README.md) — MultiBlocProvider y MultiBlocListener
+- [`13-MANUAL-JSON`](../13-MANUAL-JSON/README.md) — Serialización manual para modelos complejos
+
+---
+
+## En el siguiente módulo
+
+**→ [04-streams-tiempo-real.md](./04-streams-tiempo-real.md)** — Patrones reactivos con Streams y StreamUseCase

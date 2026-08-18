@@ -1,4 +1,4 @@
-# 09: Dart 3 Pattern Matching Nativo
+# 🚀 Nivel Experto: Dart 3 Pattern Matching Nativo
 
 > Dart 3 trae pattern matching al lenguaje. No necesitas librerías externas para expresiones switch complejas.
 
@@ -153,4 +153,13 @@ String descripcion(Object obj) => switch (obj) {
 
 ---
 
-**Siguiente:** [10-debugging-build-runner.md](./10-debugging-build-runner.md)
+## Ver también
+
+- [`01-fpdart-result-pattern.md`](./01-fpdart-result-pattern.md) — fpdart y Programación Funcional
+- [`17-CLEAN-ARCHITECTURE`](../17-CLEAN-ARCHITECTURE/README.md) — Arquitectura limpia con patrones funcionales
+
+---
+
+## En el siguiente módulo
+
+**→ [10-debugging-build-runner.md](./10-debugging-build-runner.md)** — Debugging de build_runner y code generation

@@ -1509,3 +1509,16 @@ Stream<Either<Failure, T>> withRetry(Stream<Either<Failure, T>> stream) {
 - [fpdart Stream utilities](https://pub.dev/packages/fpdart#stream-utilities)
 - [Firebase Firestore Streams](https://firebase.google.com/docs/firestore/query-data/listen)
 - [RxJS Marbles](https://rxmarbles.com/) - Diagramas interactivos de operadores
+
+---
+
+## Ver también
+
+- [`11-PRUEBAS`](../11-PRUEBAS/README.md) — Testing de streams y cubits con blocTest
+- [`09-WORKMANAGER`](../09-WORKMANAGER/README-background-fetch.md) — Tareas en segundo plano y sincronización
+
+---
+
+## En el siguiente módulo
+
+**→ [05-build-runner-ecosystem.md](./05-build-runner-ecosystem.md)** — Ecosistema completo de build_runner
