@@ -445,7 +445,7 @@ abstract class PaymentMethodLocalDataSource {
     List<PaymentMethodModel> methods,
   );
   Future<List<PaymentMethodModel>?> getCachedPaymentMethods(String userId);
-  Future<void> clearCache();
+  Future<void> clearCache(String userId);
 }
 ```
 
@@ -527,10 +527,13 @@ class PaymentMethodLocalDataSourceImpl implements PaymentMethodLocalDataSource {
   }
 
   @override
-  Future<void> clearCache() async {
+  Future<void> clearCache(String userId) async {
     try {
       await _isar.writeTxn(() async {
-        await _isar.cachedPaymentMethods.where().deleteAll();
+        await _isar.cachedPaymentMethods
+            .where()
+            .userIdEqualTo(userId)
+            .deleteAll();
       });
     } catch (e) {
       throw CacheException(message: 'cache_write_error: $e');
@@ -597,8 +600,13 @@ final cacheManager = CacheManager();
 // Cada feature registra su función de limpieza
 cacheManager.register(() => sl<AuthLocalDataSource>().clearCache());
 cacheManager.register(() => sl<ProfileLocalDataSource>().clearCache());
-cacheManager.register(() => sl<PaymentMethodLocalDataSource>().clearCache());
+cacheManager.register(() {
+  final userId = sl<AuthLocalDataSource>().getCurrentUserId();
+  return sl<PaymentMethodLocalDataSource>().clearCache(userId);
+});
 ```
+
+> **Nota:** `PaymentMethodLocalDataSource.clearCache(userId)` recibe el `userId` porque los métodos de pago son específicos por usuario. Las demás datasources (Auth, Profile) borran todo porque solo hay un usuario en cache.
 
 ### 🎯 Uso al cerrar sesión
 

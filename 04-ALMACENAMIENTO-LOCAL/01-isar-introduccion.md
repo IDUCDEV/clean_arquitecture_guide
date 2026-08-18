@@ -275,7 +275,61 @@ lib/core/data/local/isar_models/
 
 ---
 
-## 6. Checklist
+## 6. Troubleshooting comun
+
+### Error: "Could not find generated Isar schema"
+
+**Causa:** No ejecutaste `build_runner` despues de crear o modificar una coleccion.
+
+```bash
+dart run build_runner build --delete-conflicting-outputs
+```
+
+### Error: "Class X is not a registered Type"
+
+**Causa:** Olvidaste agregar el `Schema` a `Isar.open()`.
+
+```dart
+_instance = await Isar.open(
+  [CachedUserSchema, CachedTokenSchema],  // <-- Agrega aqui todos los schemas
+  directory: dir.path,
+);
+```
+
+### Error: "Conflicting outputs"
+
+**Causa:** Archivos `.g.dart` corruptos o en conflicto.
+
+```bash
+dart run build_runner build --delete-conflicting-outputs
+```
+
+### Error: "Isar has already been opened"
+
+**Causa:** Intentaste abrir Isar dos veces (ej: en tests sin cerrar la instancia anterior).
+
+```dart
+// En tests, usa un nombre unico por test group
+final isar = await Isar.open(
+  [CachedUserSchema],
+  directory: dir.path,
+  name: 'test_${UniqueKey().toString()}',  // Nombre unico
+);
+```
+
+### Error: "The getter 'X' is not defined for type 'IsarCollection'"
+
+**Causa:** Los archivos `.g.dart` no estan generados o estan desactualizados.
+
+```bash
+# Limpia y regenera
+dart run build_runner clean
+dart run build_runner build --delete-conflicting-outputs
+```
+
+---
+
+## 7. Checklist
 
 - [ ] Usé `isar_community` (fork mantenido activamente)
 - [ ] Agregué el enlace a https://pub.dev/packages/isar_community como referencia

@@ -4,13 +4,22 @@
 
 ---
 
+## Prerrequisitos
+
+- **Flutter** instalado (3.x o superior)
+- Conocimiento básico de Clean Architecture (completar `01-CLEAN-ARCHITECTURE` antes)
+- Comprensión de la estructura de un monorepo Flutter
+- Supabase configurado (completar `02-MONOREPO-STRUCTURE` y `03-AUTH-SUPABASE` antes)
+
+---
+
 ## 📋 Índice
 
 | Archivo | Descripción |
 |---------|-------------|
 | [01-isar-introduccion.md](./01-isar-introduccion.md) | ¿Qué es Isar? Diferencias entre `isar`, `isar_community` y `isar v4`. Setup y code generation |
 | [02-modelos-operaciones.md](./02-modelos-operaciones.md) | Colecciones, anotaciones, CRUD, queries, filtros, TTL pattern con ejemplos reales |
- | [03-implementacion-local-datasource.md](./03-implementacion-local-datasource.md) | IsarService singleton, LocalDataSource pattern, CacheManager, UserSessionImpl |
+| [03-implementacion-local-datasource.md](./03-implementacion-local-datasource.md) | IsarService singleton, LocalDataSource pattern, CacheManager, UserSessionImpl |
 
 ---
 

@@ -172,7 +172,128 @@ await isar.writeTxn(() async {
 
 ---
 
-## 5. Queries con `where()`
+## 5. Operaciones batch con `putAll()`
+
+`putAll()` permite insertar múltiples objetos en una sola transacción, lo cual es significativamente más rápido que insertar uno por uno:
+
+```dart
+// ❌ Lento: N transacciones separadas
+for (final user in users) {
+  await isar.writeTxn(() => isar.cachedUsers.put(user));
+}
+
+// ✅ Rápido: 1 sola transacción
+await isar.writeTxn(() => isar.cachedUsers.putAll(users));
+```
+
+### Impacto real
+
+| Método | 1,000 objetos | Tiempo aprox. |
+|--------|---------------|---------------|
+| `put()` en loop | 1,000 txn | ~500ms |
+| `putAll()` | 1 txn | ~50ms |
+
+### Sintaxis por tipo de operación batch
+
+```dart
+// Crear/actualizar varios
+await isar.writeTxn(() async {
+  await isar.cachedUsers.putAll([user1, user2, user3]);
+});
+
+// Eliminar varios por ID
+await isar.writeTxn(() async {
+  await isar.cachedUsers.deleteAll([1, 2, 3]);
+});
+
+// Eliminar todos
+await isar.writeTxn(() async {
+  await isar.cachedUsers.clear();
+});
+```
+
+---
+
+## 6. Streams reactivos con `watch()`
+
+Isar ofrece `watch()` para escuchar cambios en tiempo real en el cache. Esto es útil para reconstruir widgets automáticamente cuando cambian los datos:
+
+### `watchObject()` — Un solo objeto
+
+```dart
+final stream = isar.cachedUsers.watchObject(userId);
+
+stream.listen((cachedUser) {
+  if (cachedUser != null) {
+    print('Usuario actualizado: ${cachedUser.name}');
+  }
+});
+
+// Actualizar el usuario → el stream emite automáticamente
+await isar.writeTxn(() async {
+  final user = await isar.cachedUsers.get(userId);
+  user!.name = 'Nuevo nombre';
+  await isar.cachedUsers.put(user);
+});
+```
+
+### `watchLazy()` — Toda la colección
+
+```dart
+final stream = isar.cachedUsers.watchLazy();
+
+stream.listen(() {
+  print('La colección de usuarios cambió');
+  // Reconstruir UI o recalcular estado
+});
+```
+
+### `watchObject()` con filtro
+
+```dart
+final stream = isar.cachedUsers
+    .filter()
+    .isActiveEqualTo(true)
+    .watchObject(userId);
+
+stream.listen((activeUser) {
+  if (activeUser != null) {
+    print('Usuario activo actualizado');
+  }
+});
+```
+
+### Patrón común: Reconstruir Cubit al escuchar cambios
+
+```dart
+class UserCubit extends Cubit<UserState> {
+  final Isar _isar;
+  late final StreamSubscription _subscription;
+
+  UserCubit(this._isar) : super(UserInitial()) {
+    _subscription = _isar.cachedUsers.watchLazy().listen((_) {
+      _loadFromCache();
+    });
+  }
+
+  Future<void> _loadFromCache() async {
+    final users = await _isar.cachedUsers.where().findAll();
+    emit(UserLoaded(users));
+  }
+
+  @override
+  Future<void> close() {
+    _subscription.cancel();
+    return super.close();
+  }
+}
+```
+
+> **Nota:** `watch()` es ideal para mantener la UI sincronizada con el cache sin tener que llamar manualmente a `load()` después de cada escritura.
+
+---
+
+## 7. Queries con `where()`
 
 El método `where()` inicia una query construida con los índices disponibles. Es la forma más rápida de consultar.
 
@@ -221,7 +342,7 @@ final count = isar.cachedUsers.where().countSync();
 
 ---
 
-## 6. Filtros avanzados con `filter()`
+## 8. Filtros avanzados con `filter()`
 
 Mientras `where()` usa índices, `filter()` permite filtrar por cualquier campo, aunque no tenga índice. Es más lento pero más flexible.
 
@@ -249,7 +370,7 @@ final result = await isar.cachedPaymentMethods
 
 ---
 
-## 7. Ordenamiento, offset y límite
+## 9. Ordenamiento, offset y límite
 
 ```dart
 final result = await isar.cachedPaymentMethods
@@ -276,7 +397,7 @@ final page = await isar.cachedPaymentMethods
 
 ---
 
-## 8. Patrón TTL (Time-To-Live)
+## 10. Patrón TTL (Time-To-Live)
 
 ### 🧠 El problema
 
@@ -339,7 +460,7 @@ Future<UserModel?> getCachedUser() async {
 
 ---
 
-## 9. Casos reales del monorepo
+## 11. Casos reales del monorepo
 
 ### 📦 CachedUser
 
@@ -454,7 +575,7 @@ class CachedPaymentMethod {
 
 ---
 
-## 10. Checklist
+## 12. Checklist
 
 - [ ] Definí las colecciones con `@Collection()`
 - [ ] Agregué `@Index(unique: true)` en los business keys

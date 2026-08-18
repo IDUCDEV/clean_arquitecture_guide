@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>GUIA RESUMEN — Almacenamiento Local con Isar</title>
+<link rel="stylesheet" href="guia-resumen.css">
+</head>
+<body>
+
+<div class="header">
+  <div class="mod">Modulo 04 · Almacenamiento Local + Isar + Flutter</div>
+  <h1>GUIA RESUMEN — Almacenamiento Local con Isar</h1>
+  <div class="sub">Resumen integral para dominar Isar Community en ~20 minutos, sin volver a leer el modulo completo.</div>
+</div>
+
+<!-- ================= 0. FLUJO ================= -->
+<section>
+  <div class="section-head s-amber">
+    <span class="num">0</span>
+    <h2>Flujo de aprendizaje general</h2>
+    <span class="meta">3 partes · ~20 min</span>
+  </div>
+
+  <table class="flow">
+    <tr>
+      <td><span class="step-n">1</span><span class="step-t">Fundamentos</span><span class="step-f">6 min</span></td>
+      <td><span class="step-n">2</span><span class="step-t">Modelos y Operaciones</span><span class="step-f">8 min</span></td>
+      <td><span class="step-n">3</span><span class="step-t">Implementacion</span><span class="step-f">6 min</span></td>
+    </tr>
+  </table>
+
+  <div class="callout orange"><p><strong>Regla de oro:</strong> "Isar es la base de datos local. Cada feature tiene su propia DataSource que maneja cache. Nunca consultes Supabase si el cache tiene datos frescos."</p></div>
+
+  <table>
+    <thead><tr><th>Parte</th><th>Que aprendes</th><th>Archivo clave</th></tr></thead>
+    <tbody>
+      <tr><td>1. Fundamentos</td><td>Que es Isar, diferencias entre versiones, setup, code generation</td><td class="mono">01-isar-introduccion.md</td></tr>
+      <tr><td>2. Modelos y Operaciones</td><td>Colecciones, CRUD, queries, filtros, TTL, putAll, watch</td><td class="mono">02-modelos-operaciones.md</td></tr>
+      <tr><td>3. Implementacion</td><td>IsarService singleton, LocalDataSource, CacheManager</td><td class="mono">03-implementacion-local-datasource.md</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 1. QUE ES ISAR ================= -->
+<section>
+  <div class="section-head s-amber">
+    <span class="num">1</span>
+    <h2>Que es Isar? (3 min)</h2>
+    <span class="meta">Base de datos embebida</span>
+  </div>
+  <p><strong>Isar</strong> es una base de datos NoSQL embebida para Flutter. Es rapida, tipada, y funciona sin servidor.</p>
+
+  <h3>Las 3 versiones de Isar</h3>
+  <table>
+    <thead><tr><th>Paquete</th><th>Estado</th><th>Version</th><th>Uso</th></tr></thead>
+    <tbody>
+      <tr><td><code>isar</code></td><td>Abandonado</td><td>3.x</td><td>NO usar en proyectos nuevos</td></tr>
+      <tr><td><code>isar_community</code></td><td><strong>Activo</strong></td><td>3.x</td><td>Recomendado para la mayoria de proyectos</td></tr>
+      <tr><td><code>isar</code> (v4)</td><td>En desarrollo</td><td>4.x</td><td>Rewrite en Rust, API diferente</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout"><p><strong>Recomendacion:</strong> Usa <code>isar_community</code> para proyectos nuevos. Es el fork mantenido de la comunidad y es compatible con la API de Isar v3.</p></div>
+
+  <h3>Instalacion</h3>
+  <pre>dependencies:
+  isar_community: ^3.1.0+1
+  isar_flutter_libs: ^3.1.0+1
+  path_provider: ^2.1.0
+
+dev_dependencies:
+  isar_generator: ^3.1.0+1
+  build_runner: ^2.4.0</pre>
+
+  <h3>Code Generation</h3>
+  <pre># Generar archivos .g.dart
+dart run build_runner build --delete-conflicting-outputs
+
+# Watch para desarrollo continuo
+dart run build_runner watch --delete-conflicting-outputs</pre>
+</section>
+
+<!-- ================= 2. ESTRUCTURA ISAR ================= -->
+<section>
+  <div class="section-head s-amber">
+    <span class="num">2</span>
+    <h2>Estructura de Isar (3 min)</h2>
+    <span class="meta">Colecciones y esquemas</span>
+  </div>
+
+  <h3>Componentes clave</h3>
+  <table>
+    <thead><tr><th>Componente</th><th>Que es</th><th>Ejemplo</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Coleccion</strong></td><td>Tabla de datos (como una tabla SQL)</td><td>CachedUser, CachedToken</td></tr>
+      <tr><td><strong>Esquema</strong></td><td>Clase generada por build_runner</td><td>CachedUserSchema</td></tr>
+      <tr><td><strong>Indice</strong></td><td>Acelera busquedas en campos especificos</td><td>@Index(unique: true)</td></tr>
+      <tr><td><strong>Embedded</strong></td><td>Objeto anidado dentro de una coleccion</td><td>PaymentInfo embebido en User</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Ejemplo de coleccion</h3>
+  <pre>class CachedUser {
+  Id id = Isar.autoIncrement;  // ID auto-incremental
+
+  @Index(unique: true)
+  late String userId;           // ID del usuario en Supabase
+
+  late String name;
+  late String email;
+  String? avatarUrl;
+  bool isActive = true;
+
+  late DateTime cachedAt;       // Cuando se guardo en cache
+  late DateTime expiresAt;      // Cuando expira el cache
+}</pre>
+
+  <div class="callout orange"><p><strong>Patron TTL:</strong> Siempre guarda <code>cachedAt</code> y <code>expiresAt</code> en cada coleccion. Esto permite saber si el cache sigue siendo valido.</p></div>
+</section>
+
+<!-- ================= 3. CRUD BASICO ================= -->
+<section>
+  <div class="section-head s-amber">
+    <span class="num">3</span>
+    <h2>CRUD basico en Isar (3 min)</h2>
+    <span class="meta">Crear, leer, actualizar, eliminar</span>
+  </div>
+
+  <h3>Operaciones basicas</h3>
+  <pre>// CREAR/ACTUALIZAR (put crea si no existe, actualiza si existe)
+await isar.writeTxn(() async {
+  await isar.cachedUsers.put(user);
+});
+
+// LEER por ID
+final user = await isar.cachedUsers.get(userId);
+
+// ELIMINAR por ID
+await isar.writeTxn(() async {
+  await isar.cachedUsers.delete(userId);
+});
+
+// ELIMINAR todos
+await isar.writeTxn(() async {
+  await isar.cachedUsers.where().deleteAll();
+});</pre>
+
+  <h3>Regla de oro: writeTxn</h3>
+  <table>
+    <thead><tr><th>Operacion</th><th>Requiere writeTxn?</th><th>Por que</th></tr></thead>
+    <tbody>
+      <tr><td>put, delete, clear</td><td><strong>Siempre</strong></td><td>Escritura en disco</td></tr>
+      <tr><td>get, findAll, filter</td><td>No</td><td>Solo lectura</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout"><p><strong>Error comun:</strong> Olvidar <code>writeTxn</code> al escribir. Isar lanza un error si intentas escribir sin transaccion.</p></div>
+</section>
+
+<!-- ================= 4. QUERIES Y FILTROS ================= -->
+<section>
+  <div class="section-head s-amber-soft">
+    <span class="num">4</span>
+    <h2>Queries y filtros (3 min)</h2>
+    <span class="meta">where, filter, sortBy</span>
+  </div>
+
+  <h3>where() — Busqueda por indice</h3>
+  <pre>// Buscar por indice unico
+final user = await isar.cachedUsers
+    .where()
+    .userIdEqualTo(userId)
+    .findFirst();
+
+// Buscar todos los activos
+final active = await isar.cachedUsers
+    .where()
+    .isActiveEqualTo(true)
+    .findAll();</pre>
+
+  <h3>filter() — Filtros avanzados</h3>
+  <pre>// Filtros compuestos
+final results = await isar.cachedUsers
+    .filter()
+    .isActiveEqualTo(true)
+    .nameContains('Carlos')
+    .findAll();
+
+// Filtros con OR
+final results = await isar.cachedUsers
+    .filter()
+    .nameContains('A')
+    .or()
+    .nameContains('B')
+    .findAll();</pre>
+
+  <h3>Operadores disponibles</h3>
+  <table>
+    <thead><tr><th>Operador</th><th>Ejemplo</th></tr></thead>
+    <tbody>
+      <tr><td>EqualTo</td><td>.userIdEqualTo(id)</td></tr>
+      <tr><td>GreaterThan</td><td>.ageGreaterThan(18)</td></tr>
+      <tr><td>LessThan</td><td>.ageLessThan(65)</td></tr>
+      <tr><td>Contains</td><td>.nameContains('text')</td></tr>
+      <tr><td>Between</td><td>.ageBetween(18, 65)</td></tr>
+      <tr><td>IsNull / IsNotNull</td><td>.avatarUrlIsNull()</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 5. PUTALL Y WATCH ================= -->
+<section>
+  <div class="section-head s-amber">
+    <span class="num">5</span>
+    <h2>putAll() y watch() (2 min)</h2>
+    <span class="meta">Batch y reactividad</span>
+  </div>
+
+  <h3>putAll() — Insercion batch</h3>
+  <pre>// Lento: N transacciones separadas
+for (final user in users) {
+  await isar.writeTxn(() => isar.cachedUsers.put(user));
+}
+
+// Rapido: 1 sola transaccion
+await isar.writeTxn(() => isar.cachedUsers.putAll(users));</pre>
+
+  <table>
+    <thead><tr><th>Metodo</th><th>1,000 objetos</th><th>Tiempo aprox.</th></tr></thead>
+    <tbody>
+      <tr><td>put() en loop</td><td>1,000 txn</td><td>~500ms</td></tr>
+      <tr><td>putAll()</td><td>1 txn</td><td>~50ms</td></tr>
+    </tbody>
+  </table>
+
+  <h3>watch() — Streams reactivos</h3>
+  <pre>// Escuchar un solo objeto por ID
+final stream = isar.cachedUsers.watchObject(userId);
+stream.listen((user) {
+  if (user != null) print('Actualizado: ${user.name}');
+});
+
+// Escuchar toda la coleccion
+final stream = isar.cachedUsers.watchLazy();
+stream.listen(() {
+  print('La coleccion cambio');
+});</pre>
+
+  <div class="callout orange"><p><strong>Uso ideal:</strong> <code>watch()</code> mantiene la UI sincronizada con el cache sin llamar manualmente a <code>load()</code> despues de cada escritura.</p></div>
+</section>
+
+<!-- ================= 6. ISAR SERVICE ================= -->
+<section>
+  <div class="section-head s-orange">
+    <span class="num">6</span>
+    <h2>IsarService — Singleton (2 min)</h2>
+    <span class="meta">Patron de inicializacion</span>
+  </div>
+
+  <p><strong>IsarService</strong> encapsula la inicializacion de Isar y se usa como singleton en toda la app.</p>
+
+  <h3>Implementacion</h3>
+  <pre>class IsarService {
+  static Isar? _instance;
+
+  static Future&lt;Isar&gt; getInstance() async {
+    if (_instance != null) return _instance!;
+    final dir = await getApplicationDocumentsDirectory();
+    _instance = await Isar.open(
+      [CachedUserSchema, CachedTokenSchema, CachedProfileSchema],
+      directory: dir.path,
+    );
+    return _instance!;
+  }
+}</pre>
+
+  <h3>Registro en DI</h3>
+  <pre>// En injection.dart
+final isar = await IsarService.getInstance();
+sl.registerLazySingleton(() =&gt; isar);</pre>
+
+  <div class="callout"><p><strong>Importante:</strong> Abrir Isar una sola vez al inicio de la app. No crear multiples instancias.</p></div>
+</section>
+
+<!-- ================= 7. LOCALDATASOURCE ================= -->
+<section>
+  <div class="section-head s-orange">
+    <span class="num">7</span>
+    <h2>LocalDataSource Pattern (3 min)</h2>
+    <span class="meta">Abstract + Implementation</span>
+  </div>
+
+  <p>Cada feature tiene su propia <strong>LocalDataSource</strong> que maneja el cache en Isar.</p>
+
+  <h3>Estructura</h3>
+  <pre>abstract class AuthLocalDataSource {
+  Future&lt;void&gt; cacheToken(String token);
+  String? getCachedToken();
+  Future&lt;void&gt; cacheUser(CachedUser user);
+  CachedUser? getCachedUser();
+  Future&lt;void&gt; clearCache();
+}
+
+class AuthLocalDataSourceImpl implements AuthLocalDataSource {
+  final Isar _isar;
+  AuthLocalDataSourceImpl(this._isar);
+
+  @override
+  Future&lt;void&gt; cacheToken(String token) async {
+    await _isar.writeTxn(() async {
+      await _isar.cachedTokens.clear();
+      await _isar.cachedTokens.put(CachedToken()
+        ..token = token
+        ..cachedAt = DateTime.now()
+        ..expiresAt = DateTime.now().add(Duration(hours: 2)));
+    });
+  }
+  // ... demas metodos
+}</pre>
+
+  <h3>CacheManager — Limpieza centralizada</h3>
+  <pre>class CacheManager {
+  final _clearFns = &lt;Future&lt;void&gt; Function()&gt;[];
+
+  void register(Future&lt;void&gt; Function() clearFn) {
+    _clearFns.add(clearFn);
+  }
+
+  Future&lt;void&gt; clearAll() async {
+    await Future.wait(_clearFns.map((fn) =&gt; fn()));
+  }
+}
+
+// Uso al cerrar sesion
+await cacheManager.clearAll();
+await supabase.auth.signOut();</pre>
+
+  <div class="callout orange"><p><strong>Regla:</strong> Cada feature registra su <code>clearCache()</code> en el CacheManager. Al cerrar sesion, se limpia todo de una vez.</p></div>
+</section>
+
+<!-- ================= 8. PATRON TTL ================= -->
+<section>
+  <div class="section-head s-yellow">
+    <span class="num">8</span>
+    <h2>Patron TTL (Time-To-Live) (2 min)</h2>
+    <span class="meta">Cache con expiracion</span>
+  </div>
+
+  <p>El patron TTL permite guardar datos con una fecha de expiracion. Al leer, se verifica si el cache sigue valido.</p>
+
+  <h3>Implementacion</h3>
+  <pre>// Guardar con TTL
+await isar.writeTxn(() async {
+  await isar.cachedUsers.put(CachedUser()
+    ..userId = user.id
+    ..name = user.name
+    ..cachedAt = DateTime.now()
+    ..expiresAt = DateTime.now().add(Duration(hours: 1)));
+});
+
+// Leer con validacion TTL
+Future&lt;CachedUser?&gt; getCachedUser(String userId) async {
+  final cached = await _isar.cachedUsers
+      .where()
+      .userIdEqualTo(userId)
+      .findFirst();
+
+  if (cached == null) return null;
+  if (cached.expiresAt.isBefore(DateTime.now())) {
+    return null;  // Cache expirado
+  }
+  return cached;
+}</pre>
+
+  <h3>Tiempos de cache recomendados</h3>
+  <table>
+    <thead><tr><th>Datos</th><th>TTL sugerido</th><th>Razon</th></tr></thead>
+    <tbody>
+      <tr><td>Token JWT</td><td>1-2 horas</td><td>Expiracion de Supabase</td></tr>
+      <tr><td>Perfil de usuario</td><td>30 min - 1 hora</td><td>Cambia poco</td></tr>
+      <tr><td>Metodos de pago</td><td>24 horas</td><td>Cambia muy raro</td></tr>
+      <tr><td>Lista de productos</td><td>5-15 minutos</td><td>Cambia frecuente</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 9. USER SESSION ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">9</span>
+    <h2>UserSession — Acceso sincrono (1 min)</h2>
+    <span class="meta">Desde Isar</span>
+  </div>
+
+  <p><code>UserSessionImpl</code> permite obtener el usuario autenticado actual de forma sincrona desde Isar, sin necesidad de hacer <code>await</code>.</p>
+
+  <h3>Implementacion</h3>
+  <pre>class UserSessionImpl implements UserSession {
+  final Isar _isar;
+
+  UserSessionImpl(this._isar);
+
+  @override
+  String? get currentUserId {
+    final user = _isar.cachedUsers
+        .where()
+        .findFirstSync();
+    return user?.userId;
+  }
+
+  @override
+  bool get isAuthenticated => currentUserId != null;
+}</pre>
+
+  <div class="callout"><p><strong>Uso:</strong> Inyecta <code>UserSession</code> en los Repositories que necesiten saber quien es el usuario actual (ej: PaymentMethodRepository).</p></div>
+</section>
+
+<!-- ================= 9. CHECKLIST ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">9</span>
+    <h2>Checklist de implementacion</h2>
+    <span class="meta">Paso a paso</span>
+  </div>
+
+  <ul class="checklist">
+    <li>Instalar <code>isar_community</code> + <code>isar_flutter_libs</code> + <code>isar_generator</code></li>
+    <li>Crear colecciones con <code>@collection</code>, <code>@Index()</code>, <code>@enumerated</code></li>
+    <li>Ejecutar <code>build_runner build</code> para generar <code>.g.dart</code></li>
+    <li>Crear <code>IsarService</code> singleton con <code>Isar.open()</code></li>
+    <li>Registrar Isar en GetIt (DI)</li>
+    <li>Crear <code>abstract class</code> + <code>Impl</code> para cada LocalDataSource</li>
+    <li>Implementar <code>cacheX()</code>, <code>getCachedX()</code>, <code>clearCache()</code></li>
+    <li>Agregar patro TTL con <code>cachedAt</code> / <code>expiresAt</code></li>
+    <li>Usar <code>putAll()</code> para inserciones batch</li>
+    <li>Usar <code>watch()</code> para UI reactiva</li>
+    <li>Crear <code>CacheManager</code> y registrar <code>clearCache()</code> de cada feature</li>
+    <li>Integrar <code>UserSessionImpl</code> para acceso sincrono al usuario</li>
+    <li>Manejar errores con <code>CacheException</code></li>
+  </ul>
+
+  <div class="footer-note"><strong>Tiempo de lectura del resumen: ~20 min</strong> · Isar es rapido, tipado, y perfecto para cache local en Flutter.</div>
+</section>
+
+</body>
+</html>

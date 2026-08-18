@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>04 — Almacenamiento Local con Isar</title>
+<link rel="stylesheet" href="guia-completa.css">
+</head>
+<body>
+<div class="cover">
+  <span class="module-tag">Modulo 04</span>
+  <h1>Almacenamiento Local<br>con Isar</h1>
+  <p class="subtitle">Guia completa para implementar almacenamiento local embebido con Isar Community en Flutter, siguiendo Clean Architecture.</p>
+  <table class="meta">
+    <tr>
+      <td><span class="label">Base de datos</span><span class="value">Isar Community · NoSQL embebida</span></td>
+      <td><span class="label">Backend</span><span class="value">Supabase (BaaS) · Cache local</span></td>
+    </tr>
+    <tr>
+      <td><span class="label">Nivel</span><span class="value">Intermedio</span></td>
+      <td><span class="label">Tiempo estimado</span><span class="value">3-4 horas</span></td>
+    </tr>
+  </table>
+  <div class="tags"><span>Isar</span><span>Flutter</span><span>Clean Architecture</span><span>Cache</span><span>Supabase</span></div>
+</div><div class="toc"><h2>Contenido</h2><p class="toc-count">3 capitulos · 3 archivos · ~3-4 horas de lectura</p><div class="part">Parte 1 · Fundamentos de Isar</div>
+<div class="row"><span class="num">01</span><span class="title">🗄️ 1. Introducción a Isar Community</span></div>
+<div class="part">Parte 2 · Modelos y Operaciones</div>
+<div class="row"><span class="num">02</span><span class="title">🗄️ 2. Modelos y Operaciones con Isar</span></div>
+<div class="part">Parte 3 · Implementacion</div>
+<div class="row"><span class="num">03</span><span class="title">🗄️ 3. Implementación de Local DataSource</span></div></div><div class="chapter"><div class="chapter-head"><span class="num-chip">Introduccion</span><div class="kick">Parte 1 · Fundamentos de Isar</div><h2>🗄️ 1. Introducción a Isar Community</h2></div><div class="article"><blockquote>
+<p><strong>¿De qué trata esta guía?</strong> De entender qué es Isar Community, por qué usarlo, cómo se integra en un proyecto Flutter con Clean Architecture.</p>
+</blockquote>
+<hr />
+<h2 id="clipboard-índice">📋 Índice</h2>
+<ol type="1">
+<li><a href="#1-qué-es-isar">¿Qué es Isar?</a></li>
+<li><a href="#2-isar_community"><code>isar_community</code></a></li>
+<li><a href="#3-instalación-y-setup">Instalación y setup</a></li>
+<li><a href="#4-arquitectura-de-isar">Arquitectura de Isar</a></li>
+<li><a href="#5-code-generation">Code generation</a></li>
+<li><a href="#6-checklist">Checklist</a></li>
+</ol>
+<hr />
+<h2 id="1-qué-es-isar">1. ¿Qué es Isar?</h2>
+<p><strong>Isar</strong> es una base de datos embebida NoSQL diseñada específicamente para Flutter y Dart. A diferencia de SQLite (que usa tablas y SQL), Isar almacena objetos Dart directamente como documentos, similar a MongoDB pero sin servidor.</p>
+<h3 id="key-características-principales">🔑 Características principales</h3>
+<table>
+<thead>
+<tr>
+<th>Característica</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Embebida</strong></td>
+<td>No necesita servidor. La BD vive en el dispositivo</td>
+</tr>
+<tr>
+<td><strong>NoSQL</strong></td>
+<td>Almacena objetos Dart directamente, sin conversión SQL</td>
+</tr>
+<tr>
+<td><strong>Rápida</strong></td>
+<td>Escrita en Rust/C++, hasta 10x más rápida que SQLite en benchmarks</td>
+</tr>
+<tr>
+<td><strong>Tipada</strong></td>
+<td>Code generation genera APIs completamente tipadas</td>
+</tr>
+<tr>
+<td><strong>Isolates</strong></td>
+<td>Operaciones asíncronas que no bloquean la UI</td>
+</tr>
+<tr>
+<td><strong>Índices</strong></td>
+<td>Soportados: único, compuesto, hash, case-sensitive</td>
+</tr>
+<tr>
+<td><strong>Multi-plataforma</strong></td>
+<td>Android, iOS, macOS, Windows, Linux, Web</td>
+</tr>
+<tr>
+<td><strong>Relaciones</strong></td>
+<td><code>IsarLink</code> e <code>IsarObjects</code> para relaciones embedidas o referenciadas</td>
+</tr>
+</tbody>
+</table>
+<h3 id="brain-por-qué-isar-y-no-otra-cosa">🧠 ¿Por qué Isar y no otra cosa?</h3>
+<p>En el contexto de Clean Architecture, Isar se usa como <strong>almacenamiento local</strong> en la capa de Data, específicamente en <code>LocalDataSource</code>. Antes de Isar, el estándar era SharedPreferences para datos simples o SQLite (sqflite) para datos estructurados.</p>
+<table>
+<thead>
+<tr>
+<th>Aspecto</th>
+<th>SharedPreferences</th>
+<th>sqflite</th>
+<th>Isar</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Tipo de datos</strong></td>
+<td>Pares clave-valor (strings)</td>
+<td>Tablas SQL relacionales</td>
+<td>Documentos NoSQL (objetos Dart)</td>
+</tr>
+<tr>
+<td><strong>Tipado</strong></td>
+<td>❌ Manual (json.decode)</td>
+<td>❌ Manual (Row → objeto)</td>
+<td>✅ Automático (code gen)</td>
+</tr>
+<tr>
+<td><strong>Velocidad</strong></td>
+<td>Rápido (síncrono)</td>
+<td>Medio</td>
+<td>Rápido (async + isolates)</td>
+</tr>
+<tr>
+<td><strong>Índices</strong></td>
+<td>❌ No</td>
+<td>✅ Sí</td>
+<td>✅ Sí</td>
+</tr>
+<tr>
+<td><strong>Queries complejas</strong></td>
+<td>❌ No</td>
+<td>✅ SQL</td>
+<td>✅ where/filter</td>
+</tr>
+<tr>
+<td><strong>Multi-plataforma</strong></td>
+<td>✅ Sí</td>
+<td>⚠️ Limitado</td>
+<td>✅ Sí</td>
+</tr>
+<tr>
+<td><strong>Ideal para</strong></td>
+<td>Configs, tokens simples</td>
+<td>Datos relacionales</td>
+<td>Cache de datos + sesión</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2-isar_community">2. <code>isar_community</code></h2>
+<p><a href="https://pub.dev/packages/isar_community"><code>isar_community</code></a> es el package activo y mantenido del ecosistema Isar, compatible con Dart SDK &lt; 4.0 y la opción recomendada para producción hoy. El package original fue abandonado por su creador en 2023.</p>
+<blockquote>
+<p><strong>Regla simple:</strong> usa siempre <code>isar_community</code>. Los imports usan <code>package:isar_community/isar.dart</code>.</p>
+</blockquote>
+<hr />
+<h2 id="3-instalación-y-setup">3. Instalación y setup</h2>
+<h3 id="file_folder-pubspecyaml">📁 pubspec.yaml</h3>
+<div class="sourceCode" id="cb1"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dependencies</span><span class="kw">:</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">flutter</span><span class="kw">:</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">sdk</span><span class="kw">:</span><span class="at"> flutter</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">isar_community</span><span class="kw">:</span><span class="at"> ^3.3.2</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">path_provider</span><span class="kw">:</span><span class="at"> ^2.1.0</span><span class="co">      # Para obtener el directorio de la app</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">dev_dependencies</span><span class="kw">:</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">isar_community_generator</span><span class="kw">:</span><span class="at"> ^3.3.2</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">build_runner</span><span class="kw">:</span><span class="at"> ^2.4.0</span></span></code></pre></div>
+<h3 id="rocket-inicialización">🚀 Inicialización</h3>
+<p>Isar necesita un directorio donde almacenar los archivos de la base de datos. El patrón recomendado es un <strong>singleton</strong> que se inicializa al arrancar la app:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// lib/core/data/local/isar_service.dart</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="st">&#39;package:isar_community/isar.dart&#39;</span>;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="st">&#39;package:path_provider/path_provider.dart&#39;</span>;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="st">&#39;isar_models/cached_user.dart&#39;</span>;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="st">&#39;isar_models/cached_token.dart&#39;</span>;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="st">&#39;isar_models/cached_profile.dart&#39;</span>;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="st">&#39;isar_models/cached_payment_method.dart&#39;</span>;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> IsarService <span class="op">{</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">static</span> Isar<span class="op">?</span> _instance;</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">static</span> Isar <span class="kw">get</span> instance <span class="op">{</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (_instance <span class="op">==</span> <span class="cn">null</span>) <span class="op">{</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>      <span class="cf">throw</span> <span class="kw">Exception</span>(</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>        <span class="st">&#39;Isar not initialized. Call IsarService.initialize() first.&#39;</span><span class="op">,</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>      );</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">return</span> _instance<span class="op">!</span>;</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">static</span> <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> initialize() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (_instance <span class="op">!=</span> <span class="cn">null</span>) <span class="kw">return</span>;</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">final</span> dir <span class="op">=</span> <span class="at">await</span> getApplicationDocumentsDirectory();</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    _instance <span class="op">=</span> <span class="at">await</span> Isar<span class="op">.</span>open(</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>      [</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>        CachedUserSchema<span class="op">,</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>        CachedTokenSchema<span class="op">,</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>        CachedProfileSchema<span class="op">,</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>        CachedPaymentMethodSchema<span class="op">,</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>      ]<span class="op">,</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>      directory<span class="op">:</span> dir<span class="op">.</span>path<span class="op">,</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>      name<span class="op">:</span> <span class="st">&#39;rifame&#39;</span><span class="op">,</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>    );</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>  <span class="at">static</span> <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> close() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">await</span> _instance<span class="op">?.</span>close();</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>    _instance <span class="op">=</span> <span class="cn">null</span>;</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>  <span class="at">static</span> <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> clear() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">await</span> _instance<span class="op">?.</span>writeTxn(() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>      <span class="at">await</span> _instance<span class="op">!.</span>clear();</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span>);</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="electric_plug-integración-con-getit-di">🔌 Integración con GetIt (DI)</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// lib/core/di/injection.dart (fragmento)</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="st">&#39;package:get_it/get_it.dart&#39;</span>;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="st">&#39;package:isar_community/isar.dart&#39;</span>;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="at">final</span> sl <span class="op">=</span> GetIt<span class="op">.</span>instance;</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> initDependencies() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Isar</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">await</span> IsarService<span class="op">.</span>initialize();</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  sl<span class="op">.</span>registerLazySingleton<span class="op">&lt;</span>Isar<span class="op">&gt;</span>(() <span class="op">=&gt;</span> IsarService<span class="op">.</span>instance);</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Local DataSources</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  sl<span class="op">.</span>registerLazySingleton<span class="op">&lt;</span>AuthLocalDataSource<span class="op">&gt;</span>(</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    () <span class="op">=&gt;</span> AuthLocalDataSourceImpl(sl<span class="op">&lt;</span>Isar<span class="op">&gt;</span>())<span class="op">,</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  );</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  sl<span class="op">.</span>registerLazySingleton<span class="op">&lt;</span>ProfileLocalDataSource<span class="op">&gt;</span>(</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    () <span class="op">=&gt;</span> ProfileLocalDataSourceImpl(sl<span class="op">&lt;</span>Isar<span class="op">&gt;</span>())<span class="op">,</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  );</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  sl<span class="op">.</span>registerLazySingleton<span class="op">&lt;</span>PaymentMethodLocalDataSource<span class="op">&gt;</span>(</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    () <span class="op">=&gt;</span> PaymentMethodLocalDataSourceImpl(sl<span class="op">&lt;</span>Isar<span class="op">&gt;</span>())<span class="op">,</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  );</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Session</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>  sl<span class="op">.</span>registerLazySingleton<span class="op">&lt;</span>UserSession<span class="op">&gt;</span>(</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    () <span class="op">=&gt;</span> UserSessionImpl(sl<span class="op">&lt;</span>Isar<span class="op">&gt;</span>())<span class="op">,</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>  );</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>  <span class="co">// CacheManager</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>  sl<span class="op">.</span>registerLazySingleton<span class="op">&lt;</span>CacheManager<span class="op">&gt;</span>(() <span class="op">=&gt;</span> CacheManager());</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<hr />
+<h2 id="4-arquitectura-de-isar">4. Arquitectura de Isar</h2>
+<h3 id="bar_chart-modelo-de-datos">📊 Modelo de datos</h3>
+<p>Isar organiza los datos en <strong>colecciones</strong> (similares a tablas en SQL). Cada colección es una clase Dart anotada con <code>@Collection()</code>.</p>
+<pre><code>┌─────────────────────────────────────────────┐
+│                Isar Database                │
+├─────────────────────────────────────────────┤
+│                                             │
+│  ┌──────────────────────────────────────┐   │
+│  │  CachedUser (colección)              │   │
+│  │  ├── id          (Id, autoincrement) │   │
+│  │  ├── userId      (String, único)     │   │
+│  │  ├── email       (String)            │   │
+│  │  ├── fullName    (String?)           │   │
+│  │  ├── phone       (String?)           │   │
+│  │  ├── avatarUrl   (String?)           │   │
+│  │  ├── cachedAt    (DateTime?)         │   │
+│  │  └── expiresAt   (DateTime?)         │   │
+│  └──────────────────────────────────────┘   │
+│                                             │
+│  ┌──────────────────────────────────────┐   │
+│  │  CachedToken (colección)             │   │
+│  │  ├── id          (Id, autoincrement) │   │
+│  │  ├── token       (String, único)     │   │
+│  │  ├── cachedAt    (DateTime?)         │   │
+│  │  └── expiresAt   (DateTime?)         │   │
+│  └──────────────────────────────────────┘   │
+│                                             │
+│  ┌──────────────────────────────────────┐   │
+│  │  CachedProfile (colección)           │   │
+│  │  ├── id          (Id, autoincrement) │   │
+│  │  ├── userId      (String, único)     │   │
+│  │  ├── fullName    (String?)           │   │
+│  │  ├── ...                             │   │
+│  │  ├── cachedAt    (DateTime?)         │   │
+│  │  └── expiresAt   (DateTime?)         │   │
+│  └──────────────────────────────────────┘   │
+│                                             │
+│  ┌──────────────────────────────────────┐   │
+│  │  CachedPaymentMethod (colección)     │   │
+│  │  ├── id              (Id, autoincrement)│ │
+│  │  ├── userId          (String, índice)│   │
+│  │  ├── paymentMethodId (String, único) │   │
+│  │  ├── type            (String?)       │   │
+│  │  ├── ...                             │   │
+│  │  ├── cachedAt        (DateTime?)     │   │
+│  │  └── expiresAt       (DateTime?)     │   │
+│  └──────────────────────────────────────┘   │
+│                                             │
+└─────────────────────────────────────────────┘</code></pre>
+<h3 id="key-conceptos-clave">🔑 Conceptos clave</h3>
+<table>
+<thead>
+<tr>
+<th>Concepto</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Colección</strong></td>
+<td>Clase Dart con <code>@Collection()</code>. Equivale a una tabla</td>
+</tr>
+<tr>
+<td><strong>Esquema</strong></td>
+<td>Clase generada automáticamente (<code>NombreSchema</code>). Se pasa a <code>Isar.open()</code></td>
+</tr>
+<tr>
+<td><strong>Id</strong></td>
+<td>Campo de tipo <code>Id</code> (int). Puede ser autoincremental o asignado manualmente</td>
+</tr>
+<tr>
+<td><strong>Índice</strong></td>
+<td><code>@Index()</code> en un campo. Acelera queries. <code>unique: true</code> para valores únicos</td>
+</tr>
+<tr>
+<td><strong>IsarLink</strong></td>
+<td>Relación 1:1 o 1:N entre colecciones</td>
+</tr>
+<tr>
+<td><strong>IsarObject</strong></td>
+<td>Objeto embebido dentro de otro (sin colección propia)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-code-generation">5. Code generation</h2>
+<h3 id="wrench-cómo-funciona">🔧 Cómo funciona</h3>
+<p>Isar genera código automáticamente a partir de tus anotaciones. Por cada clase con <code>@Collection()</code>, se genera:</p>
+<ol type="1">
+<li><code>NombreSchema</code> — constante con metadatos de la colección</li>
+<li>Serializador/Deserializador — convierte entre objeto Dart y almacenamiento binario</li>
+<li>Query builders — <code>where()</code>, <code>filter()</code>, <code>sortBy()</code> tipados</li>
+<li>Extensiones de acceso — <code>isar.colecciones</code> (getter tipado)</li>
+</ol>
+<h3 id="arrow_forward-comandos">▶️ Comandos</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Una sola ejecución</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> run build_runner build <span class="at">--delete-conflicting-outputs</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Modo watch (regenera automáticamente al cambiar)</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> run build_runner watch <span class="at">--delete-conflicting-outputs</span></span></code></pre></div>
+<h3 id="page_facing_up-archivos-generados">📄 Archivos generados</h3>
+<pre><code>lib/core/data/local/isar_models/
+├── cached_user.dart              # ← Tu código
+├── cached_user.g.dart            # ← Generado
+├── cached_token.dart
+├── cached_token.g.dart
+├── cached_profile.dart
+├── cached_profile.g.dart
+├── cached_payment_method.dart
+└── cached_payment_method.g.dart  # ← Generado</code></pre>
+<h3 id="warning-buenas-prácticas">⚠️ Buenas prácticas</h3>
+<ul>
+<li><strong>No editar archivos <code>.g.dart</code></strong>. Se sobrescriben en cada rebuild.</li>
+<li><strong>Incluir <code>*.g.dart</code> en <code>.gitignore</code></strong> o trackearlos (debate abierto). En la práctica, trackearlos evita problemas de versión.</li>
+<li><strong>Ejecutar <code>build_runner</code> después de</strong>: agregar/editar colecciones, agregar/editar índices, cambiar tipos de campos.</li>
+</ul>
+<hr />
+<h2 id="6-troubleshooting-comun">6. Troubleshooting comun</h2>
+<h3 id="error-could-not-find-generated-isar-schema">Error: "Could not find generated Isar schema"</h3>
+<p><strong>Causa:</strong> No ejecutaste <code>build_runner</code> despues de crear o modificar una coleccion.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> run build_runner build <span class="at">--delete-conflicting-outputs</span></span></code></pre></div>
+<h3 id="error-class-x-is-not-a-registered-type">Error: "Class X is not a registered Type"</h3>
+<p><strong>Causa:</strong> Olvidaste agregar el <code>Schema</code> a <code>Isar.open()</code>.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>_instance <span class="op">=</span> <span class="at">await</span> Isar<span class="op">.</span>open(</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  [CachedUserSchema<span class="op">,</span> CachedTokenSchema]<span class="op">,</span>  <span class="co">// &lt;-- Agrega aqui todos los schemas</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  directory<span class="op">:</span> dir<span class="op">.</span>path<span class="op">,</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>);</span></code></pre></div>
+<h3 id="error-conflicting-outputs">Error: "Conflicting outputs"</h3>
+<p><strong>Causa:</strong> Archivos <code>.g.dart</code> corruptos o en conflicto.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> run build_runner build <span class="at">--delete-conflicting-outputs</span></span></code></pre></div>
+<h3 id="error-isar-has-already-been-opened">Error: "Isar has already been opened"</h3>
+<p><strong>Causa:</strong> Intentaste abrir Isar dos veces (ej: en tests sin cerrar la instancia anterior).</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">// En tests, usa un nombre unico por test group</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="at">final</span> isar <span class="op">=</span> <span class="at">await</span> Isar<span class="op">.</span>open(</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  [CachedUserSchema]<span class="op">,</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  directory<span class="op">:</span> dir<span class="op">.</span>path<span class="op">,</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  name<span class="op">:</span> <span class="st">&#39;test_${UniqueKey().toString()}&#39;</span><span class="op">,</span>  <span class="co">// Nombre unico</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>);</span></code></pre></div>
+<h3 id="error-the-getter-x-is-not-defined-for-type-isarcollection">Error: "The getter 'X' is not defined for type 'IsarCollection'"</h3>
+<p><strong>Causa:</strong> Los archivos <code>.g.dart</code> no estan generados o estan desactualizados.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Limpia y regenera</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> run build_runner clean</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="ex">dart</span> run build_runner build <span class="at">--delete-conflicting-outputs</span></span></code></pre></div>
+<hr />
+<h2 id="7-checklist">7. Checklist</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" />Usé <code>isar_community</code> (fork mantenido activamente)</label></li>
+<li><label><input type="checkbox" />Agregué el enlace a <a href="https://pub.dev/packages/isar_community">https://pub.dev/packages/isar_community</a> como referencia</label></li>
+<li><label><input type="checkbox" />Agregué <code>isar_community</code> y <code>isar_community_generator</code> a pubspec.yaml</label></li>
+<li><label><input type="checkbox" />Configuré <code>IsarService</code> como singleton con lazy initialization</label></li>
+<li><label><input type="checkbox" />Registré Isar en GetIt (o tu DI container)</label></li>
+<li><label><input type="checkbox" />Ejecuté <code>build_runner build</code> exitosamente</label></li>
+<li><label><input type="checkbox" />Verifiqué que los archivos <code>.g.dart</code> se generaron</label></li>
+<li><label><input type="checkbox" />Los imports usan <code>package:isar_community/isar.dart</code></label></li>
+</ul>
+<hr />
+<h2 id="books-referencias">📚 Referencias</h2>
+<ul>
+<li><a href="https://pub.dev/packages/isar_community">isar_community | pub.dev</a> — Paquete activo de Isar para Dart/Flutter</li>
+<li><a href="https://isar.dev">Isar | Documentación original</a> — Referencia de operaciones y queries (legacy)</li>
+</ul>
+<hr />
+<p><strong>Nivel:</strong> Principiante<br />
+<strong>Siguiente:</strong> <a href="./02-modelos-operaciones.md">02-modelos-operaciones.md</a></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Modelos y Operaciones</span><div class="kick">Parte 2 · Modelos y Operaciones</div><h2>🗄️ 2. Modelos y Operaciones con Isar</h2></div><div class="article"><blockquote>
+<p><strong>¿De qué trata esta guía?</strong> De aprender a definir colecciones Isar con anotaciones, realizar operaciones CRUD dentro de transacciones, construir queries con filtros y ordenamiento, e implementar el patrón TTL (Time-To-Live) para cache expiration.</p>
+</blockquote>
+<hr />
+<h2 id="clipboard-índice">📋 Índice</h2>
+<ol type="1">
+<li><a href="#1-definición-de-colecciones">Definición de colecciones</a></li>
+<li><a href="#2-anotaciones-principales">Anotaciones principales</a></li>
+<li><a href="#3-crud-básico">CRUD básico</a></li>
+<li><a href="#4-transacciones-writetxn">Transacciones (writeTxn)</a></li>
+<li><a href="#5-queries-con-where">Queries con where()</a></li>
+<li><a href="#6-filtros-avanzados-con-filter">Filtros avanzados con filter()</a></li>
+<li><a href="#7-ordenamiento-offset-y-límite">Ordenamiento, offset y límite</a></li>
+<li><a href="#8-patrón-ttl-time-to-live">Patrón TTL (Time-To-Live)</a></li>
+<li><a href="#9-casos-reales-del-monorepo">Casos reales del monorepo</a></li>
+<li><a href="#10-checklist">Checklist</a></li>
+</ol>
+<hr />
+<h2 id="1-definición-de-colecciones">1. Definición de colecciones</h2>
+<p>Toda colección Isar es una clase Dart anotada con <code>@Collection()</code>. Cada instancia de la clase es un "documento" en la colección.</p>
+<h3 id="file_folder-estructura-de-archivos">📁 Estructura de archivos</h3>
+<pre><code>lib/core/data/local/isar_models/
+├── cached_user.dart
+├── cached_user.g.dart
+├── cached_token.dart
+├── cached_token.g.dart
+├── cached_profile.dart
+├── cached_profile.g.dart
+├── cached_payment_method.dart
+└── cached_payment_method.g.dart    ← generado</code></pre>
+<h3 id="bricks-reglas-fundamentales">🧱 Reglas fundamentales</h3>
+<ol type="1">
+<li>Toda colección debe tener un campo <code>Id id</code> (puede ser autoincremental o asignado)</li>
+<li>Los tipos soportados son: <code>bool</code>, <code>int</code>, <code>double</code>, <code>String</code>, <code>DateTime</code>, <code>Uint8List</code>, <code>List&lt;String&gt;</code>, objetos anidados con <code>@embedded</code></li>
+<li>Todos los campos deben ser nullable (<code>String?</code>, <code>DateTime?</code>) a menos que tengan valor por defecto</li>
+<li>Se requiere <code>part 'nombre.g.dart';</code> al inicio del archivo</li>
+</ol>
+<hr />
+<h2 id="2-anotaciones-principales">2. Anotaciones principales</h2>
+<h3 id="collection"><code>@Collection()</code></h3>
+<p>Marca una clase como colección Isar. Opcionalmente puede especificar <code>inheritance: true/false</code> para incluir campos de superclases.</p>
+<h3 id="index"><code>@Index()</code></h3>
+<p>Crea un índice en el campo para acelerar queries. Opciones:</p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Descripción</th>
+<th>Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>unique: true</code></td>
+<td>Valores únicos (como PRIMARY KEY)</td>
+<td><code>@Index(unique: true)</code></td>
+</tr>
+<tr>
+<td><code>type: IndexType.hash</code></td>
+<td>Índice hash (solo igualdad, más rápido)</td>
+<td><code>@Index(type: IndexType.hash)</code></td>
+</tr>
+<tr>
+<td><code>composite: [...]</code></td>
+<td>Índice compuesto (varios campos)</td>
+<td><code>@Index(composite: ['campo1', 'campo2'])</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="enumerated"><code>@enumerated</code></h3>
+<p>Almacena un enum como su índice entero (0, 1, 2...) en lugar de string.</p>
+<h3 id="embedded"><code>@embedded</code></h3>
+<p>Marca una clase como objeto embebido (se almacena dentro del documento padre, no como colección separada).</p>
+<h3 id="id"><code>Id</code></h3>
+<p>Tipo especial para la clave primaria. <code>Isar.autoIncrement</code> asigna automáticamente.</p>
+<h3 id="bulb-regla-de-oro-para-index">💡 Regla de oro para <code>@Index</code></h3>
+<p>Usar <code>@Index(unique: true)</code> en el <strong>business key</strong> (el ID del negocio, no el <code>Id</code> interno). Esto permite:</p>
+<ul>
+<li>Buscar por <code>userId</code>, <code>token</code>, <code>paymentMethodId</code> de forma eficiente</li>
+<li>Evitar duplicados a nivel de BD</li>
+<li>Hacer <code>upsert</code> implícito con <code>put()</code> (si el índice único ya existe, se actualiza)</li>
+</ul>
+<hr />
+<h2 id="3-crud-básico">3. CRUD básico</h2>
+<h3 id="writing_hand-crear--actualizar-put">✍️ Crear / Actualizar (<code>put</code>)</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// put inserta si no existe, actualiza si ya existe (por Id o índice único)</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="at">await</span> isar<span class="op">.</span>writeTxn(() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> cached <span class="op">=</span> CachedUser()</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">..</span>userId <span class="op">=</span> <span class="st">&#39;550e8400-e29b-41d4-a716-446655440000&#39;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">..</span>email <span class="op">=</span> <span class="st">&#39;test@example.com&#39;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">..</span>fullName <span class="op">=</span> <span class="st">&#39;Test User&#39;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">..</span>cachedAt <span class="op">=</span> DateTime<span class="op">.</span>now()</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">..</span>expiresAt <span class="op">=</span> DateTime<span class="op">.</span>now()<span class="op">.</span>add(<span class="at">const</span> Duration(days<span class="op">:</span> <span class="dv">30</span>));</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">await</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span>put(cached);</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>);</span></code></pre></div>
+<h3 id="open_book-leer-get-findfirst-findall">📖 Leer (<code>get</code>, <code>findFirst</code>, <code>findAll</code>)</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Por Id interno</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="at">final</span> user <span class="op">=</span> <span class="at">await</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span><span class="kw">get</span>(<span class="dv">1</span>);</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Primer resultado de la colección</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="at">final</span> first <span class="op">=</span> <span class="at">await</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span>where()<span class="op">.</span>findFirst();</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">// Todos los documentos</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="at">final</span> all <span class="op">=</span> <span class="at">await</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span>where()<span class="op">.</span>findAll();</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co">// Síncrono (solo para where().findFirstSync/ findAllSync)</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="at">final</span> syncResult <span class="op">=</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span>where()<span class="op">.</span>findFirstSync();</span></code></pre></div>
+<h3 id="wastebasket-eliminar-delete-deleteall">🗑️ Eliminar (<code>delete</code>, <code>deleteAll</code>)</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="at">await</span> isar<span class="op">.</span>writeTxn(() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Por Id interno</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">await</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span>delete(<span class="dv">1</span>);</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Todos los documentos</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">await</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span>where()<span class="op">.</span>deleteAll();</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Por condición</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">await</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span>where()<span class="op">.</span>userIdEqualTo(userId)<span class="op">.</span>deleteAll();</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>);</span></code></pre></div>
+<hr />
+<h2 id="4-transacciones-writetxn">4. Transacciones (<code>writeTxn</code>)</h2>
+<h3 id="thinking-por-qué-son-necesarias">🤔 ¿Por qué son necesarias?</h3>
+<p>Toda operación de escritura (<code>put</code>, <code>delete</code>, <code>clear</code>) <strong>debe</strong> ejecutarse dentro de una transacción. Las lecturas no requieren transacción.</p>
+<h3 id="pencil-patrón-básico">📝 Patrón básico</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="at">await</span> isar<span class="op">.</span>writeTxn(() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">await</span> isar<span class="op">.</span>cachedTokens<span class="op">.</span>where()<span class="op">.</span>deleteAll();</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">await</span> isar<span class="op">.</span>cachedTokens<span class="op">.</span>put(newToken);</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Si algo falla aquí, todo se revierte automáticamente</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>);</span></code></pre></div>
+<h3 id="dart-ventajas">🎯 Ventajas</h3>
+<table>
+<thead>
+<tr>
+<th>Ventaja</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Atomicidad</strong></td>
+<td>Si algo falla, todo se revierte</td>
+</tr>
+<tr>
+<td><strong>Aislamiento</strong></td>
+<td>Las lecturas no ven cambios a medio escribir</td>
+</tr>
+<tr>
+<td><strong>Rendimiento</strong></td>
+<td>Múltiples operaciones en una sola transacción son más rápidas</td>
+</tr>
+</tbody>
+</table>
+<h3 id="warning-error-común">⚠️ Error común</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// ❌ Error: put fuera de writeTxn</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="at">await</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span>put(user);  <span class="co">// Lanza IsarError</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co">// ✅ Correcto</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="at">await</span> isar<span class="op">.</span>writeTxn(() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">await</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span>put(user);</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>);</span></code></pre></div>
+<hr />
+<h2 id="5-operaciones-batch-con-putall">5. Operaciones batch con <code>putAll()</code></h2>
+<p><code>putAll()</code> permite insertar múltiples objetos en una sola transacción, lo cual es significativamente más rápido que insertar uno por uno:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">// ❌ Lento: N transacciones separadas</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (<span class="at">final</span> user <span class="kw">in</span> users) <span class="op">{</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">await</span> isar<span class="op">.</span>writeTxn(() <span class="op">=&gt;</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span>put(user));</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co">// ✅ Rápido: 1 sola transacción</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="at">await</span> isar<span class="op">.</span>writeTxn(() <span class="op">=&gt;</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span>putAll(users));</span></code></pre></div>
+<h3 id="impacto-real">Impacto real</h3>
+<table>
+<thead>
+<tr>
+<th>Método</th>
+<th>1,000 objetos</th>
+<th>Tiempo aprox.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>put()</code> en loop</td>
+<td>1,000 txn</td>
+<td>~500ms</td>
+</tr>
+<tr>
+<td><code>putAll()</code></td>
+<td>1 txn</td>
+<td>~50ms</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sintaxis-por-tipo-de-operación-batch">Sintaxis por tipo de operación batch</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Crear/actualizar varios</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="at">await</span> isar<span class="op">.</span>writeTxn(() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">await</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span>putAll([user1<span class="op">,</span> user2<span class="op">,</span> user3]);</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>);</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co">// Eliminar varios por ID</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="at">await</span> isar<span class="op">.</span>writeTxn(() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">await</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span>deleteAll([<span class="dv">1</span><span class="op">,</span> <span class="dv">2</span><span class="op">,</span> <span class="dv">3</span>]);</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>);</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="co">// Eliminar todos</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="at">await</span> isar<span class="op">.</span>writeTxn(() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">await</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span>clear();</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>);</span></code></pre></div>
+<hr />
+<h2 id="6-streams-reactivos-con-watch">6. Streams reactivos con <code>watch()</code></h2>
+<p>Isar ofrece <code>watch()</code> para escuchar cambios en tiempo real en el cache. Esto es útil para reconstruir widgets automáticamente cuando cambian los datos:</p>
+<h3 id="watchobject--un-solo-objeto"><code>watchObject()</code> — Un solo objeto</h3>
+<div class="sourceCode" id="cb9"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="at">final</span> stream <span class="op">=</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span>watchObject(userId);</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>stream<span class="op">.</span>listen((cachedUser) <span class="op">{</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (cachedUser <span class="op">!=</span> <span class="cn">null</span>) <span class="op">{</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    print(<span class="st">&#39;Usuario actualizado: ${cachedUser.name}&#39;</span>);</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>);</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co">// Actualizar el usuario → el stream emite automáticamente</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="at">await</span> isar<span class="op">.</span>writeTxn(() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> user <span class="op">=</span> <span class="at">await</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span><span class="kw">get</span>(userId);</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  user<span class="op">!.</span>name <span class="op">=</span> <span class="st">&#39;Nuevo nombre&#39;</span>;</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">await</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span>put(user);</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>);</span></code></pre></div>
+<h3 id="watchlazy--toda-la-colección"><code>watchLazy()</code> — Toda la colección</h3>
+<div class="sourceCode" id="cb10"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="at">final</span> stream <span class="op">=</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span>watchLazy();</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>stream<span class="op">.</span>listen(() <span class="op">{</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  print(<span class="st">&#39;La colección de usuarios cambió&#39;</span>);</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Reconstruir UI o recalcular estado</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>);</span></code></pre></div>
+<h3 id="watchobject-con-filtro"><code>watchObject()</code> con filtro</h3>
+<div class="sourceCode" id="cb11"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="at">final</span> stream <span class="op">=</span> isar<span class="op">.</span>cachedUsers</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>filter()</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>isActiveEqualTo(<span class="cn">true</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>watchObject(userId);</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>stream<span class="op">.</span>listen((activeUser) <span class="op">{</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (activeUser <span class="op">!=</span> <span class="cn">null</span>) <span class="op">{</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    print(<span class="st">&#39;Usuario activo actualizado&#39;</span>);</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>);</span></code></pre></div>
+<h3 id="patrón-común-reconstruir-cubit-al-escuchar-cambios">Patrón común: Reconstruir Cubit al escuchar cambios</h3>
+<div class="sourceCode" id="cb12"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> UserCubit <span class="kw">extends</span> Cubit<span class="op">&lt;</span>UserState<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> Isar _isar;</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">late</span> <span class="at">final</span> StreamSubscription _subscription;</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  UserCubit(<span class="kw">this</span><span class="op">.</span>_isar) <span class="op">:</span> <span class="kw">super</span>(UserInitial()) <span class="op">{</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    _subscription <span class="op">=</span> _isar<span class="op">.</span>cachedUsers<span class="op">.</span>watchLazy()<span class="op">.</span>listen((_) <span class="op">{</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>      _loadFromCache();</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span>);</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> _loadFromCache() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">final</span> users <span class="op">=</span> <span class="at">await</span> _isar<span class="op">.</span>cachedUsers<span class="op">.</span>where()<span class="op">.</span>findAll();</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    emit(UserLoaded(users));</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> close() <span class="op">{</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    _subscription<span class="op">.</span>cancel();</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>    <span class="kw">return</span> <span class="kw">super</span><span class="op">.</span>close();</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<blockquote>
+<p><strong>Nota:</strong> <code>watch()</code> es ideal para mantener la UI sincronizada con el cache sin tener que llamar manualmente a <code>load()</code> después de cada escritura.</p>
+</blockquote>
+<hr />
+<h2 id="7-queries-con-where">7. Queries con <code>where()</code></h2>
+<p>El método <code>where()</code> inicia una query construida con los índices disponibles. Es la forma más rápida de consultar.</p>
+<h3 id="mag-operadores-por-tipo-de-índice">🔍 Operadores por tipo de índice</h3>
+<table>
+<thead>
+<tr>
+<th>Operador</th>
+<th>Descripción</th>
+<th>Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>userIdEqualTo(value)</code></td>
+<td>Igualdad exacta</td>
+<td><code>isar.cachedUsers.where().userIdEqualTo(id)</code></td>
+</tr>
+<tr>
+<td><code>userIdIsNull()</code></td>
+<td>Es null</td>
+<td><code>isar.cachedUsers.where().userIdIsNull()</code></td>
+</tr>
+<tr>
+<td><code>tokenStartsWith('jwt_')</code></td>
+<td>Empieza con</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>tokenContains('abc')</code></td>
+<td>Contiene</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>cachedAtBetween(a, b)</code></td>
+<td>Rango de fechas</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>cachedAtGreaterThan(date)</code></td>
+<td>Mayor que</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>cachedAtLessThan(date)</code></td>
+<td>Menor que</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="running_man-ejemplo-real-paymentmethod-por-userid">🏃‍♂️ Ejemplo real: PaymentMethod por userId</h3>
+<div class="sourceCode" id="cb13"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Buscar métodos de pago de un usuario específico</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="at">final</span> methods <span class="op">=</span> <span class="at">await</span> isar<span class="op">.</span>cachedPaymentMethods</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>where()</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>userIdEqualTo(<span class="st">&#39;550e8400-e29b-41d4-a716-446655440000&#39;</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>findAll();</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="co">// Conteo síncrono (no requiere await)</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="at">final</span> count <span class="op">=</span> isar<span class="op">.</span>cachedPaymentMethods</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>where()</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>userIdEqualTo(<span class="st">&#39;550e8400-e29b-41d4-a716-446655440000&#39;</span>)</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>countSync();</span></code></pre></div>
+<h3 id="zap-síncrono-vs-asíncrono">⚡ Síncrono vs Asíncrono</h3>
+<p>Isar ofrece versiones síncronas de algunas operaciones de lectura. Son útiles para getters que deben ser síncronos:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Asíncrono (retorna Future)</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="at">final</span> user <span class="op">=</span> <span class="at">await</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span>where()<span class="op">.</span>findFirst();</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Síncrono (retorna directamente)</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="at">final</span> user <span class="op">=</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span>where()<span class="op">.</span>findFirstSync();</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="at">final</span> count <span class="op">=</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span>where()<span class="op">.</span>countSync();</span></code></pre></div>
+<blockquote>
+<p><strong>¿Cuándo usar síncrono?</strong> En getters síncronos como <code>hasCachedUser</code> o <code>userId</code> de <code>UserSessionImpl</code>, donde no quieres cambiar la firma del método a async.</p>
+</blockquote>
+<hr />
+<h2 id="8-filtros-avanzados-con-filter">8. Filtros avanzados con <code>filter()</code></h2>
+<p>Mientras <code>where()</code> usa índices, <code>filter()</code> permite filtrar por cualquier campo, aunque no tenga índice. Es más lento pero más flexible.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Combinar where + filter</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="at">final</span> result <span class="op">=</span> <span class="at">await</span> isar<span class="op">.</span>cachedPaymentMethods</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>where()                                    <span class="co">// Usa índice de userId</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>userIdEqualTo(userId)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>filter()                                   <span class="co">// Filtro adicional</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>isActiveEqualTo(<span class="cn">true</span>)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>sortByType()                               <span class="co">// Ordenar</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>findAll();</span></code></pre></div>
+<h3 id="operadores-de-filter">Operadores de filter</h3>
+<table>
+<thead>
+<tr>
+<th>Categoría</th>
+<th>Operadores</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Igualdad</strong></td>
+<td><code>equalTo()</code>, <code>notEqualTo()</code></td>
+</tr>
+<tr>
+<td><strong>Texto</strong></td>
+<td><code>contains()</code>, <code>startsWith()</code>, <code>endsWith()</code></td>
+</tr>
+<tr>
+<td><strong>Nulos</strong></td>
+<td><code>isNull()</code>, <code>isNotNull()</code></td>
+</tr>
+<tr>
+<td><strong>Booleanos</strong></td>
+<td><code>isTrue()</code>, <code>isFalse()</code></td>
+</tr>
+<tr>
+<td><strong>Rangos</strong></td>
+<td><code>between()</code>, <code>greaterThan()</code>, <code>lessThan()</code></td>
+</tr>
+<tr>
+<td><strong>Grupos</strong></td>
+<td><code>and()</code>, <code>or()</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="9-ordenamiento-offset-y-límite">9. Ordenamiento, offset y límite</h2>
+<div class="sourceCode" id="cb16"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="at">final</span> result <span class="op">=</span> <span class="at">await</span> isar<span class="op">.</span>cachedPaymentMethods</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>where()</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>userIdEqualTo(userId)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>sortByCreatedAt()        <span class="co">// Ascendente por defecto</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>thenByType()             <span class="co">// Segundo criterio</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>findAll();</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="co">// Descendente</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="at">final</span> recent <span class="op">=</span> <span class="at">await</span> isar<span class="op">.</span>cachedPaymentMethods</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>where()</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>sortByCreatedAtDesc()    <span class="co">// Más reciente primero</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>limit(<span class="dv">10</span>)</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>findAll();</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a><span class="co">// Paginación</span></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a><span class="at">final</span> page <span class="op">=</span> <span class="at">await</span> isar<span class="op">.</span>cachedPaymentMethods</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>where()</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>offset(<span class="dv">20</span>)</span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>limit(<span class="dv">10</span>)</span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>findAll();</span></code></pre></div>
+<hr />
+<h2 id="10-patrón-ttl-time-to-live">10. Patrón TTL (Time-To-Live)</h2>
+<h3 id="brain-el-problema">🧠 El problema</h3>
+<p>Cuando guardas datos localmente, no quieres que sean eternos. El perfil del usuario puede cambiar, los tokens pueden expirar, etc. Necesitas una forma de invalidar la cache automáticamente.</p>
+<h3 id="triangular_ruler-la-solución">📐 La solución</h3>
+<p>Cada colección incluye dos campos:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>DateTime<span class="op">?</span> cachedAt;    <span class="co">// Cuándo se guardó</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>DateTime<span class="op">?</span> expiresAt;   <span class="co">// Cuándo expira</span></span></code></pre></div>
+<h3 id="alarm_clock-validación-al-leer">⏰ Validación al leer</h3>
+<div class="sourceCode" id="cb18"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="dt">Future</span><span class="op">&lt;</span>UserModel<span class="op">?&gt;</span> getCachedUser() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">final</span> cached <span class="op">=</span> <span class="at">await</span> isar<span class="op">.</span>cachedUsers<span class="op">.</span>where()<span class="op">.</span>findFirst();</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (cached <span class="op">==</span> <span class="cn">null</span>) <span class="kw">return</span> <span class="cn">null</span>;</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ❌ Si expiró, limpiar y retornar null</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (cached<span class="op">.</span>expiresAt <span class="op">!=</span> <span class="cn">null</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>        cached<span class="op">.</span>expiresAt<span class="op">!.</span>isBefore(DateTime<span class="op">.</span>now())) <span class="op">{</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">await</span> clearCache();</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>      <span class="kw">return</span> <span class="cn">null</span>;</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ✅ Válido, convertir a modelo</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">return</span> UserModel(</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>      id<span class="op">:</span> cached<span class="op">.</span>userId <span class="op">??</span> <span class="st">&#39;&#39;</span><span class="op">,</span></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>      email<span class="op">:</span> cached<span class="op">.</span>email <span class="op">??</span> <span class="st">&#39;&#39;</span><span class="op">,</span></span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>      fullName<span class="op">:</span> cached<span class="op">.</span>fullName<span class="op">,</span></span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>      phoneNumber<span class="op">:</span> cached<span class="op">.</span>phone<span class="op">,</span></span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>      avatarUrl<span class="op">:</span> cached<span class="op">.</span>avatarUrl<span class="op">,</span></span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>      createdAt<span class="op">:</span> cached<span class="op">.</span>createdAt<span class="op">,</span></span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>      emailConfirmedAt<span class="op">:</span> cached<span class="op">.</span>emailConfirmedAt<span class="op">,</span></span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>    );</span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span> <span class="cf">catch</span> (e) <span class="op">{</span></span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">throw</span> CacheException(message<span class="op">:</span> <span class="st">&#39;cache_read_error: $e&#39;</span>);</span>
+<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="bar_chart-estrategias-de-ttl">📊 Estrategias de TTL</h3>
+<table>
+<thead>
+<tr>
+<th>Estrategia</th>
+<th>Cuándo usarla</th>
+<th>Tiempo típico</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>30 días</strong></td>
+<td>Datos de perfil que rara vez cambian</td>
+<td><code>Duration(days: 30)</code></td>
+</tr>
+<tr>
+<td><strong>7 días</strong></td>
+<td>Datos semi-estáticos (métodos de pago)</td>
+<td><code>Duration(days: 7)</code></td>
+</tr>
+<tr>
+<td><strong>1 día</strong></td>
+<td>Datos que cambian a menudo</td>
+<td><code>Duration(hours: 24)</code></td>
+</tr>
+<tr>
+<td><strong>Token session</strong></td>
+<td>Mientras el JWT sea válido</td>
+<td>Matchear con <code>exp</code> del JWT</td>
+</tr>
+</tbody>
+</table>
+<h3 id="bulb-ventajas-del-ttl-sobre-siempre-fresco">💡 Ventajas del TTL sobre "siempre fresco"</h3>
+<ol type="1">
+<li><strong>Sin llamadas innecesarias</strong> a la API si los datos están en cache y son válidos</li>
+<li><strong>Offline-first parcial</strong> — el usuario ve datos aunque no tenga internet (mientras no hayan expirado)</li>
+<li><strong>Auto-limpieza</strong> — no acumulas datos obsoletos</li>
+</ol>
+<hr />
+<h2 id="11-casos-reales-del-monorepo">11. Casos reales del monorepo</h2>
+<h3 id="package-cacheduser">📦 CachedUser</h3>
+<div class="sourceCode" id="cb19"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>@Collection()</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CachedUser <span class="op">{</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  Id id <span class="op">=</span> Isar<span class="op">.</span>autoIncrement;</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  @Index(unique<span class="op">:</span> <span class="cn">true</span>)</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> userId;</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> email;</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> fullName;</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> phone;</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> avatarUrl;</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>  DateTime<span class="op">?</span> createdAt;</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>  DateTime<span class="op">?</span> emailConfirmedAt;</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>  DateTime<span class="op">?</span> cachedAt;</span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>  DateTime<span class="op">?</span> expiresAt;</span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Uso:</strong> Cache del perfil del usuario autenticado. Se guarda al hacer login/signup y se lee para mostrar datos básicos sin llamar a la API.</p>
+<h3 id="package-cachedtoken">📦 CachedToken</h3>
+<div class="sourceCode" id="cb20"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>@Collection()</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CachedToken <span class="op">{</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  Id id <span class="op">=</span> Isar<span class="op">.</span>autoIncrement;</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  @Index(unique<span class="op">:</span> <span class="cn">true</span>)</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> token;</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  DateTime<span class="op">?</span> cachedAt;</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>  DateTime<span class="op">?</span> expiresAt;</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Uso:</strong> Cache del JWT. Permite mantener la sesión abierta entre reinicios de la app.</p>
+<h3 id="package-cachedprofile">📦 CachedProfile</h3>
+<div class="sourceCode" id="cb21"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>@Collection()</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CachedProfile <span class="op">{</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  Id id <span class="op">=</span> Isar<span class="op">.</span>autoIncrement;</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  @Index(unique<span class="op">:</span> <span class="cn">true</span>)</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> userId;</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> fullName;</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> phoneNumber;</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> email;</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> avatarUrl;</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> preferredLanguage;</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">bool</span><span class="op">?</span> notificationsEnabled;</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>  DateTime<span class="op">?</span> createdAt;</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>  DateTime<span class="op">?</span> updatedAt;</span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>  DateTime<span class="op">?</span> cachedAt;</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>  DateTime<span class="op">?</span> expiresAt;</span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Uso:</strong> Cache del perfil detallado del perfil de usuario. Se guarda al editar el perfil y se lee para mostrar datos completos.</p>
+<h3 id="package-cachedpaymentmethod">📦 CachedPaymentMethod</h3>
+<div class="sourceCode" id="cb22"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>@Collection()</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CachedPaymentMethod <span class="op">{</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  Id id <span class="op">=</span> Isar<span class="op">.</span>autoIncrement;</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  @Index()                      <span class="co">// Índice simple (no único — varios métodos por usuario)</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> userId;</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>  @Index(unique<span class="op">:</span> <span class="cn">true</span>)</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> paymentMethodId;</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> type;</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> name;</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> bankName;</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> accountHolder;</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> accountNumber;</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> phone;</span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> email;</span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> walletAddress;</span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> qrCodeUrl;</span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> instructions;</span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> cedula;</span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> bankCode;</span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> blockchainNetwork;</span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>  <span class="dt">bool</span><span class="op">?</span> isActive;</span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>  <span class="dt">bool</span><span class="op">?</span> isDefault;</span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>  DateTime<span class="op">?</span> createdAt;</span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>  DateTime<span class="op">?</span> updatedAt;</span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>  DateTime<span class="op">?</span> cachedAt;</span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>  DateTime<span class="op">?</span> expiresAt;</span>
+<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Uso:</strong> Cache de los métodos de pago de un usuario. Notar que <code>userId</code> tiene <code>@Index()</code> (no único) porque un usuario puede tener varios métodos de pago, mientras que <code>paymentMethodId</code> es único.</p>
+<h3 id="dart-resumen-de-índices">🎯 Resumen de índices</h3>
+<table>
+<thead>
+<tr>
+<th>Colección</th>
+<th>Business Key</th>
+<th>Índice único</th>
+<th>Uso</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CachedUser</code></td>
+<td><code>userId</code></td>
+<td><code>@Index(unique: true)</code></td>
+<td>Solo un usuario por sesión</td>
+</tr>
+<tr>
+<td><code>CachedToken</code></td>
+<td><code>token</code></td>
+<td><code>@Index(unique: true)</code></td>
+<td>Solo un token activo</td>
+</tr>
+<tr>
+<td><code>CachedProfile</code></td>
+<td><code>userId</code></td>
+<td><code>@Index(unique: true)</code></td>
+<td>Solo un perfil por usuario</td>
+</tr>
+<tr>
+<td><code>CachedPaymentMethod</code></td>
+<td><code>paymentMethodId</code></td>
+<td><code>@Index(unique: true)</code></td>
+<td>Múltiples métodos por usuario</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="12-checklist">12. Checklist</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" />Definí las colecciones con <code>@Collection()</code></label></li>
+<li><label><input type="checkbox" />Agregué <code>@Index(unique: true)</code> en los business keys</label></li>
+<li><label><input type="checkbox" />Incluí los campos <code>cachedAt</code> y <code>expiresAt</code> para TTL</label></li>
+<li><label><input type="checkbox" />Ejecuté <code>build_runner</code> y los <code>.g.dart</code> se generaron</label></li>
+<li><label><input type="checkbox" />Todas las escrituras están dentro de <code>writeTxn</code></label></li>
+<li><label><input type="checkbox" />Uso <code>where().findFirstSync()</code> para lecturas síncronas</label></li>
+<li><label><input type="checkbox" />Implementé validación de TTL antes de retornar datos cacheados</label></li>
+<li><label><input type="checkbox" />Uso <code>filter()</code> solo cuando el campo no tiene índice</label></li>
+</ul>
+<hr />
+<h2 id="books-referencias">📚 Referencias</h2>
+<ul>
+<li><a href="https://pub.dev/packages/isar_community">isar_community | pub.dev</a> — Paquete activo de Isar para Dart/Flutter</li>
+<li><a href="https://isar.dev">Isar | Documentación original</a> — Referencia de operaciones y queries (legacy)</li>
+</ul>
+<hr />
+<p><strong>Nivel:</strong> Intermedio<br />
+<strong>Siguiente:</strong> <a href="./03-implementacion-local-datasource.md">03-implementacion-local-datasource.md</a></p>
+</div></div>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Implementacion</span><div class="kick">Parte 3 · Implementacion</div><h2>🗄️ 3. Implementación de Local DataSource</h2></div><div class="article"><blockquote>
+<p><strong>¿De qué trata esta guía?</strong> De implementar el patrón LocalDataSource con Isar en Clean Architecture, incluyendo el IsarService singleton, las implementaciones concretas para Auth, Profile y PaymentMethod, el CacheManager como registro centralizado de limpieza, y el UserSessionImpl para acceso síncrono al usuario autenticado.</p>
+</blockquote>
+<hr />
+<h2 id="clipboard-índice">📋 Índice</h2>
+<ol type="1">
+<li><a href="#1-isarservice-singleton-y-ciclo-de-vida">IsarService: singleton y ciclo de vida</a></li>
+<li><a href="#2-patrón-localdatasource">Patrón LocalDataSource</a></li>
+<li><a href="#3-cacheexception-errores-de-cache">CacheException: errores de cache</a></li>
+<li><a href="#4-authlocaldatasourceimpl">AuthLocalDataSourceImpl</a></li>
+<li><a href="#5-profilelocaldatasourceimpl">ProfileLocalDataSourceImpl</a></li>
+<li><a href="#6-paymentmethodlocaldatasourceimpl">PaymentMethodLocalDataSourceImpl</a></li>
+<li><a href="#7-cachemanager-limpieza-centralizada">CacheManager: limpieza centralizada</a></li>
+<li><a href="#8-usersessionimpl-acceso-síncrono-al-usuario">UserSessionImpl: acceso síncrono al usuario</a></li>
+<li><a href="#9-integración-con-repository">Integración con Repository</a></li>
+<li><a href="#10-checklist">Checklist</a></li>
+</ol>
+<hr />
+<h2 id="1-isarservice-singleton-y-ciclo-de-vida">1. IsarService: singleton y ciclo de vida</h2>
+<h3 id="building_construction-el-patrón">🏗️ El patrón</h3>
+<p>IsarService es un <strong>singleton</strong> que gestiona la conexión a Isar. Se inicializa una vez al arrancar la app y se cierra al cerrar la app.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// lib/core/data/local/isar_service.dart</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="st">&#39;package:isar_community/isar.dart&#39;</span>;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="st">&#39;package:path_provider/path_provider.dart&#39;</span>;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="st">&#39;isar_models/cached_user.dart&#39;</span>;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="st">&#39;isar_models/cached_token.dart&#39;</span>;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="st">&#39;isar_models/cached_profile.dart&#39;</span>;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="st">&#39;isar_models/cached_payment_method.dart&#39;</span>;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> IsarService <span class="op">{</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">static</span> Isar<span class="op">?</span> _instance;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">static</span> Isar <span class="kw">get</span> instance <span class="op">{</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (_instance <span class="op">==</span> <span class="cn">null</span>) <span class="op">{</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>      <span class="cf">throw</span> <span class="kw">Exception</span>(</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>        <span class="st">&#39;Isar not initialized. Call IsarService.initialize() first.&#39;</span><span class="op">,</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>      );</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">return</span> _instance<span class="op">!</span>;</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">static</span> <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> initialize() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (_instance <span class="op">!=</span> <span class="cn">null</span>) <span class="kw">return</span>;</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">final</span> dir <span class="op">=</span> <span class="at">await</span> getApplicationDocumentsDirectory();</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    _instance <span class="op">=</span> <span class="at">await</span> Isar<span class="op">.</span>open(</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>      [</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>        CachedUserSchema<span class="op">,</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>        CachedTokenSchema<span class="op">,</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>        CachedProfileSchema<span class="op">,</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>        CachedPaymentMethodSchema<span class="op">,</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>      ]<span class="op">,</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>      directory<span class="op">:</span> dir<span class="op">.</span>path<span class="op">,</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>      name<span class="op">:</span> <span class="st">&#39;rifame&#39;</span><span class="op">,</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    );</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>  <span class="at">static</span> <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> close() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">await</span> _instance<span class="op">?.</span>close();</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    _instance <span class="op">=</span> <span class="cn">null</span>;</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>  <span class="at">static</span> <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> clear() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">await</span> _instance<span class="op">?.</span>writeTxn(() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>      <span class="at">await</span> _instance<span class="op">!.</span>clear();</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span>);</span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="arrows_counterclockwise-ciclo-de-vida">🔄 Ciclo de vida</h3>
+<pre><code>App start
+    │
+    ▼
+IsarService.initialize()  ← se llama en main() antes de runApp()
+    │
+    ▼
+Los LocalDataSources usan IsarService.instance
+    │
+    ▼
+App close → IsarService.close()</code></pre>
+<h3 id="test_tube-en-tests">🧪 En tests</h3>
+<p>En tests no se usa <code>IsarService</code>. Se crea una instancia de Isar directamente con <code>Directory.systemTemp</code> y un nombre único. Esto se cubre en detalle en <a href="../05-TESTING/03-data/03e-practica-local-datasource-isar.md">03e-practica-local-datasource-isar.md</a>.</p>
+<hr />
+<h2 id="2-patrón-localdatasource">2. Patrón LocalDataSource</h2>
+<h3 id="triangular_ruler-estructura">📐 Estructura</h3>
+<p>Cada LocalDataSource sigue el mismo patrón:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">abstract</span> <span class="kw">class</span> FeatureLocalDataSource <span class="op">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Escribir en cache</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> cacheData(<span class="op">...</span>);</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Leer de cache (retorna null si no hay datos o expiró)</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span>Model<span class="op">?&gt;</span> getCachedData(<span class="op">...</span>);</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Limpiar cache</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> clearCache();</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> FeatureLocalDataSourceImpl <span class="kw">implements</span> FeatureLocalDataSource <span class="op">{</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> Isar _isar;</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  FeatureLocalDataSourceImpl(<span class="kw">this</span><span class="op">.</span>_isar);</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... implementaciones</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="dart-características-comunes">🎯 Características comunes</h3>
+<ol type="1">
+<li><strong>Constructor recibe <code>Isar</code> directamente</strong> — sin wrapper, sin mock. Isar se inyecta.</li>
+<li><strong>Toda escritura va dentro de <code>writeTxn</code></strong> — si falla, se revierte.</li>
+<li><strong>Toda operación se envuelve en try/catch</strong> — los errores se convierten a <code>CacheException</code>.</li>
+<li><strong>Patrón replace-all</strong> — antes de escribir nuevo data, se borra lo anterior del mismo tipo.</li>
+<li><strong>Validación TTL</strong> — al leer, si expiró se limpia y retorna null.</li>
+</ol>
+<hr />
+<h2 id="3-cacheexception-errores-de-cache">3. CacheException: errores de cache</h2>
+<p>Los errores de Isar se convierten a <code>CacheException</code> para mantener la capa de Data independiente de la implementación concreta:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">// lib/core/error/exceptions.dart</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CacheException <span class="kw">implements</span> <span class="kw">Exception</span> <span class="op">{</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">const</span> CacheException(<span class="op">{</span>required <span class="kw">this</span><span class="op">.</span>message<span class="op">}</span>);</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> <span class="dt">String</span> message;</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span> toString() <span class="op">=&gt;</span> message;</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Luego en el Repository, <code>CacheException</code> se mapea a <code>CacheFailure</code>:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// lib/core/error/failures.dart</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CacheFailure <span class="kw">extends</span> Failure <span class="op">{</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">const</span> CacheFailure(<span class="op">{</span><span class="kw">super</span><span class="op">.</span>message <span class="op">=</span> <span class="st">&#39;Cache failure&#39;</span><span class="op">,</span> <span class="kw">super</span><span class="op">.</span>code<span class="op">}</span>);</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="arrows_counterclockwise-flujo-de-error-completo">🔄 Flujo de error completo</h3>
+<pre><code>Isar.writeTxn lanza excepción
+    │
+    ▼
+catch → CacheException(message: &#39;cache_write_error: $e&#39;)
+    │
+    ▼
+Repository catch → CacheFailure(message: &#39;Cache failure&#39;)
+    │
+    ▼
+Cubit/BLoC → state con error message</code></pre>
+<hr />
+<h2 id="4-authlocaldatasourceimpl">4. AuthLocalDataSourceImpl</h2>
+<h3 id="clipboard-interfaz">📋 Interfaz</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">abstract</span> <span class="kw">class</span> AuthLocalDataSource <span class="op">{</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> cacheToken(<span class="dt">String</span> token);</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> getCachedToken();                    <span class="co">// Síncrono</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> cacheUser(UserModel user);</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span>UserModel<span class="op">?&gt;</span> getCachedUser();</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">bool</span> <span class="kw">get</span> hasCachedUser;                      <span class="co">// Getter síncrono</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">bool</span> <span class="kw">get</span> hasCachedToken;                     <span class="co">// Getter síncrono</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> clearCache();</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="jigsaw-implementación">🧩 Implementación</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> AuthLocalDataSourceImpl <span class="kw">implements</span> AuthLocalDataSource <span class="op">{</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> Isar _isar;</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  AuthLocalDataSourceImpl(<span class="kw">this</span><span class="op">.</span>_isar);</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> cacheToken(<span class="dt">String</span> token) <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">await</span> _isar<span class="op">.</span>writeTxn(() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Replace-all: borrar token anterior</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">await</span> _isar<span class="op">.</span>cachedTokens<span class="op">.</span>where()<span class="op">.</span>deleteAll();</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">final</span> cached <span class="op">=</span> CachedToken()</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>token <span class="op">=</span> token</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>cachedAt <span class="op">=</span> DateTime<span class="op">.</span>now()</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>expiresAt <span class="op">=</span> DateTime<span class="op">.</span>now()<span class="op">.</span>add(<span class="at">const</span> Duration(days<span class="op">:</span> <span class="dv">30</span>));</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">await</span> _isar<span class="op">.</span>cachedTokens<span class="op">.</span>put(cached);</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span>);</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">catch</span> (e) <span class="op">{</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>      <span class="cf">throw</span> CacheException(message<span class="op">:</span> <span class="st">&#39;cache_write_error: $e&#39;</span>);</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> getCachedToken() <span class="op">{</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>      <span class="at">final</span> cached <span class="op">=</span> _isar<span class="op">.</span>cachedTokens<span class="op">.</span>where()<span class="op">.</span>findFirstSync();</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (cached <span class="op">==</span> <span class="cn">null</span>) <span class="kw">return</span> <span class="cn">null</span>;</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>      <span class="co">// Validación TTL</span></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (cached<span class="op">.</span>expiresAt <span class="op">!=</span> <span class="cn">null</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>          cached<span class="op">.</span>expiresAt<span class="op">!.</span>isBefore(DateTime<span class="op">.</span>now())) <span class="op">{</span></span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>        clearCache();</span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>        <span class="kw">return</span> <span class="cn">null</span>;</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span></span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>      <span class="kw">return</span> cached<span class="op">.</span>token;</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">catch</span> (e) <span class="op">{</span></span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>      <span class="cf">throw</span> CacheException(message<span class="op">:</span> <span class="st">&#39;cache_read_error: $e&#39;</span>);</span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> cacheUser(UserModel user) <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>      <span class="at">await</span> _isar<span class="op">.</span>writeTxn(() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a>        <span class="at">await</span> _isar<span class="op">.</span>cachedUsers<span class="op">.</span>where()<span class="op">.</span>deleteAll();</span>
+<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>        <span class="at">final</span> cached <span class="op">=</span> CachedUser()</span>
+<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>userId <span class="op">=</span> user<span class="op">.</span>id</span>
+<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>email <span class="op">=</span> user<span class="op">.</span>email</span>
+<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>fullName <span class="op">=</span> user<span class="op">.</span>fullName</span>
+<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>phone <span class="op">=</span> user<span class="op">.</span>phoneNumber</span>
+<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>avatarUrl <span class="op">=</span> user<span class="op">.</span>avatarUrl</span>
+<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>createdAt <span class="op">=</span> user<span class="op">.</span>createdAt</span>
+<span id="cb8-57"><a href="#cb8-57" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>emailConfirmedAt <span class="op">=</span> user<span class="op">.</span>emailConfirmedAt</span>
+<span id="cb8-58"><a href="#cb8-58" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>cachedAt <span class="op">=</span> DateTime<span class="op">.</span>now()</span>
+<span id="cb8-59"><a href="#cb8-59" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>expiresAt <span class="op">=</span> DateTime<span class="op">.</span>now()<span class="op">.</span>add(<span class="at">const</span> Duration(days<span class="op">:</span> <span class="dv">30</span>));</span>
+<span id="cb8-60"><a href="#cb8-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a>        <span class="at">await</span> _isar<span class="op">.</span>cachedUsers<span class="op">.</span>put(cached);</span>
+<span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span>);</span>
+<span id="cb8-63"><a href="#cb8-63" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">catch</span> (e) <span class="op">{</span></span>
+<span id="cb8-64"><a href="#cb8-64" aria-hidden="true" tabindex="-1"></a>      <span class="cf">throw</span> CacheException(message<span class="op">:</span> <span class="st">&#39;cache_write_error: $e&#39;</span>);</span>
+<span id="cb8-65"><a href="#cb8-65" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb8-66"><a href="#cb8-66" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb8-67"><a href="#cb8-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-68"><a href="#cb8-68" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb8-69"><a href="#cb8-69" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span>UserModel<span class="op">?&gt;</span> getCachedUser() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb8-70"><a href="#cb8-70" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb8-71"><a href="#cb8-71" aria-hidden="true" tabindex="-1"></a>      <span class="at">final</span> cached <span class="op">=</span> <span class="at">await</span> _isar<span class="op">.</span>cachedUsers<span class="op">.</span>where()<span class="op">.</span>findFirst();</span>
+<span id="cb8-72"><a href="#cb8-72" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (cached <span class="op">==</span> <span class="cn">null</span>) <span class="kw">return</span> <span class="cn">null</span>;</span>
+<span id="cb8-73"><a href="#cb8-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-74"><a href="#cb8-74" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (cached<span class="op">.</span>expiresAt <span class="op">!=</span> <span class="cn">null</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb8-75"><a href="#cb8-75" aria-hidden="true" tabindex="-1"></a>          cached<span class="op">.</span>expiresAt<span class="op">!.</span>isBefore(DateTime<span class="op">.</span>now())) <span class="op">{</span></span>
+<span id="cb8-76"><a href="#cb8-76" aria-hidden="true" tabindex="-1"></a>        <span class="at">await</span> clearCache();</span>
+<span id="cb8-77"><a href="#cb8-77" aria-hidden="true" tabindex="-1"></a>        <span class="kw">return</span> <span class="cn">null</span>;</span>
+<span id="cb8-78"><a href="#cb8-78" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span></span>
+<span id="cb8-79"><a href="#cb8-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-80"><a href="#cb8-80" aria-hidden="true" tabindex="-1"></a>      <span class="kw">return</span> UserModel(</span>
+<span id="cb8-81"><a href="#cb8-81" aria-hidden="true" tabindex="-1"></a>        id<span class="op">:</span> cached<span class="op">.</span>userId <span class="op">??</span> <span class="st">&#39;&#39;</span><span class="op">,</span></span>
+<span id="cb8-82"><a href="#cb8-82" aria-hidden="true" tabindex="-1"></a>        email<span class="op">:</span> cached<span class="op">.</span>email <span class="op">??</span> <span class="st">&#39;&#39;</span><span class="op">,</span></span>
+<span id="cb8-83"><a href="#cb8-83" aria-hidden="true" tabindex="-1"></a>        fullName<span class="op">:</span> cached<span class="op">.</span>fullName<span class="op">,</span></span>
+<span id="cb8-84"><a href="#cb8-84" aria-hidden="true" tabindex="-1"></a>        phoneNumber<span class="op">:</span> cached<span class="op">.</span>phone<span class="op">,</span></span>
+<span id="cb8-85"><a href="#cb8-85" aria-hidden="true" tabindex="-1"></a>        avatarUrl<span class="op">:</span> cached<span class="op">.</span>avatarUrl<span class="op">,</span></span>
+<span id="cb8-86"><a href="#cb8-86" aria-hidden="true" tabindex="-1"></a>        createdAt<span class="op">:</span> cached<span class="op">.</span>createdAt<span class="op">,</span></span>
+<span id="cb8-87"><a href="#cb8-87" aria-hidden="true" tabindex="-1"></a>        emailConfirmedAt<span class="op">:</span> cached<span class="op">.</span>emailConfirmedAt<span class="op">,</span></span>
+<span id="cb8-88"><a href="#cb8-88" aria-hidden="true" tabindex="-1"></a>      );</span>
+<span id="cb8-89"><a href="#cb8-89" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">catch</span> (e) <span class="op">{</span></span>
+<span id="cb8-90"><a href="#cb8-90" aria-hidden="true" tabindex="-1"></a>      <span class="cf">throw</span> CacheException(message<span class="op">:</span> <span class="st">&#39;cache_read_error: $e&#39;</span>);</span>
+<span id="cb8-91"><a href="#cb8-91" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb8-92"><a href="#cb8-92" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb8-93"><a href="#cb8-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-94"><a href="#cb8-94" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb8-95"><a href="#cb8-95" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> clearCache() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb8-96"><a href="#cb8-96" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb8-97"><a href="#cb8-97" aria-hidden="true" tabindex="-1"></a>      <span class="at">await</span> _isar<span class="op">.</span>writeTxn(() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb8-98"><a href="#cb8-98" aria-hidden="true" tabindex="-1"></a>        <span class="at">await</span> _isar<span class="op">.</span>cachedUsers<span class="op">.</span>where()<span class="op">.</span>deleteAll();</span>
+<span id="cb8-99"><a href="#cb8-99" aria-hidden="true" tabindex="-1"></a>        <span class="at">await</span> _isar<span class="op">.</span>cachedTokens<span class="op">.</span>where()<span class="op">.</span>deleteAll();</span>
+<span id="cb8-100"><a href="#cb8-100" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span>);</span>
+<span id="cb8-101"><a href="#cb8-101" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">catch</span> (e) <span class="op">{</span></span>
+<span id="cb8-102"><a href="#cb8-102" aria-hidden="true" tabindex="-1"></a>      <span class="cf">throw</span> CacheException(message<span class="op">:</span> <span class="st">&#39;cache_write_error: $e&#39;</span>);</span>
+<span id="cb8-103"><a href="#cb8-103" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb8-104"><a href="#cb8-104" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb8-105"><a href="#cb8-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-106"><a href="#cb8-106" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb8-107"><a href="#cb8-107" aria-hidden="true" tabindex="-1"></a>  <span class="dt">bool</span> <span class="kw">get</span> hasCachedUser <span class="op">{</span></span>
+<span id="cb8-108"><a href="#cb8-108" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb8-109"><a href="#cb8-109" aria-hidden="true" tabindex="-1"></a>      <span class="kw">return</span> _isar<span class="op">.</span>cachedUsers<span class="op">.</span>where()<span class="op">.</span>countSync() <span class="op">&gt;</span> <span class="dv">0</span>;</span>
+<span id="cb8-110"><a href="#cb8-110" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">catch</span> (e) <span class="op">{</span></span>
+<span id="cb8-111"><a href="#cb8-111" aria-hidden="true" tabindex="-1"></a>      <span class="cf">throw</span> CacheException(message<span class="op">:</span> <span class="st">&#39;cache_read_error: $e&#39;</span>);</span>
+<span id="cb8-112"><a href="#cb8-112" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb8-113"><a href="#cb8-113" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb8-114"><a href="#cb8-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-115"><a href="#cb8-115" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb8-116"><a href="#cb8-116" aria-hidden="true" tabindex="-1"></a>  <span class="dt">bool</span> <span class="kw">get</span> hasCachedToken <span class="op">{</span></span>
+<span id="cb8-117"><a href="#cb8-117" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb8-118"><a href="#cb8-118" aria-hidden="true" tabindex="-1"></a>      <span class="kw">return</span> _isar<span class="op">.</span>cachedTokens<span class="op">.</span>where()<span class="op">.</span>countSync() <span class="op">&gt;</span> <span class="dv">0</span>;</span>
+<span id="cb8-119"><a href="#cb8-119" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">catch</span> (e) <span class="op">{</span></span>
+<span id="cb8-120"><a href="#cb8-120" aria-hidden="true" tabindex="-1"></a>      <span class="cf">throw</span> CacheException(message<span class="op">:</span> <span class="st">&#39;cache_read_error: $e&#39;</span>);</span>
+<span id="cb8-121"><a href="#cb8-121" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb8-122"><a href="#cb8-122" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb8-123"><a href="#cb8-123" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="key-puntos-clave">🔑 Puntos clave</h3>
+<table>
+<thead>
+<tr>
+<th>Método</th>
+<th>Tipo</th>
+<th>Síncrono?</th>
+<th>TTL?</th>
+<th>Replace-all?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cacheToken</code></td>
+<td>Escritura</td>
+<td>Async</td>
+<td>—</td>
+<td>✅ Antes de insertar</td>
+</tr>
+<tr>
+<td><code>getCachedToken</code></td>
+<td>Lectura</td>
+<td><strong>Síncrono</strong></td>
+<td>✅ Si expiró → limpiar y null</td>
+<td></td>
+</tr>
+<tr>
+<td><code>cacheUser</code></td>
+<td>Escritura</td>
+<td>Async</td>
+<td>—</td>
+<td>✅ Antes de insertar</td>
+</tr>
+<tr>
+<td><code>getCachedUser</code></td>
+<td>Lectura</td>
+<td>Async</td>
+<td>✅ Si expiró → limpiar y null</td>
+<td></td>
+</tr>
+<tr>
+<td><code>hasCachedUser</code></td>
+<td>Getter</td>
+<td><strong>Síncrono</strong> (countSync)</td>
+<td>❌ No</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>hasCachedToken</code></td>
+<td>Getter</td>
+<td><strong>Síncrono</strong> (countSync)</td>
+<td>❌ No</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>clearCache</code></td>
+<td>Escritura</td>
+<td>Async</td>
+<td>—</td>
+<td>Borra ambas colecciones</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><code>getCachedToken()</code> y los getters <code>hasCachedUser</code>/<code>hasCachedToken</code> son <strong>síncronos</strong> para poder usarlos en contextos donde no se puede usar <code>await</code> (ej: <code>UserSessionImpl.userId</code>).</p>
+</blockquote>
+<hr />
+<h2 id="5-profilelocaldatasourceimpl">5. ProfileLocalDataSourceImpl</h2>
+<h3 id="clipboard-interfaz-1">📋 Interfaz</h3>
+<div class="sourceCode" id="cb9"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">abstract</span> <span class="kw">class</span> ProfileLocalDataSource <span class="op">{</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> cacheProfile(UserProfileModel profile);</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span>UserProfileModel<span class="op">?&gt;</span> getCachedProfile();</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> clearCache();</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="jigsaw-implementación-1">🧩 Implementación</h3>
+<div class="sourceCode" id="cb10"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ProfileLocalDataSourceImpl <span class="kw">implements</span> ProfileLocalDataSource <span class="op">{</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> Isar _isar;</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  ProfileLocalDataSourceImpl(<span class="kw">this</span><span class="op">.</span>_isar);</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> cacheProfile(UserProfileModel profile) <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">await</span> _isar<span class="op">.</span>writeTxn(() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Replace-all: borrar perfil anterior</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">await</span> _isar<span class="op">.</span>cachedProfiles<span class="op">.</span>where()<span class="op">.</span>deleteAll();</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">final</span> cached <span class="op">=</span> CachedProfile()</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>userId <span class="op">=</span> profile<span class="op">.</span>userId</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>fullName <span class="op">=</span> profile<span class="op">.</span>fullName</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>phoneNumber <span class="op">=</span> profile<span class="op">.</span>phoneNumber</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>email <span class="op">=</span> profile<span class="op">.</span>email</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>avatarUrl <span class="op">=</span> profile<span class="op">.</span>avatarUrl</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>preferredLanguage <span class="op">=</span> profile<span class="op">.</span>preferredLanguage</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>notificationsEnabled <span class="op">=</span> profile<span class="op">.</span>notificationsEnabled</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>createdAt <span class="op">=</span> profile<span class="op">.</span>createdAt</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>updatedAt <span class="op">=</span> profile<span class="op">.</span>updatedAt</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>cachedAt <span class="op">=</span> DateTime<span class="op">.</span>now()</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>          <span class="op">..</span>expiresAt <span class="op">=</span> DateTime<span class="op">.</span>now()<span class="op">.</span>add(<span class="at">const</span> Duration(days<span class="op">:</span> <span class="dv">30</span>));</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">await</span> _isar<span class="op">.</span>cachedProfiles<span class="op">.</span>put(cached);</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span>);</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">catch</span> (e) <span class="op">{</span></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>      <span class="cf">throw</span> CacheException(message<span class="op">:</span> <span class="st">&#39;cache_write_error: $e&#39;</span>);</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span>UserProfileModel<span class="op">?&gt;</span> getCachedProfile() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>      <span class="at">final</span> cached <span class="op">=</span> <span class="at">await</span> _isar<span class="op">.</span>cachedProfiles<span class="op">.</span>where()<span class="op">.</span>findFirst();</span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (cached <span class="op">==</span> <span class="cn">null</span>) <span class="kw">return</span> <span class="cn">null</span>;</span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (cached<span class="op">.</span>expiresAt <span class="op">!=</span> <span class="cn">null</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a>          cached<span class="op">.</span>expiresAt<span class="op">!.</span>isBefore(DateTime<span class="op">.</span>now())) <span class="op">{</span></span>
+<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a>        <span class="at">await</span> clearCache();</span>
+<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a>        <span class="kw">return</span> <span class="cn">null</span>;</span>
+<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span></span>
+<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>      <span class="kw">return</span> UserProfileModel(</span>
+<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a>        id<span class="op">:</span> cached<span class="op">.</span>userId <span class="op">??</span> <span class="st">&#39;&#39;</span><span class="op">,</span></span>
+<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a>        userId<span class="op">:</span> cached<span class="op">.</span>userId <span class="op">??</span> <span class="st">&#39;&#39;</span><span class="op">,</span></span>
+<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>        fullName<span class="op">:</span> cached<span class="op">.</span>fullName<span class="op">,</span></span>
+<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a>        phoneNumber<span class="op">:</span> cached<span class="op">.</span>phoneNumber<span class="op">,</span></span>
+<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a>        email<span class="op">:</span> cached<span class="op">.</span>email <span class="op">??</span> <span class="st">&#39;&#39;</span><span class="op">,</span></span>
+<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>        avatarUrl<span class="op">:</span> cached<span class="op">.</span>avatarUrl<span class="op">,</span></span>
+<span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a>        preferredLanguage<span class="op">:</span> cached<span class="op">.</span>preferredLanguage<span class="op">,</span></span>
+<span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a>        notificationsEnabled<span class="op">:</span> cached<span class="op">.</span>notificationsEnabled<span class="op">,</span></span>
+<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a>        createdAt<span class="op">:</span> cached<span class="op">.</span>createdAt<span class="op">,</span></span>
+<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a>        updatedAt<span class="op">:</span> cached<span class="op">.</span>updatedAt<span class="op">,</span></span>
+<span id="cb10-56"><a href="#cb10-56" aria-hidden="true" tabindex="-1"></a>      );</span>
+<span id="cb10-57"><a href="#cb10-57" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">catch</span> (e) <span class="op">{</span></span>
+<span id="cb10-58"><a href="#cb10-58" aria-hidden="true" tabindex="-1"></a>      <span class="cf">throw</span> CacheException(message<span class="op">:</span> <span class="st">&#39;cache_read_error: $e&#39;</span>);</span>
+<span id="cb10-59"><a href="#cb10-59" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb10-60"><a href="#cb10-60" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb10-61"><a href="#cb10-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-62"><a href="#cb10-62" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb10-63"><a href="#cb10-63" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> clearCache() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb10-64"><a href="#cb10-64" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb10-65"><a href="#cb10-65" aria-hidden="true" tabindex="-1"></a>      <span class="at">await</span> _isar<span class="op">.</span>writeTxn(() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb10-66"><a href="#cb10-66" aria-hidden="true" tabindex="-1"></a>        <span class="at">await</span> _isar<span class="op">.</span>cachedProfiles<span class="op">.</span>where()<span class="op">.</span>deleteAll();</span>
+<span id="cb10-67"><a href="#cb10-67" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span>);</span>
+<span id="cb10-68"><a href="#cb10-68" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">catch</span> (e) <span class="op">{</span></span>
+<span id="cb10-69"><a href="#cb10-69" aria-hidden="true" tabindex="-1"></a>      <span class="cf">throw</span> CacheException(message<span class="op">:</span> <span class="st">&#39;cache_write_error: $e&#39;</span>);</span>
+<span id="cb10-70"><a href="#cb10-70" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb10-71"><a href="#cb10-71" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb10-72"><a href="#cb10-72" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<hr />
+<h2 id="6-paymentmethodlocaldatasourceimpl">6. PaymentMethodLocalDataSourceImpl</h2>
+<h3 id="dart-diferencia-clave">🎯 Diferencia clave</h3>
+<p>A diferencia de Auth y Profile (que tienen una sola entrada por usuario), PaymentMethod tiene <strong>múltiples entradas por usuario</strong>. Por eso:</p>
+<ul>
+<li>Usa <code>userIdEqualTo(userId).deleteAll()</code> en lugar de <code>deleteAll()</code> simple</li>
+<li>La TTL se valida con <code>cached.first.expiresAt</code></li>
+<li>Convierte la lista de <code>CachedPaymentMethod</code> a <code>PaymentMethodModel</code> con un mapper</li>
+</ul>
+<h3 id="clipboard-interfaz-2">📋 Interfaz</h3>
+<div class="sourceCode" id="cb11"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">abstract</span> <span class="kw">class</span> PaymentMethodLocalDataSource <span class="op">{</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> cachePaymentMethods(</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">String</span> userId<span class="op">,</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">List</span><span class="op">&lt;</span>PaymentMethodModel<span class="op">&gt;</span> methods<span class="op">,</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  );</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">List</span><span class="op">&lt;</span>PaymentMethodModel<span class="op">&gt;?&gt;</span> getCachedPaymentMethods(<span class="dt">String</span> userId);</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> clearCache(<span class="dt">String</span> userId);</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="jigsaw-implementación-2">🧩 Implementación</h3>
+<div class="sourceCode" id="cb12"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> PaymentMethodLocalDataSourceImpl <span class="kw">implements</span> PaymentMethodLocalDataSource <span class="op">{</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> Isar _isar;</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  PaymentMethodLocalDataSourceImpl(<span class="kw">this</span><span class="op">.</span>_isar);</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> cachePaymentMethods(</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">String</span> userId<span class="op">,</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">List</span><span class="op">&lt;</span>PaymentMethodModel<span class="op">&gt;</span> methods<span class="op">,</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">await</span> _isar<span class="op">.</span>writeTxn(() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Borrar solo los métodos de ESTE usuario</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">await</span> _isar<span class="op">.</span>cachedPaymentMethods</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span>where()</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span>userIdEqualTo(userId)</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span>deleteAll();</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> (<span class="at">final</span> m <span class="kw">in</span> methods) <span class="op">{</span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>          <span class="at">final</span> cached <span class="op">=</span> CachedPaymentMethod()</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>            <span class="op">..</span>paymentMethodId <span class="op">=</span> m<span class="op">.</span>id</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>            <span class="op">..</span>userId <span class="op">=</span> userId</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>            <span class="op">..</span>type <span class="op">=</span> m<span class="op">.</span>type</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>            <span class="op">..</span>name <span class="op">=</span> m<span class="op">.</span>name</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>            <span class="op">..</span>bankName <span class="op">=</span> m<span class="op">.</span>bankName</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>            <span class="op">..</span>accountHolder <span class="op">=</span> m<span class="op">.</span>accountHolder</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>            <span class="op">..</span>accountNumber <span class="op">=</span> m<span class="op">.</span>accountNumber</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>            <span class="op">..</span>phone <span class="op">=</span> m<span class="op">.</span>phone</span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>            <span class="op">..</span>email <span class="op">=</span> m<span class="op">.</span>email</span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>            <span class="op">..</span>walletAddress <span class="op">=</span> m<span class="op">.</span>walletAddress</span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>            <span class="op">..</span>qrCodeUrl <span class="op">=</span> m<span class="op">.</span>qrCodeUrl</span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>            <span class="op">..</span>instructions <span class="op">=</span> m<span class="op">.</span>instructions</span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>            <span class="op">..</span>cedula <span class="op">=</span> m<span class="op">.</span>cedula</span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>            <span class="op">..</span>bankCode <span class="op">=</span> m<span class="op">.</span>bankCode</span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>            <span class="op">..</span>blockchainNetwork <span class="op">=</span> m<span class="op">.</span>blockchainNetwork</span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a>            <span class="op">..</span>isActive <span class="op">=</span> m<span class="op">.</span>isActive</span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a>            <span class="op">..</span>isDefault <span class="op">=</span> m<span class="op">.</span>isDefault</span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a>            <span class="op">..</span>createdAt <span class="op">=</span> m<span class="op">.</span>createdAt</span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a>            <span class="op">..</span>updatedAt <span class="op">=</span> m<span class="op">.</span>updatedAt</span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a>            <span class="op">..</span>cachedAt <span class="op">=</span> DateTime<span class="op">.</span>now()</span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a>            <span class="op">..</span>expiresAt <span class="op">=</span> DateTime<span class="op">.</span>now()<span class="op">.</span>add(<span class="at">const</span> Duration(days<span class="op">:</span> <span class="dv">30</span>));</span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a>          <span class="at">await</span> _isar<span class="op">.</span>cachedPaymentMethods<span class="op">.</span>put(cached);</span>
+<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span>);</span>
+<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">catch</span> (e) <span class="op">{</span></span>
+<span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a>      <span class="cf">throw</span> CacheException(message<span class="op">:</span> <span class="st">&#39;cache_write_error: $e&#39;</span>);</span>
+<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb12-50"><a href="#cb12-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-51"><a href="#cb12-51" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb12-52"><a href="#cb12-52" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">List</span><span class="op">&lt;</span>PaymentMethodModel<span class="op">&gt;?&gt;</span> getCachedPaymentMethods(</span>
+<span id="cb12-53"><a href="#cb12-53" aria-hidden="true" tabindex="-1"></a>    <span class="dt">String</span> userId<span class="op">,</span></span>
+<span id="cb12-54"><a href="#cb12-54" aria-hidden="true" tabindex="-1"></a>  ) <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb12-55"><a href="#cb12-55" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb12-56"><a href="#cb12-56" aria-hidden="true" tabindex="-1"></a>      <span class="at">final</span> cached <span class="op">=</span> <span class="at">await</span> _isar<span class="op">.</span>cachedPaymentMethods</span>
+<span id="cb12-57"><a href="#cb12-57" aria-hidden="true" tabindex="-1"></a>          <span class="op">.</span>where()</span>
+<span id="cb12-58"><a href="#cb12-58" aria-hidden="true" tabindex="-1"></a>          <span class="op">.</span>userIdEqualTo(userId)</span>
+<span id="cb12-59"><a href="#cb12-59" aria-hidden="true" tabindex="-1"></a>          <span class="op">.</span>findAll();</span>
+<span id="cb12-60"><a href="#cb12-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-61"><a href="#cb12-61" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (cached<span class="op">.</span>isEmpty) <span class="kw">return</span> <span class="cn">null</span>;</span>
+<span id="cb12-62"><a href="#cb12-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-63"><a href="#cb12-63" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (cached<span class="op">.</span>first<span class="op">.</span>expiresAt <span class="op">!=</span> <span class="cn">null</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb12-64"><a href="#cb12-64" aria-hidden="true" tabindex="-1"></a>          cached<span class="op">.</span>first<span class="op">.</span>expiresAt<span class="op">!.</span>isBefore(DateTime<span class="op">.</span>now())) <span class="op">{</span></span>
+<span id="cb12-65"><a href="#cb12-65" aria-hidden="true" tabindex="-1"></a>        <span class="at">await</span> clearCache();</span>
+<span id="cb12-66"><a href="#cb12-66" aria-hidden="true" tabindex="-1"></a>        <span class="kw">return</span> <span class="cn">null</span>;</span>
+<span id="cb12-67"><a href="#cb12-67" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span></span>
+<span id="cb12-68"><a href="#cb12-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-69"><a href="#cb12-69" aria-hidden="true" tabindex="-1"></a>      <span class="kw">return</span> cached<span class="op">.</span>map(_toModel)<span class="op">.</span>toList();</span>
+<span id="cb12-70"><a href="#cb12-70" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">catch</span> (e) <span class="op">{</span></span>
+<span id="cb12-71"><a href="#cb12-71" aria-hidden="true" tabindex="-1"></a>      <span class="cf">throw</span> CacheException(message<span class="op">:</span> <span class="st">&#39;cache_read_error: $e&#39;</span>);</span>
+<span id="cb12-72"><a href="#cb12-72" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb12-73"><a href="#cb12-73" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb12-74"><a href="#cb12-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-75"><a href="#cb12-75" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb12-76"><a href="#cb12-76" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> clearCache(<span class="dt">String</span> userId) <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb12-77"><a href="#cb12-77" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb12-78"><a href="#cb12-78" aria-hidden="true" tabindex="-1"></a>      <span class="at">await</span> _isar<span class="op">.</span>writeTxn(() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb12-79"><a href="#cb12-79" aria-hidden="true" tabindex="-1"></a>        <span class="at">await</span> _isar<span class="op">.</span>cachedPaymentMethods</span>
+<span id="cb12-80"><a href="#cb12-80" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span>where()</span>
+<span id="cb12-81"><a href="#cb12-81" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span>userIdEqualTo(userId)</span>
+<span id="cb12-82"><a href="#cb12-82" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span>deleteAll();</span>
+<span id="cb12-83"><a href="#cb12-83" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span>);</span>
+<span id="cb12-84"><a href="#cb12-84" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">catch</span> (e) <span class="op">{</span></span>
+<span id="cb12-85"><a href="#cb12-85" aria-hidden="true" tabindex="-1"></a>      <span class="cf">throw</span> CacheException(message<span class="op">:</span> <span class="st">&#39;cache_write_error: $e&#39;</span>);</span>
+<span id="cb12-86"><a href="#cb12-86" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb12-87"><a href="#cb12-87" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb12-88"><a href="#cb12-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-89"><a href="#cb12-89" aria-hidden="true" tabindex="-1"></a>  PaymentMethodModel _toModel(CachedPaymentMethod c) <span class="op">{</span></span>
+<span id="cb12-90"><a href="#cb12-90" aria-hidden="true" tabindex="-1"></a>    <span class="kw">return</span> PaymentMethodModel(</span>
+<span id="cb12-91"><a href="#cb12-91" aria-hidden="true" tabindex="-1"></a>      id<span class="op">:</span> c<span class="op">.</span>paymentMethodId <span class="op">??</span> <span class="st">&#39;&#39;</span><span class="op">,</span></span>
+<span id="cb12-92"><a href="#cb12-92" aria-hidden="true" tabindex="-1"></a>      userId<span class="op">:</span> c<span class="op">.</span>userId <span class="op">??</span> <span class="st">&#39;&#39;</span><span class="op">,</span></span>
+<span id="cb12-93"><a href="#cb12-93" aria-hidden="true" tabindex="-1"></a>      type<span class="op">:</span> c<span class="op">.</span>type <span class="op">??</span> <span class="st">&#39;&#39;</span><span class="op">,</span></span>
+<span id="cb12-94"><a href="#cb12-94" aria-hidden="true" tabindex="-1"></a>      name<span class="op">:</span> c<span class="op">.</span>name <span class="op">??</span> <span class="st">&#39;&#39;</span><span class="op">,</span></span>
+<span id="cb12-95"><a href="#cb12-95" aria-hidden="true" tabindex="-1"></a>      bankName<span class="op">:</span> c<span class="op">.</span>bankName<span class="op">,</span></span>
+<span id="cb12-96"><a href="#cb12-96" aria-hidden="true" tabindex="-1"></a>      accountHolder<span class="op">:</span> c<span class="op">.</span>accountHolder<span class="op">,</span></span>
+<span id="cb12-97"><a href="#cb12-97" aria-hidden="true" tabindex="-1"></a>      accountNumber<span class="op">:</span> c<span class="op">.</span>accountNumber<span class="op">,</span></span>
+<span id="cb12-98"><a href="#cb12-98" aria-hidden="true" tabindex="-1"></a>      phone<span class="op">:</span> c<span class="op">.</span>phone<span class="op">,</span></span>
+<span id="cb12-99"><a href="#cb12-99" aria-hidden="true" tabindex="-1"></a>      email<span class="op">:</span> c<span class="op">.</span>email<span class="op">,</span></span>
+<span id="cb12-100"><a href="#cb12-100" aria-hidden="true" tabindex="-1"></a>      walletAddress<span class="op">:</span> c<span class="op">.</span>walletAddress<span class="op">,</span></span>
+<span id="cb12-101"><a href="#cb12-101" aria-hidden="true" tabindex="-1"></a>      qrCodeUrl<span class="op">:</span> c<span class="op">.</span>qrCodeUrl<span class="op">,</span></span>
+<span id="cb12-102"><a href="#cb12-102" aria-hidden="true" tabindex="-1"></a>      instructions<span class="op">:</span> c<span class="op">.</span>instructions<span class="op">,</span></span>
+<span id="cb12-103"><a href="#cb12-103" aria-hidden="true" tabindex="-1"></a>      cedula<span class="op">:</span> c<span class="op">.</span>cedula<span class="op">,</span></span>
+<span id="cb12-104"><a href="#cb12-104" aria-hidden="true" tabindex="-1"></a>      bankCode<span class="op">:</span> c<span class="op">.</span>bankCode<span class="op">,</span></span>
+<span id="cb12-105"><a href="#cb12-105" aria-hidden="true" tabindex="-1"></a>      blockchainNetwork<span class="op">:</span> c<span class="op">.</span>blockchainNetwork<span class="op">,</span></span>
+<span id="cb12-106"><a href="#cb12-106" aria-hidden="true" tabindex="-1"></a>      isActive<span class="op">:</span> c<span class="op">.</span>isActive<span class="op">,</span></span>
+<span id="cb12-107"><a href="#cb12-107" aria-hidden="true" tabindex="-1"></a>      isDefault<span class="op">:</span> c<span class="op">.</span>isDefault<span class="op">,</span></span>
+<span id="cb12-108"><a href="#cb12-108" aria-hidden="true" tabindex="-1"></a>      createdAt<span class="op">:</span> c<span class="op">.</span>createdAt<span class="op">,</span></span>
+<span id="cb12-109"><a href="#cb12-109" aria-hidden="true" tabindex="-1"></a>      updatedAt<span class="op">:</span> c<span class="op">.</span>updatedAt<span class="op">,</span></span>
+<span id="cb12-110"><a href="#cb12-110" aria-hidden="true" tabindex="-1"></a>    );</span>
+<span id="cb12-111"><a href="#cb12-111" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb12-112"><a href="#cb12-112" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<hr />
+<h2 id="7-cachemanager-limpieza-centralizada">7. CacheManager: limpieza centralizada</h2>
+<h3 id="brain-el-problema">🧠 El problema</h3>
+<p>Cuando el usuario cierra sesión, es necesario limpiar <strong>todas</strong> las caches locales: tokens, usuarios, perfiles, métodos de pago. Si cada feature limpia su propia cache por separado, es fácil olvidar una.</p>
+<h3 id="bulb-la-solución-registry-pattern">💡 La solución: Registry pattern</h3>
+<div class="sourceCode" id="cb13"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">// lib/core/services/cache_manager.dart</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CacheManager <span class="op">{</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> <span class="dt">List</span><span class="op">&lt;</span><span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> <span class="kw">Function</span>()<span class="op">&gt;</span> _clearFns <span class="op">=</span> [];</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">void</span> register(<span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> <span class="kw">Function</span>() clearFn) <span class="op">{</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    _clearFns<span class="op">.</span>add(clearFn);</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> clearAll() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">await</span> <span class="dt">Future</span><span class="op">.</span>wait(_clearFns<span class="op">.</span>map((fn) <span class="op">=&gt;</span> fn()));</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="electric_plug-integración">🔌 Integración</h3>
+<div class="sourceCode" id="cb14"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">// En la inyección de dependencias</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="at">final</span> cacheManager <span class="op">=</span> CacheManager();</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Cada feature registra su función de limpieza</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>cacheManager<span class="op">.</span>register(() <span class="op">=&gt;</span> sl<span class="op">&lt;</span>AuthLocalDataSource<span class="op">&gt;</span>()<span class="op">.</span>clearCache());</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>cacheManager<span class="op">.</span>register(() <span class="op">=&gt;</span> sl<span class="op">&lt;</span>ProfileLocalDataSource<span class="op">&gt;</span>()<span class="op">.</span>clearCache());</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>cacheManager<span class="op">.</span>register(() <span class="op">{</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> userId <span class="op">=</span> sl<span class="op">&lt;</span>AuthLocalDataSource<span class="op">&gt;</span>()<span class="op">.</span>getCurrentUserId();</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">return</span> sl<span class="op">&lt;</span>PaymentMethodLocalDataSource<span class="op">&gt;</span>()<span class="op">.</span>clearCache(userId);</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>);</span></code></pre></div>
+<blockquote>
+<p><strong>Nota:</strong> <code>PaymentMethodLocalDataSource.clearCache(userId)</code> recibe el <code>userId</code> porque los métodos de pago son específicos por usuario. Las demás datasources (Auth, Profile) borran todo porque solo hay un usuario en cache.</p>
+</blockquote>
+<h3 id="dart-uso-al-cerrar-sesión">🎯 Uso al cerrar sesión</h3>
+<div class="sourceCode" id="cb15"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="dt">Future</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> signOut() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">await</span> cacheManager<span class="op">.</span>clearAll();  <span class="co">// Limpia </span><span class="al">TODO</span><span class="co"> de una vez</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">await</span> supabase<span class="op">.</span>auth<span class="op">.</span>signOut();</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="ventajas">Ventajas</h3>
+<table>
+<thead>
+<tr>
+<th>Ventaja</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Centralizado</strong></td>
+<td>Un solo <code>clearAll()</code> limpia todo</td>
+</tr>
+<tr>
+<td><strong>Extensible</strong></td>
+<td>Nuevas features solo llaman a <code>register()</code></td>
+</tr>
+<tr>
+<td><strong>Independiente</strong></td>
+<td>Cada DataSource expone su <code>clearCache()</code></td>
+</tr>
+<tr>
+<td><strong>Paralelo</strong></td>
+<td><code>Future.wait</code> ejecuta todas las limpiezas en paralelo</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="8-usersessionimpl-acceso-síncrono-al-usuario">8. UserSessionImpl: acceso síncrono al usuario</h2>
+<h3 id="brain-el-problema-1">🧠 El problema</h3>
+<p>Muchos componentes necesitan saber el ID del usuario autenticado: para filtrar datos, para construir queries, para decidir si mostrar cierta UI. Pedir el token al backend cada vez es ineficiente. Usar <code>async</code> en getters simples es incómodo.</p>
+<h3 id="bulb-la-solución-leer-desde-isar-sincrónicamente">💡 La solución: leer desde Isar sincrónicamente</h3>
+<div class="sourceCode" id="cb16"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">// lib/core/session/user_session.dart</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="kw">abstract</span> <span class="kw">class</span> UserSession <span class="op">{</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">/// ID del usuario autenticado (síncrono, lee de Isar).</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> <span class="kw">get</span> userId;</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">/// Indica si hay un usuario autenticado (síncrono).</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">bool</span> <span class="kw">get</span> isAuthenticated;</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">// lib/core/session/user_session_impl.dart</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="st">&#39;package:isar_community/isar.dart&#39;</span>;</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="st">&#39;package:supabase_flutter/supabase_flutter.dart&#39;</span>;</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="st">&#39;package:mobile/core/data/local/isar_models/cached_user.dart&#39;</span>;</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="st">&#39;package:mobile/core/session/user_session.dart&#39;</span>;</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> UserSessionImpl <span class="kw">implements</span> UserSession <span class="op">{</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> Isar _isar;</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> SupabaseClient<span class="op">?</span> _supabase;</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  UserSessionImpl(<span class="kw">this</span><span class="op">.</span>_isar<span class="op">,</span> <span class="op">{</span>SupabaseClient<span class="op">?</span> supabase<span class="op">}</span>)</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>      <span class="op">:</span> _supabase <span class="op">=</span> supabase;</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span><span class="op">?</span> <span class="kw">get</span> userId <span class="op">{</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">final</span> cached <span class="op">=</span> _isar<span class="op">.</span>cachedUsers<span class="op">.</span>where()<span class="op">.</span>findFirstSync();</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">return</span> cached<span class="op">?.</span>userId;</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>  <span class="dt">bool</span> <span class="kw">get</span> isAuthenticated <span class="op">{</span></span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>    <span class="kw">return</span> _isar<span class="op">.</span>cachedUsers<span class="op">.</span>where()<span class="op">.</span>countSync() <span class="op">&gt;</span> <span class="dv">0</span>;</span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<blockquote>
+<p>El parámetro <code>supabase</code> es opcional. Su propósito es estar disponible para cuando se necesite acceder a <code>SupabaseClient</code> desde el <code>UserSessionImpl</code>, pero la lectura del userId sigue siendo síncrona desde Isar. El supabase puede inyectarse para futuras validaciones (ej: verificar que el userId de Isar coincida con el de Supabase).</p>
+</blockquote>
+<h3 id="key-por-qué-funciona">🔑 ¿Por qué funciona?</h3>
+<ul>
+<li><code>where().findFirstSync()</code> es una operación <strong>síncrona</strong> en Isar (no bloquea el thread porque Isar usa isolates internamente)</li>
+<li><code>CachedUser</code> se guarda en Isar al hacer login</li>
+<li><code>UserSessionImpl</code> se inyecta como <code>UserSession</code> en toda la app</li>
+</ul>
+<h3 id="dart-uso-típico">🎯 Uso típico</h3>
+<div class="sourceCode" id="cb18"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> GetCachedProfile <span class="op">{</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> ProfileLocalDataSource localDataSource;</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> UserSession userSession;</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span>UserProfileModel<span class="op">?&gt;</span> call() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">final</span> userId <span class="op">=</span> userSession<span class="op">.</span>userId;</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (userId <span class="op">==</span> <span class="cn">null</span>) <span class="kw">return</span> <span class="cn">null</span>;</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">return</span> localDataSource<span class="op">.</span>getCachedProfile();</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ProfileCubit <span class="kw">extends</span> Cubit<span class="op">&lt;</span>ProfileState<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> UserSession userSession;</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">String</span> <span class="kw">get</span> _userId <span class="op">=&gt;</span> userSession<span class="op">.</span>userId<span class="op">!</span>;  <span class="co">// Síncrono, sin await</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<hr />
+<h2 id="9-integración-con-repository">9. Integración con Repository</h2>
+<h3 id="dart-cache-first-vs-online-first">🎯 Cache-first vs Online-first</h3>
+<p>En Clean Architecture, el Repository decide la estrategia de cache:</p>
+<pre><code>┌──────────────────────────────────────────────┐
+│            Repository Implementation          │
+├──────────────────────────────────────────────┤
+│                                              │
+│   ┌─────────────────┐    ┌────────────────┐  │
+│   │ RemoteDataSource │    │ LocalDataSource│  │
+│   │ (Supabase)       │    │ (Isar)         │  │
+│   └─────────────────┘    └────────────────┘  │
+│                                              │
+│   Estrategias:                               │
+│   ├── Cache-first: Local → Remote → Actualizar│
+│   ├── Online-first: Remote → Cache → Retornar │
+│   └── Offline: Local-only                     │
+└──────────────────────────────────────────────┘</code></pre>
+<h3 id="pencil-ejemplo-online-first-para-perfil">📝 Ejemplo: Online-first para perfil</h3>
+<div class="sourceCode" id="cb21"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ProfileRepositoryImpl <span class="kw">implements</span> ProfileRepository <span class="op">{</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> ProfileRemoteDataSource remoteDataSource;</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> ProfileLocalDataSource localDataSource;</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> NetworkInfo networkInfo;</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span>Either<span class="op">&lt;</span>Failure<span class="op">,</span> UserProfileModel<span class="op">&gt;&gt;</span> getProfile() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="at">await</span> networkInfo<span class="op">.</span>isConnected) <span class="op">{</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">final</span> remote <span class="op">=</span> <span class="at">await</span> remoteDataSource<span class="op">.</span>getProfile();</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">await</span> localDataSource<span class="op">.</span>cacheProfile(remote);</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>        <span class="kw">return</span> Right(remote);</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">final</span> local <span class="op">=</span> <span class="at">await</span> localDataSource<span class="op">.</span>getCachedProfile();</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (local <span class="op">!=</span> <span class="cn">null</span>) <span class="kw">return</span> Right(local);</span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>        <span class="kw">return</span> Left(NetworkFailure());</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span></span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="kw">on</span> ServerException <span class="cf">catch</span> (e) <span class="op">{</span></span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>      <span class="kw">return</span> Left(ServerFailure(message<span class="op">:</span> e<span class="op">.</span>message));</span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="kw">on</span> CacheException <span class="cf">catch</span> (e) <span class="op">{</span></span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>      <span class="kw">return</span> Left(CacheFailure(message<span class="op">:</span> e<span class="op">.</span>message));</span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="pencil-ejemplo-cache-first-para-auth">📝 Ejemplo: Cache-first para auth</h3>
+<div class="sourceCode" id="cb22"><pre class="sourceCode dart"><code class="sourceCode dart"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> AuthRepositoryImpl <span class="kw">implements</span> AuthRepository <span class="op">{</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">final</span> AuthLocalDataSource localDataSource;</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">bool</span> <span class="kw">get</span> isLoggedIn <span class="op">=&gt;</span> localDataSource<span class="op">.</span>hasCachedUser;  <span class="co">// Síncrono</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">@override</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Future</span><span class="op">&lt;</span>Either<span class="op">&lt;</span>Failure<span class="op">,</span> UserModel<span class="op">&gt;&gt;</span> getCachedUser() <span class="at">async</span> <span class="op">{</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">final</span> user <span class="op">=</span> <span class="at">await</span> localDataSource<span class="op">.</span>getCachedUser();</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (user <span class="op">!=</span> <span class="cn">null</span>) <span class="kw">return</span> Right(user);</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>      <span class="kw">return</span> Left(CacheFailure(message<span class="op">:</span> <span class="st">&#39;No cached user&#39;</span>));</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="kw">on</span> CacheException <span class="cf">catch</span> (e) <span class="op">{</span></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>      <span class="kw">return</span> Left(CacheFailure(message<span class="op">:</span> e<span class="op">.</span>message));</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<hr />
+<h2 id="10-checklist">10. Checklist</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" /><code>IsarService</code> implementado como singleton con <code>initialize()</code> / <code>close()</code></label></li>
+<li><label><input type="checkbox" />Todos los LocalDataSources reciben <code>Isar</code> en el constructor</label></li>
+<li><label><input type="checkbox" />Toda escritura usa <code>writeTxn</code></label></li>
+<li><label><input type="checkbox" />Toda operación envuelta en try/catch → <code>CacheException</code></label></li>
+<li><label><input type="checkbox" />Validación TTL implementada en todas las lecturas</label></li>
+<li><label><input type="checkbox" /><code>CacheManager</code> registra la función <code>clearCache()</code> de cada feature</label></li>
+<li><label><input type="checkbox" /><code>UserSessionImpl</code> implementa <code>UserSession</code> con lectura síncrona desde Isar</label></li>
+<li><label><input type="checkbox" />Repository usa <code>localDataSource.clearCache()</code> al hacer signOut</label></li>
+<li><label><input type="checkbox" />Los errores <code>CacheException</code> se mapean a <code>CacheFailure</code> en el Repository</label></li>
+</ul>
+<hr />
+<h2 id="books-referencias">📚 Referencias</h2>
+<ul>
+<li><a href="https://pub.dev/packages/isar_community">isar_community | pub.dev</a> — Paquete activo de Isar para Dart/Flutter</li>
+<li><a href="https://isar.dev">Isar | Documentación original</a> — Referencia de operaciones y queries (legacy)</li>
+</ul>
+<hr />
+<p><strong>Nivel:</strong> Avanzado<br />
+<strong>Siguiente:</strong> <a href="../05-TESTING/03-data/03e-practica-local-datasource-isar.md">03e-practica-local-datasource-isar.md</a></p>
+</div></div>
+</body>
+</html>
