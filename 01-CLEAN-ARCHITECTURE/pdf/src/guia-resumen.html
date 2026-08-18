@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>GUIA RESUMEN — Clean Architecture para Flutter</title>
+<link rel="stylesheet" href="guia-resumen.css">
+</head>
+<body>
+
+<div class="header">
+  <div class="mod">Modulo 01 · Clean Architecture + Flutter + Supabase</div>
+  <h1>GUIA RESUMEN — Clean Architecture para Flutter</h1>
+  <div class="sub">Resumen integral para dominar Clean Architecture en ~25 minutos, sin volver a leer el modulo completo.</div>
+</div>
+
+<!-- ================= 0. FLUJO ================= -->
+<section>
+  <div class="section-head s-emerald">
+    <span class="num">0</span>
+    <h2>Flujo de aprendizaje general</h2>
+    <span class="meta">4 partes · ~25 min</span>
+  </div>
+
+  <table class="flow">
+    <tr>
+      <td><span class="step-n">1</span><span class="step-t">Fundamentos</span><span class="step-f">8 min</span></td>
+      <td><span class="step-n">2</span><span class="step-t">Implementacion</span><span class="step-f">10 min</span></td>
+      <td><span class="step-n">3</span><span class="step-t">Infraestructura</span><span class="step-f">4 min</span></td>
+      <td><span class="step-n">4</span><span class="step-t">Madurez</span><span class="step-f">3 min</span></td>
+    </tr>
+  </table>
+
+  <div class="callout teal"><p><strong>Regla de oro:</strong> "Las flechas siempre apuntan hacia adentro (hacia Domain). Domain nunca sabe de las capas externas."</p></div>
+
+  <table>
+    <thead><tr><th>Parte</th><th>Que aprendes</th><th>Archivo clave</th></tr></thead>
+    <tbody>
+      <tr><td>1. Fundamentos</td><td>Filosofia, 4 capas, carpetas, flujo de datos</td><td class="mono">01-04</td></tr>
+      <tr><td>2. Implementacion</td><td>CRUD completo: Domain, Data, Presentation+UI</td><td class="mono">05-05c</td></tr>
+      <tr><td>3. Infraestructura</td><td>DI con GetIt, templates, decisiones</td><td class="mono">06-08</td></tr>
+      <tr><td>4. Madurez</td><td>Migracion, SOLID, anti-patrones, cuando NO usar</td><td class="mono">09-12</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 1. FILOSOFIA ================= -->
+<section>
+  <div class="section-head s-emerald">
+    <span class="num">1</span>
+    <h2>Filosofia y analogias (2 min)</h2>
+    <span class="meta">Robert C. Martin · Uncle Bob</span>
+  </div>
+  <p><strong>Clean Architecture</strong> = separar responsabilidades en capas concetricas. El nucleo (Domain) no depende de nada externo.</p>
+
+  <h3>La analogia del restaurante</h3>
+  <table>
+    <thead><tr><th>Restaurante</th><th>Codigo</th><th>Capa</th></tr></thead>
+    <tbody>
+      <tr><td>Receta</td><td>Entity, UseCase</td><td class="mono">DOMAIN</td></tr>
+      <tr><td>Cocina</td><td>Model, DataSource</td><td class="mono">DATA</td></tr>
+      <tr><td>Mesero</td><td>Cubit, State</td><td class="mono">PRESENTATION</td></tr>
+      <tr><td>Mesa/Cliente</td><td>Widget, Page</td><td class="mono">UI</td></tr>
+      <tr><td>Almacen</td><td>API, Base de datos</td><td class="mono">EXTERNAL</td></tr>
+    </tbody>
+  </table>
+
+  <h3>La analogia del edificio de 4 pisos</h3>
+  <pre>Piso 4 (arriba): UI          — El cliente ve y toca
+Piso 3:         Presentation — El mesero orquesta
+Piso 2:         Domain       — El chef cocina (nucleo puro)
+Piso 1 (abajo): Data         — La cocina accede a ingredientes</pre>
+
+  <div class="callout green"><p><strong>4 beneficios:</strong> Independencia de frameworks · Testable al 100% · Escalable y mantenible · Organizacion clara</p></div>
+
+  <h3>El problema: codigo espagueti</h3>
+  <pre>Widget build(BuildContext context) {
+  final response = await http.get(Uri.parse('https://api...'));  // HTTP en UI!
+  final data = jsonDecode(response.body);                         // Parseo en UI!
+  if (data['status'] == 200) { ... }                              // Logica en UI!
+}</pre>
+  <p class="muted">Todo mezclado: HTTP + parseo + logica + UI en un solo lugar. Clean Architecture resuelve esto.</p>
+</section>
+
+<!-- ================= 2. LAS 4 CAPAS ================= -->
+<section>
+  <div class="section-head s-emerald">
+    <span class="num">2</span>
+    <h2>Las 4 capas en detalle (3 min)</h2>
+  </div>
+
+  <table>
+    <thead><tr><th>Capa</th><th>Contiene</th><th>Depende de</th><th>Analogia</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Domain</strong></td><td>Entity, Repository Interface, UseCase</td><td>Solo Dart puro</td><td>Reglas del ajedrez</td></tr>
+      <tr><td><strong>Data</strong></td><td>Model, DataSource, RepositoryImpl</td><td>Domain (interfaces)</td><td>Tablero fisico</td></tr>
+      <tr><td><strong>Presentation</strong></td><td>Cubit/Bloc, State</td><td>Domain (UseCases)</td><td>Visor movil del tablero</td></tr>
+      <tr><td><strong>UI</strong></td><td>Widgets, Pages</td><td>Presentation (Cubit)</td><td>Pantalla del telefono</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout teal"><p><strong>Test de capa:</strong> Si el codigo puede vivir en un proyecto Dart sin Flutter → es Domain. Si no → es otra capa.</p></div>
+
+  <h3>3 principios fundamentales</h3>
+  <ul>
+    <li><strong>Capas:</strong> Cada archivo pertenece a UNA sola capa</li>
+    <li><strong>Regla de dependencia:</strong> Las flechas van de afuera hacia adentro (UI → Presentation → Domain ← Data)</li>
+    <li><strong>Abstracciones:</strong> Domain usa interfaces/abstract classes; Data las implementa</li>
+  </ul>
+
+  <h3>Flujo de llamada</h3>
+  <pre>UI(UserWidget) → Cubit.fetchData() → UseCase.call()
+  → Repository.getData() [interface en Domain]
+  → RepositoryImpl [en Data, implementa la interface]
+  → DataSource.fetch() [API/DB]
+  → Modelo → Entity → Either&lt;Failure, Entity&gt; → Cubit → UI</pre>
+</section>
+
+<!-- ================= 3. ESTRUCTURA DE CARPETAS ================= -->
+<section>
+  <div class="section-head s-emerald">
+    <span class="num">3</span>
+    <h2>Estructura de carpetas universal (2 min)</h2>
+  </div>
+
+  <pre>lib/
+  core/                          # Compartido entre features
+    common/     use_case.dart    # UseCase base abstracto
+    di/         injection.dart   # GetIt service locator
+    error/      failures.dart    # Clases de error
+    network/    network_info.dart
+    routing/    app_router.dart
+    theme/      app_theme.dart
+  features/
+    {feature}/
+      data/
+        datasources/   # Remote + Local data sources
+        models/        # Modelos (DTO, JSON, Isar)
+        repositories/  # RepositoryImpl
+      domain/
+        entities/      # Entidades puras
+        repositories/  # Interfaces abstractas
+        usecases/      # Casos de uso
+      presentation/
+        cubit/         # Cubit + States
+        pages/         # Pantallas
+        widgets/       # Widgets reutilizables</pre>
+
+  <h3>Reglas de organizacion</h3>
+  <table>
+    <thead><tr><th>Hacer (Dos)</th><th>No hacer (Donts)</th></tr></thead>
+    <tbody>
+      <tr><td>Una carpeta por feature</td><td>Agrupar todos los data juntos</td></tr>
+      <tr><td>Features independientes entre si</td><td>Agrupar todas las entities juntas</td></tr>
+      <tr><td>Core NO depende de features</td><td>Agrupar todas las pantallas juntas</td></tr>
+      <tr><td>Cada layer en su carpeta</td><td>Poner logica de negocio en widgets</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 4. FLUJO DE DATOS ================= -->
+<section>
+  <div class="section-head s-emerald">
+    <span class="num">4</span>
+    <h2>Flujo de datos y manejo de errores (3 min)</h2>
+  </div>
+
+  <p>Cada operacion CRUD sigue una <strong>forma de U</strong>: baja por las capas y sube de vuelta.</p>
+  <pre>USUARIO toca boton
+  → Widget: context.read&lt;UserCubit&gt;().fetchUsers()
+  → Cubit: emit UserLoading(); result = await useCase();
+  → UseCase: valida reglas, llama repository
+  → RepositoryImpl: decide remote vs local
+  → DataSource: ejecuta HTTP/DB query
+  → Modelo: UserModel.fromJson() → toEntity() → UserEntity
+  → Either&lt;Failure, UserEntity&gt; sube de vuelta
+  → Cubit: emit UsersLoaded(users) o UserError(message)
+  → UI: BlocBuilder reconstruye el widget</pre>
+
+  <h3>Manejo de errores: Exception vs Failure</h3>
+  <table>
+    <thead><tr><th>Concepto</th><th>Capa</th><th>Que es</th><th>Ejemplo</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Exception</strong></td><td>DATA</td><td>Error tecnico (no llega al usuario)</td><td>ServerException, CacheException</td></tr>
+      <tr><td><strong>Failure</strong></td><td>DOMAIN</td><td>Error amigable (llega al usuario)</td><td>ServerFailure, CacheFailure, NetworkFailure</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Cadena de errores</h3>
+  <pre>DataSource lanza Exception
+  → RepositoryImpl catch(Exception) → convierte a Failure
+  →返回 Either&lt;Failure, T&gt; (Left)
+  → UseCase recibe Failure
+  → Cubit emite UserError(message)
+  → UI muestra SnackBar amigable</pre>
+
+  <div class="callout teal"><p><strong>Nunca</strong> dejes que una excepcion tecnica (HTTP 500, timeout, SQL) llegue a la UI. Siempre se convierte en Failure primero.</p></div>
+</section>
+
+<!-- ================= 5. DOMAIN LAYER ================= -->
+<section>
+  <div class="section-head s-emerald">
+    <span class="num">5</span>
+    <h2>Domain Layer — El nucleo puro (3 min)</h2>
+  </div>
+
+  <p>Contiene 3 componentes: <strong>Entity</strong>, <strong>Repository Interface</strong>, <strong>UseCase</strong>. Sin dependencias externas.</p>
+
+  <h3>Entity</h3>
+  <pre>class User extends Equatable {
+  final String id;
+  final String name;
+  final String email;
+  final bool isActive;
+  final DateTime createdAt;
+
+  const User({required this.id, ...});
+
+  User copyWith({String? name, ...}) => User(id: id, name: name ?? this.name, ...);
+
+  bool get isNew => DateTime.now().difference(createdAt).inDays &lt; 7;
+
+  @override
+  List&lt;Object?&gt; get props => [id, name, email, isActive, createdAt];
+}</pre>
+
+  <h3>Repository Interface</h3>
+  <pre>abstract class UserRepository {
+  Future&lt;Either&lt;Failure, List&lt;User&gt;&gt;&gt; getUsers();
+  Future&lt;Either&lt;Failure, User&gt;&gt; getUser(String id);
+  Future&lt;Either&lt;Failure, User&gt;&gt; createUser(User user);
+  Future&lt;Either&lt;Failure, void&gt;&gt; deleteUser(String id);
+}</pre>
+
+  <h3>UseCase</h3>
+  <pre>class GetUsers extends UseCase&lt;List&lt;User&gt;, NoParams&gt; {
+  final UserRepository repository;
+  GetUsers(this.repository);
+
+  @override
+  Future&lt;Either&lt;Failure, List&lt;User&gt;&gt;&gt; call(NoParams params) async {
+    return await repository.getUsers();
+  }
+}</pre>
+
+  <h3>Future&lt;Either&gt; vs TaskEither</h3>
+  <table>
+    <thead><tr><th>Aspecto</th><th>Future&lt;Either&gt;</th><th>TaskEither</th></tr></thead>
+    <tbody>
+      <tr><td>Complejidad</td><td>Baja (familiar)</td><td>Alta (funcional)</td></tr>
+      <tr><td>Composicion</td><td>Limitada</td><td>Encadenable con .andThen()</td></tr>
+      <tr><td>Ideal para</td><td>Equipos junior/mid</td><td>Equipos avanzados</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">El modulo usa Future&lt;Either&gt; por accesibilidad.</p>
+</section>
+
+<!-- ================= 6. DATA LAYER ================= -->
+<section>
+  <div class="section-head s-emerald">
+    <span class="num">6</span>
+    <h2>Data Layer — La implementacion (4 min)</h2>
+  </div>
+
+  <p>Implementa los contratos de Domain. Contiene: <strong>Model</strong>, <strong>DataSource</strong>, <strong>RepositoryImpl</strong>.</p>
+
+  <h3>Model (con Isar para DB local)</h3>
+  <pre>class UserModel extends User {
+  const UserModel({required super.id, ...});
+
+  factory UserModel.fromEntity(User user) => UserModel(id: user.id, ...);
+  User toEntity() => User(id: id, name: name, ...);
+
+  // Isar: @collection, @Index(), toEntity(), fromEntity()
+  // REST: fromJson(), toJson(), fromEntity(), toEntity()
+}</pre>
+
+  <h3>DataSource — Dos opciones</h3>
+  <table>
+    <thead><tr><th>Aspecto</th><th>Dio (REST API)</th><th>SupabaseClient</th></tr></thead>
+    <tbody>
+      <tr><td>Ideal para</td><td>APIs REST externas</td><td>Backend Supabase (BaaS)</td></tr>
+      <tr><td>Error</td><td>DioException → ServerException</td><td>PostgrestException → ServerException</td></tr>
+      <tr><td>Query</td><td>response.data</td><td>from().select().order()</td></tr>
+      <tr><td>Auth</td><td>Headers manuales</td><td>SupabaseClient.auth</td></tr>
+    </tbody>
+  </table>
+
+  <h3>RepositoryImpl — Logica Online/Offline</h3>
+  <pre>class UserRepositoryImpl implements UserRepository {
+  final UserRemoteDataSource remoteDataSource;
+  final UserLocalDataSource localDataSource;
+  final NetworkInfo networkInfo;
+
+  @override
+  Future&lt;Either&lt;Failure, List&lt;User&gt;&gt;&gt; getUsers() async {
+    if (await networkInfo.isConnected) {
+      try {
+        final models = await remoteDataSource.getUsers();
+        await localDataSource.cacheUsers(models);  // Guardar en cache
+        return Right(models.map((m) => m.toEntity()).toList());
+      } on ServerException {
+        return Left(ServerFailure());
+      }
+    } else {
+      try {
+        final cached = await localDataSource.getCachedUsers();
+        return Right(cached.map((m) => m.toEntity()).toList());
+      } on CacheException {
+        return Left(CacheFailure());
+      }
+    }
+  }
+}</pre>
+
+  <h3>UserSession — Cuando inyectarla</h3>
+  <table>
+    <thead><tr><th>Repositorio</th><th>Necesita UserSession?</th><th>Por que</th></tr></thead>
+    <tbody>
+      <tr><td>UserRepository</td><td>No</td><td>Gestiona todos los usuarios</td></tr>
+      <tr><td>OrderRepository</td><td>Si</td><td>Filtra por usuario actual</td></tr>
+      <tr><td>AuthRepository</td><td>Si</td><td>Maneja login/logout</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 7. PRESENTATION + UI ================= -->
+<section>
+  <div class="section-head s-emerald">
+    <span class="num">7</span>
+    <h2>Presentation + UI Layer — El estado y la vista (3 min)</h2>
+  </div>
+
+  <h3>States</h3>
+  <pre>abstract class UserState extends Equatable {}
+class UserInitial extends UserState { ... }
+class UserLoading extends UserState { ... }
+class UsersLoaded extends UserState {
+  final List&lt;User&gt; users;
+  const UsersLoaded(this.users);
+}
+class UserError extends UserState {
+  final String message;
+  const UserError(this.message);
+}</pre>
+
+  <h3>Cubit</h3>
+  <pre>class UserCubit extends Cubit&lt;UserState&gt; {
+  final GetUsers getUsers;
+  final GetUser getUser;
+  final CreateUser createUser;
+  final DeleteUser deleteUser;
+
+  UserCubit({required this.getUsers, ...}) : super(UserInitial());
+
+  Future&lt;void&gt; loadUsers() async {
+    emit(UserLoading());
+    final result = await getUsers(NoParams());
+    result.fold(
+      (failure) => emit(UserError(_mapFailure(failure))),
+      (users) => emit(UsersLoaded(users)),
+    );
+  }
+}</pre>
+
+  <h3>UI con flutter_bloc</h3>
+  <pre>BlocProvider(
+  create: (context) => sl&lt;UserCubit&gt;()..loadUsers(),
+  child: BlocBuilder&lt;UserCubit, UserState&gt;(
+    builder: (context, state) {
+      if (state is UserLoading) return CircularProgressIndicator();
+      if (state is UserError) return Text(state.message);
+      if (state is UsersLoaded) {
+        return ListView.builder(
+          itemCount: state.users.length,
+          itemBuilder: (ctx, i) => UserTile(user: state.users[i]),
+        );
+      }
+      return SizedBox();
+    },
+  ),
+)</pre>
+
+  <div class="callout teal"><p><strong>Regla:</strong> UI solo muestra datos y captura eventos. Nunca logica de negocio, ni llamadas HTTP, ni parseo de JSON.</p></div>
+</section>
+
+<!-- ================= 8. DI CON GETIT ================= -->
+<section>
+  <div class="section-head s-green">
+    <span class="num">8</span>
+    <h2>Inyeccion de Dependencias con GetIt (2 min)</h2>
+  </div>
+
+  <p>GetIt es un <strong>Service Locator</strong>: registra instancias y las entrega cuando se necesitan.</p>
+
+  <h3>3 metodos de registro</h3>
+  <table>
+    <thead><tr><th>Metodo</th><th>CUANDO se crea</th><th>Ideal para</th></tr></thead>
+    <tbody>
+      <tr><td>registerLazySingleton</td><td>Primera vez que se pide</td><td>Repositorios, DataSources (recomendado)</td></tr>
+      <tr><td>registerSingleton</td><td>Al registrarlo</td><td>Config, servicios globales</td></tr>
+      <tr><td>registerFactory</td><td>Cada vez que se pide</td><td>Cubits (nueva instancia por uso)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Estilo Manual (recomendado)</h3>
+  <pre>final sl = GetIt.instance;
+
+Future&lt;void&gt; init() async {
+  // ── Externos ──
+  sl.registerLazySingleton(() =&gt; SupabaseClient());
+  sl.registerLazySingleton(() =&gt; InternetConnection());
+
+  // ── Core ──
+  sl.registerLazySingleton(() =&gt; NetworkInfoImpl(sl()));
+
+  // ── DataSources ──
+  sl.registerLazySingleton&lt;UserRemoteDataSource&gt;(
+    () =&gt; UserRemoteDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton&lt;UserLocalDataSource&gt;(
+    () =&gt; UserLocalDataSourceImpl(),
+  );
+
+  // ── Repositories ──
+  sl.registerLazySingleton&lt;UserRepository&gt;(
+    () =&gt; UserRepositoryImpl(
+      remoteDataSource: sl(),
+      localDataSource: sl(),
+      networkInfo: sl(),
+    ),
+  );
+
+  // ── UseCases ──
+  sl.registerLazySingleton(() =&gt; GetUsers(sl()));
+  sl.registerLazySingleton(() =&gt; CreateUser(sl()));
+
+  // ── Presentation ──
+  sl.registerFactory(() =&gt; UserCubit(getUsers: sl(), createUser: sl()));
+}</pre>
+
+  <h3>Estilo Injectable (proyectos grandes)</h3>
+  <p class="muted">Usa anotaciones (@lazySingleton, @injectable) + build_runner. Requiere: injectable, injectable_generator.</p>
+
+  <div class="callout green"><p><strong>Regla:</strong> Empieza manual. Cambia a injectable cuando el service_locator.dart tenga +200 lineas.</p></div>
+</section>
+
+<!-- ================= 9. SOLID + ANTI-PATRONES ================= -->
+<section>
+  <div class="section-head s-teal">
+    <span class="num">9</span>
+    <h2>SOLID en Dart/Flutter + Anti-patrones (3 min)</h2>
+  </div>
+
+  <h3>Los 5 principios SOLID</h3>
+  <table>
+    <thead><tr><th>#</th><th>Principio</th><th>Regla</th><th>Ejemplo en Dart</th></tr></thead>
+    <tbody>
+      <tr><td>S</td><td>Single Responsibility</td><td>Una clase, una razon para cambiar</td><td> CreateUserUseCase (no UserManager)</td></tr>
+      <tr><td>O</td><td>Open/Closed</td><td>Abierto a extension, cerrado a modificacion</td><td> Abstract class + implementaciones</td></tr>
+      <tr><td>L</td><td>Liskov Substitution</td><td>Subtipos deben ser sustituibles</td><td> Ambos implementan Shape (no hereda Rectangle→Square)</td></tr>
+      <tr><td>I</td><td>Interface Segregation</td><td>Interfaces pequenas y especificas</td><td> UserReader + UserWriter (no UserRepository gigante)</td></tr>
+      <tr><td>D</td><td>Dependency Inversion</td><td>Depender de abstracciones, no concreciones</td><td> Interface + inyeccion + GetIt</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Los 8 anti-patrones</h3>
+  <table>
+    <thead><tr><th>#</th><th>Anti-patron</th><th>Problema</th><th>Solucion</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>God Class</td><td>Una clase hace todo</td><td>Separar por responsabilidad</td></tr>
+      <tr><td>2</td><td>Dependencia invertida (mal)</td><td>Domain depende de Data/Presentation</td><td>Flechas solo hacia Domain</td></tr>
+      <tr><td>3</td><td>Repository de papel</td><td>Repository sin logica, solo passthrough</td><td>Agregar logica o fusionar con UseCase</td></tr>
+      <tr><td>4</td><td>Estado monolitico</td><td>Un solo State con 10+ campos</td><td>Dividir por dominio o usar multiples Cubits</td></tr>
+      <tr><td>5</td><td>UseCase castrado</td><td>UseCase solo delega sin logica</td><td>Agregar regla de negocio o fusionar</td></tr>
+      <tr><td>6</td><td>Map hell</td><td>Map&lt;String, dynamic&gt; sin tipos</td><td>Siempre usar Modelos tipados</td></tr>
+      <tr><td>7</td><td>Herencia infinita</td><td>5+ niveles de abstracciones</td><td>Composicion sobre herencia</td></tr>
+      <tr><td>8</td><td>Callback hell</td><td>Callbacks anidados profundos</td><td>async/await + manejo de errores</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout teal"><p><strong>Test rapido:</strong> Si tu archivo tiene +300 lineas, si un UseCase solo delega, o si un State tiene +10 campos → probablemente tienes un anti-patron.</p></div>
+</section>
+
+<!-- ================= 10. CUANDO USAR / NO USAR ================= -->
+<section>
+  <div class="section-head s-amber">
+    <span class="num">10</span>
+    <h2>Cuando SI y cuando NO usar Clean Architecture (2 min)</h2>
+  </div>
+
+  <h3>El spectrum de complejidad</h3>
+  <pre>Script → Prototipo → App Simple → App Compleja → Enterprise
+   ↓         ↓            ↓              ↓              ↓
+ Nada    setState()    Cubit+Repo    Clean Arch    Clean+DDD+BLoC</pre>
+
+  <h3>Cuando SI usar</h3>
+  <ul class="checklist">
+    <li>10+ features</li>
+    <li>3+ desarrolladores</li>
+    <li>Vida util de 2+ anios</li>
+    <li> multiples fuentes de datos</li>
+    <li>Testing exhaustivo</li>
+    <li>Dominio complejo</li>
+  </ul>
+
+  <h3>Cuando NO usar</h3>
+  <table>
+    <thead><tr><th>Caso</th><th>Alternativa</th></tr></thead>
+    <tbody>
+      <tr><td>Prototipo / MVP</td><td>setState() + http</td></tr>
+      <tr><td>App de una pantalla</td><td>Cubit simple</td></tr>
+      <tr><td>Script / herramienta</td><td>Sin arquitectura</td></tr>
+      <tr><td>Hackathon</td><td>Lo que funcione</td></tr>
+      <tr><td>UI-only app</td><td>Widgets + setState</td></tr>
+      <tr><td>POC interno</td><td>Cubit + Repository simple</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Senales de over-engineering</h3>
+  <table>
+    <thead><tr><th>Senal</th><th>Accion</th></tr></thead>
+    <tbody>
+      <tr><td>Mas archivos que features</td><td>Eliminar abstracciones innecesarias</td></tr>
+      <tr><td>UseCases que solo delegan</td><td>Fusionar con Repository</td></tr>
+      <tr><td>Interfaces con una sola implementacion</td><td>Eliminar la interfaz</td></tr>
+      <tr><td>3+ niveles de abstraccion</td><td>Aplanar la jerarquia</td></tr>
+      <tr><td>Tardas 30+ min en agregar una feature</td><td>Simplificar la arquitectura</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout green"><p><strong>Regla practica:</strong> 3+ features = Clean Architecture. Menos = Cubit + Repository simple. Desechable = lo que funcione.</p></div>
+</section>
+
+<!-- ================= ANEXO ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">A</span>
+    <h2>Anexo · Indice del modulo (para profundizar)</h2>
+  </div>
+  <table>
+    <thead><tr><th>Necesitas</th><th>Archivo</th></tr></thead>
+    <tbody>
+      <tr><td>Filosofia y analogias de Clean Architecture</td><td class="mono">01-introduccion-y-filosofia.md</td></tr>
+      <tr><td>Las 4 capas explicadas en detalle</td><td class="mono">02-las-4-capas.md</td></tr>
+      <tr><td>Estructura de carpetas universal</td><td class="mono">03-estructura-de-carpetas.md</td></tr>
+      <tr><td>Flujo de datos completo con diagrama Mermaid</td><td class="mono">04-flujo-de-datos.md</td></tr>
+      <tr><td>Introduccion al CRUD de ejemplo (Users)</td><td class="mono">05-implementacion-crud-intro.md</td></tr>
+      <tr><td>Domain Layer: Entity, Repository, UseCase</td><td class="mono">05a-domain-layer.md</td></tr>
+      <tr><td>Data Layer: Model, DataSource, RepositoryImpl</td><td class="mono">05b-data-layer.md</td></tr>
+      <tr><td>Presentation + UI: States, Cubit, Widgets</td><td class="mono">05c-presentation-ui-layer.md</td></tr>
+      <tr><td>Inyeccion de Dependencias con GetIt</td><td class="mono">06-inyeccion-de-dependencias.md</td></tr>
+      <tr><td>Templates universales para cada capa</td><td class="mono">07-templates-universales.md</td></tr>
+      <tr><td>Decisiones de arquitectura (Cubit vs BLoC, FAQ)</td><td class="mono">08-decisiones-de-arquitectura.md</td></tr>
+      <tr><td>Migracion gradual desde codigo espagueti</td><td class="mono">09-migracion-codigo-espagueti.md</td></tr>
+      <tr><td>SOLID explicado con Dart/Flutter</td><td class="mono">10-solid-explicite.md</td></tr>
+      <tr><td>8 anti-patrones en Clean Architecture</td><td class="mono">11-anti-patrones-clean-architecture.md</td></tr>
+      <tr><td>Cuando NO usar Clean Architecture</td><td class="mono">12-cuando-no-usar-clean-architecture.md</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= CONCLUSION ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">C</span>
+    <h2>Conclusion</h2>
+  </div>
+  <p>Clean Architecture es una <strong>herramienta, no un dogma</strong>. Usala cuando el proyecto lo necesite. La clave es:</p>
+  <ul class="checklist">
+    <li>Domain puro: sin dependencias externas</li>
+    <li>Flechas hacia adentro: Domain nunca sabe de UI ni Data</li>
+    <li>Interfaces en Domain, implementaciones en Data</li>
+    <li>Errors: Exception (DATA) → Failure (DOMAIN) → UI amigable</li>
+    <li>GetIt para DI: manual para empezar, injectable para escalar</li>
+    <li>SOLID como guia, no como religion</li>
+  </ul>
+
+  <div class="footer-note"><strong>Tiempo de lectura del resumen: ~25 min</strong> · Clean Architecture es un camino, no un destino.</div>
+</section>
+
+</body>
+</html>
