@@ -334,9 +334,68 @@ revert: let us never again speak of the noodle incident
 Refs: 676104e, a215868
 ```
 
+### ¿Pueden los Commits Convencionales llevar a limitar el tipo de commits?
+Los Commits Convencionales nos animan a hacer más de ciertos tipos de commits como fixes. Adicionalmente, la flexibilidad de los Commits Convencionales le permite a tu equipo generar sus propios tipos y cambiarlos a lo largo del tiempo.
+
+### ¿Deben todos los que contribuyen a mi proyecto usar esta especificación?
+¡No! Si usas un flujo de trabajo basado en squash los líderes del proyecto pueden limpiar el mensaje en el momento en que se incorpora, sin agregar cargas adicionales a quienes contribuyen casualmente. Un flujo de trabajo común para esto es configurar tu sistema de git para que haga el squash de manera automática de un pull request y presente al líder del proyecto un formulario para que ingrese el mensaje de commit correcto al momento de hacer el merge.
+
 ---
 
-## 10. Resumen
+## 10. Especificación Completa (16 Reglas)
+
+> Las palabras clave "DEBE", "NO DEBE", "REQUERIDO", "DEBERÁ", "NO DEBERÁ", "DEBERÍA", "NO DEBERÍA", "RECOMIENDA", "PUEDE" y "OPCIONAL" se interpretan como se describe en RFC 2119.
+
+| # | Regla |
+|---|-------|
+| 1 | Los commits DEBEN iniciarse con un prefijo de tipo que consiste en un sustantivo, `feat`, `fix`, etc., seguido del ámbito OPCIONAL, `!` OPCIONAL, y dos puntos y un espacio REQUERIDO. |
+| 2 | El tipo `feat` DEBE ser usado cuando un commit agrega una nueva funcionalidad a la aplicación o librería. |
+| 3 | El tipo `fix` DEBE ser usado cuando el commit representa una corrección a un error en el código de la aplicación (bug). |
+| 4 | Un ámbito PUEDE ser añadido después de un tipo. Un ámbito DEBE consistir en un sustantivo que describa una sección de la base del código encerrado entre paréntesis, ej., `fix(parser):`. |
+| 5 | Una descripción DEBE ir inmediatamente después de los dos puntos y el espacio del prefijo de tipo/ámbito. La descripción es un resumen corto de los cambios realizados en el código. |
+| 6 | Un cuerpo de commit más extenso PUEDE agregarse después de la descripción corta, dando información contextual adicional acerca de los cambios en el código. El cuerpo DEBE iniciar después de una línea en blanco después de la descripción. |
+| 7 | Un cuerpo de commit es de forma-libre y PUEDE consistir de cualquier número de párrafos separados por una nueva línea. |
+| 8 | Una o más notas al pie PUEDEN ser añadidas una línea en blanco después del cuerpo. Cada nota al pie DEBE consistir de una palabra clave, seguida ya sea por un separador `:<espacio>` o `<espacio>#`, seguido por un valor cadena (string). |
+| 9 | Una palabra clave de una nota al pie DEBE usar `-` en lugar de caracteres de espacios en blanco, ej., `Acked-by`. Se hace una excepción para `BREAKING CHANGE`. |
+| 10 | Una nota al pie PUEDE contener espacios y líneas en blanco, y el parseo DEBE terminar cuando se observe el siguiente separador/clave. |
+| 11 | Los cambios de ruptura DEBEN ser indicados en el prefijo de tipo/ámbito de un commit, o como una entrada en la nota al pie. |
+| 12 | Si se incluye como una nota al pie, un cambio de ruptura DEBE consistir del texto en mayúsculas `BREAKING CHANGE`, seguido de dos puntos, y una descripción. |
+| 13 | Si se incluye en el prefijo de tipo/ámbito, cambios de ruptura DEBEN ser indicados por un `!` inmediatamente después de `:`. Si `!` es usado, `BREAKING CHANGE:` PUEDE ser omitido de la sección de la nota al pie, y la descripción del commit DEBERÁ ser usada para describir el cambio de ruptura. |
+| 14 | Tipos diferentes a `feat` y `fix` PUEDEN ser usados en los mensajes de commit, ej., `docs: updated ref docs`. |
+| 15 | Las unidades de información que componen Commits Convencionales NO DEBEN ser tratados como implementadores sensitivos de caso, con la excepción de `BREAKING CHANGE` que DEBE ir en mayúsculas. |
+| 16 | `BREAKING-CHANGE` DEBE ser sinónimo de `BREAKING CHANGE`, cuando se usa en una nota al pie. |
+
+### Ejemplos de la Especificación
+
+```bash
+# Mensaje con cambio de ruptura en la nota al pie
+feat: allow provided config object to extend other configs
+BREAKING CHANGE: `extends` key in config file is now used for extending other config files
+
+# Mensaje con ! para llamar atención al cambio de ruptura
+refactor!: drop support for Node 6
+
+# Mensaje con ambos ! y BREAKING CHANGE en la nota al pie
+refactor!: drop support for Node 6
+BREAKING CHANGE: refactor to use JavaScript features not available in Node 6.
+
+# Mensaje sin cuerpo
+docs: correct spelling of CHANGELOG
+
+# Mensaje con ámbito
+feat(lang): added polish language
+
+# Mensaje con cuerpo multi-párrafo y múltiples notas al pie
+fix: correct minor typos in code
+see the issue for details
+on typos fixed.
+Reviewed-by: Z
+Refs #133
+```
+
+---
+
+## 11. Resumen
 
 1. **`<tipo>(ámbito): descripción`** es el formato estándar
 2. **`feat`** y **`fix`** son los tipos principales
@@ -345,6 +404,7 @@ Refs: 676104e, a215868
 5. **Commitlint** valida automáticamente cada commit
 6. **Gitmoji** es opcional pero visualmente útil
 7. **Relación con SemVer:** fix→patch, feat→minor, breaking→major
+8. **16 reglas** de la especificación completa para referencia
 
 ---
 
@@ -363,3 +423,10 @@ Refs: 676104e, a215868
 - [Husky](https://typicode.github.io/husky/) — Git hooks modernos para Node.js
 - [Commitlint](https://commitlint.js.org/) — Linter para mensajes de commit
 - [Git | Documentation](https://git-scm.com/doc) — Documentación oficial de Git
+
+---
+
+## Licencia
+
+Este documento está basado en la especificación [Conventional Commits 1.0.0](https://www.conventionalcommits.org/).
+Licencia: Creative Commons - CC BY 3.0

@@ -141,6 +141,87 @@ feat!: cambiar API → 2.0.0 (MAJOR)
 
 # Con standard-version, esto es automatico
 standard-version --first-release</div>
+
+  <h2>1.11 Especificacion Completa (Reglas 1-16)</h2>
+  <p>Las palabras clave "DEBE", "NO DEBE", "REQUERIDO", "DEBERÁ", "NO DEBERÁ", "DEBERÍA", "NO DEBERÍA", "RECOMIENDA", "PUEDE" y "OPCIONAL" se interpretan como se describe en RFC 2119.</p>
+  <table>
+    <tr><th>#</th><th>Regla</th></tr>
+    <tr><td>1</td><td>Los commits DEBEN iniciarse con un prefijo de tipo que consiste en un sustantivo, feat, fix, etc., seguido del ámbito OPCIONAL, ! OPCIONAL, y dos puntos y un espacio REQUERIDO.</td></tr>
+    <tr><td>2</td><td>El tipo feat DEBE ser usado cuando un commit agrega una nueva funcionalidad a la aplicación o librería.</td></tr>
+    <tr><td>3</td><td>El tipo fix DEBE ser usado cuando el commit representa una corrección a un error en el código de la aplicación (bug).</td></tr>
+    <tr><td>4</td><td>Un ámbito PUEDE ser añadido después de un tipo. Un ámbito DEBE consistir en un sustantivo que describa una sección de la base del código encerrado entre paréntesis, ej., fix(parser):.</td></tr>
+    <tr><td>5</td><td>Una descripción DEBE ir inmediatamente después de los dos puntos y el espacio del prefijo de tipo/ámbito. La descripción es un resumen corto de los cambios realizados en el código.</td></tr>
+    <tr><td>6</td><td>Un cuerpo de commit más extenso PUEDE agregarse después de la descripción corta, dando información contextual adicional acerca de los cambios en el código. El cuerpo DEBE iniciar después de una línea en blanco después de la descripción.</td></tr>
+    <tr><td>7</td><td>Un cuerpo de commit es de forma-libre y PUEDE consistir de cualquier número de párrafos separados por una nueva línea.</td></tr>
+    <tr><td>8</td><td>Una o más notas al pie PUEDEN ser añadidas una línea en blanco después del cuerpo. Cada nota al pie DEBE consistir de una palabra clave, seguida ya sea por un separador :&lt;espacio&gt; o &lt;espacio&gt;#, seguido por un valor cadena (string).</td></tr>
+    <tr><td>9</td><td>Una palabra clave de una nota al pie DEBE usar - en lugar de caracteres de espacios en blanco, ej., Acked-by. Se hace una excepción para BREAKING CHANGE.</td></tr>
+    <tr><td>10</td><td>Una nota al pie PUEDE contener espacios y líneas en blanco, y el parseo DEBE terminar cuando se observe el siguiente separador/clave.</td></tr>
+    <tr><td>11</td><td>Los cambios de ruptura DEBEN ser indicados en el prefijo de tipo/ámbito de un commit, o como una entrada en la nota al pie.</td></tr>
+    <tr><td>12</td><td>Si se incluye como una nota al pie, un cambio de ruptura DEBE consistir del texto en mayúsculas BREAKING CHANGE, seguido de dos puntos, y una descripción.</td></tr>
+    <tr><td>13</td><td>Si se incluye en el prefijo de tipo/ámbito, cambios de ruptura DEBEN ser indicados por un ! inmediatamente después de :. Si ! es usado, BREAKING CHANGE: PUEDE ser omitido de la sección de la nota al pie.</td></tr>
+    <tr><td>14</td><td>Tipos diferentes a feat y fix PUEDEN ser usados en los mensajes de commit, ej., docs: updated ref docs.</td></tr>
+    <tr><td>15</td><td>Las unidades de información que componen Commits Convencionales NO DEBEN ser tratados como implementadores sensitivos de caso, con la excepción de BREAKING CHANGE que DEBE ir en mayúsculas.</td></tr>
+    <tr><td>16</td><td>BREAKING-CHANGE DEBE ser sinónimo de BREAKING CHANGE, cuando se usa en una nota al pie.</td></tr>
+  </table>
+
+  <h2>1.12 Ejemplos Adicionales de la Especificacion</h2>
+  <div class="code-block"># Mensaje con cambio de ruptura en la nota al pie
+feat: allow provided config object to extend other configs
+BREAKING CHANGE: `extends` key in config file is now used for extending other config files
+
+# Mensaje con ! para llamar atencion al cambio de ruptura
+refactor!: drop support for Node 6
+
+# Mensaje con ambos ! y BREAKING CHANGE en la nota al pie
+refactor!: drop support for Node 6
+BREAKING CHANGE: refactor to use JavaScript features not available in Node 6.
+
+# Mensaje sin cuerpo
+docs: correct spelling of CHANGELOG
+
+# Mensaje con ámbito
+feat(lang): added polish language
+
+# Mensaje con cuerpo multi-párrafo y múltiples notas al pie
+fix: correct minor typos in code
+see the issue for details
+on typos fixed.
+Reviewed-by: Z
+Refs #133</div>
+
+  <h2>1.13 Preguntas Frecuentes (FAQ)</h2>
+
+  <h3>¿Cómo puedo trabajar con los mensajes de los commits en la etapa inicial de desarrollo?</h3>
+  <p>Recomendamos trabajar como si ya hubieras lanzado tu producto. Típicamente alguien, incluso si son tus compañeros desarrolladores, están usando tu software. Ellos querrán saber qué se ha arreglado, qué se ha dañado, etc.</p>
+
+  <h3>¿Los tipos en los títulos de los commits están en mayúsculas o en minúsculas?</h3>
+  <p>Se puede utilizar cualquiera, pero es mejor ser coherente.</p>
+
+  <h3>¿Qué hago si el commit se ajusta a más de uno de los tipos de commit?</h3>
+  <p>Regresa y haz múltiples commits de ser posible. Parte de los beneficios de los Commits Convencionales es la habilidad para hacer commits y PRs más organizados.</p>
+
+  <h3>¿No desalienta esto el desarrollo y la iteración rápida?</h3>
+  <p>Desalienta moverse rápido de una forma desorganizada. Te ayuda a ser capaz de moverte rápido a largo plazo a través de proyectos con una gran variedad de contribuidores.</p>
+
+  <h3>¿Pueden los Commits Convencionales llevar a los desarrolladores a limitar el tipo de commits que hacen?</h3>
+  <p>Los Commits Convencionales nos animan a hacer más de ciertos tipos de commits como fixes. Adicionalmente, la flexibilidad de los Commits Convencionales le permite a tu equipo generar sus propios tipos y cambiarlos a lo largo del tiempo.</p>
+
+  <h3>¿Cómo se relaciona esto con SemVer?</h3>
+  <p>El tipo de commit fix se traduce a un cambio de versión PATCH. El tipo de commit feat se traduce a un cambio de versión MINOR. Commits con el texto BREAKING CHANGE, sin importar su tipo, se traducen a un cambio de versión MAJOR.</p>
+
+  <h3>¿Qué debo hacer si por accidente uso un tipo de commit equivocado?</h3>
+  <p>Cuando utilizaste un tipo que es de la especificación pero del tipo correcto, ej. fix en lugar de feat: Antes de combinar o liberar el error, recomendamos usar git rebase -i para editar el historial de los commits. Después de que se ha liberado, la limpieza será distinta de acuerdo a las herramientas y procesos que hayas utilizado.</p>
+  <p>Cuando usas un tipo que no está en la especificación, ej. feet en lugar de feat: En el peor de los escenarios, no es el fin del mundo si aparece un commit que no cumple con las especificaciones. Simplemente significa que el commit será ignorado por las herramientas que se basen en esta especificación.</p>
+
+  <h3>¿Deben todos los que contribuyen a mi proyecto usar esta especificación?</h3>
+  <p>¡No! Si usas un flujo de trabajo basado en squash los líderes del proyecto pueden limpiar el mensaje en el momento en que se incorpora, sin agregar cargas adicionales a quienes contribuyen casualmente.</p>
+
+  <h3>¿Cómo maneja Commits Convencionales el revertir código?</h3>
+  <p>Commits Convencionales no hace un esfuerzo explícito para definir el comportamiento al revertir. En lugar de eso le dejamos a los autores de las herramientas la flexibilidad de los tipos y notas al pie para desarrollar la lógica para manejar los reverts. Una recomendación es usar el tipo revert, y una nota al pie que haga referencia a los commit SHAs que son revertidos:</p>
+  <div class="code-block">revert: let us never again speak of the noodle incident
+Refs: 676104e, a215868</div>
+
+  <p class="license">Licencia: Creative Commons - CC BY 3.0</p>
 </div>
 
 <div class="pagebreak"></div>
@@ -508,14 +589,36 @@ RUN flutter build apk</div>
     <tr><td>chore/</td><td>Tareas sin codigo</td><td>chore/actualizar-deps</td></tr>
   </table>
 
+  <h3>Puntos Clave de la Especificacion</h3>
+  <ol>
+    <li><strong>Nombres basados en un propósito:</strong> El nombre de cada rama indica claramente su propósito, lo que facilita que todos los desarrolladores comprendan para qué sirve la rama.</li>
+    <li><strong>Integración con CI/CD:</strong> Al utilizar nombres de ramas consistentes, puede ayudar a los sistemas automatizados (como canalizaciones de integración continua/implementación continua) a activar acciones específicas basadas en el tipo de rama (por ejemplo, implementación automática desde ramas de liberación).</li>
+    <li><strong>Colaboración en equipo:</strong> Fomenta la colaboración dentro de los equipos al hacer explícito el propósito de la rama, reducir los malentendidos y facilitar que los miembros del equipo cambien entre tareas sin confusión.</li>
+  </ol>
+
   <h3>Reglas de nomenclatura</h3>
+  <ol>
+    <li><strong>Alfanuméricos, guiones y puntos en minusculas:</strong> Utilice siempre letras minúsculas (az), numere (0-9) y guiones (-) para separar palabras. Evite caracteres, guiones bajos o espacios especiales. Para ramas de liberación, puntos (.) pueden usarse en la descripción para representar números de versión (ej., release/v1.2.0).</li>
+    <li><strong>Sin guiones o puntos consecutivos, principales o finales:</strong> Asegúrese de que los guiones y los puntos no aparezcan consecutivamente (ej., feature/nuevo--inicio-de-sesión, release/v1.-2.0), ni al inicio ni al final de la descripción (ej., feature/-nuevo-inicio-de-sesión, release/v1.2.0.).</li>
+    <li><strong>Mantenlo claro y conciso:</strong> El nombre de la rama debe ser descriptivo pero conciso, indicando claramente el propósito del trabajo.</li>
+    <li><strong>Incluir números de ticket:</strong> Si corresponde, incluya el número de ticket de su herramienta de gestión de proyectos para facilitar el seguimiento. Por ejemplo, para un ticket número 123, el nombre de la rama podría ser feature/123-nuevo-login.</li>
+  </ol>
+
+  <h3>Beneficios de Conventional Branch</h3>
   <ul>
-    <li>Alfanumericos, guiones y puntos en minusculas</li>
-    <li>Sin guiones o puntos consecutivos</li>
-    <li>Sin guiones/puntos al inicio o final</li>
-    <li>Claro y conciso</li>
-    <li>Incluir numeros de ticket si aplica</li>
+    <li><strong>Comunicación clara:</strong> El nombre de la rama por sí solo proporciona una comprensión clara de su propósito en el cambio de código.</li>
+    <li><strong>Fácil de automatizar:</strong> Se conecta fácilmente a procesos de automatización (por ejemplo, diferentes flujos de trabajo para feature, release, etc.).</li>
+    <li><strong>Escalabilidad:</strong> Funciona bien en equipos grandes donde muchos desarrolladores trabajan en diferentes tareas simultáneamente.</li>
   </ul>
+
+  <h3>Preguntas Frecuentes</h3>
+  <h4>¿Por qué los tipos de ramas no son tan detallados como los commits convencionales (ej., build, ci, docs, style, refactor)?</h4>
+  <p>Las ramas son diferentes de las confirmaciones, son temporales y se usan principalmente hasta que se fusionan. Introducir demasiados tipos de ramas sería innecesario y las haría más difíciles de gestionar y recordar.</p>
+
+  <h4>¿Qué herramientas se pueden utilizar para identificar automáticamente si un miembro del equipo no cumple con esta especificación?</h4>
+  <p>Puedes usar verificación de confirmación para consultar las especificaciones de la rama o confirmar-verificar-acción si sus códigos están alojados en GitHub.</p>
+
+  <p class="license">Licencia: Creative Commons - CC BY 3.0</p>
 
   <h2>5.2 Git Flow vs GitHub Flow</h2>
   <table>
@@ -583,6 +686,14 @@ git push origin main --tags</div>
 - [x] Tests pasan</div>
 
   <h2>5.6 Versionado Semantico (SemVer 2.0.0)</h2>
+  <p><strong>SemVer</strong> es un sistema de versionado que comunica cambios significativos a través de números de versión.</p>
+
+  <h3>Introduccion: El Infierno de Dependencias</h3>
+  <p>En el mundo de la administración de software existe un temido lugar llamado "Infierno de Dependencias". Mientras más crece tu sistema y más paquetes integras dentro de tu software, más probable se hace que un día te encuentres en este pozo de desesperación.</p>
+  <p>En sistemas con muchas dependencias, lanzar nuevas versiones de los paquetes puede convertirse en una pesadilla. Si las especificaciones de las dependencias son muy estrictas, estarás en peligro de bloquear una versión (la inhabilidad de actualizar un paquete sin tener que publicar una nueva versión de cada otro paquete dependiente). Si las dependencias son especificadas de forma muy relajada, inevitablemente serás mordido por versiones promiscuas (asumir la compatibilidad con próximas versiones más allá de lo razonable).</p>
+  <p>El Infierno de Dependencias es donde estás cuando una versión bloqueada y/o promiscua previenen que muevas tu proyecto adelante de forma fácil y segura.</p>
+
+  <h3>Formato de Version</h3>
   <div class="code-block">v&lt;major&gt;.&lt;minor&gt;.&lt;patch&gt;
 
 v1.0.0  → Primer release estable
@@ -598,11 +709,52 @@ v2.0.0  → Breaking change</div>
     <tr><td><strong>Patch (Z)</strong></td><td>Correccion de bug compatible</td><td>1.1.0 → 1.1.1</td></tr>
   </table>
 
+  <h3>Especificacion Completa SemVer 2.0.0</h3>
+  <p>Las palabras clave "DEBE", "NO DEBE", "OBLIGATORIO", "DEBERÁ", "NO DEBERÁ", "DEBERÍA", "NO DEBERÍA", "RECOMENDADO", "PUEDE" y "OPCIONAL" se interpretan como se describe en RFC 2119.</p>
+  <table>
+    <tr><th>#</th><th>Regla</th></tr>
+    <tr><td>1</td><td>El Software que usa Versionado Semántico DEBE declarar un API público. Este API puede ser declarado en el propio código o debe existir estrictamente en la documentación.</td></tr>
+    <tr><td>2</td><td>Un número de versión normal DEBE tener la forma de X.Y.Z donde X, Y y Z son números enteros no negativos, y NO DEBEN ser precedidos de ceros. X es la versión mayor, Y es la versión menor, y Z es la versión parche.</td></tr>
+    <tr><td>3</td><td>Una vez que el paquete versionado ha sido publicado, el contenido de esa versión NO DEBE ser modificado. Cualquier modificación DEBE ser publicada como una nueva versión.</td></tr>
+    <tr><td>4</td><td>Una versión mayor en cero (0.y.z) se considera como desarrollo inicial. Todo PUEDE cambiar en cualquier momento. El API público NO DEBERÍA ser considerado estable.</td></tr>
+    <tr><td>5</td><td>La versión 1.0.0 define el API público. La manera en que cada número de versión es incrementado después de esta publicación dependerá de su API público y cómo cambia.</td></tr>
+    <tr><td>6</td><td>La versión parche Z (x.y.Z | x > 0) DEBE ser incrementada si solamente se introducen correcciones de errores compatibles con versiones anteriores.</td></tr>
+    <tr><td>7</td><td>La versión menor Y (x.Y.z | x > 0) DEBE ser incrementada si se introduce funcionalidad nueva y compatible con la versión anterior del API público. La versión parche DEBE reiniciarse a 0 cuando una versión menor se incrementa.</td></tr>
+    <tr><td>8</td><td>La versión mayor X (X.y.z | x > 0) DEBE ser incrementada solamente si se introducen cambios incompatibles con la versión anterior del API público. Versiones parche y menores DEBEN ser reiniciadas a 0 cuando una versión mayor es incrementada.</td></tr>
+    <tr><td>9</td><td>Una versión de prelanzamiento PUEDE ser denotada agregando un guión y una serie de identificadores separados por puntos, inmediatamente seguida de la versión parche. Los identificadores DEBEN ser compuestos sólo de caracteres alfanuméricos ASCII y guión ([0-9A-Za-z-]).</td></tr>
+    <tr><td>10</td><td>Metadatos de compilación PUEDEN ser denotados agregando el signo más y una serie de identificadores separados por puntos, inmediatamente seguido de la versión parche o prelanzamiento. Los metadatos de compilación DEBEN ser ignorados cuando se determina la precedencia de la versión.</td></tr>
+    <tr><td>11</td><td>La precedencia se refiere a cómo las versiones se comparan entre ellas cuando se ordenan. La precedencia DEBE ser calculada separando los identificadores de la versión en mayor, menor, parche y prelanzamiento (dejando de lado los metadatos de compilación).</td></tr>
+  </table>
+
+  <h3>Precedencia de Versiones</h3>
+  <p>La precedencia es determinada por la primera diferencia al comparar cada uno de los identificadores de izquierda a derecha:</p>
+  <ol>
+    <li>Mayor, menor y parche son siempre comparadas numéricamente. Por ejemplo: 1.0.0 &lt; 2.0.0 &lt; 2.1.0 &lt; 2.1.1.</li>
+    <li>Cuando la versión mayor, menor y parche son iguales, la versión de prelanzamiento tiene menor precedencia que la versión normal. Por ejemplo: 1.0.0-alpha &lt; 1.0.0.</li>
+    <li>Identificadores compuestos solamente por números son comparados numéricamente.</li>
+    <li>Los identificadores con letras o guiones son comparados léxicamente en orden ASCII.</li>
+    <li>Identificadores numéricos siempre tienen menor precedencia que identificadores no numéricos.</li>
+    <li>Un conjunto de campos de prelanzamiento más numeroso tiene mayor precedencia que un conjunto menos numeroso.</li>
+  </ol>
+  <div class="code-block"># Ejemplo de precedencia
+1.0.0-alpha &lt; 1.0.0-alpha.1 &lt; 1.0.0-alpha.beta &lt; 1.0.0-beta &lt; 1.0.0-beta.2 &lt; 1.0.0-beta.11 &lt; 1.0.0-rc.1 &lt; 1.0.0</div>
+
   <h3>Versiones de pre-lanzamiento</h3>
   <div class="code-block">v1.0.0-alpha
 v1.0.0-alpha.1
 v1.0.0-beta.1
 v1.0.0-rc.1</div>
+
+  <h3>Metadatos de compilacion</h3>
+  <div class="code-block"># Formato: v&lt;major&gt;.&lt;minor&gt;.&lt;patch&gt;+&lt;metadata&gt;
+v1.0.0-alpha+001
+v1.0.0+20130313144700
+v1.0.0-beta+exp.sha.5114f85
+
+# Los metadatos son ignorados al determinar precedencia
+# v1.0.0+build.1 == v1.0.0+build.2 (misma precedencia)</div>
+
+  <p class="license">Licencia: Creative Commons - CC BY 3.0</p>
 
   <h2>5.7 CHANGELOG</h2>
   <div class="code-block"># Changelog
