@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Makefile Mastery para Flutter + Supabase</title>
+<link rel="stylesheet" href="guia-completa.css">
+</head>
+<body>
+
+<div class="title-page">
+  <div class="mod">Modulo 10</div>
+  <h1>Makefile Mastery para Flutter + Supabase</h1>
+  <div class="subtitle">Entiende como funciona un Makefile y por que cada linea del tuyo hace lo que hace. No mas comandos magicos generados por IA.</div>
+  <div class="meta">Lectura completa: ~45 minutos</div>
+</div>
+
+<!-- PART 1 -->
+<div class="part-title">Parte 1 — Fundamentos de Make</div>
+
+<div class="pagebreak"></div>
+
+<!-- SECTION 1: QUE ES MAKE -->
+<div class="section">
+  <h1>1. Que es Make y por que lo usamos?</h1>
+
+  <h2>1.1 Que es Make?</h2>
+  <p>Make es una herramienta de automatizacion de los anios 70 (si, anterior a internet) que <strong>sigue siendo el estandar</strong> para gestionar proyectos de software. Lee un archivo llamado <code>Makefile</code> y ejecuta comandos segun reglas que tu defines.</p>
+
+  <h3>La analogia</h3>
+  <div class="code-block">Makefile = una lista de recetas de cocina
+
+make setup     → "Prepara los ingredientes" (instalar dependencias)
+make test      → "Prueba que la sopa no este salada" (ejecutar tests)
+make build-apk → "Cocina el plato final" (compilar APK)</div>
+
+  <h2>1.2 Por que Makefile y no scripts sueltos?</h2>
+  <table>
+    <tr><th>Aspecto</th><th>Scripts sueltos</th><th>Makefile</th></tr>
+    <tr><td><strong>Numero de archivos</strong></td><td>10+ scripts</td><td>1 archivo</td></tr>
+    <tr><td><strong>Dependencias</strong></td><td>Manual (tu encadenas)</td><td>Automatico (target: dependency)</td></tr>
+    <tr><td><strong>Documentacion</strong></td><td>La escribes aparte</td><td>make help genera la lista</td></tr>
+    <tr><td><strong>Variables</strong></td><td>Variables de shell</td><td>Variables de Make + shell</td></tr>
+    <tr><td><strong>Solo ejecutar lo necesario</strong></td><td>No</td><td>Si (solo si cambio la dependencia)</td></tr>
+    <tr><td><strong>Estandar</strong></td><td>Depende del proyecto</td><td>Universal en DevOps</td></tr>
+  </table>
+
+  <h2>1.3 Que hace el Makefile en tu proyecto?</h2>
+  <table>
+    <tr><th>Seccion</th><th>Proposito</th></tr>
+    <tr><td><strong>Desarrollo</strong></td><td>Iniciar/Detener Supabase, correr app, regenerar codigo</td></tr>
+    <tr><td><strong>Calidad</strong></td><td>Formatear, analizar, testear</td></tr>
+    <tr><td><strong>Dependencias</strong></td><td>Instalar, actualizar</td></tr>
+    <tr><td><strong>Supabase</strong></td><td>Migraciones, tests de BD, deploy</td></tr>
+    <tr><td><strong>Build</strong></td><td>APK, AAB, web, Linux</td></tr>
+    <tr><td><strong>Utilidades</strong></td><td>Cambiar entorno (.env), validar, limpiar</td></tr>
+    <tr><td><strong>Git</strong></td><td>Conventional commits, hooks</td></tr>
+  </table>
+
+  <h2>1.4 Make como orquestador entre modulos</h2>
+  <p>Make no solo ejecuta comandos aislados: <strong>conecta todas las herramientas del proyecto en una interfaz unificada</strong>.</p>
+  <table>
+    <tr><th>Target</th><th>Modulo que usa</th><th>Que hace</th></tr>
+    <tr><td><code>make commit</code></td><td>12-GIT-FLOW</td><td>Ejecuta Commitizen (Conventional Commits)</td></tr>
+    <tr><td><code>make release</code></td><td>12-GIT-FLOW</td><td>Ejecuta standard-version (SemVer + CHANGELOG)</td></tr>
+    <tr><td><code>make branch</code></td><td>12-GIT-FLOW</td><td>Crea rama con nomenclatura Conventional Branch</td></tr>
+    <tr><td><code>make check</code></td><td>Quality gate</td><td>format + analyze + test</td></tr>
+    <tr><td><code>make ci</code></td><td>11-GITHUB-ACTIONS</td><td>Simula pipeline CI local</td></tr>
+  </table>
+
+  <h3>Ejemplo: hacer un commit</h3>
+  <div class="code-block"># SIN Makefile: tienes que recordar el formato exacto
+npx cz
+
+# CON Makefile: un solo comando
+make commit</div>
+
+  <h3>Ejemplo: crear una release</h3>
+  <div class="code-block"># SIN Makefile: ejecutar comandos de git manualmente
+npm run release
+git push --follow-tags
+
+# CON Makefile: un solo comando
+make release</div>
+
+  <h3>Ejemplo: crear una rama feature</h3>
+  <div class="code-block"># SIN Makefile: 4 comandos
+git checkout develop
+git pull
+git checkout -b feature/agregar-filtro
+
+# CON Makefile: un solo comando
+make branch FEATURE=agregar-filtro</div>
+
+  <blockquote><p><strong>Filosofia:</strong> Make es la "capa de abstraccion" que conecta Git, Flutter, Supabase y herramientas de calidad en una interfaz unificada.</p></blockquote>
+</div>
+
+<div class="pagebreak"></div>
+
+<!-- SECTION 2: SINTAXIS BASICA -->
+<div class="section">
+  <h1>2. Sintaxis Basica de Makefile</h1>
+
+  <h2>2.1 Estructura de una regla</h2>
+  <div class="code-block">target: prerequisites
+	recipe</div>
+
+  <table>
+    <tr><th>Parte</th><th>Que es</th><th>Ejemplo</th></tr>
+    <tr><td><strong>target</strong></td><td>El nombre del comando</td><td><code>test:</code></td></tr>
+    <tr><td><strong>prerequisites</strong></td><td>Lo que debe ejecutarse antes</td><td><code>format analyze</code></td></tr>
+    <tr><td><strong>recipe</strong></td><td>Lo que realmente hace (indentado con TAB)</td><td><code>flutter test</code></td></tr>
+  </table>
+
+  <div class="code-block">check: format analyze test
+	@echo "Todo listo!"</div>
+
+  <h2>2.2 .PHONY — La regla mas importante</h2>
+  <div class="code-block">.PHONY: test clean setup</div>
+
+  <p><strong>Por que es necesaria?</strong> Make asume que cada target es un <strong>archivo</strong>. Si existiera un archivo llamado <code>test</code> en el proyecto, Make diria "test ya esta actualizado" y no ejecutaria nada.</p>
+
+  <blockquote><p><strong>Regla:</strong> TODO target que no genere un archivo debe ser <code>.PHONY</code>.</p></blockquote>
+
+  <h2>2.3 Variables</h2>
+  <div class="code-block"># Asignacion simple (= evaluacion perezosa)
+PROJECT_NAME = mi-proyecto
+
+# Asignacion inmediata (:= evaluacion al momento)
+MOBILE_DIR := apps/mobile
+
+# Asignacion condicional (?= solo si no esta definida)
+DEVICE ?= emulator-5554
+
+# Uso
+deploy:
+	@echo "Desplegando $(PROJECT_NAME)"
+	@cd $(MOBILE_DIR) && flutter build apk</div>
+
+  <h2>2.4 El @ — Silenciar comandos</h2>
+  <div class="code-block">test:
+	@echo "Ejecutando tests..."
+	flutter test</div>
+
+  <p>Sin <code>@</code>, Make imprime el comando antes de ejecutarlo. Con <code>@</code>, solo se ve la salida del comando.</p>
+
+  <h2>2.5 Target por defecto</h2>
+  <div class="code-block">.DEFAULT_GOAL := help</div>
+
+  <p>Cuando ejecutas solo <code>make</code> (sin target), ejecuta <code>help</code>. Asi siempre ves la lista de comandos disponibles.</p>
+
+  <h2>2.6 Comentarios</h2>
+  <div class="code-block"># Esto es un comentario (linea completa)
+
+clean: ## Limpiar artifacts (comentario inline visible en help)
+	rm -rf build/</div>
+
+  <p>Los comentarios con <code>##</code> (doble) son usados por el target <code>help</code> para generar la documentacion.</p>
+</div>
+
+<div class="pagebreak"></div>
+
+<!-- SECTION 3: VARIABLES Y SHELL -->
+<div class="section">
+  <h1>3. Variables Avanzadas y Funciones Shell</h1>
+
+  <h2>3.1 $(shell ...) — Ejecutar comandos</h2>
+  <p>La funcion mas poderosa: ejecuta un comando de shell y usa su salida como valor.</p>
+
+  <div class="code-block"># Detectar Flutter (FVM o global)
+FLUTTER := $(shell [ -d .fvm ] && echo fvm flutter || echo flutter)
+
+# Detectar dispositivo Android conectado
+DEFAULT_ANDROID = $(shell flutter devices 2>/dev/null \
+	| awk -F "•" '/android/ {gsub(/ /,"",$$2); print $$2; exit}')
+
+# Obtener IP local
+LOCAL_IP := $(shell ip -4 addr show \
+	| grep -oP '(?<=inet\s)\d+\.\d+\.\d+\.\d+' \
+	| grep -v '127.0.0.1' \
+	| head -1)</div>
+
+  <h2>3.2 Variables automaticas</h2>
+  <table>
+    <tr><th>Variable</th><th>Significado</th></tr>
+    <tr><td><code>$@</code></td><td>Nombre del target actual</td></tr>
+    <tr><td><code>$&lt;</code></td><td>Primer prerequisito</td></tr>
+    <tr><td><code>$^</code></td><td>Todos los prerequisitos</td></tr>
+    <tr><td><code>$?</code></td><td>Prerequisitos mas nuevos que el target</td></tr>
+    <tr><td><code>$(@D)</code></td><td>Directorio del target</td></tr>
+    <tr><td><code>$(@F)</code></td><td>Archivo del target</td></tr>
+  </table>
+
+  <h2>3.3 Condicionales</h2>
+  <div class="code-block"># Ejecutar segun condiciones
+run:
+	$(if $(DEVICE),\
+		flutter run -d $(DEVICE),\
+		flutter run\
+	)
+
+# Verificar herramientas
+deps-check:
+	@command -v docker >/dev/null 2>&1 \
+		|| { echo "Docker no instalado"; exit 1; }
+	@command -v supabase >/dev/null 2>&1 \
+		|| { echo "Supabase CLI no instalado"; exit 1; }</div>
+
+  <h2>3.4 awk y sed en el Makefile</h2>
+
+  <h3>awk -F "•" '/android/ {gsub(/ /,"",$$2); print $$2; exit}'</h3>
+  <div class="code-block"># -F "•"         → separador es " • "
+# /android/      → solo lineas con "android"
+# gsub(/ /,"")   → quita espacios
+# print $$2      → imprime el segundo campo (la IP/ID)
+# exit           → solo el primero</div>
+
+  <h3>sed -i "s|^SUPABASE_URL=.*|SUPABASE_URL=http://$IP:54321|" .env</h3>
+  <div class="code-block"># s|regex|reemplazo| → substitucion
+# ^SUPABASE_URL=.*   → linea que empieza con SUPABASE_URL=
+# SUPABASE_URL=http://$IP:54321 → nuevo valor
+# -i                 → editar in-place (modificar el archivo)</div>
+
+  <h2>3.5 Debugging</h2>
+  <div class="code-block"># Imprimir el valor de una variable (util para depurar)
+$(info FLUTTER = $(FLUTTER))
+$(warning CUIDADO: dispositivo no encontrado)
+$(error ERROR: Flutter no instalado)
+
+# Ejecutar make sin ejecutar (solo muestra lo que haria)
+make -n [target]</div>
+</div>
+
+<div class="pagebreak"></div>
+
+<!-- SECTION 4: ANALISIS MAKEFILE REAL -->
+<div class="section">
+  <h1>4. Analisis del Makefile Real del Proyecto</h1>
+  <p>Recorrido <strong>linea por linea</strong> de las secciones clave del Makefile del monorepo.</p>
+
+  <h2>4.1 Variables del proyecto</h2>
+  <div class="code-block">MOBILE_DIR := apps/mobile
+WEB_DIR := apps/web
+SUPABASE_DIR := supabase</div>
+
+  <p><strong>Por que?</strong> El proyecto es un monorepo (varias apps en un repo). En lugar de escribir <code>apps/mobile</code> cada vez, se usan variables.</p>
+
+  <h2>4.2 Colores para output</h2>
+  <div class="code-block">BOLD := $(shell tput bold 2>/dev/null)
+GREEN := $(shell tput setaf 2 2>/dev/null)
+YELLOW := $(shell tput setaf 3 2>/dev/null)
+CYAN := $(shell tput setaf 6 2>/dev/null)
+RESET := $(shell tput sgr0 2>/dev/null)</div>
+
+  <p><strong>Por que?</strong> Para que la salida de <code>make</code> sea legible visualmente. <code>tput</code> genera codigos de color ANSI.</p>
+
+  <h2>4.3 Comandos de desarrollo</h2>
+  <div class="code-block">.PHONY: dev-start
+dev-start:
+	@cd $(SUPABASE_DIR) && supabase start
+
+.PHONY: dev
+dev:
+	@cd $(MOBILE_DIR) && flutter run --flavor development</div>
+
+  <h2>4.4 Comandos de calidad</h2>
+  <div class="code-block">.PHONY: check
+check: format analyze test
+
+.PHONY: format
+format:
+	@echo "${CYAN}Formateando codigo Dart...${RESET}"
+	@cd $(MOBILE_DIR) && dart format .</div>
+
+  <h2>4.5 Storage y Edge Functions</h2>
+  <div class="code-block">.PHONY: deploy-storage
+deploy-storage:
+	@cd $(SUPABASE_DIR) && supabase db push
+	@echo "${GREEN}Storage desplegado (bucket raffa-assets + policies)${RESET}"
+
+.PHONY: deploy-cleanup
+deploy-cleanup:
+	@cd $(SUPABASE_DIR) && supabase db push
+	@cd $(SUPABASE_DIR) && supabase functions deploy raffle-cleanup</div>
+
+  <h2>4.6 Utilidades de entorno</h2>
+  <div class="code-block">.PHONY: env-local
+env-local:
+	@sed -i "s|^SUPABASE_URL=.*|SUPABASE_URL=http://127.0.0.1:54321|" apps/mobile/.env; \
+	echo "${GREEN}SUPABASE_URL=http://127.0.0.1:54321 (modo local)${RESET}"</div>
+
+  <h2>4.7 Conventional Commits (expandido)</h2>
+
+  <h3>Target: make commit</h3>
+  <div class="code-block">.PHONY: commit
+commit:
+	@npm run commit</div>
+
+  <p><strong>Flujo completo del target <code>make commit</code>:</strong></p>
+  <div class="code-block">make commit
+    │
+    ├── 1. npm run commit → ejecuta Commitizen (npx cz)
+    │       └── Muestra formulario interactivo:
+    │           ? Tipo de cambio: [feat/fix/docs/...]
+    │           ? Alcance (opcional):
+    │           ? Descripcion:
+    │           ? Breaking change:
+    │
+    ├── 2. Husky ejecuta pre-commit
+    │       └── lint-staged → dart format + flutter analyze
+    │
+    ├── 3. Husky ejecuta commit-msg
+    │       └── commitlint → valida formato Conventional Commits
+    │
+    └── 4. Commit creado: feat(raffles): agregar filtro por fecha</div>
+
+  <p><strong>Por que no hacer <code>git commit -m "..."</code> directamente?</strong></p>
+  <ul>
+    <li>Humanos olvidan el formato correcto</li>
+    <li>El alcance (scope) se pierde</li>
+    <li>Los breaking changes no se marcan</li>
+    <li>El CHANGELOG no se genera automaticamente</li>
+  </ul>
+
+  <h3>Target: make release</h3>
+  <div class="code-block">.PHONY: release
+release: ## Crear release (SemVer + CHANGELOG auto)
+	@npm run release
+	@git push --follow-tags
+	@echo "${GREEN}Release publicado con tags${RESET}"</div>
+
+  <p><strong>Flujo:</strong></p>
+  <ol>
+    <li><code>standard-version</code> detecta tipo de cambio desde ultimo tag</li>
+    <li>Incrementa version segun SemVer 2.0.0 (feat→minor, fix→patch, breaking→major)</li>
+    <li>Genera/actualiza <code>CHANGELOG.md</code></li>
+    <li>Crea commit <code>chore(release): vX.Y.Z</code></li>
+    <li>Crea tag <code>vX.Y.Z</code></li>
+    <li>Push con tags a origin</li>
+  </ol>
+
+  <h2>4.8 Mapa de dependencias entre targets</h2>
+  <div class="code-block">help               → (autonomo)
+setup              → deps → mocks
+dev                → check → run
+dev-start          → supabase-up → dev
+dev-stop           → supabase-down
+check              → format → analyze → test
+validate           → check ✓
+build-apk          → env-prod-check ✓
+deploy-storage     → supabase db push
+deploy-cleanup     → deploy-storage + functions deploy</div>
+</div>
+
+<div class="pagebreak"></div>
+
+<!-- PART 2 -->
+<div class="part-title">Parte 2 — Creacion y CI</div>
+
+<div class="pagebreak"></div>
+
+<!-- SECTION 5: CREACION PERSONALIZADA -->
+<div class="section">
+  <h1>5. Creacion Personalizada de Makefiles</h1>
+
+  <h2>5.1 Template minimo</h2>
+  <div class="code-block"># ==============================================================================
+# MAKEFILE - Template minimo para Flutter + Supabase
+# ==============================================================================
+
+PROJECT_NAME := mi-proyecto
+MOBILE_DIR := .
+SUPABASE_DIR := supabase
+
+SHELL := /bin/bash
+.DEFAULT_GOAL := help
+
+.PHONY: help
+help:
+	@echo "$(PROJECT_NAME) - Comandos disponibles"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
+	| sort \
+	| awk 'BEGIN {FS = ":.*?## "}; {printf "  %-25s %s\n", $$1, $$2}'
+
+.PHONY: setup
+setup: deps mocks ## Instalar dependencias y generar codigo
+
+.PHONY: deps
+deps: ## Instalar dependencias
+	cd $(MOBILE_DIR) && flutter pub get
+
+.PHONY: mocks
+mocks: ## Generar codigo (build_runner)
+	cd $(MOBILE_DIR) && dart run build_runner build --delete-conflicting-outputs
+
+.PHONY: dev
+dev: check run ## Ejecutar app en modo desarrollo
+
+.PHONY: check
+check: format analyze test ## Verificacion completa
+
+.PHONY: format
+format: ## Formatear codigo
+	cd $(MOBILE_DIR) && dart format .
+
+.PHONY: analyze
+analyze: ## Analisis estatico
+	cd $(MOBILE_DIR) && flutter analyze
+
+.PHONY: test
+test: ## Ejecutar tests
+	cd $(MOBILE_DIR) && flutter test
+
+.PHONY: run
+run: ## Ejecutar app
+	cd $(MOBILE_DIR) && flutter run
+
+.PHONY: clean
+clean: ## Limpiar
+	cd $(MOBILE_DIR) && flutter clean
+	rm -rf $(MOBILE_DIR)/coverage</div>
+
+  <h2>5.2 Targets cross-module (Git Flow + SemVer)</h2>
+
+  <h3>make commit</h3>
+  <div class="code-block">.PHONY: commit
+commit: ## Crear commit (Conventional Commits via Commitizen)
+	@npm run commit</div>
+
+  <h3>make release</h3>
+  <div class="code-block">.PHONY: release
+release: ## Crear release (SemVer + CHANGELOG auto)
+	@npm run release
+	@git push --follow-tags
+	@echo "${GREEN}Release publicado con tags${RESET}"</div>
+
+  <h3>make branch</h3>
+  <div class="code-block">.PHONY: branch
+branch: ## Crear rama feature (Conventional Branch)
+	@read -p "Nombre de la feature: " name; \
+	git checkout develop && \
+	git pull && \
+	git checkout -b feature/$$name
+	@echo "${GREEN}Rama feature/$$name creada desde develop${RESET}"</div>
+
+  <h3>make hotfix</h3>
+  <div class="code-block">.PHONY: hotfix
+hotfix: ## Crear rama hotfix
+	@read -p "Descripcion del fix: " name; \
+	git checkout main && \
+	git pull && \
+	git checkout -b hotfix/$$name
+	@echo "${GREEN}Rama hotfix/$$name creada desde main${RESET}"</div>
+
+  <h3>make validate</h3>
+  <div class="code-block">.PHONY: validate
+validate: check ## Validar codigo completo (format + analyze + test)
+	@echo "${GREEN}Validacion completa: codigo listo para commit${RESET}"</div>
+
+  <h2>5.3 Buenas practicas</h2>
+  <table>
+    <tr><th>Practica</th><th>Por que</th></tr>
+    <tr><td><code>cd $(DIR) && comando</code></td><td>No afecta el shell padre; el <code>cd</code> solo aplica al comando</td></tr>
+    <tr><td><code>@echo "mensaje"</code></td><td>Feedback visual sin ruido</td></tr>
+    <tr><td><code>command -v herramienta</code></td><td>Verificar existencia de herramienta</td></tr>
+    <tr><td><code>|| { echo "error"; exit 1; }</code></td><td>Error handling explicito</td></tr>
+    <tr><td>Variables para directorios</td><td>DRY: cambiar en un solo lugar</td></tr>
+    <tr><td><code>.PHONY</code> en todos los targets</td><td>Evita falsos "up to date"</td></tr>
+    <tr><td><code>##</code> para descripciones</td><td>Auto-documentacion con <code>help</code></td></tr>
+  </table>
+</div>
+
+<div class="pagebreak"></div>
+
+<!-- SECTION 6: MAKE EN CI -->
+<div class="section">
+  <h1>6. Make en GitHub Actions</h1>
+  <p>Make y GitHub Actions son <strong>complementarios</strong>: Actions orquesta los runners, Make ejecuta la logica del proyecto.</p>
+
+  <h2>6.1 Por que usar Make en CI?</h2>
+  <div class="code-block"># SIN Make: acciones repetitivas y dificiles de mantener
+steps:
+  - name: Install deps
+    run: cd apps/mobile && flutter pub get
+  - name: Format
+    run: cd apps/mobile && dart format --output=none --set-exit-if-changed .
+  - name: Analyze
+    run: cd apps/mobile && flutter analyze
+  - name: Test
+    run: cd apps/mobile && flutter test
+
+# CON Make: un solo comando
+steps:
+  - name: Quality check
+    run: make check   # format + analyze + test en un comando</div>
+
+  <p><strong>Ventajas:</strong></p>
+  <ul>
+    <li><strong>DRY</strong>: la logica esta en el Makefile, no duplicada en YAML</li>
+    <li><strong>Consistencia</strong>: local y CI ejecutan exactamente lo mismo</li>
+    <li><strong>Mantenibilidad</strong>: cambiar la logica en un solo lugar</li>
+  </ul>
+
+  <h2>6.2 Workflow CI tipico con Make</h2>
+  <div class="code-block">name: CI
+on: [push, pull_request]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+
+      - name: Cache pub
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-flutter-${{ hashFiles('apps/mobile/pubspec.lock') }}
+
+      - name: Setup
+        run: make setup
+
+      - name: Quality gate
+        run: make check
+
+      - name: Coverage
+        run: make coverage</div>
+
+  <h2>6.3 Comandos de Make usados en CI/CD</h2>
+  <table>
+    <tr><th>Comando</th><th>En CI hace</th></tr>
+    <tr><td><code>make setup</code></td><td><code>flutter pub get</code> + <code>build_runner</code></td></tr>
+    <tr><td><code>make check</code></td><td><code>format</code> + <code>analyze</code> + <code>test</code></td></tr>
+    <tr><td><code>make coverage</code></td><td>Tests con reporte de cobertura</td></tr>
+    <tr><td><code>make build-apk</code></td><td>Compila APK release</td></tr>
+    <tr><td><code>make supabase-up</code></td><td>Inicia Supabase para tests</td></tr>
+    <tr><td><code>make db-push</code></td><td>Aplica migraciones en produccion</td></tr>
+  </table>
+
+  <h2>6.4 Make con condiciones en CI</h2>
+  <div class="code-block"># El Makefile puede adaptarse segun el entorno
+ifdef CI
+  FLUTTER := flutter  # en CI no hay FVM
+  EXTRA_FLAGS := --no-sound-null-safety
+else
+  FLUTTER := $(shell [ -d .fvm ] && echo fvm flutter || echo flutter)
+endif
+
+test:
+	$(FLUTTER) test $(EXTRA_FLAGS)</div>
+
+  <div class="code-block"># En GitHub Actions:
+- name: Test
+  run: make test
+  env:
+    CI: true</div>
+
+  <h2>6.5 Patron: Make + matrix builds</h2>
+  <div class="code-block">strategy:
+  matrix:
+    flutter_version: ['3.22.0', '3.24.0']
+
+steps:
+  - uses: subosito/flutter-action@v2
+    with:
+      flutter-version: ${{ matrix.flutter_version }}
+
+  - run: make check</div>
+</div>
+
+<div class="pagebreak"></div>
+
+<!-- SECTION 7: EJERCICIOS -->
+<div class="section">
+  <h1>7. Ejercicios de Makefile</h1>
+
+  <h2>Ejercicio 1: Leer y entender</h2>
+  <div class="code-block"># Dado este fragmento del Makefile real:
+.PHONY: env-ip
+env-ip:
+	@echo "${CYAN}Detectando IP local...${RESET}"
+	@IP=$$(ip -4 addr show | grep -oP '(?<=inet\s)\d+\.\d+\.\d+\.\d+' | grep -v '127.0.0.1' | head -1); \
+	if [ -z "$$IP" ]; then \
+		echo "${YELLOW}No se pudo detectar IP automaticamente${RESET}"; \
+		exit 1; \
+	fi; \
+	sed -i "s|^SUPABASE_URL=.*|SUPABASE_URL=http://$$IP:54321|" apps/mobile/.env; \
+	echo "${GREEN}SUPABASE_URL=http://$$IP:54321 (modo WiFi)${RESET}"</div>
+
+  <p><strong>Preguntas:</strong></p>
+  <ol>
+    <li>Que hace <code>grep -v '127.0.0.1'</code>?</li>
+    <li>Que pasa si <code>head -1</code> no encuentra ninguna IP?</li>
+    <li>Por que usa <code>$$IP</code> y no <code>$IP</code>?</li>
+  </ol>
+
+  <h2>Ejercicio 2: Depurar un target</h2>
+  <div class="code-block"># Este target tiene un error. Cual?
+.PHONY: test-all
+test-all: test-mobile test-web
+
+.PHONY: test-mobile
+test-mobile:
+	cd apps/mobile
+	flutter test
+
+.PHONY: test-web
+test-web:
+	cd apps/web
+	npm test</div>
+
+  <p><strong>Solucion:</strong> El error esta en la indentacion de <code>test-mobile</code> y <code>test-web</code>: la receta esta separada en dos lineas. En Make, cada linea de la receta se ejecuta en un subshell diferente. El <code>cd apps/mobile</code> se ejecuta en su propio shell y no afecta al <code>flutter test</code>.</p>
+
+  <div class="code-block">test-mobile:
+	cd apps/mobile && flutter test
+
+# O mejor, usar working-directory en CI o variables
+MOBILE_DIR := apps/mobile
+test-mobile:
+	cd $(MOBILE_DIR) && flutter test</div>
+
+  <h2>Ejercicio 3: Anadir un nuevo target</h2>
+  <div class="code-block"># Anade un target "seed" que ejecute el seed.sql de Supabase:
+# supabase db reset (para limpiar datos)
+# psql -f supabase/seed.sql (para cargar datos de prueba)
+
+.PHONY: seed
+seed: db-reset ## Resetear BD y cargar datos de prueba
+	@echo "Cargando datos de prueba..."
+	@cd $(SUPABASE_DIR) && psql -f seed.sql
+	@echo "${GREEN}Datos de prueba cargados${RESET}"</div>
+
+  <h2>Ejercicio 4: Target con variable condicional</h2>
+  <div class="code-block"># Crea un target "run" que:
+# - Si se define DEVICE, ejecuta: flutter run -d $(DEVICE)
+# - Si no, ejecuta: flutter run
+# - Si DEVICE es "web", ejecuta: flutter run -d chrome
+
+.PHONY: run
+run: ## Ejecutar app (usa DEVICE si esta definido)
+	@if [ "$(DEVICE)" = "web" ]; then \
+		cd $(MOBILE_DIR) && flutter run -d chrome; \
+	elif [ -n "$(DEVICE)" ]; then \
+		cd $(MOBILE_DIR) && flutter run -d $(DEVICE); \
+	else \
+		cd $(MOBILE_DIR) && flutter run; \
+	fi</div>
+
+  <h2>Ejercicio 5: Crear un Makefile desde cero</h2>
+  <div class="code-block">PROJECT_NAME := mi-app
+.DEFAULT_GOAL := help
+
+.PHONY: help
+help:
+	@echo "$(PROJECT_NAME) - Comandos"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
+	| sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-20s %s\n", $$1, $$2}'
+
+.PHONY: setup
+setup: deps mocks ## Setup completo
+
+.PHONY: deps
+deps: ## Instalar dependencias
+	flutter pub get
+
+.PHONY: mocks
+mocks: ## Generar codigo
+	dart run build_runner build --delete-conflicting-outputs
+
+.PHONY: dev
+dev: check run ## Modo desarrollo
+
+.PHONY: check
+check: format analyze test ## Quality gate
+
+.PHONY: format
+format: ## Formatear
+	dart format .
+
+.PHONY: analyze
+analyze: ## Analisis
+	flutter analyze
+
+.PHONY: test
+test: ## Tests
+	flutter test
+
+.PHONY: run
+run: ## Ejecutar
+	flutter run
+
+.PHONY: build-apk
+build-apk: ## Build APK
+	flutter build apk --release
+
+.PHONY: clean
+clean: ## Limpiar
+	flutter clean
+	rm -rf coverage/</div>
+
+  <h2>Ejercicio 6: Targets cross-module (Git Flow + SemVer)</h2>
+  <p>Crea los siguientes targets en tu Makefile. Cada uno conecta Make con herramientas del modulo 12 (Git Flow + Conventional Commits + SemVer).</p>
+
+  <h3>6.1 Target make commit</h3>
+  <div class="code-block">.PHONY: commit
+commit: ## Crear commit (Conventional Commits via Commitizen)
+	@npm run commit</div>
+
+  <p><strong>Preguntas:</strong></p>
+  <ol>
+    <li>Que pasa si el usuario escribe un commit que no cumple el formato?</li>
+    <li>Que papel juega Husky en este target?</li>
+  </ol>
+
+  <h3>6.2 Target make release</h3>
+  <div class="code-block">.PHONY: release
+release: ## Crear release (SemVer + CHANGELOG auto)
+	@npm run release
+	@git push --follow-tags
+	@echo "${GREEN}Release publicado con tags${RESET}"</div>
+
+  <p><strong>Preguntas:</strong></p>
+  <ol>
+    <li>Como determina <code>standard-version</code> si debe incrementar minor, patch o major?</li>
+    <li>Que archivos genera <code>standard-version</code>?</li>
+    <li>Por que <code>--follow-tags</code> en el push?</li>
+  </ol>
+
+  <h3>6.3 Target make branch</h3>
+  <div class="code-block">.PHONY: branch
+branch: ## Crear rama feature (Conventional Branch)
+	@read -p "Nombre de la feature: " name; \
+	git checkout develop && \
+	git pull && \
+	git checkout -b feature/$$name
+	@echo "${GREEN}Rama feature/$$name creada desde develop${RESET}"</div>
+
+  <p><strong>Preguntas:</strong></p>
+  <ol>
+    <li>Por que se usa <code>$$name</code> en lugar de <code>$name</code>?</li>
+    <li>Que pasaria si no se ejecuta <code>git pull</code> antes de crear la rama?</li>
+  </ol>
+
+  <h3>6.4 Target make hotfix</h3>
+  <div class="code-block">.PHONY: hotfix
+hotfix: ## Crear rama hotfix
+	@read -p "Descripcion del fix: " name; \
+	git checkout main && \
+	git pull && \
+	git checkout -b hotfix/$$name
+	@echo "${GREEN}Rama hotfix/$$name creada desde main${RESET}"</div>
+
+  <p><strong>Preguntas:</strong></p>
+  <ol>
+    <li>Por que hotfix se crea desde <code>main</code> y no desde <code>develop</code>?</li>
+    <li>Cual es la diferencia entre <code>make branch</code> y <code>make hotfix</code>?</li>
+  </ol>
+
+  <h3>6.5 Ejercicio completo: Integrar todo</h3>
+  <div class="code-block"># Verificar que Commitizen esta instalado
+check-tools:
+	@command -v npx >/dev/null 2>&1 || { echo "npx no encontrado"; exit 1; }
+	@test -f package.json || { echo "package.json no encontrado"; exit 1; }
+	@echo "${GREEN}Herramientas cross-module listas${RESET}"
+
+# Flujo completo: validate → commit
+full-commit: validate commit ## Validar codigo y crear commit
+	@echo "${GREEN}Commit creado con validacion completa${RESET}"</div>
+
+  <h2>Checklist</h2>
+  <ul>
+    <li>Entiendo la sintaxis basica: target, prerequisites, recipe</li>
+    <li>Se que es <code>.PHONY</code> y por que es necesario</li>
+    <li>Puedo leer <code>$(shell ...)</code> y se que hace</li>
+    <li>Entiendo <code>awk</code> y <code>sed</code> cuando aparecen en un Makefile</li>
+    <li>Se depurar con <code>make -n</code> y <code>$(info ...)</code></li>
+    <li>Puedo anadir un nuevo target</li>
+    <li>Puedo crear un Makefile desde cero</li>
+    <li>Entiendo como Make se integra con GitHub Actions</li>
+    <li>Puedo crear targets cross-module (commit, release, branch, hotfix)</li>
+  </ul>
+</div>
+
+</body>
+</html>

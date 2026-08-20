@@ -173,6 +173,138 @@ clean: ## Limpiar
 ```
 </details>
 
+## Ejercicio 6: Targets cross-module (Git Flow + SemVer)
+
+Crea los siguientes targets en tu Makefile. Cada uno conecta Make con herramientas del módulo 12 (Git Flow + Conventional Commits + SemVer).
+
+**Requisitos previos:**
+- Haber instalado commitizen, commitlint y standard-version (módulo 12)
+- Tener configurado `npm run commit` y `npm run release` en `package.json`
+
+### 6.1 Target `make commit`
+
+```makefile
+.PHONY: commit
+commit: ## Crear commit (Conventional Commits via Commitizen)
+	@npm run commit
+```
+
+**Preguntas:**
+1. ¿Qué pasa si el usuario escribe un commit que no cumple el formato?
+2. ¿Qué papel juega Husky en este target?
+
+<details>
+<summary>🔍 Solución</summary>
+
+1. Husky ejecuta `commit-msg` hook → commitlint rechaza el commit si no cumple el formato (ej: sin tipo, sin descripción, con punto final)
+2. Husky ejecuta `pre-commit` hook → lint-staged formatea y analiza el código ANTES de crear el commit
+
+**Flujo completo:**
+```
+make commit
+    → npm run commit (Commitizen formulario)
+    → pre-commit hook (lint-staged: dart format + flutter analyze)
+    → commit-msg hook (commitlint: valida formato)
+    → Commit creado: feat(raffles): agregar filtro
+```
+</details>
+
+### 6.2 Target `make release`
+
+```makefile
+.PHONY: release
+release: ## Crear release (SemVer + CHANGELOG auto)
+	@npm run release
+	@git push --follow-tags
+	@echo "${GREEN}✅ Release publicado con tags${RESET}"
+```
+
+**Preguntas:**
+1. ¿Cómo determina `standard-version` si debe incrementar minor, patch o major?
+2. ¿Qué archivos genera `standard-version`?
+3. ¿Por qué `--follow-tags` en el push?
+
+<details>
+<summary>🔍 Solución</summary>
+
+1. Analiza los commits desde el último tag:
+   - Si hay `feat` → incrementa MINOR (1.2.0 → 1.3.0)
+   - Si hay solo `fix` → incrementa PATCH (1.2.0 → 1.2.1)
+   - Si hay `BREAKING CHANGE` o `!` → incrementa MAJOR (1.2.0 → 2.0.0)
+
+2. Genera:
+   - `CHANGELOG.md` (o lo actualiza)
+   - Commit: `chore(release): v1.3.0`
+   - Tag: `v1.3.0`
+
+3. `--follow-tags` push también los tags a origin (sin esto, solo se push el commit, no el tag)
+</details>
+
+### 6.3 Target `make branch`
+
+```makefile
+.PHONY: branch
+branch: ## Crear rama feature (Conventional Branch)
+	@read -p "Nombre de la feature: " name; \
+	git checkout develop && \
+	git pull && \
+	git checkout -b feature/$$name
+	@echo "${GREEN}✅ Rama feature/$$name creada desde develop${RESET}"
+```
+
+**Preguntas:**
+1. ¿Por qué se usa `$$name` en lugar de `$name`?
+2. ¿Qué pasaría si no se ejecuta `git pull` antes de crear la rama?
+
+<details>
+<summary>🔍 Solución</summary>
+
+1. En Make, `$name` se interpreta como variable de Make (que no existe). `$$name` escapa el `$` y pasa `$name` al shell, que sí lee la variable de `read`
+
+2. Sin `git pull`, la rama se crearía desde un develop desactualizado. Si otros desarrolladores han hecho push a develop, tu rama no tendría esos cambios → conflictos futuros
+</details>
+
+### 6.4 Target `make hotfix`
+
+```makefile
+.PHONY: hotfix
+hotfix: ## Crear rama hotfix
+	@read -p "Descripcion del fix: " name; \
+	git checkout main && \
+	git pull && \
+	git checkout -b hotfix/$$name
+	@echo "${GREEN}✅ Rama hotfix/$$name creada desde main${RESET}"
+```
+
+**Preguntas:**
+1. ¿Por qué hotfix se crea desde `main` y no desde `develop`?
+2. ¿Cuál es la diferencia entre `make branch` y `make hotfix`?
+
+<details>
+<summary>🔍 Solución</summary>
+
+1. Los hotfix corrigen bugs críticos en producción. `main` refleja lo que está en producción, así que el fix se aplica directamente donde está el problema
+
+2. `make branch` → crea desde `develop` (feature/xxx) para funcionalidades nuevas
+   `make hotfix` → crea desde `main` (hotfix/xxx) para correcciones urgentes
+</details>
+
+### 6.5 Ejercicio completo: Integrar todo
+
+Añade estos targets a tu Makefile y verifica que funcionan:
+
+```makefile
+# Verificar que Commitizen está instalado
+check-tools:
+	@command -v npx >/dev/null 2>&1 || { echo "❌ npx no encontrado"; exit 1; }
+	@test -f package.json || { echo "❌ package.json no encontrado"; exit 1; }
+	@echo "${GREEN}✅ Herramientas cross-module listas${RESET}"
+
+# Flujo completo: validate → commit
+full-commit: validate commit ## Validar código y crear commit
+	@echo "${GREEN}✅ Commit creado con validación completa${RESET}"
+```
+
 ---
 
 ## ✅ Checklist

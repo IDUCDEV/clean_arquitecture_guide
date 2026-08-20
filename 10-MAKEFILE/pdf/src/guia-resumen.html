@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>GUIA RESUMEN — Makefile Mastery</title>
+<link rel="stylesheet" href="guia-resumen.css">
+</head>
+<body>
+
+<div class="header">
+  <div class="mod">Modulo 10 · Makefile Mastery para Flutter + Supabase</div>
+  <h1>GUIA RESUMEN — Makefile Mastery</h1>
+  <div class="sub">Resumen integral para dominar Makefiles en ~20 minutos, sin volver a leer el modulo completo.</div>
+</div>
+
+<!-- ================= 0. FLUJO ================= -->
+<section>
+  <div class="section-head s-green">
+    <span class="num">0</span>
+    <h2>Flujo de aprendizaje general</h2>
+    <span class="meta">7 archivos · ~20 min</span>
+  </div>
+
+  <table class="flow">
+    <tr>
+      <td><span class="step-n">1</span><span class="step-t">Que es Make</span><span class="step-f">3 min</span></td>
+      <td><span class="step-n">2</span><span class="step-t">Sintaxis</span><span class="step-f">4 min</span></td>
+      <td><span class="step-n">3</span><span class="step-t">Variables</span><span class="step-f">3 min</span></td>
+      <td><span class="step-n">4</span><span class="step-t">Makefile real</span><span class="step-f">4 min</span></td>
+      <td><span class="step-n">5</span><span class="step-t">Creacion</span><span class="step-f">3 min</span></td>
+      <td><span class="step-n">6</span><span class="step-t">CI/CD</span><span class="step-f">2 min</span></td>
+      <td><span class="step-n">7</span><span class="step-t">Ejercicios</span><span class="step-f">3 min</span></td>
+    </tr>
+  </table>
+
+  <div class="callout green"><p><strong>Regla de oro:</strong> "Make es la capa de abstraccion que conecta Git, Flutter, Supabase y herramientas de calidad en una interfaz unificada."</p></div>
+
+  <table>
+    <thead><tr><th>Seccion</th><th>Que aprendes</th><th>Archivo clave</th></tr></thead>
+    <tbody>
+      <tr><td>1. Que es Make</td><td>Por que Makefile y no scripts sueltos</td><td class="mono">01-que-es-make.md</td></tr>
+      <tr><td>2. Sintaxis basica</td><td>Targets, prerequisites, recipes, .PHONY, variables</td><td class="mono">02-sintaxis-basica.md</td></tr>
+      <tr><td>3. Variables y shell</td><td>$(shell ...), awk, sed, debugging</td><td class="mono">03-variables-y-shell.md</td></tr>
+      <tr><td>4. Makefile real</td><td>Recorrido linea por linea del Makefile del monorepo</td><td class="mono">04-analisis-makefile-real.md</td></tr>
+      <tr><td>5. Creacion</td><td>Template limpio + targets cross-module</td><td class="mono">05-creacion-personalizada.md</td></tr>
+      <tr><td>6. CI/CD</td><td>Make en GitHub Actions</td><td class="mono">06-make-en-ci.md</td></tr>
+      <tr><td>7. Ejercicios</td><td>Practica: leer, modificar y crear Makefiles</td><td class="mono">07-ejercicios.md</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 1. QUE ES MAKE ================= -->
+<section>
+  <div class="section-head s-green">
+    <span class="num">1</span>
+    <h2>Que es Make (3 min)</h2>
+    <span class="meta">Fundamentos</span>
+  </div>
+
+  <p><strong>Make</strong> es una herramienta de automatizacion que lee un <code>Makefile</code> y ejecuta comandos segun reglas que defines.</p>
+
+  <h3>Por que Makefile y no scripts sueltos?</h3>
+  <table>
+    <thead><tr><th>Aspecto</th><th>Scripts sueltos</th><th>Makefile</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Archivos</strong></td><td>10+ scripts</td><td>1 archivo</td></tr>
+      <tr><td><strong>Dependencias</strong></td><td>Manual</td><td>Automatico</td></tr>
+      <tr><td><strong>Documentacion</strong></td><td>Separada</td><td>make help</td></tr>
+      <tr><td><strong>Estandar</strong></td><td>No</td><td>Universal en DevOps</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Make como orquestador</h3>
+  <table>
+    <thead><tr><th>Target</th><th>Modulo</th><th>Que hace</th></tr></thead>
+    <tbody>
+      <tr><td><code>make commit</code></td><td>12-GIT-FLOW</td><td>Commitizen (Conventional Commits)</td></tr>
+      <tr><td><code>make release</code></td><td>12-GIT-FLOW</td><td>standard-version (SemVer)</td></tr>
+      <tr><td><code>make branch</code></td><td>12-GIT-FLOW</td><td>Conventional Branch</td></tr>
+      <tr><td><code>make check</code></td><td>Quality</td><td>format + analyze + test</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout green"><p><strong>Ejemplo:</strong> <code>make commit</code> ejecuta Commitizen → Husky valida → Commit creado con formato correcto.</p></div>
+</section>
+
+<!-- ================= 2. SINTAXIS ================= -->
+<section>
+  <div class="section-head s-emerald">
+    <span class="num">2</span>
+    <h2>Sintaxis basica (4 min)</h2>
+    <span class="meta">Targets y recipes</span>
+  </div>
+
+  <h3>Estructura de una regla</h3>
+  <pre>target: prerequisites
+	recipe</pre>
+
+  <table>
+    <thead><tr><th>Parte</th><th>Que es</th><th>Ejemplo</th></tr></thead>
+    <tbody>
+      <tr><td><strong>target</strong></td><td>Nombre del comando</td><td><code>test:</code></td></tr>
+      <tr><td><strong>prerequisites</strong></td><td>Que debe ejecutarse antes</td><td><code>format analyze</code></td></tr>
+      <tr><td><strong>recipe</strong></td><td>Que realmente hace (TAB)</td><td><code>flutter test</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>.PHONY — La regla mas importante</h3>
+  <pre>.PHONY: test clean setup</pre>
+  <p>Todo target que no genere un archivo debe ser <code>.PHONY</code>.</p>
+
+  <h3>Variables</h3>
+  <pre># Asignacion simple (= evaluacion perezosa)
+PROJECT_NAME = mi-proyecto
+
+# Asignacion inmediata (:= evaluacion al momento)
+MOBILE_DIR := apps/mobile
+
+# Asignacion condicional (?= solo si no esta definida)
+DEVICE ?= emulator-5554</pre>
+
+  <h3>Target por defecto</h3>
+  <pre>.DEFAULT_GOAL := help</pre>
+  <p>Cuando ejecutas solo <code>make</code>, ejecuta <code>help</code>.</p>
+</section>
+
+<!-- ================= 3. VARIABLES ================= -->
+<section>
+  <div class="section-head s-emerald">
+    <span class="num">3</span>
+    <h2>Variables y shell (3 min)</h2>
+    <span class="meta">Funciones avanzadas</span>
+  </div>
+
+  <h3>$(shell ...) — Ejecutar comandos</h3>
+  <pre># Detectar Flutter (FVM o global)
+FLUTTER := $(shell [ -d .fvm ] && echo fvm flutter || echo flutter)
+
+# Detectar dispositivo Android
+DEFAULT_ANDROID = $(shell flutter devices 2>/dev/null \
+	| awk -F "•" '/android/ {gsub(/ /,"",$$2); print $$2; exit}')</pre>
+
+  <h3>Variables automaticas</h3>
+  <table>
+    <thead><tr><th>Variable</th><th>Significado</th></tr></thead>
+    <tbody>
+      <tr><td><code>$@</code></td><td>Nombre del target actual</td></tr>
+      <tr><td><code>$&lt;</code></td><td>Primer prerequisito</td></tr>
+      <tr><td><code>$^</code></td><td>Todos los prerequisitos</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Debugging</h3>
+  <pre># Imprimir variable
+$(info FLUTTER = $(FLUTTER))
+
+# Ejecutar sin ejecutar (solo mostrar)
+make -n [target]</pre>
+</section>
+
+<!-- ================= 4. MAKEFILE REAL ================= -->
+<section>
+  <div class="section-head s-teal">
+    <span class="num">4</span>
+    <h2>Makefile real del proyecto (4 min)</h2>
+    <span class="meta">Analisis linea por linea</span>
+  </div>
+
+  <h3>Variables del proyecto</h3>
+  <pre>MOBILE_DIR := apps/mobile
+WEB_DIR := apps/web
+SUPABASE_DIR := supabase</pre>
+
+  <h3>Colores para output</h3>
+  <pre>BOLD := $(shell tput bold 2>/dev/null)
+GREEN := $(shell tput setaf 2 2>/dev/null)
+YELLOW := $(shell tput setaf 3 2>/dev/null)
+CYAN := $(shell tput setaf 6 2>/dev/null)
+RESET := $(shell tput sgr0 2>/dev/null)</pre>
+
+  <h3>Conventional Commits</h3>
+  <pre>.PHONY: commit
+commit:
+	@npm run commit</pre>
+
+  <p><strong>Flujo:</strong> Commitizen → Husky pre-commit → Husky commit-msg → Commit creado</p>
+
+  <h3>Target make release</h3>
+  <pre>.PHONY: release
+release:
+	@npm run release
+	@git push --follow-tags</pre>
+
+  <p><strong>Flujo:</strong> standard-version detecta cambio → incrementa version → genera CHANGELOG → crea tag → push</p>
+
+  <h3>Mapa de dependencias</h3>
+  <pre>help               → (autonomo)
+setup              → deps → mocks
+dev                → check → run
+check              → format → analyze → test
+validate           → check ✓
+build-apk          → env-prod-check ✓</pre>
+</section>
+
+<!-- ================= 5. CREACION ================= -->
+<section>
+  <div class="section-head s-teal">
+    <span class="num">5</span>
+    <h2>Creacion personalizada (3 min)</h2>
+    <span class="meta">Template + cross-module</span>
+  </div>
+
+  <h3>Template minimo</h3>
+  <pre>PROJECT_NAME := mi-proyecto
+MOBILE_DIR := .
+.DEFAULT_GOAL := help
+
+.PHONY: help
+help:
+	@echo "$(PROJECT_NAME) - Comandos disponibles"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
+	| sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-25s %s\n", $$1, $$2}'
+
+.PHONY: setup
+setup: deps mocks ## Instalar dependencias y generar codigo
+
+.PHONY: check
+check: format analyze test ## Verificacion completa</pre>
+
+  <h3>Targets cross-module</h3>
+  <pre>.PHONY: commit
+commit: ## Crear commit (Conventional Commits)
+	@npm run commit
+
+.PHONY: release
+release: ## Crear release (SemVer + CHANGELOG)
+	@npm run release
+	@git push --follow-tags
+
+.PHONY: branch
+branch: ## Crear rama feature (Conventional Branch)
+	@read -p "Nombre de la feature: " name; \
+	git checkout develop && git pull && \
+	git checkout -b feature/$$name
+
+.PHONY: hotfix
+hotfix: ## Crear rama hotfix
+	@read -p "Descripcion del fix: " name; \
+	git checkout main && git pull && \
+	git checkout -b hotfix/$$name</pre>
+
+  <h3>Buenas practicas</h3>
+  <ul class="checklist">
+    <li><code>cd $(DIR) && comando</code> — no afecta el shell padre</li>
+    <li><code>@echo "mensaje"</code> — feedback visual sin ruido</li>
+    <li><code>command -v herramienta</code> — verificar existencia</li>
+    <li><code>.PHONY</code> en todos los targets</li>
+    <li><code>##</code> para descripciones — auto-documentacion</li>
+  </ul>
+</section>
+
+<!-- ================= 6. CI/CD ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">6</span>
+    <h2>Make en GitHub Actions (2 min)</h2>
+    <span class="meta">CI/CD</span>
+  </div>
+
+  <h3>Por que usar Make en CI?</h3>
+  <pre># SIN Make: acciones repetitivas
+steps:
+  - run: cd apps/mobile && flutter pub get
+  - run: cd apps/mobile && dart format .
+  - run: cd apps/mobile && flutter analyze
+  - run: cd apps/mobile && flutter test
+
+# CON Make: un solo comando
+steps:
+  - run: make check</pre>
+
+  <h3>Comandos en CI/CD</h3>
+  <table>
+    <thead><tr><th>Comando</th><th>En CI hace</th></tr></thead>
+    <tbody>
+      <tr><td><code>make setup</code></td><td>pub get + build_runner</td></tr>
+      <tr><td><code>make check</code></td><td>format + analyze + test</td></tr>
+      <tr><td><code>make coverage</code></td><td>Tests con cobertura</td></tr>
+      <tr><td><code>make build-apk</code></td><td>Compila APK release</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout green"><p><strong>Ventaja:</strong> Local y CI ejecutan exactamente lo mismo. Cambiar la logica en un solo lugar.</p></div>
+</section>
+
+<!-- ================= ANEXO ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">A</span>
+    <h2>Anexo · Indice del modulo (para profundizar)</h2>
+  </div>
+  <table>
+    <thead><tr><th>Necesitas</th><th>Archivo</th></tr></thead>
+    <tbody>
+      <tr><td>Que es Make y por que lo usamos</td><td class="mono">01-que-es-make.md</td></tr>
+      <tr><td>Sintaxis basica de Makefile</td><td class="mono">02-sintaxis-basica.md</td></tr>
+      <tr><td>Variables avanzadas y funciones shell</td><td class="mono">03-variables-y-shell.md</td></tr>
+      <tr><td>Analisis del Makefile real del proyecto</td><td class="mono">04-analisis-makefile-real.md</td></tr>
+      <tr><td>Creacion personalizada + targets cross-module</td><td class="mono">05-creacion-personalizada.md</td></tr>
+      <tr><td>Make en GitHub Actions</td><td class="mono">06-make-en-ci.md</td></tr>
+      <tr><td>Ejercicios de practica</td><td class="mono">07-ejercicios.md</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= CONCLUSION ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">C</span>
+    <h2>Conclusion</h2>
+  </div>
+  <p>Make es la <strong>capa de abstraccion</strong> que conecta todas las herramientas del proyecto:</p>
+  <ul class="checklist">
+    <li>Make como orquestador entre modulos (Git, Flutter, Supabase)</li>
+    <li>Sintaxis basica: targets, prerequisites, recipes</li>
+    <li>Variables y funciones shell para automatizacion</li>
+    <li>Targets cross-module: commit, release, branch, hotfix</li>
+    <li>Integracion con GitHub Actions (CI/CD)</li>
+    <li>Buenas practicas y debugging</li>
+  </ul>
+
+  <div class="footer-note"><strong>Tiempo de lectura del resumen: ~20 min</strong> · Make es la herramienta que conecta todo en tu proyecto Flutter + Supabase.</div>
+</section>
+
+</body>
+</html>

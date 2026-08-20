@@ -9,6 +9,7 @@
 - Entender qué es Make y por qué se usa en proyectos Flutter + Supabase
 - Leer y modificar cualquier Makefile con confianza
 - Crear Makefiles desde cero para nuevos proyectos
+- **Integrar Make con Git Flow, Conventional Commits y SemVer (cross-module)**
 
 ---
 
@@ -20,7 +21,7 @@
 | [02-sintaxis-basica.md](./02-sintaxis-basica.md) | Targets, prerequisites, recipes, `.PHONY`, variables | 🔤 Básico |
 | [03-variables-y-shell.md](./03-variables-y-shell.md) | `$(shell ...)`, `awk`, `sed`, debugging | 📦 Medio |
 | [04-analisis-makefile-real.md](./04-analisis-makefile-real.md) | Recorrido línea por línea del Makefile del monorepo | 🔍 Medio |
-| [05-creacion-personalizada.md](./05-creacion-personalizada.md) | Template limpio para nuevos proyectos | 🛠️ Medio |
+| [05-creacion-personalizada.md](./05-creacion-personalizada.md) | Template limpio + targets cross-module (commit, release, branch) | 🛠️ Medio |
 | [06-make-en-ci.md](./06-make-en-ci.md) | Cómo se invoca Make desde GitHub Actions | 🤖 Medio |
 | [07-ejercicios.md](./07-ejercicios.md) | Práctica: leer, modificar y crear Makefiles | 🏋️ Práctica |
 

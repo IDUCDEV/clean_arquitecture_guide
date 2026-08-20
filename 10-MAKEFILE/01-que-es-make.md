@@ -65,6 +65,55 @@ El Makefile del monorepo rifa-gestion-app organiza los comandos en:
 
 ---
 
+## 4. Make como orquestador entre módulos
+
+Make no solo ejecuta comandos aislados: **conecta todas las herramientas del proyecto en una interfaz unificada**. Aquí es donde brilla en proyectos reales.
+
+| Target | Módulo que usa | Qué hace |
+|--------|----------------|----------|
+| `make commit` | 12-GIT-FLOW | Ejecuta Commitizen (Conventional Commits) |
+| `make release` | 12-GIT-FLOW | Ejecuta standard-version (SemVer + CHANGELOG) |
+| `make branch` | 12-GIT-FLOW | Crea rama con nomenclatura Conventional Branch |
+| `make check` | Quality gate | format + analyze + test |
+| `make ci` | 11-GITHUB-ACTIONS | Simula pipeline CI local |
+
+### Ejemplo: hacer un commit
+
+```bash
+# SIN Makefile: tienes que recordar el formato exacto
+npx cz
+
+# CON Makefile: un solo comando
+make commit
+```
+
+### Ejemplo: crear una release
+
+```bash
+# SIN Makefile: ejecutar comandos de git manualmente
+npm run release
+git push --follow-tags
+
+# CON Makefile: un solo comando
+make release
+```
+
+### Ejemplo: crear una rama feature
+
+```bash
+# SIN Makefile: 4 comandos
+git checkout develop
+git pull
+git checkout -b feature/agregar-filtro
+
+# CON Makefile: un solo comando
+make branch FEATURE=agregar-filtro
+```
+
+> **💡 Filosofía**: Make es la "capa de abstracción" que conecta Git, Flutter, Supabase y herramientas de calidad en una interfaz unificada. Cuando cambias una herramienta, solo cambias el Makefile, no todos los scripts de CI.
+
+---
+
 ## 📚 Referencias
 
 - [GNU | Make manual](https://www.gnu.org/software/make/manual/) — Documentación oficial de GNU Make

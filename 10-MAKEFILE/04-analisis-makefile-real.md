@@ -134,6 +134,61 @@ commit:
 
 Delega en commitizen (configurado en package.json). `npm run commit` inicia una UI interactiva para escribir commits con el formato correcto.
 
+**Flujo completo del target `make commit`:**
+
+```
+make commit
+    │
+    ├── 1. npm run commit → ejecuta Commitizen (npx cz)
+    │       └── Muestra formulario interactivo:
+    │           ? Tipo de cambio: [feat/fix/docs/...]
+    │           ? Alcance (opcional):
+    │           ? Descripcion:
+    │           ? Breaking change:
+    │
+    ├── 2. Husky ejecuta pre-commit
+    │       └── lint-staged → dart format + flutter analyze
+    │
+    ├── 3. Husky ejecuta commit-msg
+    │       └── commitlint → valida formato Conventional Commits
+    │
+    └── 4. Commit creado: feat(raffles): agregar filtro por fecha
+```
+
+**¿Por qué no hacer `git commit -m "..."` directamente?**
+- Humanos olvidan el formato correcto
+- El alcance (scope) se pierde
+- Los breaking changes no se marcan
+- El CHANGELOG no se genera automáticamente
+
+### Target: make release
+
+```makefile
+.PHONY: release
+release: ## Crear release (SemVer + CHANGELOG auto)
+	@npm run release
+	@git push --follow-tags
+	@echo "${GREEN}✅ Release publicado con tags${RESET}"
+```
+
+**Flujo:**
+1. `standard-version` detecta tipo de cambio desde último tag
+2. Incrementa versión según SemVer 2.0.0 (feat→minor, fix→patch, breaking→major)
+3. Genera/actualiza `CHANGELOG.md`
+4. Crea commit `chore(release): vX.Y.Z`
+5. Crea tag `vX.Y.Z`
+6. Push con tags a origin
+
+```bash
+# Ejemplo:
+# Version actual: v1.2.0
+# Si hay feat desde el último tag:
+make release
+# → v1.2.0 → v1.3.0
+# → CHANGELOG.md actualizado
+# → Tag v1.3.0 creado
+```
+
 ---
 
 ## 📊 Mapa de dependencias entre targets

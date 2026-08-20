@@ -116,7 +116,100 @@ run-prod: ## Ejecutar en modo producción
 
 ---
 
-## 4. Buenas prácticas
+## 4. Targets cross-module (Git Flow + SemVer)
+
+Estos targets conectan Make con las herramientas del módulo 12 (Git Flow + Conventional Commits + SemVer).
+
+### make commit
+
+```makefile
+.PHONY: commit
+commit: ## Crear commit (Conventional Commits via Commitizen)
+	@npm run commit
+```
+
+**Uso:**
+```bash
+make commit
+# → Formulario interactivo de Commitizen
+# → Husky valida formato (pre-commit + commit-msg)
+# → Commit creado con formato correcto
+```
+
+### make release
+
+```makefile
+.PHONY: release
+release: ## Crear release (SemVer + CHANGELOG auto)
+	@npm run release
+	@git push --follow-tags
+	@echo "${GREEN}✅ Release publicado con tags${RESET}"
+```
+
+**Uso:**
+```bash
+make release
+# → standard-version detecta tipo de cambio
+# → Incrementa versión (feat→minor, fix→patch, breaking→major)
+# → Genera CHANGELOG.md
+# → Crea commit + tag vX.Y.Z
+# → Push con tags a origin
+```
+
+### make branch
+
+```makefile
+.PHONY: branch
+branch: ## Crear rama feature (Conventional Branch)
+	@read -p "Nombre de la feature: " name; \
+	git checkout develop && \
+	git pull && \
+	git checkout -b feature/$$name
+	@echo "${GREEN}✅ Rama feature/$$name creada desde develop${RESET}"
+```
+
+**Uso:**
+```bash
+make branch
+# → Pide nombre de la feature
+# → git checkout develop && git pull
+# → git checkout -b feature/agregar-filtro
+
+# O con variable:
+make branch FEATURE=agregar-filtro
+```
+
+### make hotfix
+
+```makefile
+.PHONY: hotfix
+hotfix: ## Crear rama hotfix
+	@read -p "Descripcion del fix: " name; \
+	git checkout main && \
+	git pull && \
+	git checkout -b hotfix/$$name
+	@echo "${GREEN}✅ Rama hotfix/$$name creada desde main${RESET}"
+```
+
+**Uso:**
+```bash
+make hotfix
+# → Pide descripción del fix
+# → git checkout main && git pull
+# → git checkout -b hotfix/corregir-crash
+```
+
+### make validate
+
+```makefile
+.PHONY: validate
+validate: check ## Validar código completo (format + analyze + test)
+	@echo "${GREEN}✅ Validación completa: código listo para commit${RESET}"
+```
+
+---
+
+## 5. Buenas prácticas
 
 | Práctica | Por qué |
 |----------|---------|
