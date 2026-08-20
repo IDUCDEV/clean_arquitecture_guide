@@ -1,10 +1,58 @@
 # 05 - Estrategias de Ramas y Releases
 
-> Define cómo organizar el trabajo en equipo: qué ramas existen, cómo se integran, y cómo se hacen los releases.
+> Define cómo organizar el trabajo en equipo: qué ramas existen, cómo se integran, y cómo se hacen los releases. Basado en la especificación Conventional Branch.
 
 ---
 
-## 1. Git Flow vs GitHub Flow
+## 1. Conventional Branch
+
+Conventional Branch es una especificación para agregar significado legible por humanos y máquinas a las ramas Git. Basada en la [especificación oficial](https://github.com/debitoor/conventional-branch).
+
+### 1.1 Formato
+
+```
+<tipo>/<descripción>
+```
+
+### 1.2 Prefijos estándar
+
+| Prefijo | Propósito | Ejemplo |
+|---------|-----------|---------|
+| `main` / `master` | Rama principal de desarrollo | `main` |
+| `feature/` o `feat/` | Nuevas funcionalidades | `feature/agregar-login` |
+| `bugfix/` o `fix/` | Corregir errores | `bugfix/corregir-crash-pagos` |
+| `hotfix/` | Correcciones urgentes | `hotfix/parche-seguridad` |
+| `release/` | Preparar una liberación | `release/v1.2.0` |
+| `chore/` | Tareas sin código (docs, deps) | `chore/actualizar-dependencias` |
+
+### 1.3 Reglas de nomenclatura
+
+1. **Alfanuméricos, guiones y puntos en minúsculas:** Usar siempre letras minúsculas (az), números (0-9) y guiones (-) para separar palabras
+2. **Sin guiones o puntos consecutivos:** No usar `feature/nuevo--login` ni `release/v1.-2.0`
+3. **Sin guiones/puntos al inicio o final:** No usar `feature/-nuevo-login` ni `release/v1.2.0.`
+4. **Claro y conciso:** El nombre debe ser descriptivo pero breve
+5. **Incluir números de ticket:** Si aplica, incluir el número de ticket para seguimiento
+
+### 1.4 Ejemplos
+
+```bash
+# ✅ Buenos
+feature/agregar-pagina-login
+bugfix/corregir-encabezado-error
+hotfix/parche-seguridad
+release/v1.2.0
+chore/actualizar-dependencias
+
+# ❌ Malos
+Feature/Nuevo-Login         # Mayúsculas
+feature/nuevo__login        # Guiones dobles
+feature/nuevo-login.        # Punto al final
+hotfix/                     # Sin descripción
+```
+
+---
+
+## 2. Git Flow vs GitHub Flow
 
 | Aspecto | Git Flow | GitHub Flow |
 |---------|----------|-------------|
@@ -21,9 +69,9 @@
 
 ---
 
-## 2. Git Flow Simplificado
+## 3. Git Flow Simplificado
 
-### 2.1 Estructura de Ramas
+### 3.1 Estructura de Ramas
 
 ```
 main ──── M1 ────────── M2 ────────── M3 (producción)
@@ -37,7 +85,7 @@ feature/  │    │    └─ feat1   │         └─ feat3
 hotfix/   └────────────────── H1 (emergencia)
 ```
 
-### 2.2 Convención de Nombres
+### 3.2 Convención de Nombres (Conventional Branch)
 
 ```bash
 # Features
@@ -64,9 +112,9 @@ chore/actualizar-dependencias
 
 ---
 
-## 3. Flujo de Trabajo
+## 4. Flujo de Trabajo
 
-### 3.1 Nueva Feature
+### 4.1 Nueva Feature
 
 ```bash
 # 1. Crear rama desde develop
@@ -91,7 +139,7 @@ git checkout develop
 git merge feature/agregar-filtro-rifas
 ```
 
-### 3.2 Release
+### 4.2 Release
 
 ```bash
 # 1. Crear rama de release desde develop
@@ -116,7 +164,7 @@ git merge release/1.2.0
 git branch -d release/1.2.0
 ```
 
-### 3.3 Hotfix
+### 4.3 Hotfix
 
 ```bash
 # 1. Crear desde main
@@ -139,9 +187,9 @@ git merge hotfix/corregir-crash-pagos
 
 ---
 
-## 4. Pull Requests y Code Review
+## 5. Pull Requests y Code Review
 
-### 4.1 Template de PR
+### 5.1 Template de PR
 
 ```markdown
 ## Descripción
@@ -167,7 +215,7 @@ git merge hotfix/corregir-crash-pagos
 - [x] Tests pasan
 ```
 
-### 4.2 Reglas de Code Review
+### 5.2 Reglas de Code Review
 
 | Qué revisar | Por qué |
 |-------------|---------|
@@ -179,9 +227,9 @@ git merge hotfix/corregir-crash-pagos
 
 ---
 
-## 5. Versionado
+## 6. Versionado Semántico
 
-### 5.1 Esquema
+### 6.1 Esquema (SemVer 2.0.0)
 
 ```
 v<major>.<minor>.<patch>
@@ -192,7 +240,15 @@ v1.1.1  → Bug fix
 v2.0.0  → Breaking change
 ```
 
-### 5.2 Tags en Git
+### 6.2 Reglas de incremento
+
+| Versión | Cuándo incrementar | Ejemplo |
+|---------|-------------------|---------|
+| **Major (X)** | Cambios incompatibles con API anterior | `1.0.0` → `2.0.0` |
+| **Minor (Y)** | Nueva funcionalidad compatible | `1.0.0` → `1.1.0` |
+| **Patch (Z)** | Corrección de bug compatible | `1.1.0` → `1.1.1` |
+
+### 6.3 Tags en Git
 
 ```bash
 # Annotated tag (recomendado)
@@ -205,7 +261,29 @@ git tag v1.2.0
 git push origin --tags
 ```
 
-### 5.3 CHANGELOG
+### 6.4 Versiones de pre-lanzamiento
+
+```bash
+# Formato: v<major>.<minor>.<patch>-<identificador>
+v1.0.0-alpha
+v1.0.0-alpha.1
+v1.0.0-beta.1
+v1.0.0-rc.1
+```
+
+### 6.5 Metadatos de compilación
+
+```bash
+# Formato: v<major>.<minor>.<patch>+<metadata>
+v1.0.0+20260615
+v1.0.0-alpha+exp.sha.5114f85
+```
+
+---
+
+## 7. CHANGELOG
+
+### 7.1 Formato estándar
 
 ```markdown
 # Changelog
@@ -220,25 +298,43 @@ git push origin --tags
 - Crash al abrir sorteo sin conexión
 - Cálculo incorrecto de premios
 
-## [1.1.0] - 2026-05-20
+### Changed
+- Migración de SQLite a Isar
 
-### Added
-- Filtro por fecha en lista de rifas
-- Búsqueda de clientes
+### Deprecated
+- API v1 (será eliminada en v2.0.0)
 
-## [1.0.0] - 2026-04-01
+### Removed
+- Login con PIN (reemplazado por biometría)
 
-### Added
-- Sistema de rifas completo
-- Gestión de clientes
-- Reportes básicos
+### Fixed
+- Memory leak en pantalla de perfil
+
+### Security
+- Actualización de dependencias con CVE
+```
+
+### 7.2 Generación automática con standard-version
+
+```bash
+# Instalar
+npm install --save-dev standard-version
+
+# Ejecutar
+npm run release
+
+# Esto genera:
+# - CHANGELOG.md actualizado
+# - package.json con versión bump
+# - Commit con los cambios
+# - Tag v1.2.0
 ```
 
 ---
 
-## 6. Buenas Prácticas
+## 8. Buenas Prácticas
 
-### 6.1 Commits Atómicos
+### 8.1 Commits Atómicos
 
 ```bash
 # ✅ Cada commit es una unidad lógica independiente
@@ -250,7 +346,7 @@ fix(raffles): corregir cálculo de premios
 feat: agregar filtros y corregir bugs varios
 ```
 
-### 6.2 Ramas Cortas
+### 8.2 Ramas Cortas
 
 ```bash
 # Una feature por rama
@@ -258,7 +354,7 @@ feat: agregar filtros y corregir bugs varios
 # PRs pequeños (< 400 líneas)
 ```
 
-### 6.3 Rebase vs Merge
+### 8.3 Rebase vs Merge
 
 ```bash
 # En ramas de feature usa rebase (historia lineal)
@@ -268,17 +364,28 @@ git rebase origin/develop
 git merge feature/agregar-filtro
 ```
 
+### 8.4 Reglas para la rama main
+
+```bash
+# main SIEMPRE debe ser estable
+# Solo se mergea desde release/ o hotfix/
+# Nunca hacer commits directos en main
+# Siempre taggear cada merge a main
+```
+
 ---
 
-## 7. Resumen
+## 9. Resumen
 
-1. **Git Flow** para apps Flutter con releases versionados
-2. **`main`** = producción, **`develop`** = integración
-3. **Features** en ramas separadas, merge a develop
-4. **Releases** desde develop, merge a main con tag
-5. **Hotfixes** desde main, merge a ambas
-6. **PRs pequeños** con code review obligatorio
-7. **Tags semánticos** para cada release
+1. **Conventional Branch** para nomenclatura de ramas
+2. **Git Flow** para apps Flutter con releases versionados
+3. **`main`** = producción, **`develop`** = integración
+4. **Features** en ramas separadas, merge a develop
+5. **Releases** desde develop, merge a main con tag
+6. **Hotfixes** desde main, merge a ambas
+7. **PRs pequeños** con code review obligatorio
+8. **Tags semánticos** para cada release
+9. **CHANGELOG** generado automáticamente con standard-version
 
 ---
 
@@ -287,6 +394,7 @@ git merge feature/agregar-filtro
 - [Git Flow original (Vincent Driessen)](https://nvie.com/posts/a-successful-git-branching-model/)
 - [GitHub Flow Guide](https://docs.github.com/en/get-started/using-github/github-flow)
 - [Semantic Versioning](https://semver.org/)
+- [Conventional Branch](https://github.com/debitoor/conventional-branch)
 
 ---
 
@@ -296,5 +404,3 @@ git merge feature/agregar-filtro
 - [Husky](https://typicode.github.io/husky/) — Git hooks modernos para Node.js
 - [Commitlint](https://commitlint.js.org/) — Linter para mensajes de commit
 - [Git | Documentation](https://git-scm.com/doc) — Documentación oficial de Git
-
----

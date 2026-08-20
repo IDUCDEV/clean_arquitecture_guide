@@ -32,6 +32,16 @@ npx husky add .husky/pre-commit "npx lint-staged"
 └── pre-push        # Se ejecuta antes del push
 ```
 
+### 1.3 Instalación en monorepo
+
+```bash
+# En la raíz del monorepo
+npx husky init
+
+# Los hooks se comparten para todos los paquetes
+# Pero lint-staged puede ejecutar comandos por paquete
+```
+
 ---
 
 ## 2. Hook pre-commit con lint-staged
@@ -40,7 +50,7 @@ npx husky add .husky/pre-commit "npx lint-staged"
 
 Ejecuta formateo y análisis SOLO en los archivos que están en staging. En lugar de analizar todo el proyecto (~200 archivos), analiza solo los 3-5 archivos modificados.
 
-### 2.2 Configuración
+### 2.2 Configuración para Flutter
 
 ```json
 // package.json
@@ -83,6 +93,33 @@ git commit -m "feat: agregar nueva feature"
 # 3. Re-ejecutar git commit
 ```
 
+### 2.5 Configuración avanzada con auto-fix
+
+```json
+{
+  "lint-staged": {
+    "*.dart": [
+      "dart format",
+      "dart analyze --fatal-infos"
+    ],
+    "*.yaml": [
+      "prettier --write"
+    ],
+    "*.json": [
+      "prettier --write"
+    ],
+    "*.arb": [
+      "prettier --write"
+    ],
+    "*.md": [
+      "prettier --write"
+    ]
+  }
+}
+```
+
+> **Nota:** Cuando usas `dart format` sin `--set-exit-if-changed`, lint-staged formatea automáticamente y agrega los cambios al staging.
+
 ---
 
 ## 3. Hook commit-msg
@@ -109,6 +146,16 @@ git commit -m "feat: agregar paginación en lista de rifas"
 # ✔️  commit exitoso
 ```
 
+### 3.3 Reglas que valida commitlint
+
+| Regla | Descripción | Ejemplo correcto | Ejemplo incorrecto |
+|-------|-------------|------------------|-------------------|
+| `type-enum` | Tipo permitido | `feat`, `fix`, `docs` | `feature`, `update` |
+| `type-empty` | Tipo requerido | `feat: ...` | `: agregar algo` |
+| `subject-empty` | Descripción requerida | `feat: algo` | `feat:` |
+| `subject-full-stop` | Sin punto final | `feat: algo` | `feat: algo.` |
+| `header-max-length` | Máximo 72 chars | `feat: agregar filtro` | `feat: agregar un filtro muy largo que...` |
+
 ---
 
 ## 4. Hook pre-push
@@ -124,6 +171,26 @@ cd apps/mobile
 flutter test
 
 # Si falla, el push se cancela
+```
+
+### 4.1 Pre-push para monorepo
+
+```bash
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Solo ejecutar tests del paquete afectado
+CHANGED_FILES=$(git diff --name-only HEAD@{1} HEAD)
+
+if echo "$CHANGED_FILES" | grep -q "^apps/mobile/"; then
+  echo "📱 Cambios en mobile - ejecutando tests..."
+  cd apps/mobile && flutter test
+fi
+
+if echo "$CHANGED_FILES" | grep -q "^packages/"; then
+  echo "📦 Cambios en packages - ejecutando tests..."
+  cd packages/shared && dart test
+fi
 ```
 
 ---
@@ -153,7 +220,7 @@ git config --unset core.hooksPath
 
 ## 6. lint-staged para Proyectos Flutter
 
-### 6.1 Configuración Avanzada
+### 6.1 Configuración Completa
 
 ```json
 {
@@ -198,6 +265,19 @@ git config --unset core.hooksPath
 }
 ```
 
+### 6.3 Hooks por paquete
+
+```bash
+# Si necesitas hooks diferentes por paquete
+# usa Husky en la raíz + lint-staged con paths específicos
+
+# Ejemplo: solo formatear dart en apps/mobile
+"apps/mobile/**/*.dart": ["dart format"]
+
+# Ejemplo: solo analizar en packages/core
+"packages/core/**/*.dart": ["dart analyze"]
+```
+
 ---
 
 ## 7. Troubleshooting
@@ -210,6 +290,9 @@ ls -la .husky/
 
 # Reinstalar
 npx husky init
+
+# Verificar que el directorio .git/hooks existe
+ls -la .git/hooks/
 ```
 
 ### 7.2 lint-staged falla en Windows
@@ -218,12 +301,44 @@ npx husky init
 # Husky en Windows requiere git bash
 # Configurar en VS Code:
 #   "terminal.integrated.shell.windows": "C:\\Program Files\\Git\\bin\\bash.exe"
+
+# O usar WSL
 ```
 
-### 7.3 Quiero saltar hooks para un commit específico
+### 7.3 lint-staged es muy lento
+
+```bash
+# 1. Verificar que solo analiza archivos staged
+# 2. Reducir el número de comandos por archivo
+# 3. Usar --concurrency para ejecutar en paralelo
+
+# En package.json:
+"lint-staged": {
+  "*.dart": ["prettier --write", "--concurrency=4"]
+}
+```
+
+### 7.4 Quiero saltar hooks para un commit específico
 
 ```bash
 git commit --no-verify -m "fix: hotfix crítico en producción"
+```
+
+### 7.5 Hooks se ejecutan en fusiones de rama
+
+```bash
+# Si no quieres hooks en merges:
+# En .husky/pre-commit:
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Saltar si es un merge
+if [ -f "$(git rev-parse --git-dir)/MERGE_HEAD" ]; then
+  echo "Skipping hooks during merge"
+  exit 0
+fi
+
+npx lint-staged
 ```
 
 ---
@@ -236,6 +351,7 @@ git commit --no-verify -m "fix: hotfix crítico en producción"
 4. **commit-msg**: validación de mensaje
 5. **pre-push**: tests completos
 6. **`--no-verify`** para emergencias
+7. **Monorepo**: configurar paths específicos por paquete
 
 ---
 
@@ -252,5 +368,3 @@ git commit --no-verify -m "fix: hotfix crítico en producción"
 - [Husky](https://typicode.github.io/husky/) — Git hooks modernos para Node.js
 - [Commitlint](https://commitlint.js.org/) — Linter para mensajes de commit
 - [Git | Documentation](https://git-scm.com/doc) — Documentación oficial de Git
-
----

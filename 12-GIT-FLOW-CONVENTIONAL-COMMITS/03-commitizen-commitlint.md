@@ -143,7 +143,7 @@ npx --no -- commitlint --edit $1
 
 ---
 
-## 3. Adapter Personalizado
+## 3. Adapter Personalizado para Flutter
 
 Para proyectos Flutter con necesidades específicas:
 
@@ -238,6 +238,50 @@ npm run release
 - Separar lógica de validación de números
 ```
 
+### 4.1 Configuración avanzada
+
+```json
+// .versionrc
+{
+  "header": "# Changelog\n\nTodas las versiones notables de este proyecto se documentarán en este archivo.\n",
+  "types": [
+    { "type": "feat", "section": "Features" },
+    { "type": "fix", "section": "Bug Fixes" },
+    { "type": "perf", "section": "Performance" },
+    { "type": "refactor", "section": "Refactoring" },
+    { "type": "docs", "section": "Documentation" },
+    { "type": "test", "section": "Tests" },
+    { "type": "chore", "hidden": true },
+    { "type": "style", "hidden": true }
+  ],
+  "commitUrlFormat": "{{host}}/{{owner}}/{{repository}}/commit/{{hash}}",
+  "compareUrlFormat": "{{host}}/{{owner}}/{{repository}}/compare/{{previousTag}}...{{currentTag}}"
+}
+```
+
+### 4.2 Flujo completo con standard-version
+
+```bash
+# 1. Hacer cambios y commits convencionales
+git add .
+git commit -m "feat: agregar exportación a PDF"
+git commit -m "fix: corregir crash en Android 12"
+
+# 2. Ejecutar release (automático)
+npm run release
+
+# Esto hace:
+# - Lee los commits desde el último tag
+# - Determina el tipo de bump (patch/minor/major)
+# - Actualiza package.json
+# - Genera/actualiza CHANGELOG.md
+# - Crea un commit con los cambios
+# - Crea un tag (v1.2.0)
+
+# 3. Push con tags
+git push --follow-tags
+```
+
 ---
 
 ## 5. Flujo de Trabajo Completo
@@ -283,5 +327,3 @@ npx cz
 - [Husky](https://typicode.github.io/husky/) — Git hooks modernos para Node.js
 - [Commitlint](https://commitlint.js.org/) — Linter para mensajes de commit
 - [Git | Documentation](https://git-scm.com/doc) — Documentación oficial de Git
-
----

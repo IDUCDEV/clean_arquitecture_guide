@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>GUIA RESUMEN — Git Flow y Conventional Commits</title>
+<link rel="stylesheet" href="guia-resumen.css">
+</head>
+<body>
+
+<div class="header">
+  <div class="mod">Modulo 12 · Git Flow + Conventional Commits + SemVer</div>
+  <h1>GUIA RESUMEN — Git Flow y Conventional Commits</h1>
+  <div class="sub">Resumen integral para dominar el flujo de trabajo en equipo en ~20 minutos, sin volver a leer el modulo completo.</div>
+</div>
+
+<!-- ================= 0. FLUJO ================= -->
+<section>
+  <div class="section-head s-blue">
+    <span class="num">0</span>
+    <h2>Flujo de aprendizaje general</h2>
+    <span class="meta">5 partes · ~20 min</span>
+  </div>
+
+  <table class="flow">
+    <tr>
+      <td><span class="step-n">1</span><span class="step-t">Commits</span><span class="step-f">5 min</span></td>
+      <td><span class="step-n">2</span><span class="step-t">Hooks</span><span class="step-f">3 min</span></td>
+      <td><span class="step-n">3</span><span class="step-t">Asistentes</span><span class="step-f">3 min</span></td>
+      <td><span class="step-n">4</span><span class="step-t">FVM</span><span class="step-f">2 min</span></td>
+      <td><span class="step-n">5</span><span class="step-t">Ramas</span><span class="step-f">5 min</span></td>
+    </tr>
+  </table>
+
+  <div class="callout blue"><p><strong>Regla de oro:</strong> "Los commits comunican QUÉ cambió. Los tags comunican CUÁNDO se liberó. El CHANGELOG resume todo para el equipo y usuarios."</p></div>
+
+  <table>
+    <thead><tr><th>Parte</th><th>Que aprendes</th><th>Archivo clave</th></tr></thead>
+    <tbody>
+      <tr><td>1. Conventional Commits</td><td>Formato de commits, tipos, breaking changes</td><td class="mono">01-conventional-commits.md</td></tr>
+      <tr><td>2. Husky + lint-staged</td><td>Hooks de pre-commit, commit-msg, pre-push</td><td class="mono">02-husky-lint-staged.md</td></tr>
+      <tr><td>3. Commitizen + commitlint</td><td>CLI interactivo, validador, CHANGELOG auto</td><td class="mono">03-commitizen-commitlint.md</td></tr>
+      <tr><td>4. FVM</td><td>Gestion de versiones de Flutter por proyecto</td><td class="mono">04-fvm-version-management.md</td></tr>
+      <tr><td>5. Ramas y Releases</td><td>Git Flow, Conventional Branch, SemVer</td><td class="mono">05-flujo-ramas-estrategias.md</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 1. CONVENTIONAL COMMITS ================= -->
+<section>
+  <div class="section-head s-blue">
+    <span class="num">1</span>
+    <h2>Conventional Commits (5 min)</h2>
+    <span class="meta">Especificacion v1.0.0</span>
+  </div>
+
+  <p><strong>Conventional Commits</strong> = convencion ligera para mensajes de commit que permite generar CHANGELOGs y versionado semantico automatico.</p>
+
+  <h3>Formato del mensaje</h3>
+  <pre>&lt;tipo&gt;[&lt;ambito opcional&gt;][&lt;! opcional&gt;]: &lt;descripcion&gt;
+
+[cuerpo opcional]
+
+[nota(s) al pie opcional(es)]</pre>
+
+  <h3>Tipos principales</h3>
+  <table>
+    <thead><tr><th>Tipo</th><th>Que hace</th><th>Version SemVer</th></tr></thead>
+    <tbody>
+      <tr><td><strong>feat</strong></td><td>Nueva funcionalidad</td><td>MINOR (1.0.0 → 1.1.0)</td></tr>
+      <tr><td><strong>fix</strong></td><td>Correccion de bug</td><td>PATCH (1.0.0 → 1.0.1)</td></tr>
+      <tr><td><strong>BREAKING CHANGE</strong></td><td>Cambio incompatible</td><td>MAJOR (1.0.0 → 2.0.0)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Tipos adicionales</h3>
+  <table>
+    <thead><tr><th>Tipo</th><th>Cuando usar</th><th>Ejemplo</th></tr></thead>
+    <tbody>
+      <tr><td><code>build</code></td><td>Build system</td><td>build: upgrade gradle a 8.0</td></tr>
+      <tr><td><code>chore</code></td><td>Mantenimiento</td><td>chore: limpiar dependencias</td></tr>
+      <tr><td><code>ci</code></td><td>CI/CD</td><td>ci: agregar step de codegen</td></tr>
+      <tr><td><code>docs</code></td><td>Documentacion</td><td>docs: actualizar README</td></tr>
+      <tr><td><code>perf</code></td><td>Rendimiento</td><td>perf: cachear consultas</td></tr>
+      <tr><td><code>refactor</code></td><td>Refactorizar</td><td>refactor: extraer widget</td></tr>
+      <tr><td><code>style</code></td><td>Formato</td><td>style: dart format</td></tr>
+      <tr><td><code>test</code></td><td>Tests</td><td>test: cubrir caso borde</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Reglas de oro</h3>
+  <ul class="checklist">
+    <li>Imperativo presente ("agregar", no "agregue")</li>
+    <li>Sin punto final</li>
+    <li>Maximo 72 caracteres</li>
+    <li>Primera letra minuscula</li>
+    <li>Ambito opcional: <code>feat(auth): ...</code></li>
+  </ul>
+
+  <h3>Breaking Changes</h3>
+  <pre># Opcion 1: ! despues del tipo
+refactor!(auth): cambiar respuesta de login a JWT
+
+# Opcion 2: BREAKING CHANGE en el pie
+feat: migrar de SQLite a Isar
+
+BREAKING CHANGE: Se elimino la base de datos local.</pre>
+
+  <div class="callout blue"><p><strong>Ejemplo real:</strong> <code>feat(raffles): agregar filtro por fecha</code> → version 1.0.0 → 1.1.0. Si incluye <code>!</code> o <code>BREAKING CHANGE</code> → 1.1.0 → 2.0.0</p></div>
+</section>
+
+<!-- ================= 2. HUSKY + LINT-STAGED ================= -->
+<section>
+  <div class="section-head s-indigo">
+    <span class="num">2</span>
+    <h2>Husky + lint-staged (3 min)</h2>
+    <span class="meta">Hooks de Git</span>
+  </div>
+
+  <p><strong>Husky</strong> ejecuta scripts automaticos en hooks de Git. <strong>lint-staged</strong> ejecuta comandos SOLO en archivos staged.</p>
+
+  <h3>Los 3 hooks principales</h3>
+  <table>
+    <thead><tr><th>Hook</th><th>Cuando se ejecuta</th><th>Que hace</th></tr></thead>
+    <tbody>
+      <tr><td><strong>pre-commit</strong></td><td>Antes del commit</td><td>Formateo + analisis (lint-staged)</td></tr>
+      <tr><td><strong>commit-msg</strong></td><td>Despues del mensaje</td><td>Valida formato (commitlint)</td></tr>
+      <tr><td><strong>pre-push</strong></td><td>Antes del push</td><td>Ejecuta tests completos</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Configuracion lint-staged para Flutter</h3>
+  <pre>"lint-staged": {
+  "*.dart": [
+    "dart format --set-exit-if-changed",
+    "flutter analyze --fatal-infos"
+  ],
+  "*.{yaml,json}": ["prettier --write"]
+}</pre>
+
+  <div class="callout indigo"><p><strong>Emergencias:</strong> <code>git commit --no-verify -m "fix: hotfix critico"</code> salta los hooks temporalmente.</p></div>
+</section>
+
+<!-- ================= 3. COMMITIZEN + COMMITLINT ================= -->
+<section>
+  <div class="section-head s-indigo">
+    <span class="num">3</span>
+    <h2>Commitizen + commitlint (3 min)</h2>
+    <span class="meta">Asistentes de commit</span>
+  </div>
+
+  <p><strong>Commitizen</strong> = CLI interactivo que genera commits validos. <strong>commitlint</strong> = linter que valida mensajes.</p>
+
+  <h3>Flujo con Commitizen</h3>
+  <pre>$ npx cz
+
+? Selecciona el tipo de cambio: feat
+? Alcance: raffles
+? Descripcion: agregar filtro por fecha
+? Breaking change: No
+
+→ feat(raffles): agregar filtro por fecha</pre>
+
+  <h3>Reglas de commitlint</h3>
+  <table>
+    <thead><tr><th>Regla</th><th>Valor</th><th>Descripcion</th></tr></thead>
+    <tbody>
+      <tr><td>type-enum</td><td>[2, 'always', [...]]</td><td>Tipos permitidos</td></tr>
+      <tr><td>type-empty</td><td>[2, 'never']</td><td>Tipo requerido</td></tr>
+      <tr><td>subject-empty</td><td>[2, 'never']</td><td>Descripcion requerida</td></tr>
+      <tr><td>header-max-length</td><td>[2, 'always', 72]</td><td>Maximo 72 caracteres</td></tr>
+      <tr><td>subject-full-stop</td><td>[2, 'never', '.']</td><td>Sin punto final</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Standard Version (CHANGELOG automatico)</h3>
+  <pre># Ejecutar release
+npm run release
+
+# Esto genera:
+# - CHANGELOG.md actualizado
+# - package.json con version bump
+# - Commit con los cambios
+# - Tag v1.2.0</pre>
+
+  <div class="callout blue"><p><strong>Tabla resumen:</strong> Commitizen (escribe) + commitlint (valida) + standard-version (libera) = flujo completo.</p></div>
+</section>
+
+<!-- ================= 4. FVM ================= -->
+<section>
+  <div class="section-head s-teal">
+    <span class="num">4</span>
+    <h2>FVM: Flutter Version Management (2 min)</h2>
+    <span class="meta">Multi-version Flutter</span>
+  </div>
+
+  <p><strong>FVM</strong> permite que cada proyecto tenga su propia version exacta de Flutter.</p>
+
+  <h3>Comandos esenciales</h3>
+  <table>
+    <thead><tr><th>Comando</th><th>Que hace</th></tr></thead>
+    <tbody>
+      <tr><td><code>fvm install 3.24.0</code></td><td>Instala una version</td></tr>
+      <tr><td><code>fvm use 3.24.0</code></td><td>Configura el proyecto</td></tr>
+      <tr><td><code>fvm flutter pub get</code></td><td>Usa la version del proyecto</td></tr>
+      <tr><td><code>fvm list</code></td><td>Lista versiones instaladas</td></tr>
+      <tr><td><code>fvm current</code></td><td>Version actual del proyecto</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Archivos clave</h3>
+  <pre>.fvm/flutter_sdk_version   # Version configurada (SE COMITA)
+.fvm/flutter_sdk            # SDK instalado (SE IGNORA en .gitignore)</pre>
+
+  <div class="callout teal"><p><strong>VS Code:</strong> Configurar <code>"dart.flutterSdkPath": ".fvm/flutter_sdk"</code> en .vscode/settings.json para que use la version correcta automaticamente.</p></div>
+</section>
+
+<!-- ================= 5. RAMAS Y RELEASES ================= -->
+<section>
+  <div class="section-head s-amber">
+    <span class="num">5</span>
+    <h2>Ramas, Git Flow y Versionado (5 min)</h2>
+    <span class="meta">Conventional Branch + SemVer 2.0.0</span>
+  </div>
+
+  <p><strong>Conventional Branch</strong> = nomenclatura estructurada para ramas Git.</p>
+
+  <h3>Prefijos de ramas</h3>
+  <table>
+    <thead><tr><th>Prefijo</th><th>Proposito</th><th>Ejemplo</th></tr></thead>
+    <tbody>
+      <tr><td><code>main</code></td><td>Rama principal (produccion)</td><td>main</td></tr>
+      <tr><td><code>feature/</code></td><td>Nuevas funcionalidades</td><td>feature/agregar-login</td></tr>
+      <tr><td><code>bugfix/</code></td><td>Corregir errores</td><td>bugfix/corregir-crash</td></tr>
+      <tr><td><code>hotfix/</code></td><td>Correcciones urgentes</td><td>hotfix/parche-seguridad</td></tr>
+      <tr><td><code>release/</code></td><td>Preparar liberacion</td><td>release/v1.2.0</td></tr>
+      <tr><td><code>chore/</code></td><td>Tareas sin codigo</td><td>chore/actualizar-deps</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Git Flow simplificado</h3>
+  <pre>main ──── M1 ────────── M2 ────────── M3 (produccion)
+          │              │              │
+develop ─ D1 ─ D2 ─ D3 ─ D4 ─ D5 ─ D6 (integracion)
+          │    │         │         │
+feature/  │    └─ feat1   │         └─ feat3
+          │               └─ feat2</pre>
+
+  <h3>Versionado Semantico (SemVer 2.0.0)</h3>
+  <table>
+    <thead><tr><th>Version</th><th>Cuando incrementar</th><th>Ejemplo</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Major (X)</strong></td><td>Cambios incompatibles</td><td>1.0.0 → 2.0.0</td></tr>
+      <tr><td><strong>Minor (Y)</strong></td><td>Nueva funcionalidad</td><td>1.0.0 → 1.1.0</td></tr>
+      <tr><td><strong>Patch (Z)</strong></td><td>Correccion de bug</td><td>1.1.0 → 1.1.1</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Flujo completo</h3>
+  <pre>1. Crear rama feature desde develop
+2. Commits con feat/fix (Conventional Commits)
+3. PR a develop + code review
+4. Merge a develop
+5. Crear release/X.Y.Z desde develop
+6. standard-version genera CHANGELOG + bump
+7. Merge a main + tag vX.Y.Z
+8. Deploy a Play Store / App Store</pre>
+
+  <div class="callout amber"><p><strong>Hotfix:</strong> Si hay bug critico en produccion → crear hotfix/ desde main → fix → merge a main Y develop → tag vX.Y.Z+1</p></div>
+</section>
+
+<!-- ================= ANEXO ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">A</span>
+    <h2>Anexo · Indice del modulo (para profundizar)</h2>
+  </div>
+  <table>
+    <thead><tr><th>Necesitas</th><th>Archivo</th></tr></thead>
+    <tbody>
+      <tr><td>Especificacion completa de Conventional Commits</td><td class="mono">01-conventional-commits.md</td></tr>
+      <tr><td>Hooks de Git con Husky y lint-staged</td><td class="mono">02-husky-lint-staged.md</td></tr>
+      <tr><td>Commitizen interactivo y commitlint validador</td><td class="mono">03-commitizen-commitlint.md</td></tr>
+      <tr><td>FVM para gestion de versiones de Flutter</td><td class="mono">04-fvm-version-management.md</td></tr>
+      <tr><td>Git Flow, Conventional Branch y SemVer</td><td class="mono">05-flujo-ramas-estrategias.md</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= CONCLUSION ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">C</span>
+    <h2>Conclusion</h2>
+  </div>
+  <p>El flujo de trabajo profesional en equipo se basa en <strong>convenciones claras</strong>:</p>
+  <ul class="checklist">
+    <li>Conventional Commits para mensajes consistentes</li>
+    <li>Husky + lint-staged para calidad automatica</li>
+    <li>Commitizen + commitlint para commits validos</li>
+    <li>FVM para versiones de Flutter consistentes</li>
+    <li>Git Flow + Conventional Branch para ramas organizadas</li>
+    <li>SemVer para versionado predecible</li>
+    <li>standard-version para CHANGELOG automatico</li>
+  </ul>
+
+  <div class="footer-note"><strong>Tiempo de lectura del resumen: ~20 min</strong> · El camino hacia un flujo de trabajo profesional empieza con convenciones claras.</div>
+</section>
+
+</body>
+</html>

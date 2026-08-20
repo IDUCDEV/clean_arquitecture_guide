@@ -25,6 +25,15 @@
 # Ignorada por git → cada dev instala la que necesita
 ```
 
+### Comparación de herramientas
+
+| Herramienta | Gestión por proyecto | Multi-versión | Velocidad | Integración IDE |
+|------------|---------------------|---------------|-----------|-----------------|
+| **FVM** | ✅ Sí | ✅ Sí | ⚡ Rápida | ✅ VS Code + Android Studio |
+| **asdf** | ✅ Sí | ✅ Sí | ⚡ Rápida | ⚠️ Limitada |
+| **nix** | ✅ Sí | ✅ Sí | 🐢 Lenta | ❌ Sin soporte oficial |
+| **Manual** | ❌ No | ❌ No | ⚡ Rápida | ✅ Nativa |
+
 ---
 
 ## 2. Instalación
@@ -238,5 +247,3 @@ Se ignora el **SDK** pero NO la **configuración** (`.fvm/flutter_sdk_version`).
 - [Husky](https://typicode.github.io/husky/) — Git hooks modernos para Node.js
 - [Commitlint](https://commitlint.js.org/) — Linter para mensajes de commit
 - [Git | Documentation](https://git-scm.com/doc) — Documentación oficial de Git
-
----
