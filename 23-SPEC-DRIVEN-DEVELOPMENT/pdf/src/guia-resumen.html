@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resumen — 23 Spec Driven Development</title>
+  <link rel="stylesheet" href="guia-resumen.css">
+</head>
+<body>
+
+<!-- Cabecera -->
+<div class="header">
+  <div class="mod">Módulo 23 · Guía de referencia</div>
+  <h1>Spec Driven Development (SDD)</h1>
+  <p class="sub">SDD adaptado a Flutter + Supabase · OpenSpec · Integración FADER</p>
+</div>
+
+<!-- Sección 1: Qué es SDD -->
+<section>
+  <div class="section-head">
+    <span class="num s-violet">01</span>
+    <h2>Qué es SDD</h2>
+    <span class="meta">Metodología</span>
+  </div>
+
+  <p><strong>Spec Driven Development</strong> es escribir especificaciones primero, generar código después.</p>
+
+  <div class="callout">
+    <p><strong>La idea central:</strong>僵化僵化 (<em>rigidez a cambio</em>) se detecta en specs antes de que se convierta en bugs.</p>
+  </div>
+
+  <p>OpenSpec (<a href="https://openspec.dev">openspec.dev</a> · 65.7k ⭐ · MIT) es el tool que almacena specs y las consulta de forma optimizada para agentes de IA.</p>
+
+  <h3>Instalación</h3>
+  <pre><code>npm install -g @fission-ai/openspec@latest</code></pre>
+</section>
+
+<!-- Sección 2: Las 4 fases -->
+<section>
+  <div class="section-head">
+    <span class="num s-purple">02</span>
+    <h2>Las 4 fases de SDD</h2>
+    <span class="meta">Workflow</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Fase</th><th>Objetivo</th><th>Output</th></tr></thead>
+    <tbody>
+      <tr><td><span class="violet">Diseño</span></td><td>Definir qué construir</td><td>Specs aprobadas</td></tr>
+      <tr><td><span class="purple">Desarrollo</span></td><td>Generar código que cumpla specs</td><td>Feature completa</td></tr>
+      <tr><td><span class="indigo">Validación</span></td><td>Verificar que specs se cumplen</td><td>Tests + Validación</td></tr>
+      <tr><td><span class="muted">Mantenimiento</span></td><td>Actualizar specs al cambiar</td><td>Specs actualizadas</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Los 3 Gates</h3>
+  <table>
+    <thead><tr><th>Gate</th><th>Cuándo</th><th>Criterio</th></tr></thead>
+    <tbody>
+      <tr><td>1: Diseño</td><td>Antes de código</td><td>Specs aprobadas</td></tr>
+      <tr><td>2: Implementación</td><td>Antes de merge</td><td>Código cumple specs + tests pasan</td></tr>
+      <tr><td>3: Validación</td><td>Antes de release</td><td><code>openspec validate</code> pasa</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Sección 3: OpenSpec en la práctica -->
+<section>
+  <div class="section-head">
+    <span class="num s-indigo">03</span>
+    <h2>OpenSpec en la práctica</h2>
+    <span class="meta">Tooling</span>
+  </div>
+
+  <h3>Comandos esenciales</h3>
+  <pre><code>openspec init          # Crear .openspec/
+openspec propose       # Generar specs candidatas
+openspec exec "task"   # Ejecutar tarea con contexto optimizado
+openspec status        # Ver uso de contexto
+openspec scan          # Chequeo de salud</code></pre>
+
+  <h3>Workflow diario</h3>
+  <pre><code>1. openspec doctor       # salud del proyecto
+2. openspec exec "tarea"  # ejecutar con contexto
+3. openspec status        # verificar contexto
+4. openspec scan          # integridad cada 2-3 commits</code></pre>
+</section>
+
+<!-- Sección 4: SDD en Flutter -->
+<section>
+  <div class="section-head">
+    <span class="num s-violet">04</span>
+    <h2>SDD en Flutter + Supabase</h2>
+    <span class="meta">Clean Architecture</span>
+  </div>
+
+  <h3>Specs por capa</h3>
+  <table>
+    <thead><tr><th>Capa</th><th>Tipo de spec</th><th>Ejemplo</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Domain</strong></td><td>Entidad / UseCase / Repo (interfaz)</td><td>User tiene id UUID, email, displayName</td></tr>
+      <tr><td><strong>Infrastructure</strong></td><td>Datasource / Repo impl</td><td>SupabaseDatasource usa signInWithPassword()</td></tr>
+      <tr><td><strong>Presentation</strong></td><td>Cubit / State</td><td>AuthCubiti: initial → loading → authenticated</td></tr>
+      <tr><td><strong>UI</strong></td><td>Página / Widget</td><td>LoginEmailPage usa listener_builder</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Especificaciones EARS (patrones)</h3>
+  <table>
+    <thead><tr><th>Patrón</th><th>Ejemplo Flutter</th></tr></thead>
+    <tbody>
+      <tr><td><strong>WHEN</strong> [evento]</td><td>WHEN presiona Submit, llamar loginUseCase</td></tr>
+      <tr><td><strong>IF</strong> [trigger]</td><td>IF email inválido, mostrar error en campo</td></tr>
+      <tr><td><strong>WHERE</strong> [componente]</td><td>WHERE AuthCubiti, emitir AuthError en excepción</td></tr>
+      <tr><td><strong>WHILE</strong> [condición]</td><td>WHILE no autenticado, redirigir a /login</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Boundary rules</h3>
+  <table>
+    <thead><tr><th>Boundary</th><th>Regla</th></tr></thead>
+    <tbody>
+      <tr><td>Domain → Infrastructure</td><td>Domain define interfaces; Infrastructure las implementa</td></tr>
+      <tr><td>Infrastructure → Supabase</td><td>Solo datasources tocan Supabase client</td></tr>
+      <tr><td>Presentation → Domain</td><td>Cubits usan UseCases, nunca Datasources</td></tr>
+      <tr><td>UI → Presentation</td><td>Páginas usan BlocBuilder, nunca lógica de negocio</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Sección 5: Integración FADER -->
+<section>
+  <div class="section-head">
+    <span class="num s-purple">05</span>
+    <h2>Integración SDD + FADER</h2>
+    <span class="meta">Módulo 02</span>
+  </div>
+
+  <h3>Flujo integrado (7 pasos)</h3>
+  <table class="flow">
+    <tr>
+      <td><span class="step-n">1</span><span class="step-t">Alcance</span><span class="step-f">openspec propose</span></td>
+      <td><span class="step-n">2</span><span class="step-t">FADER</span><span class="step-f">Refinar specs</span></td>
+      <td><span class="step-n">3</span><span class="step-t">Contratos</span><span class="step-f">Especs EARS</span></td>
+      <td><span class="step-n">4</span><span class="step-t">Flujo</span><span class="step-f">Spec UI + Cubit</span></td>
+    </tr>
+    <tr>
+      <td><span class="step-n">5</span><span class="step-t">Backend</span><span class="step-f">Spec datasource</span></td>
+      <td><span class="step-n">6</span><span class="step-t">Criterios</span><span class="step-f">openspec validate</span></td>
+      <td><span class="step-n">7</span><span class="step-t">Scaffold</span><span class="step-f">openspec exec</span></td>
+      <td></td>
+    </tr>
+  </table>
+
+  <h3>Cuándo usar cada tool</h3>
+  <table>
+    <thead><tr><th>Situación</th><th>Tool</th></tr></thead>
+    <tbody>
+      <tr><td>Feature nueva desde cero</td><td>FADER + OpenSpec + clean-arch-feature</td></tr>
+      <tr><td>Feature existente, agregar componente</td><td>Solo clean-arch-component + SDD lite</td></tr>
+      <tr><td>Fix de bug</td><td>Solo spec del componente afectado</td></tr>
+      <tr><td>Feature core con integración externa</td><td>FADER completa + SDD + OpenSpec validate</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Sección 6: Proporcionalidad y anti-patrones -->
+<section>
+  <div class="section-head">
+    <span class="num s-gray">06</span>
+    <h2>Proporcionalidad y anti-patrones</h2>
+    <span class="meta">Buenas prácticas</span>
+  </div>
+
+  <h3>Profundidad de spec según feature</h3>
+  <table>
+    <thead><tr><th>Tipo</th><th>Profundidad</th><th>Ejemplo</th></tr></thead>
+    <tbody>
+      <tr><td>CRUD simple</td><td>Básica</td><td>Formulario de contacto</td></tr>
+      <tr><td>Feature core</td><td>Completa (EARS + boundaries)</td><td>Login con Supabase Auth</td></tr>
+      <tr><td>Integración externa</td><td>Alta (mocks + contratos)</td><td>Pago con Stripe</td></tr>
+      <tr><td>Fix de bug</td><td>Mínima</td><td>Corregir cálculo</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Anti-patrones</h3>
+  <table>
+    <thead><tr><th>Anti-patrón</th><th>Consecuencia</th><th>Solución</th></tr></thead>
+    <tbody>
+      <tr><td>Specs vagas</td><td>Código ambiguo</td><td>Usar EARS específico</td></tr>
+      <tr><td>Saltar Gate 1</td><td>Features erróneas</td><td>Aprobar specs antes de código</td></tr>
+      <tr><td>Specs monolíticas</td><td>Difícil mantener</td><td>1 spec por componente</td></tr>
+      <tr><td>No actualizar specs</td><td>Specs desactualizadas</td><td>Actualizar en cada PR relevante</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <p><strong>Recuerda:</strong> OpenSpec es un <em>tool</em>. SDD es una <em>methodology</em>. Usar OpenSpec sin SDD = contexto optimizado sin estructura. Usar SDD sin OpenSpec = methodology sin herramientas.</p>
+  </div>
+</section>
+
+<div class="footer-note">
+  <strong>Módulo 23 · Spec Driven Development (SDD)</strong><br>
+  Complementa <em>Guia-SDD-equipos-ágiles.pdf</em> · OpenSpec + Flutter + Supabase + FADER
+</div>
+
+</body>
+</html>

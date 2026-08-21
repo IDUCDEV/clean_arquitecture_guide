@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guía completa — 23 Spec Driven Development (SDD)</title>
+  <link rel="stylesheet" href="guia-completa.css">
+</head>
+<body>
+
+<!-- ============================== PORTADA ============================== -->
+<div class="cover">
+  <div class="module-tag">Módulo 23</div>
+  <h1>Spec Driven Development</h1>
+  <p class="subtitle">SDD adaptado a Flutter + Supabase con OpenSpec, integración FADER y referencia para pruebas de僵化 y trazabilidad.</p>
+  <table class="meta">
+    <tr>
+      <td>
+        <span class="label">Guía base</span>
+        <span class="value">Guía SDD-equipos-ágiles.pdf</span>
+      </td>
+      <td>
+        <span class="label">Extras del módulo</span>
+        <span class="value">OpenSpec · Flutter · Supabase</span>
+      </td>
+    </tr>
+  </table>
+  <div class="tags">
+    <span>Spec-Driven</span>
+    <span>OpenSpec</span>
+    <span>Flutter</span>
+    <span>Supabase</span>
+    <span>Clean Architecture</span>
+  </div>
+</div>
+
+<!-- ============================== CONTENIDO ============================== -->
+
+<div class="chapter">
+  <div class="chapter-head">
+    <span class="num-chip">23</span>
+    <span class="kick">Estructura del módulo</span>
+    <h2>Guía completa — 23 Spec Driven Development</h2>
+  </div>
+
+  <div class="article">
+
+<!-- Capítulo 1 -->
+<h2>1. OpenSpec — Guía práctica</h2>
+
+<h3>1.1 ¿Qué es OpenSpec?</h3>
+<p>OpenSpec es un framework de especificación por contexto para agentes de IA que elimina el 80-90% de tokens en conversaciones de larga distancia. Crea especificaciones en lenguaje natural en el directorio <code>.openspec/</code> que los agentes leen una sola vez y luego consultan selectivamente.</p>
+
+<p><strong>Por qué SDD no es suficiente solo:</strong> SDD define <em>cómo</em> lavorar con specs. OpenSpec define <em>cómo almacenarlas y consultarlas</em> de forma que los agentes de IA no reinicien el contexto cada vez.</p>
+
+<p>Stickers: <a href="https://openspec.dev">openspec.dev</a> · Fission-AI · MIT · 65.7k ⭐ en GitHub.</p>
+
+<h3>1.2 Instalación</h3>
+<pre><code># npm global (recomendado)
+npm install -g @fission-ai/openspec@latest
+
+# Verificar instalación
+openspec --version</code></pre>
+
+<h3>1.3 Comandos principales</h3>
+<table>
+  <thead><tr><th>Comando</th><th>¿Qué hace?</th><th>Cuándo usarlo</th></tr></thead>
+  <tbody>
+    <tr><td><code>openspec init</code></td><td>Crea <code>.openspec/</code> + plantilla base</td><td>Al inicio del proyecto</td></tr>
+    <tr><td><code>openspec propose</code></td><td>Análisis profundo del proyecto, sugiere specs</td><td>Proyecto nuevo o importación</td></tr>
+    <tr><td><code>openspec exec</code></td><td>Lee specs + ejecuta una tarea (punto de entrada principal)</td><td>Diario, antes de cada tarea</td></tr>
+    <tr><td><code>openspec status</code></td><td>Muestra specs cargadas, líneas, contexto usado</td><td>Diagnosticar contexto inflado</td></tr>
+    <tr><td><code>openspec scan</code></td><td>Chequeo de salud del proyecto</td><td>Cada 2-3 commits</td></tr>
+    <tr><td><code>openspec compress</code></td><td>Opcional: reduce specs para chats con límite</td><td>Contextos ajustados</td></tr>
+    <tr><td><code>openspec doctor</code></td><td>Check de salud general</td><td>Al inicio de sesión</td></tr>
+    <tr><td><code>openspec hub</code></td><td>Explorar specs del marketplace</td><td>Descubrir nuevas specs</td></tr>
+    <tr><td><code>openspec sync</code></td><td>Importar specs desde el hub</td><td>Actualizar specs compartidas</td></tr>
+  </tbody>
+</table>
+
+<h3>1.4 Workflow típico (OpenSpec + SDD)</h3>
+<pre><code>1. openspec init
+2. openspec propose              # genera specs candidatas
+3. revisar y refinar specs
+4. openspec exec " tarea X "     # ejecuta con contexto optimizado
+5. openspec status               # verificar uso de contexto
+6. openspec scan                 # chequeo de integridad
+7. repite desde 4</code></pre>
+
+<h3>1.5 Ejemplo: crear especificación en Flutter</h3>
+<pre><code># Asumiendo que ya ejecutaste openspec init y propose
+openspec exec "Crear el entity User de la feature auth en la capa domain"
+
+# Resultado esperado:
+# - Lee domain-spec.md (reglas de la capa domain)
+# - Lee architecture-spec.md (clean architecture bindings)
+# - Crea lib/features/auth/domain/entities/user.dart
+# - Crea test/features/auth/domain/entities/user_test.dart</code></pre>
+
+<h3>1.6 Slash commands para agentes de IA</h3>
+<p>OpenSpec expone 10 slash commands para usar en chats con agentes:</p>
+<table>
+  <thead><tr><th>Comando</th><th>Función</th></tr></thead>
+  <tbody>
+    <tr><td><code>/openspec-list</code></td><td>Lista specs cargadas y contexto usado</td></tr>
+    <tr><td><code>/openspec-info</code></td><td>Detalle de una spec específica</td></tr>
+    <tr><td><code>/openspec-on</code></td><td>Activa una spec para la sesión</td></tr>
+    <tr><td><code>/openspec-off</code></td><td>Desactiva una spec</td></tr>
+    <tr><td><code>/openspec-status</code></td><td>Resumen de estado</td></tr>
+    <tr><td><code>/openspec-suggest</code></td><td>Sugiere specs relevantes para una tarea</td></tr>
+    <tr><td><code>/openspec-validate</code></td><td>Valida que el código cumple las specs</td></tr>
+    <tr><td><code>/openspec-audit</code></td><td>Audita specs contra el código actual</td></tr>
+    <tr><td><code>/openspec-upgrade</code></td><td>Mejora specs existentes</td></tr>
+    <tr><td><code>/openspec-compress</code></td><td>Reduce tamaño de specs</td></tr>
+  </tbody>
+</table>
+
+<h3>1.7 OpenSpec vs Spec Kit vs Kiro</h3>
+<table>
+  <thead><tr><th>Aspecto</th><th>OpenSpec</th><th>Spec Kit</th><th>Kiro (AWS)</th></tr></thead>
+  <tbody>
+    <tr><td>Enfoque</td><td>Contexto optimizado para agentes</td><td>Especificaciones para IA (general)</td><td>Specs + agente autónomo</td></tr>
+    <tr><td>Archivo de config</td><td><code>.openspec/</code></td><td><code>.spec/</code></td><td><code>.kiro/</code></td></tr>
+    <tr><td>Ejecución</td><td><code>openspec exec</code></td><td>Manual / integrado</td><td>En el IDE</td></tr>
+    <tr><td>Marketplace</td><td>Sí (Hub)</td><td>No</td><td>No</td></tr>
+    <tr><td>Gratuito</td><td>Sí (MIT)</td><td>Sí</td><td>Sí tier inicial</td></tr>
+  </tbody>
+</table>
+
+<!-- Capítulo 2 -->
+<h2>2. SDD en Flutter — Adaptación completa</h2>
+
+<h3>2.1 ¿Qué es SDD?</h3>
+<p>Spec Driven Development (SDD) es una metodología donde <strong>las especificaciones se escriben primero</strong> y el código se genera para cumplirlas. El objetivo:僵化僵化 (<em>rigidez a cambio</em>) se detecta en specs antes de que se convierta en bugs.</p>
+
+<p>La guía completa está en <code>Guia-SDD-equipos-agiles.pdf</code>. Este capítulo adapta los conceptos a Flutter + Supabase + Clean Architecture.</p>
+
+<h3>2.2 SDD en el contexto de Clean Architecture</h3>
+<p>Cada capa de Clean Architecture tiene un tipo de spec diferente:</p>
+<table>
+  <thead><tr><th>Capa</th><th>Tipo de spec</th><th>Ejemplo</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Domain</strong></td><td>Spec de entidad</td><td>"El User tiene id UUID, email, displayName; no es nullable"</td></tr>
+    <tr><td><strong>Domain</strong></td><td>Spec de use case</td><td>"Login recibe email+password, retorna User o AuthException"</td></tr>
+    <tr><td><strong>Domain</strong></td><td>Spec de repositorio (interfaz)</td><td>"LoginRepository.login() es el único punto de acceso a auth"</td></tr>
+    <tr><td><strong>Infrastructure</strong></td><td>Spec de datasource</td><td>"SupabaseDatasource usa client.auth.signInWithPassword()"</td></tr>
+    <tr><td><strong>Infrastructure</strong></td><td>Spec de repository impl</td><td>"RepositoryImpl delega a Datasource y mapea excepciones"</td></tr>
+    <tr><td><strong>Presentation</strong></td><td>Spec de cubit</td><td>"AuthCubiti tiene estados: initial, loading, authenticated, error"</td></tr>
+    <tr><td><strong>UI</strong></td><td>Spec de página</td><td>"LoginEmailPage usa listener_builder, muestra loading en Submit"</td></tr>
+  </tbody>
+</table>
+
+<h3>2.3 Reglas de los boundaries (Capítulo 6 — Guía SDD)</h3>
+<p>Los boundaries definen qué puede y qué no puede hacer cada capa:</p>
+<table>
+  <thead><tr><th>Boundary</th><th>Regla en Flutter+Supabase</th></tr></thead>
+  <tbody>
+    <tr><td>Domain → Infrastructure</td><td>Domain define interfaces; Infrastructure las implementa. Nunca al revés.</td></tr>
+    <tr><td>Domain → Data</td><td>Domain no importa paquetes de Supabase; solo define contratos.</td></tr>
+    <tr><td>Infrastructure → Supabase</td><td>Solo datasources tocan Supabase client. Repositories solo coordinan.</td></tr>
+    <tr><td>Presentation → Domain</td><td>Cubits usan UseCases. Nunca usan Datasources directamente.</td></tr>
+    <tr><td>UI → Presentation</td><td>Páginas usan BlocBuilder/BlocListener. Nunca lógica de negocio.</td></tr>
+  </tbody>
+</table>
+
+<h3>2.4 Especificaciones EARS para Flutter</h3>
+<p>EARS (Easy Approach to Requirements Syntax) adapta SDD a requisitos verificables:</p>
+<table>
+  <thead><tr><th>Patrón EARS</th><th>Ejemplo Flutter</th></tr></thead>
+  <tbody>
+    <tr><td><strong>WHILE</strong> [condición] <strong>the system shall</strong> [comportamiento]</td><td>WHILE el usuario no está autenticado, the system shall redirigir a /login</td></tr>
+    <tr><td><strong>IF</strong> [trigger] <strong>the system shall</strong> [comportamiento]</td><td>IF el email es inválido, the system shall mostrar error en el campo</td></tr>
+    <tr><td><strong>WHERE</strong> [componente] <strong>the system shall</strong> [comportamiento]</td><td>WHERE AuthCubiti, the system shall emitir AuthError en excepción</td></tr>
+    <tr><td><strong>WHEN</strong> [evento] <strong>the system shall</strong> [comportamiento]</td><td>WHEN se presiona Submit, the system shall llamar loginUseCase</td></tr>
+    <tr><td><strong>GIVEN</strong> [contexto] <strong>WHEN</strong> [acción] <strong>the system shall</strong> [resultado]</td><td>GIVEN usuario registrado, WHEN presiona "Olvidé contraseña", the system shall enviar email de reset</td></tr>
+  </tbody>
+</table>
+
+<h3>2.5 Plantilla de spec para Flutter+Supabase</h3>
+<pre><code># FEATURE: auth
+## Componente: UserEntity
+
+### Tipo
+Especificación de entidad (Domain layer)
+
+### Requisitos
+- WHERE UserEntity, the system shall tener campos: id (UUID), email (String, unique), displayName (String), createdAt (DateTime)
+- WHERE UserEntity, the system shall NO tener campos nullable excepto displayName
+- WHERE UserEntity, the system shall implement fromJson/toJson con serialización correcta
+
+### Límites
+- UserEntity NO debe importar nada de Supabase ni de Firebase
+- UserEntity NO debe tener lógica de negocio (solo datos)
+- UserEntity debe ser inmutable (usar freezed si aplica)
+
+### Validación
+- Test: UserEntity.fromJson({'id': '...'}) retorna instancia válida
+- Test: UserEntity.fromJson({'email': null'}) lanza error de validación
+- Test: user == user2 (misma data) retorna true</code></pre>
+
+<h3>2.6 Mapeo Postgres → Dart (Supabase)</h3>
+<p>Para cada tabla de Supabase, genera la spec de entity automáticamente:</p>
+<pre><code># Tabla Supabase: users
+# Columnas: id (uuid, PK), email (text, unique), display_name (text), created_at (timestamptz)
+
+## Spec resultante:
+- Entity: User con id (String), email (String), displayName (String), createdAt (DateTime)
+- Model: UserModel.fromJson() mapea snake_case → camelCase
+- Datasource: SupabaseClient.from('users').select().eq('id', userId)</code></pre>
+
+<!-- Capítulo 3 -->
+<h2>3. Integración SDD + FADER (Módulo 02)</h2>
+
+<h3>3.1 Comparación SDD vs FADER</h3>
+<table>
+  <thead><tr><th>Aspecto</th><th>SDD (Guía SDD)</th><th>FADER (Módulo 02)</th></tr></thead>
+  <tbody>
+    <tr><td>Enfoque</td><td>Specs primero, código después</td><td>Alcance → Diseño → Specs → Build</td></tr>
+    <tr><td>Phases</td><td>4: Diseño, Desarrollo, Validación, Mantenimiento</td><td>6: Alcance, FADER, Contratos, Flujo, Backend, Criterios</td></tr>
+    <tr><td>Specifies</td><td>Especificaciones en lenguaje natural + EARS</td><td>FADER document + diagramas + templates</td></tr>
+    <tr><td>Agente IA</td><td>OpenSpec (lectura optimizada de contexto)</td><td>Agentes de scaffold (clean-arch-feature)</td></tr>
+    <tr><td>Output esperado</td><td>Specs aprobadas + código que las cumple</td><td>Feature scaffold completa + wiring</td></tr>
+  </tbody>
+</table>
+
+<h3>3.2 Flujo integrado (SDD + FADER + Flutter)</h3>
+<table>
+  <thead><tr><th>Paso</th><th>FADER</th><th>SDD/OpenSpec</th><th>Output</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td><strong>Alcance</strong></td>
+      <td><code>openspec propose</code></td>
+      <td>Alcance + specs candidatas</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><strong>FADER</strong></td>
+      <td>Refinar specs con OpenSpec</td>
+      <td>FADER document + specs aprobadas</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><strong>Contratos</strong></td>
+      <td>Especs EARS por componente</td>
+      <td>Interfaces + entities con requisitos</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><strong>Flujo</strong></td>
+      <td>Spec de UI + spec de Cubit</td>
+      <td>Diagrama de estados + wiring</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><strong>Backend</strong></td>
+      <td>Spec de datasource + SQL</td>
+      <td>SQL migration + Supabase client config</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td><strong>Criterios</strong></td>
+      <td><code>openspec validate</code></td>
+      <td>Tests + validación de specs</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td><strong>Scaffold</strong></td>
+      <td><code>openspec exec " build " </code></td>
+      <td>Feature completa generada</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>3.3 Ejemplo integrado: Login con Supabase Auth</h3>
+
+<h4>Fase 1 — Alcance (FADER)</h4>
+<pre><code># Alcance Login con Supabase
+- Feature: auth/login
+- Componentes: LoginPage, AuthCubit, LoginUseCase, AuthRepository, SupabaseDatasource
+- Supabase: tabla profiles (id FK auth.users, display_name)
+- Screenshots: /assets/login-wireframe.png</code></pre>
+
+<h4>Fase 2 — Specs EARS (SDD)</h4>
+<pre><code>## AuthCubiti
+- WHEN usuario presiona Submit Y email es válido, the system shall emitir AuthLoading
+- WHEN login retorna User, the system shall emitir AuthAuthenticated(user)
+- WHEN login lanza AuthException, the system shall emitir AuthError(message)
+- WHEN login lanza excepción genérica, the system shall emitir AuthError('Error inesperado')
+
+## LoginEmailPage
+- WHERE LoginEmailPage, the system shall usar listener_builder para AuthCubit
+- WHILE AuthLoading, the system shall mostrar CircularProgressIndicator
+- WHEN AuthError, the system shall mostrar SnackBar con el mensaje
+
+## SupabaseDatasource
+- WHERE SupabaseDatasource, the system shall usar client.auth.signInWithPassword()
+- WHEN signInWithPassword lanza AuthException, the system shall relanzar AuthException</code></pre>
+
+<h4>Fase 3 — Build (Scaffold)</h4>
+<pre><code># Ejecutar scaffold (delegado a clean-arch-feature)
+# Genera:
+# - auth/domain/entities/user.dart
+# - auth/data/models/user_model.dart
+# - auth/data/datasources/supabase_auth_datasource.dart
+# - auth/data/repositories/auth_repository_impl.dart
+# - auth/domain/repositories/auth_repository.dart
+# - auth/domain/usecases/login_usecase.dart
+# - auth/presentation/cubit/auth_cubit.dart
+# - auth/presentation/pages/login_email_page.dart</code></pre>
+
+<!-- Capítulo 4 -->
+<h2>4. Referencia rápida — Cheat sheet</h2>
+
+<h3>4.1 Las 4 fases de SDD</h3>
+<table>
+  <thead><tr><th>Fase</th><th>Objetivo</th><th>Output esperado</th><th>Tool principal</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Diseño</strong></td><td>Definir qué construir</td><td>Specs aprobadas</td><td>FADER + OpenSpec</td></tr>
+    <tr><td><strong>Desarrollo</strong></td><td>Generar código que cumpla specs</td><td>Feature completa</td><td>Scaffold + Agentes</td></tr>
+    <tr><td><strong>Validación</strong></td><td>Verificar que specs se cumplen</td><td>Tests + Validación</td><td>openspec validate</td></tr>
+    <tr><td><strong>Mantenimiento</strong></td><td>Actualizar specs al cambiar</td><td>Specs actualizadas</td><td>openspec scan</td></tr>
+  </tbody>
+</table>
+
+<h3>4.2 Los 3 Gates de aprobación</h3>
+<table>
+  <thead><tr><th>Gate</th><th>Cuándo</th><th>Criterio</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Gate 1: Diseño</strong></td><td>Antes de escribir código</td><td>Specs aprobadas por stakeholder</td></tr>
+    <tr><td><strong>Gate 2: Implementación</strong></td><td>Antes de merge a main</td><td>Código cumple specs + tests pasan</td></tr>
+    <tr><td><strong>Gate 3: Validación</strong></td><td>Antes de release</td><td><code>openspec validate</code> pasa limpio</td></tr>
+  </tbody>
+</table>
+
+<h3>4.3 OpenSpec — Comandos esenciales</h3>
+<pre><code>openspec init          # Crear .openspec/
+openspec propose       # Generar specs candidatas
+openspec exec "task"   # Ejecutar tarea con contexto
+openspec status        # Ver uso de contexto
+openspec scan          # Chequeo de salud
+openspec validate      # Validar código contra specs</code></pre>
+
+<h3>4.4 Anti-patrones en SDD</h3>
+<table>
+  <thead><tr><th>Anti-patrón</th><th>Consecuencia</th><th>Solución</th></tr></thead>
+  <tbody>
+    <tr><td>Escribir specs vagas</td><td>Código ambiguo, bugs silenciosos</td><td>Usar EARS: patrón específico</td></tr>
+    <tr><td>Saltar Gate 1</td><td>Features que no matchean necesidades</td><td>Siempre aprobar specs antes de código</td></tr>
+    <tr><td>Specs monolíticas</td><td>Difícil de mantener, hard de testear</td><td>1 spec por componente + boundaries</td></tr>
+    <tr><td>No actualizar specs al cambiar</td><td>Specs desactualizadas, código roto</td><td>Actualizar specs en cada PR relevante</td></tr>
+    <tr><td>Usar OpenSpec sin SDD</td><td>Contexto optimizado pero sin methodology</td><td>OpenSpec es tool, SDD es methodology</td></tr>
+  </tbody>
+</table>
+
+<h3>4.5 Proporcionalidad de specs</h3>
+<table>
+  <thead><tr><th>Tipo de feature</th><th>Profundidad de spec</th><th>Ejemplo</th></tr></thead>
+  <tbody>
+    <tr><td>CRUD simple</td><td>Básica (1 spec por componente)</td><td>Formulario de contacto</td></tr>
+    <tr><td>Feature core</td><td>Completa (EARS + boundaries + tests)</td><td>Login con Supabase Auth</td></tr>
+    <tr><td>Integración externa</td><td>Alta (mocks + contratos + validación)</td><td>Pago con Stripe</td></tr>
+    <tr><td>Fix de bug</td><td>Mínima (solo spec del componente)</td><td>Corregir cálculo de IVA</td></tr>
+  </tbody>
+</table>
+
+  </div><!-- .article -->
+</div><!-- .chapter -->
+
+<div class="license">
+  Licencia Creative Commons Atribución-CompartirIgual 4.0 Internacional · Generado con pandoc + Chrome headless
+</div>
+
+</body>
+</html>
