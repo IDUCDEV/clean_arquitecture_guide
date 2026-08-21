@@ -292,7 +292,7 @@ Para cada tarea completada, verifico contra la spec:
 | 3. UserModel | Mapeo snake_case (user_id → userId) | fromJson usa user_id, toJson usa user_id | ✓ |
 | 4. DataSource | signIn() con Supabase, ServerException en error | signInWithPassword + catch AuthException | ✓ |
 | 5. RepositoryImpl | try/catch retornando Right/Left | implementado con Either | ✓ |
-| 6. LoginUseCase | Validar R001, R002 antes de repo | Valida email y password长度 | ✓ |
+| 6. LoginUseCase | Validar R001, R002 antes de repo | Valida email y password | ✓ |
 | 7. AuthCubit | Estados Initial→Loading→Success/Error | sealed class con los 4 estados | ✓ |
 | 8. LoginPage | Form con validación, loading, feedback | BlocListener + BlocBuilder + Form | ✓ |
 
