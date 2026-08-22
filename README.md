@@ -54,7 +54,7 @@ La guía está organizada en **23 módulos numerados** para seguir un orden de a
 16-BLOC-CUBIT/                 → State management con BLoC/Cubit
 17-MANTENIMIENTO-DEPENDENCIAS/ → Mantenimiento de dependencias y ciclo de vida
 18-DEBUGGING-FLUTTER/          → Debugging con VSCode y Flutter DevTools + Optimización de rendimiento
-19-MONITOREO-PRODUCCION/       → Crashlytics, Sentry y monitoreo
+19-MONITOREO-PRODUCCION/       → Crashlytics, Sentry, monitoreo y consumo de Supabase Cloud
 20-RESOLUCION-PROBLEMAS-ALGORITMOS/ → Protocolo de resolución de problemas algorítmicos
 21-COMUNICACION-EQUIPO/        → Code reviews, colaboración y trabajo en equipo
 22-DISENIO-SISTEMAS/           → System design para entrevistas y sistemas a escala

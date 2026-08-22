@@ -39,6 +39,8 @@
 | [05-backup-y-mantenimiento.md](./PARTE-2-PRODUCTION/05-backup-y-mantenimiento.md) | Backups, updates |
 | [06-alternativas-externas.md](./PARTE-2-PRODUCTION/06-alternativas-externas.md) | Firebase, Appwrite |
 
+> **Supabase Cloud:** si usas Supabase Cloud (plan Free/Pro), revisa tambien [19-MONITOREO-PRODUCCION/04-supabase-consumo-costos](../19-MONITOREO-PRODUCCION/04-supabase-consumo-costos/) para monitorear consumo, configurar alertas y optimizar costos.
+
 ### PARTE 3: CI/CD
 
 | Archivo | Descripción |

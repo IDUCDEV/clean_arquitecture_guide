@@ -35,6 +35,15 @@ Quiero alertas automatizadas
 Quiero comparar estabilidad entre versiones
   └── Sentry Release Health
 
+Quiero saber cuanto me cuesta Supabase Cloud
+  └── 04-supabase-consumo-costos
+
+Quiero optimizar el uso del backend
+  └── 04-supabase-consumo-costos (playbook por metrica)
+
+Quiero un checklist pre-lanzamiento
+  └── 04-supabase-consumo-costos (06-checklist-lanzamiento)
+
 Quiero analytics basico
   └── Firebase Analytics
 
@@ -64,6 +73,7 @@ Quiero queries SQL de mis crashes
 | 1 | [01-firebase-crashlytics](./01-firebase-crashlytics/) | Crash reporting con Firebase | 6-8h |
 | 2 | [02-sentry](./02-sentry/) | Monitoreo avanzado con Sentry | 7-9h |
 | 3 | [03-comparacion-migracion](./03-comparacion-migracion/) | Comparar, combinar y migrar herramientas | 3-4h |
+| 4 | [04-supabase-consumo-costos](./04-supabase-consumo-costos/) | Monitoreo de consumo, costos y optimizacion de Supabase Cloud | 12-17h |
 
 ### Progresion recomendada
 
@@ -82,6 +92,12 @@ Fase 3: Avanzado
 
 Fase 4: Maestria
   └── Comparacion -> Combinar -> Migracion
+
+Fase 5: Backend (Supabase Cloud)
+  ├── Cuotas y dashboard -> Alertas y Spend Cap
+  ├── Logs Explorer -> Query Performance
+  ├── Playbook de optimizacion por metrica
+  └── Framework de decision -> Checklist de lanzamiento
 ```
 
 ---

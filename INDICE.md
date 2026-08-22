@@ -49,7 +49,7 @@ Mapa de navegación cruzada entre los 23 módulos de la guía.
 | **Debugging / Diagnóstico** | 18/01-07 (VSCode debugging), 18/08-18 (DevTools), 18/25 (debugging asíncrono), 18/26 (workflow por tipo de bug) |
 | **Optimización de rendimiento** | 18/19-24 (fundamentos, rebuilds, memoria, rendering, cheatsheet, practicas) |
 | **Comunicacion / Soft skills** | 21/01-08 (code reviews, colaboracion, Git workflow, comunicacion tecnica, herramientas, cheatsheet, practicas, anti-patrones) |
-| **Monitoreo en producción** | 19/01 (Crashlytics), 19/02 (Sentry), 19/03 (Comparación), 19/01-07 (cheatsheet Crashlytics), 19/02-08 (cheatsheet Sentry) |
+| **Monitoreo en producción** | 19/01 (Crashlytics), 19/02 (Sentry), 19/03 (Comparación), 19/04 (Supabase Cloud consumo/costos), 19/01-07 (cheatsheet Crashlytics), 19/02-08 (cheatsheet Sentry) |
 
 ---
 
@@ -88,7 +88,7 @@ Mapa de navegación cruzada entre los 23 módulos de la guía.
 | 16-BLOC-CUBIT | `README.md` | `17-proyecto-integrador.md` (integrador) |
 | 17-MANTENIMIENTO-DEPENDENCIAS | `README.md` | `03-automatizacion-dependabot-renovate.md` |
 | 18-DEBUGGING-FLUTTER | `README.md` | `07-practicas-vscode.md` (prácticas VSCode), `18-practicas-devtools.md` (prácticas DevTools), `24-practicas-optimizacion.md` (prácticas optimización) |
-| 19-MONITOREO-PRODUCCION | `README.md` | `01-firebase-crashlytics/08-practicas-crashlytics.md` (prácticas Crashlytics), `02-sentry/09-practicas-sentry.md` (prácticas Sentry) |
+| 19-MONITOREO-PRODUCCION | `README.md` | `01-firebase-crashlytics/08-practicas-crashlytics.md` (prácticas Crashlytics), `02-sentry/09-practicas-sentry.md` (prácticas Sentry), `04-supabase-consumo-costos/` (monitoreo consumo, optimización, checklist lanzamiento) |
 | 20-RESOLUCION-PROBLEMAS-ALGORITMOS | `README.md` | `03-reconocimiento-patrones.md` (corazón de la guía), `05-patrones-avanzados.md` (templates Dart) |
 | 21-COMUNICACION-EQUIPO | `README.md` | `01-code-reviews-efectivos.md` (code reviews), `03-git-workflow-equipe.md` (Git en equipo) |
 | 22-DISENIO-SISTEMAS | `README.md` | `11-plantilla-diseno-sistema.md` (plantilla reutilizable), `12-caso-feed-red-social.md` (caso integrador) |
