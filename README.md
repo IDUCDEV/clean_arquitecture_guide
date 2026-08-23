@@ -94,6 +94,7 @@ La guía está organizada en **23 módulos numerados** para seguir un orden de a
 | [03-openspec-guia-practica.md](./02-SPEC-DRIVEN-DEVELOPMENT/03-openspec-guia-practica.md) | OpenSpec CLI: instalación, slash commands y flujo |
 | [04-plantilla-cambio-openspec.md](./02-SPEC-DRIVEN-DEVELOPMENT/04-plantilla-cambio-openspec.md) | Plantilla de carpeta de cambio (proposal, specs delta, design, tasks) |
 | [05-referencia-rapida.md](./02-SPEC-DRIVEN-DEVELOPMENT/05-referencia-rapida.md) | Cheatsheet: comandos, EARS y equivalencias de terminología |
+| [06-auditoria-codigo-ia.md](./02-SPEC-DRIVEN-DEVELOPMENT/06-auditoria-codigo-ia.md) | Checklist de auditoría para código generado por IA (Vía B) |
 | [ejemplos-cambios/](./02-SPEC-DRIVEN-DEVELOPMENT/ejemplos-cambios/) | 6 cambios completos (carrito, reservas, e-learning, facturación, delivery, buyers) |
 | [trabajar-sin-ia/](./02-SPEC-DRIVEN-DEVELOPMENT/trabajar-sin-ia/) | Ejercicios para recuperar autonomía sin IA |
 

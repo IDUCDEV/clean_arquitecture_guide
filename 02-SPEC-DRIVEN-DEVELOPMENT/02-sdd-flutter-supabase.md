@@ -374,19 +374,30 @@ El punto dulce: una responsabilidad verificable.
 
 ## Fase 4 · Implementación
 
-Dos vías válidas (elige según tamaño y confianza):
+Dos vías válidas según **quién escribe el código**:
 
-### Vía A — Skill `clean-arch-feature` (recomendada para features nuevas completas)
+### Vía A — Skill `clean-arch-feature`: andamiaje IA + lógica crítica tuya (recomendada para features nuevas completas)
 
 1. Pasa la carpeta del cambio a la skill → genera scaffold (entity/model/datasource/repo/usecases/cubit/state/pages) con cuerpos `UnimplementedError()` y comentarios TODO citando el requisito
 2. Tú implementas siguiendo tasks.md oleada por oleada
 3. Delegación automática: DI → skill `di-getit-scaffold`, routing → skill `go-route-scaffold`
 
-### Vía B — Agente + OpenSpec (recomendada para cambios pequeños o brownfield quirúrgico)
+### Vía B — Agente + OpenSpec: la IA escribe todo, tú verificas (recomendada para cambios pequeños o brownfield quirúrgico)
 
-1. `/opsx:apply <cambio>` — el agente lee proposal/specs/design/tasks
-2. Ejecuta tareas de la oleada actual, commit por tarea
-3. Tú revisas al cierre de cada oleada contra la spec
+1. `/opsx-apply-change` — el agente lee proposal/specs/design/tasks y ejecuta todas las tareas, commit por tarea
+2. Al cierre de cada oleada auditas el resultado contra la spec
+3. Checklist completo de auditoría: [06-auditoria-codigo-ia.md](./06-auditoria-codigo-ia.md)
+
+### ¿Vía A o Vía B? Matriz de decisión
+
+| Criterio | Vía A (tú implementas) | Vía B (IA escribe todo) |
+|---|---|---|
+| Lógica crítica: dinero, permisos, estados | ✅ entiendes cada línea que firmas | ⚠️ solo si los escenarios EARS son exhaustivos |
+| CRUD, formularios, brownfield quirúrgico | posible overkill | ✅ terreno ideal |
+| Estás aprendiendo el stack o el dominio | ✅ implementar ES aprender | ❌ no aprendes nada |
+| Specs con supuestos ocultos (falla el Clarity Gate) | ✅ implementar te obliga a resolverlos | ❌ el error se multiplica silenciosamente |
+
+> **Regla del libro:** puedes delegar la *escritura*, nunca la aprobación de la spec (Puerta 1) ni la verificación final (Puerta 3).
 
 ### Verificación contra spec
 
