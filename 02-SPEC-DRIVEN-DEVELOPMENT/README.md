@@ -43,7 +43,7 @@ La metodología **completa** de Spec Driven Development del curso, en tres pieza
 | 06 | [06-auditoria-codigo-ia.md](./06-auditoria-codigo-ia.md) | Checklist para auditar código escrito por IA (Vía B): contratos, sealed states, RLS, tests contra EARS |
 | — | [`ejemplos-cambios/`](./ejemplos-cambios/) | 6 cambios completos listos para copiar (carrito walkthrough incluido) |
 | — | [`trabajar-sin-ia/`](./trabajar-sin-ia/) | Ejercicios de diseño con papel y lápiz, sin herramientas IA |
-| — | `pdf/` | Libro oficial + guía resumen |
+| — | [`pdf/`](./pdf/) | Libro oficial (SDDEquiposAgiles_v.1) + guías generadas del módulo (`02-SPEC-DRIVEN-DEVELOPMENT.pdf` y `GUIA-RESUMEN-*.pdf`, regenerables con `pdf/src/build_pdf.py`) |
 
 ---
 

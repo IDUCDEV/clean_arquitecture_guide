@@ -1,6 +1,6 @@
 /* ==========================================================================
-   GUIA COMPLETA — 23 Spec Driven Development
-   Paleta violeta (asociada a IA/metodología/specs).
+   GUIA COMPLETA — 01 Clean Architecture
+   Paleta esmeralda sobre gris verdoso (asociada a Domain/estructura limpia).
    Tipografia: Noto Sans / Noto Sans Mono / Noto Color Emoji.
    Render: Google Chrome headless (--print-to-pdf), A4.
    ========================================================================== */
@@ -11,15 +11,15 @@
 }
 
 :root {
-  --primary: #5B21B6;
-  --primary-soft: #8B5CF6;
-  --primary-mid: #6B7280;
+  --emerald: #047857;
+  --emerald-soft: #059669;
+  --emerald-mid: #6B7280;
   --text: #1F2937;
   --muted: #9CA3AF;
-  --panel: #F5F3FF;
-  --panel-2: #EDE9FE;
+  --panel: #F0FDF4;
+  --panel-2: #D1FAE5;
   --line: #D1D5DB;
-  --accent: #7C3AED;
+  --accent: #059669;
 }
 
 * { box-sizing: border-box; }
@@ -48,7 +48,7 @@ code, pre, kbd {
 }
 .cover .module-tag {
   display: inline-block;
-  background: var(--primary);
+  background: var(--emerald);
   color: #FFFFFF;
   font-size: 9pt;
   font-weight: 700;
@@ -58,15 +58,15 @@ code, pre, kbd {
   border-radius: 22px;
 }
 .cover h1 {
-  color: var(--primary);
-  font-size: 38pt;
+  color: var(--emerald);
+  font-size: 40pt;
   font-weight: 800;
   line-height: 1.05;
   margin: 16mm 0 0;
 }
 .cover .subtitle {
   color: var(--muted);
-  font-size: 12pt;
+  font-size: 12.5pt;
   max-width: 135mm;
   margin: 8mm auto 0;
   line-height: 1.5;
@@ -98,15 +98,15 @@ code, pre, kbd {
   margin-top: 2.5mm;
   font-size: 11.5pt;
   font-weight: 700;
-  color: var(--primary);
+  color: var(--emerald);
 }
 .cover .tags {
   margin-top: 14mm;
 }
 .cover .tags span {
   display: inline-block;
-  border: 1px solid var(--primary-soft);
-  color: var(--primary-soft);
+  border: 1px solid var(--emerald-soft);
+  color: var(--emerald-soft);
   font-weight: 600;
   font-size: 9pt;
   border-radius: 20px;
@@ -120,17 +120,17 @@ code, pre, kbd {
 .toc, .index { page-break-after: always; }
 
 .toc h2, .index h2 {
-  color: var(--primary);
+  color: var(--emerald);
   font-size: 20pt;
   font-weight: 800;
   margin: 0 0 3mm;
   padding-bottom: 2mm;
-  border-bottom: 3px solid var(--primary-soft);
+  border-bottom: 3px solid var(--emerald-soft);
 }
 
 .toc .part {
   margin: 3mm 0 2mm;
-  color: var(--primary-soft);
+  color: var(--emerald-soft);
   font-size: 9pt;
   font-weight: 700;
   letter-spacing: 2px;
@@ -145,12 +145,12 @@ code, pre, kbd {
 }
 .toc .num {
   width: 9mm;
-  color: var(--primary-soft);
+  color: var(--emerald-soft);
   font-weight: 700;
   font-size: 10.5pt;
 }
 .toc .title {
-  color: var(--primary);
+  color: var(--emerald);
   font-weight: 600;
   font-size: 11pt;
 }
@@ -163,7 +163,7 @@ table {
 }
 th {
   background: var(--panel-2);
-  color: var(--primary);
+  color: var(--emerald);
   font-weight: 700;
   text-align: left;
   padding: 6px 9px;
@@ -178,7 +178,7 @@ tr:nth-child(even) td { background: var(--panel); }
 td.mono {
   font-family: "Noto Sans Mono", "Adwaita Mono", monospace;
   font-size: 8pt;
-  color: var(--primary-soft);
+  color: var(--emerald-soft);
 }
 
 /* --------------------------------------------------------------------------
@@ -189,11 +189,11 @@ td.mono {
 .chapter-head {
   margin-bottom: 2mm;
   padding-bottom: 2mm;
-  border-bottom: 2px solid var(--primary-soft);
+  border-bottom: 2px solid var(--emerald-soft);
 }
 .chapter-head .num-chip {
   display: inline-block;
-  background: var(--primary);
+  background: var(--emerald);
   color: #FFFFFF;
   font-size: 9pt;
   font-weight: 700;
@@ -209,7 +209,7 @@ td.mono {
   text-transform: uppercase;
 }
 .chapter-head h2 {
-  color: var(--primary);
+  color: var(--emerald);
   font-size: 21pt;
   font-weight: 800;
   line-height: 1.15;
@@ -220,17 +220,18 @@ td.mono {
    CONTENIDO
    -------------------------------------------------------------------------- */
 .article h1 {
-  color: var(--primary);
+  /* ADR boxes */
+  color: var(--emerald);
   font-size: 13.5pt;
   font-weight: 800;
   background: var(--panel-2);
-  border-left: 4px solid var(--primary-soft);
+  border-left: 4px solid var(--emerald-soft);
   padding: 4px 8px;
   margin: 3mm 0 1.5mm;
   page-break-after: avoid;
 }
 .article h2 {
-  color: var(--primary);
+  color: var(--emerald);
   font-size: 15pt;
   font-weight: 800;
   margin: 3mm 0 1.5mm;
@@ -239,14 +240,14 @@ td.mono {
   page-break-after: avoid;
 }
 .article h3 {
-  color: var(--primary-soft);
+  color: var(--emerald-soft);
   font-size: 12pt;
   font-weight: 700;
   margin: 2mm 0 1mm;
   page-break-after: avoid;
 }
 .article h4 {
-  color: var(--primary-mid);
+  color: var(--emerald-mid);
   font-size: 10.5pt;
   font-weight: 700;
   margin: 2mm 0 1mm;
@@ -254,13 +255,13 @@ td.mono {
 .article p { margin: 0 0 1.5mm; }
 .article ul, .article ol { margin: 0 0 1.5mm; padding-left: 6mm; }
 .article li { margin: 1mm 0; }
-.article strong { color: var(--primary); }
-.article em { color: var(--primary-mid); }
+.article strong { color: var(--emerald); }
+.article em { color: var(--emerald-mid); }
 
 .article code {
   background: var(--panel);
   border: 1px solid var(--line);
-  color: var(--primary);
+  color: var(--emerald);
   border-radius: 4px;
   padding: 0.5px 4px;
   font-size: 0.92em;
@@ -268,7 +269,7 @@ td.mono {
 .article pre {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-left: 3px solid var(--primary-soft);
+  border-left: 3px solid var(--emerald-soft);
   border-radius: 8px;
   padding: 3mm;
   margin: 2mm 0;
@@ -285,30 +286,13 @@ td.mono {
   color: var(--text);
   font-size: 8pt;
 }
-
-/* Code blocks (div.code-block) */
-.code-block {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--primary-soft);
-  border-radius: 8px;
-  padding: 3mm;
-  margin: 2mm 0;
-  font-family: "Noto Sans Mono", "Adwaita Mono", monospace;
-  font-size: 8pt;
-  line-height: 1.45;
-  white-space: pre-wrap;
-  word-break: break-word;
-  page-break-inside: avoid;
-  color: var(--text);
-}
 .article blockquote {
   margin: 1.5mm 0;
   padding: 2mm 3mm;
-  background: #F5F3FF;
+  background: #ECFDF5;
   border-left: 3px solid var(--accent);
   border-radius: 0 6px 6px 0;
-  color: var(--primary);
+  color: var(--emerald);
 }
 .article blockquote p { margin: 0; }
 .article hr {
@@ -322,15 +306,6 @@ td.mono {
 .article thead { display: table-header-group; }
 .article tr { page-break-inside: avoid; }
 .article input[type="checkbox"] {
-  accent-color: var(--primary-soft);
+  accent-color: var(--emerald-soft);
   margin-right: 3px;
-}
-
-.license {
-  font-size: 8pt;
-  color: var(--muted);
-  font-style: italic;
-  margin-top: 4mm;
-  padding-top: 2mm;
-  border-top: 1px solid var(--line);
 }

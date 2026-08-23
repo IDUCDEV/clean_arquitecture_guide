@@ -1,207 +1,334 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Resumen — 23 Spec Driven Development</title>
-  <link rel="stylesheet" href="guia-resumen.css">
+<meta charset="utf-8">
+<title>GUIA RESUMEN — Spec Driven Development</title>
+<link rel="stylesheet" href="guia-resumen.css">
 </head>
 <body>
 
-<!-- Cabecera -->
 <div class="header">
-  <div class="mod">Módulo 23 · Guía de referencia</div>
-  <h1>Spec Driven Development (SDD)</h1>
-  <p class="sub">SDD adaptado a Flutter + Supabase · OpenSpec · Integración FADER</p>
+  <div class="mod">Modulo 02 · Spec Driven Development · Flutter + Clean Arch + Supabase</div>
+  <h1>GUIA RESUMEN — Spec Driven Development</h1>
+  <div class="sub">Resumen integral para dominar SDD en ~25 minutos: teoria del libro, herramienta OpenSpec, metodologia aplicada a tu stack y auditoria de codigo generado por IA.</div>
 </div>
 
-<!-- Sección 1: Qué es SDD -->
+<!-- ================= 0. FLUJO ================= -->
 <section>
-  <div class="section-head">
-    <span class="num s-violet">01</span>
-    <h2>Qué es SDD</h2>
-    <span class="meta">Metodología</span>
+  <div class="section-head s-emerald">
+    <span class="num">0</span>
+    <h2>Flujo de aprendizaje general</h2>
+    <span class="meta">6 pasos · ~25 min</span>
   </div>
 
-  <p><strong>Spec Driven Development</strong> es escribir especificaciones primero, generar código después.</p>
-
-  <div class="callout">
-    <p><strong>La idea central:</strong> (<em>rigidez a cambio</em>) se detecta en specs antes de que se convierta en bugs.</p>
-  </div>
-
-  <p>OpenSpec (<a href="https://openspec.dev">openspec.dev</a> · 65.7k ⭐ · MIT) es el tool que almacena specs y las consulta de forma optimizada para agentes de IA.</p>
-
-  <h3>Instalación</h3>
-  <pre><code>npm install -g @fission-ai/openspec@latest</code></pre>
-</section>
-
-<!-- Sección 2: Las 4 fases -->
-<section>
-  <div class="section-head">
-    <span class="num s-purple">02</span>
-    <h2>Las 4 fases de SDD</h2>
-    <span class="meta">Workflow</span>
-  </div>
-
-  <table>
-    <thead><tr><th>Fase</th><th>Objetivo</th><th>Output</th></tr></thead>
-    <tbody>
-      <tr><td><span class="violet">Diseño</span></td><td>Definir qué construir</td><td>Specs aprobadas</td></tr>
-      <tr><td><span class="purple">Desarrollo</span></td><td>Generar código que cumpla specs</td><td>Feature completa</td></tr>
-      <tr><td><span class="indigo">Validación</span></td><td>Verificar que specs se cumplen</td><td>Tests + Validación</td></tr>
-      <tr><td><span class="muted">Mantenimiento</span></td><td>Actualizar specs al cambiar</td><td>Specs actualizadas</td></tr>
-    </tbody>
-  </table>
-
-  <h3>Los 3 Gates</h3>
-  <table>
-    <thead><tr><th>Gate</th><th>Cuándo</th><th>Criterio</th></tr></thead>
-    <tbody>
-      <tr><td>1: Diseño</td><td>Antes de código</td><td>Specs aprobadas</td></tr>
-      <tr><td>2: Implementación</td><td>Antes de merge</td><td>Código cumple specs + tests pasan</td></tr>
-      <tr><td>3: Validación</td><td>Antes de release</td><td><code>openspec validate</code> pasa</td></tr>
-    </tbody>
-  </table>
-</section>
-
-<!-- Sección 3: OpenSpec en la práctica -->
-<section>
-  <div class="section-head">
-    <span class="num s-indigo">03</span>
-    <h2>OpenSpec en la práctica</h2>
-    <span class="meta">Tooling</span>
-  </div>
-
-  <h3>Comandos esenciales</h3>
-  <pre><code>openspec init          # Crear .openspec/
-openspec propose       # Generar specs candidatas
-openspec exec "task"   # Ejecutar tarea con contexto optimizado
-openspec status        # Ver uso de contexto
-openspec scan          # Chequeo de salud</code></pre>
-
-  <h3>Workflow diario</h3>
-  <pre><code>1. openspec doctor       # salud del proyecto
-2. openspec exec "tarea"  # ejecutar con contexto
-3. openspec status        # verificar contexto
-4. openspec scan          # integridad cada 2-3 commits</code></pre>
-</section>
-
-<!-- Sección 4: SDD en Flutter -->
-<section>
-  <div class="section-head">
-    <span class="num s-violet">04</span>
-    <h2>SDD en Flutter + Supabase</h2>
-    <span class="meta">Clean Architecture</span>
-  </div>
-
-  <h3>Specs por capa</h3>
-  <table>
-    <thead><tr><th>Capa</th><th>Tipo de spec</th><th>Ejemplo</th></tr></thead>
-    <tbody>
-      <tr><td><strong>Domain</strong></td><td>Entidad / UseCase / Repo (interfaz)</td><td>User tiene id UUID, email, displayName</td></tr>
-      <tr><td><strong>Infrastructure</strong></td><td>Datasource / Repo impl</td><td>SupabaseDatasource usa signInWithPassword()</td></tr>
-      <tr><td><strong>Presentation</strong></td><td>Cubit / State</td><td>AuthCubiti: initial → loading → authenticated</td></tr>
-      <tr><td><strong>UI</strong></td><td>Página / Widget</td><td>LoginEmailPage usa listener_builder</td></tr>
-    </tbody>
-  </table>
-
-  <h3>Especificaciones EARS (patrones)</h3>
-  <table>
-    <thead><tr><th>Patrón</th><th>Ejemplo Flutter</th></tr></thead>
-    <tbody>
-      <tr><td><strong>WHEN</strong> [evento]</td><td>WHEN presiona Submit, llamar loginUseCase</td></tr>
-      <tr><td><strong>IF</strong> [trigger]</td><td>IF email inválido, mostrar error en campo</td></tr>
-      <tr><td><strong>WHERE</strong> [componente]</td><td>WHERE AuthCubiti, emitir AuthError en excepción</td></tr>
-      <tr><td><strong>WHILE</strong> [condición]</td><td>WHILE no autenticado, redirigir a /login</td></tr>
-    </tbody>
-  </table>
-
-  <h3>Boundary rules</h3>
-  <table>
-    <thead><tr><th>Boundary</th><th>Regla</th></tr></thead>
-    <tbody>
-      <tr><td>Domain → Infrastructure</td><td>Domain define interfaces; Infrastructure las implementa</td></tr>
-      <tr><td>Infrastructure → Supabase</td><td>Solo datasources tocan Supabase client</td></tr>
-      <tr><td>Presentation → Domain</td><td>Cubits usan UseCases, nunca Datasources</td></tr>
-      <tr><td>UI → Presentation</td><td>Páginas usan BlocBuilder, nunca lógica de negocio</td></tr>
-    </tbody>
-  </table>
-</section>
-
-<!-- Sección 5: Integración FADER -->
-<section>
-  <div class="section-head">
-    <span class="num s-purple">05</span>
-    <h2>Integración SDD + FADER</h2>
-    <span class="meta">Módulo 02</span>
-  </div>
-
-  <h3>Flujo integrado (7 pasos)</h3>
   <table class="flow">
     <tr>
-      <td><span class="step-n">1</span><span class="step-t">Alcance</span><span class="step-f">openspec propose</span></td>
-      <td><span class="step-n">2</span><span class="step-t">FADER</span><span class="step-f">Refinar specs</span></td>
-      <td><span class="step-n">3</span><span class="step-t">Contratos</span><span class="step-f">Especs EARS</span></td>
-      <td><span class="step-n">4</span><span class="step-t">Flujo</span><span class="step-f">Spec UI + Cubit</span></td>
-    </tr>
-    <tr>
-      <td><span class="step-n">5</span><span class="step-t">Backend</span><span class="step-f">Spec datasource</span></td>
-      <td><span class="step-n">6</span><span class="step-t">Criterios</span><span class="step-f">openspec validate</span></td>
-      <td><span class="step-n">7</span><span class="step-t">Scaffold</span><span class="step-f">openspec exec</span></td>
-      <td></td>
+      <td><span class="step-n">1</span><span class="step-t">Teoria</span><span class="step-f">libro</span></td>
+      <td><span class="step-n">2</span><span class="step-t">Herramienta</span><span class="step-f">OpenSpec</span></td>
+      <td><span class="step-n">3</span><span class="step-t">Metodologia</span><span class="step-f">stack</span></td>
+      <td><span class="step-n">4</span><span class="step-t">Practica</span><span class="step-f">ejemplos</span></td>
+      <td><span class="step-n">5</span><span class="step-t">Auditoria</span><span class="step-f">Via B</span></td>
     </tr>
   </table>
 
-  <h3>Cuándo usar cada tool</h3>
+  <div class="callout teal"><p><strong>Regla de oro:</strong> "La especificacion es el contrato. El codigo cambia, la spec describe lo que el sistema HACE ahora mismo."</p></div>
+
   <table>
-    <thead><tr><th>Situación</th><th>Tool</th></tr></thead>
+    <thead><tr><th>Paso</th><th>Que aprendes</th><th>Archivo / recurso</th></tr></thead>
     <tbody>
-      <tr><td>Feature nueva desde cero</td><td>FADER + OpenSpec + clean-arch-feature</td></tr>
-      <tr><td>Feature existente, agregar componente</td><td>Solo clean-arch-component + SDD lite</td></tr>
-      <tr><td>Fix de bug</td><td>Solo spec del componente afectado</td></tr>
-      <tr><td>Feature core con integración externa</td><td>FADER completa + SDD + OpenSpec validate</td></tr>
+      <tr><td>1. Teoria</td><td>Fases, puertas, EARS, deltas (libro SDDEquiposAgiles)</td><td class="mono">01-teoria-sdd.md + pdf/</td></tr>
+      <tr><td>2. Herramienta</td><td>OpenSpec CLI: init, slash commands, ciclo del cambio</td><td class="mono">03-openspec-guia-practica.md</td></tr>
+      <tr><td>3. Metodologia</td><td>SDD aplicado a Flutter + Clean Arch + Supabase</td><td class="mono">02-sdd-flutter-supabase.md</td></tr>
+      <tr><td>4. Practica</td><td>6 cambios completos de Simple a Compleja</td><td class="mono">ejemplos-cambios/</td></tr>
+      <tr><td>5. Auditoria</td><td>Verificar codigo escrito por IA contra la spec</td><td class="mono">06-auditoria-codigo-ia.md</td></tr>
     </tbody>
   </table>
 </section>
 
-<!-- Sección 6: Proporcionalidad y anti-patrones -->
+<!-- ================= 1. QUE ES SDD ================= -->
 <section>
-  <div class="section-head">
-    <span class="num s-gray">06</span>
-    <h2>Proporcionalidad y anti-patrones</h2>
-    <span class="meta">Buenas prácticas</span>
+  <div class="section-head s-emerald">
+    <span class="num">1</span>
+    <h2>Que es Spec Driven Development (3 min)</h2>
+    <span class="meta">Libro · SDDEquiposAgiles_v.1.pdf</span>
   </div>
+  <p><strong>SDD</strong> = escribir primero la especificacion ejecutable del comportamiento, aprobarla como contrato, y derivar de ella el codigo, los tests y la documentacion. La IA amplifica el problema: genera mucho codigo con poca comprension; la spec devuelve el control.</p>
 
-  <h3>Profundidad de spec según feature</h3>
+  <h3>Los tres pilares</h3>
   <table>
-    <thead><tr><th>Tipo</th><th>Profundidad</th><th>Ejemplo</th></tr></thead>
+    <thead><tr><th>Pilar</th><th>Que es</th><th>Artefacto</th></tr></thead>
     <tbody>
-      <tr><td>CRUD simple</td><td>Básica</td><td>Formulario de contacto</td></tr>
-      <tr><td>Feature core</td><td>Completa (EARS + boundaries)</td><td>Login con Supabase Auth</td></tr>
-      <tr><td>Integración externa</td><td>Alta (mocks + contratos)</td><td>Pago con Stripe</td></tr>
-      <tr><td>Fix de bug</td><td>Mínima</td><td>Corregir cálculo</td></tr>
+      <tr><td><strong>Teoria</strong></td><td>El libro: fases, puertas de calidad, lenguaje comun</td><td class="mono">pdf/SDDEquiposAgiles_v.1.pdf</td></tr>
+      <tr><td><strong>Herramienta</strong></td><td>OpenSpec CLI: carpeta de cambio por feature</td><td class="mono">openspec/changes/&lt;cambio&gt;/</td></tr>
+      <tr><td><strong>Metodologia</strong></td><td>Adaptacion al stack: que artefacto toca cada capa</td><td class="mono">02-sdd-flutter-supabase.md</td></tr>
     </tbody>
   </table>
 
-  <h3>Anti-patrones</h3>
+  <h3>El cambio de rol del desarrollador</h3>
   <table>
-    <thead><tr><th>Anti-patrón</th><th>Consecuencia</th><th>Solución</th></tr></thead>
+    <thead><tr><th>Antes (vibe coding)</th><th>Con SDD</th></tr></thead>
     <tbody>
-      <tr><td>Specs vagas</td><td>Código ambiguo</td><td>Usar EARS específico</td></tr>
-      <tr><td>Saltar Gate 1</td><td>Features erróneas</td><td>Aprobar specs antes de código</td></tr>
-      <tr><td>Specs monolíticas</td><td>Difícil mantener</td><td>1 spec por componente</td></tr>
-      <tr><td>No actualizar specs</td><td>Specs desactualizadas</td><td>Actualizar en cada PR relevante</td></tr>
+      <tr><td>Prompt → codigo → rezar</td><td>Spec aprobada → codigo → verificar contra spec</td></tr>
+      <tr><td>"Funciona en mi maquina"</td><td>Cumple los escenarios EARS o no se mergea</td></tr>
+      <tr><td>Documentacion obsoleta al dia siguiente</td><td>Specs vivas: describen el sistema ACTUAL</td></tr>
     </tbody>
   </table>
 
-  <div class="callout">
-    <p><strong>Recuerda:</strong> OpenSpec es un <em>tool</em>. SDD es una <em>methodology</em>. Usar OpenSpec sin SDD = contexto optimizado sin estructura. Usar SDD sin OpenSpec = methodology sin herramientas.</p>
+  <div class="callout green"><p><strong>Tres beneficios:</strong> Alineamiento antes de codear · Trazabilidad requisito→codigo→test · Onboarding y auditoria triviales.</p></div>
+</section>
+
+<!-- ================= 2. FASES Y PUERTAS ================= -->
+<section>
+  <div class="section-head s-teal">
+    <span class="num">2</span>
+    <h2>Las 4 fases y las 3 puertas (4 min)</h2>
+    <span class="meta">Nucleo del metodo</span>
   </div>
+
+  <table>
+    <thead><tr><th>Fase</th><th>Entregable</th><th>Puerta de calidad</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1. Especificar</strong></td><td>proposal.md + spec delta (requisitos EARS)</td><td><strong>Puerta 1:</strong> ¿la spec es precisa y completa? ¿un dev senior la entiende sin preguntar?</td></tr>
+      <tr><td><strong>2. Diseniar</strong></td><td>design.md (ficheros, contratos Dart, backend, decisiones)</td><td><strong>Puerta 2:</strong> ¿cada flecha del flujo tiene artefacto? ¿decisiones justificadas?</td></tr>
+      <tr><td><strong>3. Tareas</strong></td><td>tasks.md (oleadas, trazabilidad Req↔tarea↔test)</td><td><strong>(incluida en Puerta 2)</strong></td></tr>
+      <tr><td><strong>4. Implementar</strong></td><td>Codigo + tests + commits atomicos por tarea</td><td><strong>Puerta 3:</strong> tests verdes, matriz llena, Clarity Gate, archive</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout teal"><p><strong>Clarity Gate:</strong> ¿un agente distinto, con SOLO la spec, produciria codigo equivalente? Si dudas, hay supuestos ocultos → corregir la spec AHORA (todavia es barato).</p></div>
+
+  <h3>Proporcionalidad: no todo merece el ritual completo</h3>
+  <table>
+    <thead><tr><th>Tamano</th><th>Esfuerzo spec</th><th>Ejemplo</th></tr></thead>
+    <tbody>
+      <tr><td>Simple</td><td>proposal + spec, puerta combinada</td><td>cambiar un label validado, ajuste de query</td></tr>
+      <tr><td>Intermedia</td><td>las 4 fases completas</td><td>nueva pantalla CRUD, add-buyers</td></tr>
+      <tr><td>Compleja</td><td>4 fases + Impact Report + boundaries explicitos</td><td>facturacion, delivery realtime, pagos</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 3. EARS ================= -->
+<section>
+  <div class="section-head s-teal">
+    <span class="num">3</span>
+    <h2>Formato EARS (4 min)</h2>
+    <span class="meta">Lenguaje de requisitos</span>
+  </div>
+  <p>Cada requisito = <strong>ID + oracion EARS + escenarios</strong>. Sin "deberia", sin ambiguedades: el sistema DEBERA, punto.</p>
+
+  <table>
+    <thead><tr><th>Patron</th><th>Palabra clave</th><th>Cuando usarlo</th><th>Ejemplo (add-cart)</th></tr></thead>
+    <tbody>
+      <tr><td>Event-driven</td><td class="mono">WHEN ... THE SYSTEM SHALL</td><td>evento dispara comportamiento</td><td>WHEN agrega producto con stock &gt; 0 THEN agregar cantidad 1 y congelar precio</td></tr>
+      <tr><td>State-driven</td><td class="mono">WHILE &lt;estado&gt;</td><td>comportamiento segun estado persistente</td><td>MIENTRAS carrito tenga items, mostrar subtotal/impuesto/total</td></tr>
+      <tr><td>Unwanted</td><td class="mono">IF ... THEN SHALL</td><td>casos de error y excepciones</td><td>IF cupon expiro THEN "El cupon {codigo} ha expirado"</td></tr>
+      <tr><td>Optional</td><td class="mono">WHERE &lt;feature&gt;</td><td>solo si el feature esta activo</td><td>WHERE cupones activados, aplicar descuento</td></tr>
+      <tr><td>Complex</td><td class="mono">GIVEN ... WHEN ... THEN</td><td>precondiciones multiples</td><td>GIVEN cliente autenticado WHEN consulta su carrito THEN solo filas auth.uid()=user_id</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Clasificacion de reglas → patron EARS</h3>
+  <table>
+    <thead><tr><th>Tipo FADER</th><th>Significado</th><th>Patron tipico</th></tr></thead>
+    <tbody>
+      <tr><td>RN (regla negocio)</td><td>invariantes del dominio (tope 50% descuento)</td><td>Unwanted / Event</td></tr>
+      <tr><td>RT (regla transicion)</td><td>estados y transiciones validas</td><td>State-driven</td></tr>
+      <tr><td>RS (regla sistema)</td><td>limites tecnicos (rate limit, tamano)</td><td>Unwanted</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 4. DELTAS Y CAMBIO ================= -->
+<section>
+  <div class="section-head s-teal">
+    <span class="num">4</span>
+    <h2>Deltas y anatomia del cambio (3 min)</h2>
+    <span class="meta">openspec/changes/&lt;nombre&gt;/</span>
+  </div>
+
+  <pre class="template">openspec/changes/add-cart/
+├── proposal.md          WHY + WHAT Changes + Impact
+├── specs/
+│   └── shopping-cart/
+│       └── spec.md      Delta: ADDED / MODIFIED / REMOVED Requirements
+├── design.md            Ficheros afectados · Contratos Dart · Backend · Decisiones
+└── tasks.md             Oleadas + trazabilidad Req↔tarea↔test</pre>
+
+  <table>
+    <thead><tr><th>Operador delta</th><th>Semantica</th><th>Efecto en archive</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">## ADDED Requirements</td><td>capacidad nueva</td><td>se anaden al main spec</td></tr>
+      <tr><td class="mono">## MODIFIED Requirements</td><td>requisito existente cambia</td><td>reemplaza la version anterior</td></tr>
+      <tr><td class="mono">## REMOVED Requirements</td><td>requisito ya no aplica</td><td>se elimina del main spec</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout green"><p><strong>Tras el archive:</strong> openspec/specs/ contiene las especificaciones vivas = descripcion actualizada del sistema. Nunca documentacion muerta.</p></div>
+</section>
+
+<!-- ================= 5. OPENSPEC CLI ================= -->
+<section>
+  <div class="section-head s-green">
+    <span class="num">5</span>
+    <h2>OpenSpec CLI — comandos esenciales (3 min)</h2>
+    <span class="meta">v1.6.x · npm i -g @fission-ai/openspec</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Slash command</th><th>Que hace</th><th>Cuando</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">/opsx-explore</td><td>explorar una idea antes de especificarla</td><td>fase de discovery</td></tr>
+      <tr><td class="mono">/opsx-propose &lt;nombre&gt;</td><td>genera proposal + spec delta + design + tasks</td><td>inicio de todo cambio</td></tr>
+      <tr><td class="mono">/opsx-new-change</td><td>carpeta de cambio manual desde plantilla</td><td>control fino</td></tr>
+      <tr><td class="mono">/opsx-continue-change</td><td>retoma el cambio donde quedo</td><td>sesiones largas</td></tr>
+      <tr><td class="mono">/opsx-update-change</td><td>edita artifacts del cambio en curso</td><td>tras feedback de Puerta 1</td></tr>
+      <tr><td class="mono">/opsx-apply-change</td><td><strong>implementa</strong> tareas oleada por oleada</td><td>Via B (IA escribe)</td></tr>
+      <tr><td class="mono">/opsx-verify-change</td><td>valida implementacion contra la spec</td><td>Puerta 3</td></tr>
+      <tr><td class="mono">/opsx-archive-change</td><td>consolida deltas en specs vivas</td><td>al aprobar todo</td></tr>
+      <tr><td class="mono">/opsx-sync-specs · /opsx-onboard · /opsx-bulk-archive-change</td><td>mantenimiento de specs</td><td>ocasional</td></tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead><tr><th>CLI directa</th><th>Uso</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">openspec init [dir]</td><td>inicializar en un proyecto (una vez)</td></tr>
+      <tr><td class="mono">openspec list · openspec list --specs</td><td>ver cambios activos / capacidades</td></tr>
+      <tr><td class="mono">openspec validate &lt;cambio&gt; --strict</td><td>validar formato del cambio</td></tr>
+      <tr><td class="mono">openspec view · openspec change &lt;nombre&gt;</td><td>dashboard / detalle</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout teal"><p><strong>Setup en 2 comandos:</strong> npm i -g @fission-ai/openspec && openspec init — luego reinicia el editor para cargar los slash commands (/opsx-*).</p></div>
+</section>
+
+<!-- ================= 6. MAPEO AL STACK ================= -->
+<section>
+  <div class="section-head s-green">
+    <span class="num">6</span>
+    <h2>Mapeo spec → Flutter + Supabase (4 min)</h2>
+    <span class="meta">Metodologia aplicada</span>
+  </div>
+
+  <table>
+    <thead><tr><th>La spec dice</th><th>Vive en</th><th>Capa Clean Arch</th></tr></thead>
+    <tbody>
+      <tr><td>entidades y calculos puros</td><td class="mono">domain/entities/*.dart</td><td>Domain</td></tr>
+      <tr><td>reglas de negocio (RN)</td><td>usecases / entity</td><td>Domain</td></tr>
+      <tr><td>contratos de datos</td><td class="mono">domain/repositories/*.dart (Either&lt;Failure,T&gt;)</td><td>Domain</td></tr>
+      <tr><td>fuente de datos, RPCs</td><td class="mono">data/datasources/ + data/models/ (snake_case)</td><td>Data</td></tr>
+      <tr><td>estados UI y transiciones</td><td class="mono">presentation/cubit/ (sealed states)</td><td>Presentation</td></tr>
+      <tr><td>mensajes exactos de escenarios</td><td>CartError(mensaje literal), nunca en UI</td><td>toda la cadena</td></tr>
+      <tr><td>tablas, RLS, migraciones</td><td class="mono">supabase/migrations/NNNN_*.sql idempotente</td><td>Backend</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Reglas Supabase dentro de la spec</h3>
+  <ul class="checklist">
+    <li>RLS habilitada en toda tabla nueva; policies por actor × operacion declaradas en design.md §Backend</li>
+    <li>concurrencia critica (stock, secuencias) → RPC security definer atomico, no SELECT+UPDATE en cliente</li>
+    <li>aislamiento entre usuarios = escenario EARS obligatorio (GIVEN ... auth.uid() = user_id)</li>
+  </ul>
+
+  <div class="callout teal"><p><strong>Oleadas estandar de tasks.md:</strong> O1 modelos+entity → O2 datasource+repo impl → O3 usecases → O4 cubit+UI → O5 DI+rutas+migracion. Commit atomico por tarea.</p></div>
+</section>
+
+<!-- ================= 7. VIA A VS VIA B ================= -->
+<section>
+  <div class="section-head s-amber">
+    <span class="num">7</span>
+    <h2>Quien escribe el codigo: Via A vs Via B (3 min)</h2>
+    <span class="meta">Fase 4 · Implementacion</span>
+  </div>
+
+  <table class="flow">
+    <tr>
+      <td><span class="step-n">A</span><span class="step-t">Scaffold IA + logica tuya</span><span class="step-f">skill clean-arch-feature</span></td>
+      <td><span class="step-n">B</span><span class="step-t">IA escribe todo</span><span class="step-f">/opsx-apply-change</span></td>
+    </tr>
+  </table>
+
+  <table>
+    <thead><tr><th>Criterio</th><th>Via A (tu implementas)</th><th>Via B (IA escribe todo)</th></tr></thead>
+    <tbody>
+      <tr><td>Logica critica: dinero, permisos, estados</td><td>✅ entiendes cada linea</td><td>⚠️ solo con escenarios EARS exhaustivos</td></tr>
+      <tr><td>CRUD, formularios, brownfield quirurgico</td><td>posible overkill</td><td>✅ terreno ideal</td></tr>
+      <tr><td>Aprendiendo stack o dominio</td><td>✅ implementar ES aprender</td><td>❌ no aprendes nada</td></tr>
+      <tr><td>Specs ambiguas (falla Clarity Gate)</td><td>✅ implementar resuelve dudas</td><td>❌ el error se multiplica</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout teal"><p><strong>Regla del libro:</strong> puedes delegar la escritura, NUNCA la aprobacion de la spec (Puerta 1) ni la verificacion final (Puerta 3). La skill clean-arch-feature acepta modo openspec_change: pasa la carpeta y genera el scaffold con TODOs citando REQ.</p></div>
+</section>
+
+<!-- ================= 8. AUDITORIA ================= -->
+<section>
+  <div class="section-head s-amber">
+    <span class="num">8</span>
+    <h2>Checklist de auditoria — Via B (3 min)</h2>
+    <span class="meta">06-auditoria-codigo-ia.md</span>
+  </div>
+
+  <ul class="checklist">
+    <li><strong>Contratos intactos:</strong> repository interface = design.md verbatim; Either&lt;Failure,T&gt; en todo; cero try/catch tragador; nada fuera de la tabla de ficheros</li>
+    <li><strong>Sealed states:</strong> switch exhaustivo sin caso _; mensajes = literales EXACTOS de los escenarios ("Producto {nombre} sin stock disponible" ≠ "Stock insuficiente")</li>
+    <li><strong>Capa correcta:</strong> RN en domain, no en cubit/UI; una sola fuente de verdad cliente/servidor; decisiones D1..Dn respetadas</li>
+    <li><strong>Supabase ⚠️:</strong> RLS en todas las tablas nuevas; policies = design.md; RPC security definer revisado linea por linea; cero service_role en cliente; migracion idempotente e igual al design</li>
+    <li><strong>Tests contra spec:</strong> 1 test por Scenario citando REQ; asserts usan literales; cero tests siempre-verdes</li>
+    <li><strong>Trazabilidad:</strong> matriz llena; cero UnimplementedError() huerfanos; commit atomico por tarea</li>
+    <li><strong>Red flags:</strong> diff fuera de alcance; dependencias nuevas sin justificar; over-engineering; boundaries violados ("No desactivar RLS jamas")</li>
+  </ul>
+
+  <div class="callout green"><p><strong>Ciclo por oleada:</strong> agente aplica → tu auditas diff vs spec → cumple ✓ sigue / no cumple → fix citando REQ+escenario. Si el bug era de la SPEC, corrigela primero (/opsx-update-change) y re-aplica.</p></div>
+</section>
+
+<!-- ================= 9. EQUIVALENCIAS FADER ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">9</span>
+    <h2>Equivalencias de terminologia (1 min)</h2>
+    <span class="meta">Del modulo historico FADER → estandar SDD</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Antes (FADER / Scrum)</th><th>Ahora (SDD / OpenSpec)</th></tr></thead>
+    <tbody>
+      <tr><td>Descomposicion de feature</td><td>Carpeta de cambio (proposal + specs + design + tasks)</td></tr>
+      <tr><td>Historias de usuario + criterios Gherkin</td><td>Requirements con ID + escenarios EARS</td></tr>
+      <tr><td>Definition of Done / sprint review</td><td>Puertas de calidad (Puerta 1, 2, 3)</td></tr>
+      <tr><td>Product Backlog refinado</td><td>Main specs (openspec/specs/) — sistema actual</td></tr>
+      <tr><td>Nuevo sprint para cambiar algo</td><td>Deltas ADDED / MODIFIED / REMOVED</td></tr>
+      <tr><td>Mapeo FADER a capas</td><td>design.md §Ficheros afectados (Elemento|Capa|Archivo|Req)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 10. LOS 6 EJEMPLOS ================= -->
+<section>
+  <div class="section-head s-gray">
+    <span class="num">10</span>
+    <h2>Los 6 ejemplos de ejemplos-cambios/ (1 min)</h2>
+    <span class="meta">De Simple a Compleja</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Cambio</th><th>Capacidad</th><th>Complejidad</th><th>Lo que demuestra</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">add-cart</td><td>shopping-cart</td><td>Intermedia ★ walkthrough</td><td>flujo completo paso a paso; RPC atomico stock; precio congelado; RLS por usuario</td></tr>
+      <tr><td class="mono">add-buyers</td><td>buyers-management</td><td>Simple → Intermedia ★★</td><td>puerta combinada; aprobar/liberar tickets; minimo ritual suficiente</td></tr>
+      <tr><td class="mono">approve-reservas</td><td>appointments</td><td>Compleja ★★★</td><td>doble confirmacion; reagendar con politica 24h; pg_cron; realtime</td></tr>
+      <tr><td class="mono">add-elearning-progress</td><td>enrollment-progress</td><td>Intermedia ★★</td><td>gating de lecciones via RLS; vista de progreso; trigger auto-completada</td></tr>
+      <tr><td class="mono">add-facturacion</td><td>invoicing</td><td>Compleja ★★★</td><td>maquina de estados invoice; secuencias fiscales; RPC transaccional; notas credito</td></tr>
+      <tr><td class="mono">add-delivery-seguimiento</td><td>delivery-tracking</td><td>Compleja ★★★</td><td>GPS realtime broadcast; tarifa PostGIS; timeout de entrega con cron</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout teal"><p><strong>Como practicar:</strong> lee add-cart completo junto a 02-sdd-flutter-supabase.md → copia la estructura a openspec/changes/ en tu proyecto → adapta. Luego intenta escribir tu propio cambio ANTES de pedirle la spec a la IA.</p></div>
 </section>
 
 <div class="footer-note">
-  <strong>Módulo 23 · Spec Driven Development (SDD)</strong><br>
-  Complementa <em>Guia-SDD-equipos-ágiles.pdf</em> · OpenSpec + Flutter + Supabase + FADER
+  Modulo 02 · Spec Driven Development · Guia resumen — generada desde pdf/src/build_pdf.py
 </div>
 
 </body>
