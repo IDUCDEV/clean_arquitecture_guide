@@ -78,6 +78,31 @@ Checklist específico de tu codebase:
 
 ---
 
+## Dos modos de crear el cambio
+
+Toda feature nace como carpeta de cambio. Hay dos formas de llenarla, y **no son excluyentes** — puedes empezar artesano y terminar copiloto (o al revés):
+
+| | Modo artesano (tú propones) | Modo copiloto (la IA propone) |
+|---|---|---|
+| Comando de arranque | `/opsx-new-change` o copiar [04-plantilla-cambio-openspec.md](./04-plantilla-cambio-openspec.md) | `/opsx-propose <nombre>` |
+| Primera versión de la spec | La escribes TÚ, sin código | La redacta la IA desde tu descripción |
+| Rol de la IA | Refina: busca ambigüedades, requisitos no verificables, supuestos ocultos | Propone desde cero y tú apruebas |
+| Cómo refina | Conversación + `/opsx-update-change` | Conversación sobre su propia propuesta |
+| Validación común | `openspec validate <cambio> --strict` + Clarity Gate | idem |
+| Ideal para | Aprender, dominio crítico, diseño difícil, entrenar criterio | Velocidad, CRUD conocido, brownfield |
+
+**Flujo del modo artesano:**
+
+1. `/opsx-new-change` (o copia la plantilla) → esqueleto `proposal.md` + `specs/` + `design.md` + `tasks.md` listo
+2. Llenas tú: proposal, requisitos EARS y design. Piensas primero — igual que se hacía con la hoja de diseño del método anterior
+3. Pides revisión a la IA: *"revísame la spec: ¿qué escenario es ambiguo, qué requisito no es testeable, qué supuesto falta?"* → aplicas las mejoras con `/opsx-update-change`
+4. `openspec validate <cambio> --strict`
+5. Clarity Gate como prueba final: ¿otro agente, leyendo SOLO tu spec, produciría código equivalente?
+
+Ambos modos convergen en la misma **Puerta 1**. La elección posterior de implementación (Vía A skill / Vía B agente) es independiente del modo elegido.
+
+---
+
 ## Fase 1 · Requisitos — QUÉ construir
 
 > Diluye los pasos **Alcance**, **Formular**, **Actorizar**, **Descomponer**, **Entidades** y **Reglas** del método anterior. Nada se pierde: cada pieza tiene su lugar exacto.

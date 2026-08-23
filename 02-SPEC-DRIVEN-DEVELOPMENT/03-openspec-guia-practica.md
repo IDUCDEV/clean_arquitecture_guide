@@ -203,6 +203,8 @@ Cada spec vive en su carpeta, al lado del código que implementa. Cuando un agen
 
 > **Nota:** el prefijo puede variar según el agente seleccionado en `init`/`update` (Claude Code usa `.claude/commands/opsx/<id>.md`, etc.). Los IDs de workflow son los mismos; verifica los archivos generados en tu proyecto.
 
+> **Dos estilos de arranque:** `/opsx-propose` es el **modo copiloto** (la IA redacta la primera versión de proposal/spec/design/tasks y tú apruebas). `/opsx-new-change` es el **modo artesano** (crea solo el esqueleto y lo llenas tú; la IA refina después con `/opsx-update-change`). Ambos convergen en la misma Puerta 1 — detalles en [02-sdd-flutter-supabase.md §Dos modos de crear el cambio](./02-sdd-flutter-supabase.md#dos-modos-de-crear-el-cambio).
+
 ---
 
 ## Comandos de la CLI
