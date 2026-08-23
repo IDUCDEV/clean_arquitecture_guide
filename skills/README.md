@@ -92,7 +92,7 @@ Las skills están diseñadas para ser ejecutadas por el asistente AI. Solo tiene
 ## Flujo de trabajo típico
 
 ```
-1. Diseñas la feature (FADER)
+1. Diseñas la feature (SDD: spec + design en OpenSpec)
         ↓
 2. Pides scaffold + Supabase + páginas (+ wiring: DI/rutas) → clean-arch-feature
         ↓          (si pediste wiring, orquesta di-getit-scaffold + go-route-scaffold)

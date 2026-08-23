@@ -14,7 +14,8 @@ Guía completa para usar las 5 skills de scaffolding. El foco es **qué inputs d
 |---|---|---|
 | `app_name` | Nombre del paquete en `pubspec.yaml` | `order_app` |
 | `feature_name` | Nombre de la feature en snake_case | `product`, `user_profile` |
-| `design_file` | Hoja de diseño markdown (8 pasos, módulo 02) usada como input de la feature | `02-DISENIO-FEATURE/disenio-feature-buyers-fader.md` |
+| `design_file` | Hoja de diseño markdown usada como input de la feature | `ruta/a/hoja-diseno.md` |
+| `openspec_change` | Carpeta de cambio OpenSpec (proposal + specs + design + tasks) usada como input | `02-SPEC-DRIVEN-DEVELOPMENT/ejemplos-cambios/add-cart/` |
 | Naming | Archivos en snake_case, clases en UpperCamelCase | `order_model.dart`, `OrderModel` |
 | Scaffolding-only | Las skills generan estructura, **nunca** lógica | `throw UnimplementedError()` |
 
@@ -112,11 +113,11 @@ Genera (si todo se pide): entity, repository interface, model, datasource, repos
 
 ### 2.6 Modo hoja de diseño (`design_file`)
 
-En vez de describir la feature en el prompt, la skill puede **leer la hoja de diseño** (el `.md` del flujo de 8 pasos del módulo 02) y derivar todo de ahí.
+En vez de describir la feature en el prompt, la skill puede **leer la hoja de diseño** (output del análisis previo de la metodología SDD, módulo 02) y derivar todo de ahí.
 
 | Parámetro | Qué es | Formato | Ejemplo |
 |---|---|---|---|
-| `design_file` | Ruta a la hoja de diseño markdown | ruta | `02-DISENIO-FEATURE/disenio-feature-buyers-fader.md` |
+| `design_file` | Ruta a la hoja de diseño markdown | ruta | `ruta/a/hoja-diseno.md` |
 
 **Cómo funciona:**
 - Si se provee `design_file`, se ignoran `feature_name`, `fields` y `operations`; la skill parsea el archivo y extrae archivos, entidades, usecases, contratos, tablas y páginas.
@@ -128,9 +129,27 @@ En vez de describir la feature en el prompt, la skill puede **leer la hoja de di
 - Filas del mapeo que apunten a **otras features** (ej. `tickets/...`) no se generan: se listan como dependencias externas pendientes.
 - `pages`, `wiring`, Supabase y `app_name` siguen pidiéndose igual que en modo clásico.
 
-**Prompt en modo hoja de diseño:**
+### 2.7 Modo cambio OpenSpec (`openspec_change`) — recomendado
 
-> Usa la skill `clean-arch-feature` con `design_file: 02-DISENIO-FEATURE/disenio-feature-buyers-fader.md`. Páginas `[list:listener_builder, detail:builder]`. Wiring `[di, router]`. App name `raffle_app`.
+El input preferido hoy es una **carpeta de cambio OpenSpec**, generada con el flujo SDD del módulo [02-SPEC-DRIVEN-DEVELOPMENT](../02-SPEC-DRIVEN-DEVELOPMENT/) (`/opsx-propose`). Ejemplos completos en [`02-SPEC-DRIVEN-DEVELOPMENT/ejemplos-cambios/`](../02-SPEC-DRIVEN-DEVELOPMENT/ejemplos-cambios/).
+
+| Parámetro | Qué es | Formato | Ejemplo |
+|---|---|---|---|
+| `openspec_change` | Ruta a la carpeta del cambio | ruta | `02-SPEC-DRIVEN-DEVELOPMENT/ejemplos-cambios/add-buyers/` |
+
+**Cómo funciona:**
+- Tiene prioridad sobre `design_file`; se ignoran `feature_name`, `fields` y `operations`.
+- `proposal.md` → feature name (de la capacidad o carpeta `add-{feature}`) y alcance.
+- `specs/*/spec.md` §ADDED Requirements → un usecase por requisito; cada body lleva `// TODO` citando el REQ y los mensajes exactos de los escenarios EARS.
+- `specs/*/spec.md` §MODIFIED / §REMOVED → NO generan archivos: se listan como cambios brownfield pendientes sobre código existente.
+- `design.md` §Ficheros afectados → tabla `Elemento | Capa | Archivo | Req`: los nombres de archivo se respetan verbatim.
+- `design.md` §Contratos Dart clave → firmas verbatim (`Either<Failure, T>`, sealed states).
+- `design.md` §Backend Supabase → tablas/RPCs para el datasource; columnas para la migración si están, si no se preguntan.
+- Si `design.md` no existe (cambio Simple), se derivan los archivos desde la spec con el naming estándar.
+
+**Prompt en modo cambio OpenSpec:**
+
+> Usa la skill `clean-arch-feature` con `openspec_change: 02-SPEC-DRIVEN-DEVELOPMENT/ejemplos-cambios/add-buyers/`. Páginas `[list:listener_builder]`. Wiring `[di]`. App name `raffle_app`.
 
 ---
 

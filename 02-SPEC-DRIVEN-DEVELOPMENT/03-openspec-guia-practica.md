@@ -1,4 +1,4 @@
-# 01 - OpenSpec: Guía Práctica
+# 03 - OpenSpec: Guía Práctica
 
 > La herramienta líder de SDD. Specs como markdown vivo en tu repositorio, ejecutables por 30+ agentes de IA.
 
@@ -51,15 +51,23 @@ mi-proyecto-flutter/
 │   │   └── .gitkeep
 │   └── changes/                  ← Cambios en progreso
 │       └── .gitkeep
-├── AGENTS.md                     ← Instrucciones para agentes IA
+├── AGENTS.md                     ← Constitución del proyecto (instrucciones para agentes IA)
 └── .openspec/                    ← Configuración interna
 ```
 
-**`openspec/init` también genera archivos de configuración para cada agente que selecciones:**
-- `CLAUDE.md` (para Claude Code)
-- `.cursorrules` (para Cursor)
-- `.github/copilot-instructions.md` (para GitHub Copilot)
-- `.windsurfrules` (para Windsurf)
+**`openspec init` pregunta qué agentes usas y genera sus archivos de configuración.** Con OpenCode seleccionado genera:
+
+```
+.opencode/commands/
+├── opsx-explore.md               → invocable como /opsx-explore
+├── opsx-propose.md               → /opsx-propose
+├── opsx-new-change.md            → /opsx-new-change
+└── ...                           (un archivo por comando)
+```
+
+Otros agentes reciben su equivalente (`CLAUDE.md` + `.claude/commands/opsx/`, `.cursorrules`, `.github/copilot-instructions.md`, etc.).
+
+> **Verificado contra CLI v1.6.0** (`@fission-ai/openspec`). Si tu versión difiere, ejecuta `openspec --version` y `openspec update` tras instalar.
 
 ---
 
@@ -68,26 +76,27 @@ mi-proyecto-flutter/
 ### Paso 1: Explorar antes de decidir
 
 ```bash
-# En tu agente IA (Claude Code, Cursor, etc.)
-/opsx:explore
+# En tu agente IA (OpenCode, Claude Code, Cursor, etc.)
+/opsx-explore
 ```
 
 El agente lee tu codebase y te ayuda a pensar antes de escribir nada. Útil cuando no estás seguro de cómo implementar algo.
 
 **Ejemplo:**
 ```
-Tú: /opsx:explore
+Tú: /opsx-explore
 IA: ¿Qué quieres explorar?
 Tú: Quiero agregar modo oscuro pero no estoy seguro de cómo hacerlo limpiamente
-IA: [lee tu setup de estilos] La ruta más limpia: CSS variables + un ThemeContext pequeño,
-    con detección de preferencia del sistema. Sin dependencias nuevas. ¿Lo acotamos?
+IA: [lee tu setup de temas] La ruta más limpia: ThemeMode en el Cubit raíz +
+    ThemeData claro/oscuro en app_theme.dart, persistido en SharedPreferences.
+    Sin dependencias nuevas. ¿Lo acotamos?
 Tú: Sí, hagámoslo
 ```
 
 ### Paso 2: Proponer un cambio
 
 ```bash
-/opsx:propose add-dark-mode
+/opsx-propose add-dark-mode
 ```
 
 OpenSpec genera una carpeta completa de cambio:
@@ -115,22 +124,22 @@ Antes de que el agente escriba código, revisas:
 ### Paso 4: Ejecutar
 
 ```bash
-/opsx:apply
+/opsx-apply-change
 ```
 
 El agente implementa las tareas una por una:
 
 ```
-✓ 1.1 Add theme context provider
-✓ 1.2 Create toggle component
-✓ 2.1 Add CSS variables
-✓ 2.2 Wire up localStorage
+✓ 1.1 ThemeCubit + estados sealed
+✓ 1.2 Persistencia de preferencia
+✓ 2.1 ThemeData claro/oscuro en app_theme.dart
+✓ 2.2 Ruta y wiring en app_router.dart
 ```
 
 ### Paso 5: Archivar
 
 ```bash
-/opsx:archive
+/opsx-archive-change
 ```
 
 El cambio se archiva y las specs se actualizan. Listo para el siguiente feature.
@@ -176,23 +185,42 @@ Cada spec vive en su carpeta, al lado del código que implementa. Cuando un agen
 
 ---
 
-## Slash commands disponibles
+## Slash commands disponibles (OpenCode, CLI v1.6.0)
 
 | Comando | Función |
 |---------|---------|
-| `/opsx:explore` | Explorar opciones antes de decidir |
-| `/opsx:propose <nombre>` | Crear proposal + specs + design + tasks |
-| `/opsx:apply` | Ejecutar las tareas del cambio actual |
-| `/opsx:archive` | Archivar cambio completado |
-| `/opsx:new` | Crear un nuevo cambio (workflow expandido) |
-| `/opsx:continue` | Continuar un cambio existente |
-| `/opsx:verify` | Verificar que las specs se cumplen |
-| `/opsx:onboard` | Onboarding de un nuevo desarrollador |
+| `/opsx-explore` | Explorar opciones antes de decidir (no crea cambio) |
+| `/opsx-propose <nombre>` | Crear proposal + specs + design + tasks |
+| `/opsx-new-change` | Nuevo cambio con workflow guiado completo |
+| `/opsx-continue-change` | Continuar un cambio existente donde quedó |
+| `/opsx-update-change` | Registrar progreso de tareas en el cambio |
+| `/opsx-apply-change` | Ejecutar las tareas del cambio actual |
+| `/opsx-verify-change` | Verificar que la implementación cumple las specs |
+| `/opsx-archive-change` | Archivar cambio completado y consolidar specs |
+| `/opsx-bulk-archive-change` | Archivar varios cambios completados |
+| `/opsx-sync-specs` | Sincronizar deltas archivados con las specs vivas |
+| `/opsx-onboard` | Onboarding de un nuevo desarrollador |
 
-> **Nota:** El nombre del comando varía según el agente:
-> - Cursor: `/opsx-propose`
-> - GitHub Copilot: `@opsx-propose`
-> - Amazon Q: `$openspec-propose`
+> **Nota:** el prefijo puede variar según el agente seleccionado en `init`/`update` (Claude Code usa `.claude/commands/opsx/<id>.md`, etc.). Los IDs de workflow son los mismos; verifica los archivos generados en tu proyecto.
+
+---
+
+## Comandos de la CLI
+
+```bash
+openspec init          # Inicializa OpenSpec en el proyecto (interactivo)
+openspec update        # Regenera archivos de agentes tras actualizar la CLI
+openspec list          # Lista cambios activos
+openspec list --specs  # Lista specs archivadas
+openspec view          # Dashboard interactivo de cambios y specs
+openspec change <id>   # Muestra un cambio concreto
+openspec archive <id>  # Archiva un cambio (equivale al slash command)
+openspec spec <cap>    # Inspecciona una capacidad archivada
+openspec validate      # Valida formato de changes/specs contra los schemas
+openspec doctor        # Diagnóstico de la instalación local
+```
+
+La validación (`openspec validate`) comprueba que cada spec tenga secciones `WHY`/`Purpose` y requisitos en formato delta correcto — úsala antes de cada puerta.
 
 ---
 
@@ -203,14 +231,14 @@ Proyecto Flutter con Clean Architecture, Supabase como backend.
 
 ### Paso 1: Explorar
 ```
-/opsx:explore
+/opsx-explore
 → Quiero agregar login con Supabase Auth
 → El agente lee tu codebase y sugiere la mejor integración
 ```
 
 ### Paso 2: Proponer
 ```
-/opsx:propose add-supabase-auth
+/opsx-propose add-supabase-auth
 ```
 
 **Lo que genera:**
@@ -301,14 +329,14 @@ Revisas cada artefacto. Ajustas si algo no está bien (ej: agregar "recordar ses
 
 ### Paso 4: Ejecutar
 ```
-/opsx:apply
+/opsx-apply-change
 → El agente ejecuta las 12 tareas una por una
 → Cada tarea genera código que cumple la spec
 ```
 
 ### Paso 5: Archivar
 ```
-/opsx:archive
+/opsx-archive-change
 → Las specs de auth-login se actualizan
 → El cambio queda documentado en el historial
 ```
@@ -364,13 +392,15 @@ export OPENSPEC_TELEMETRY=0
 | `command not found: openspec` | No está instalado globalmente | `npm install -g @fission-ai/openspec@latest` |
 | `Node.js version too old` | Versión de Node menor a 20.19.0 | Actualizar Node.js |
 | Slash commands no aparecen | Agentes no configurados | Ejecutar `openspec update` en el proyecto |
-| Specs no se generan | No se ejecutó `/opsx:propose` primero | Ejecutar propose antes de apply |
+| Specs no se generan | No se ejecutó `/opsx-propose` primero | Ejecutar propose antes de apply |
 
 ---
 
 ## Referencias
 
 - **Sitio web:** [openspec.dev](https://openspec.dev)
-- **GitHub:** [github.com/Fission-AI/OpenSpec](https://github.com/Fission-AI/OpenSpec) (65.7k ⭐)
+- **GitHub:** [github.com/Fission-AI/OpenSpec](https://github.com/Fission-AI/OpenSpec)
 - **Discord:** [discord.gg/YctCnvvshC](https://discord.gg/YctCnvvshC)
-- **Documentación:** [docs en GitHub](https://github.com/Fission-AI/OpenSpec/tree/main/docs)
+- **Metodología aplicada a tu stack:** [02-sdd-flutter-supabase.md](./02-sdd-flutter-supabase.md)
+- **Plantilla de cambio:** [04-plantilla-cambio-openspec.md](./04-plantilla-cambio-openspec.md)
+- **Ejemplos listos para copiar:** [`ejemplos-cambios/`](./ejemplos-cambios/)

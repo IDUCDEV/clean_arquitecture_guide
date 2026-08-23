@@ -1,6 +1,6 @@
 ---
 name: clean-arch-feature
-description: Generate a complete Clean Architecture feature scaffold (entity, model, datasource, repository interface + impl, usecases, cubit, state, optional pages) either from a feature name + entity fields (classic mode) or from a design file (design_file) following the module 02 8-step methodology (Alcance → FADER → Mapeo → Contratos → Flujo → Backend → Criterios → Estimación, e.g. disenio-feature-buyers-fader.md). Optionally includes Supabase integration (table schema → snake_case model + datasource + SQL migration), initial pages (listener_builder / builder / form patterns) and wiring orchestration (delegates DI registration to di-getit-scaffold and routing to go-route-scaffold). All method bodies are left as throw UnimplementedError() — implementation is the developer's responsibility.
+description: Generate a complete Clean Architecture feature scaffold (entity, model, datasource, repository interface + impl, usecases, cubit, state, optional pages) from a feature name + entity fields (classic mode), from a design file (design_file) following the 8-step methodology (Alcance → FADER → Mapeo → Contratos → Flujo → Backend → Criterios → Estimación), or from an OpenSpec change folder (openspec_change: proposal.md + specs/*/spec.md con requisitos EARS en formato delta + design.md con ficheros afectados y contratos Dart + tasks.md, e.g. 02-SPEC-DRIVEN-DEVELOPMENT/ejemplos-cambios/add-cart). Optionally includes Supabase integration (table schema → snake_case model + datasource + SQL migration), initial pages (listener_builder / builder / form patterns) and wiring orchestration (delegates DI registration to di-getit-scaffold and routing to go-route-scaffold). All method bodies are left as throw UnimplementedError() — implementation is the developer's responsibility.
 ---
 
 # clean-arch-feature — Scaffold completo de feature
@@ -21,10 +21,20 @@ Genera la estructura completa de carpetas y archivos para una feature siguiendo 
 
 | Parámetro | Descripción | Ejemplo |
 |---|---|---|
-| `design_file` | Ruta a una hoja de diseño markdown que sigue el flujo de 8 pasos del módulo 02 (Alcance → FADER → Mapeo → Contratos → Flujo → Backend → Criterios → Estimación) | `02-DISENIO-FEATURE/disenio-feature-buyers-fader.md` |
+| `design_file` | Ruta a una hoja de diseño markdown que sigue el flujo de 8 pasos del módulo 02 (Alcance → FADER → Mapeo → Contratos → Flujo → Backend → Criterios → Estimación) | `ruta/a/hoja-diseno.md` (metodología en `02-SPEC-DRIVEN-DEVELOPMENT/02-sdd-flutter-supabase.md`) |
 
 **Si se omite:** se usa el modo clásico (`feature_name` + `fields` + `operations`).
 **Si se proporciona:** se ignoran `feature_name`, `fields` y `operations`; la skill lee el archivo, lo parsea (ver [Modo hoja de diseño](#modo-hoja-de-diseño--parsing-del-archivo)) y deriva entidades, usecases, repositorios, datasource, cubit, state y páginas. `table_name`, `columns`, `pages` y `wiring` siguen siendo inputs opcionales que se piden aparte si aplican.
+
+## Input alternativo B (cambio OpenSpec)
+
+| Parámetro | Descripción | Ejemplo |
+|---|---|---|
+| `openspec_change` | Ruta a una carpeta de cambio OpenSpec (`proposal.md` + `specs/*/spec.md` + `design.md` + `tasks.md`) | `02-SPEC-DRIVEN-DEVELOPMENT/ejemplos-cambios/add-cart/` |
+
+**Prioridad de modos:** si se provee `openspec_change` tiene prioridad sobre `design_file`; ambos tienen prioridad sobre el modo clásico.
+
+**Si se proporciona:** se ignoran `feature_name`, `fields` y `operations`; la skill parsea la carpeta (ver [Modo cambio OpenSpec](#modo-cambio-openspec--parsing-de-la-carpeta)) y deriva los mismos artefactos. Los requisitos EARS (escenarios) se convierten en comentarios TODO citando el ID del requisito en cada usecase generado. Requisitos `MODIFIED`/`REMOVED` NO generan archivos nuevos: se listan en el resumen como cambios brownfield pendientes sobre código existente.
 
 ## Input opcional (Supabase)
 
@@ -119,9 +129,33 @@ supabase/
 
 Además, los archivos `model.dart` y `remote_datasource.dart` se generan con mapeo snake_case y `_tableName`.
 
+## Modo cambio OpenSpec — parsing de la carpeta
+
+Cuando se provee `openspec_change`, la skill parsea la carpeta del cambio (estructura en [04-plantilla-cambio-openspec.md](../../02-SPEC-DRIVEN-DEVELOPMENT/04-plantilla-cambio-openspec.md); ejemplos completos en `02-SPEC-DRIVEN-DEVELOPMENT/ejemplos-cambios/`). El parsing es **estructural por archivos y encabezados**, no por contenido literal.
+
+| Archivo | Qué se extrae | Cómo se usa |
+|---|---|---|
+| `proposal.md` §What Changes / Capabilities | Nombre de feature y alcance | `feature_name` (de la capacidad o del nombre de carpeta `add-{feature}`) |
+| `proposal.md` §Actores y permisos + Scope | Contexto | No genera archivos; informa el resumen |
+| `specs/*/spec.md` §ADDED Requirements | `### Requirement: <nombre> (REQ-xxx)` → un UseCase por requisito operacional; escenarios `#### Scenario:` → TODOs citando REQ y mensajes exactos | Bodies como TODO con los mensajes de error literales de los escenarios |
+| `specs/*/spec.md` §MODIFIED / §REMOVED Requirements | Cambios sobre código existente | NO generan archivos; se listan en el resumen final como pendientes brownfield |
+| `design.md` §Ficheros afectados | Tabla `Elemento \| Capa \| Archivo \| Req` | **Fuente principal.** Mismo mapeo por fila que la tabla de artefactos del modo hoja de diseño. Nombres de archivo verbatim |
+| `design.md` §Contratos Dart clave | Firmas de Repository interface y states sealed | Se usan **verbatim** (incluye `Either<Failure, T>` y sealed classes si están) |
+| `design.md` §Decisions | Decisiones D1..Dn | Comentarios `// Decisión Dn:` en los archivos afectados |
+| `design.md` §Backend Supabase | Tablas, RLS, RPCs | `_tableName` del datasource, RPCs en TODOs, tablas para migración |
+| `design.md` §Flujo de datos | Recorrido UI→Supabase | No genera archivos; valida que cada flecha tenga artifacto |
+| `tasks.md` | Oleadas y trazabilidad Req↔tarea | Orden informativo de generación; no genera código |
+| `tasks.md` §Trazabilidad | Matriz Req↔tarea↔test | Anotada en el resumen para `flutter-test-generator` |
+
+**Diferencias clave vs hoja de diseño:**
+1. Los requisitos ya traen ID (`REQ-xxx`) — se citan en TODOs y resumen
+2. Los escenarios EARS/GIVEN-WHEN-THEN reemplazan a la sección `7 · Criterios`
+3. `MODIFIED`/`REMOVED` implican brownfield: verificar existencia antes de generar y nunca duplicar contratos existentes
+4. Si `design.md` no existe (cambio Simple), derivar archivos desde los requisitos de la spec usando el naming estándar y preguntar lo ambiguo
+
 ## Modo hoja de diseño — parsing del archivo
 
-Cuando se provee `design_file`, la skill convierte la hoja de diseño en el mismo spec que el modo clásico. El archivo esperado sigue el flujo de 8 pasos del módulo 02 (ver el ejemplo `02-DISENIO-FEATURE/disenio-feature-buyers-fader.md`). El parsing es **estructural por encabezados de sección** (1 Alcance, 2 FADER, 3 Mapeo, 4 Contratos, 5 Flujo, 6 Backend, 7 Criterios, 8 Estimación), no por contenido literal.
+Cuando se provee `design_file`, la skill convierte la hoja de diseño en el mismo spec que el modo clásico. El archivo esperado sigue el flujo de 8 pasos del módulo 02 (metodología en `02-SPEC-DRIVEN-DEVELOPMENT/02-sdd-flutter-supabase.md`; el formato FADER es el heredado del módulo histórico `02-DISENIO-FEATURE`). El parsing es **estructural por encabezados de sección** (1 Alcance, 2 FADER, 3 Mapeo, 4 Contratos, 5 Flujo, 6 Backend, 7 Criterios, 8 Estimación), no por contenido literal.
 
 Reglas de parsing, sección por sección:
 
@@ -728,9 +762,10 @@ CREATE POLICY "Users can update own {table_name}"
 ## Workflow
 
 1. Determinar el modo de entrada:
+   - **Modo cambio OpenSpec** (si se proporciona `openspec_change`): parsear la carpeta con [Modo cambio OpenSpec](#modo-cambio-openspec--parsing-de-la-carpeta). Derivar feature, archivos, requisitos→usecases (con REQ en TODOs), contratos verbatim y tablas. NO preguntar `feature_name`, `fields` ni `operations`. Listar MODIFIED/REMOVED como pendientes brownfield.
    - **Modo hoja de diseño** (si se proporciona `design_file`): leer el archivo y parsearlo con [Modo hoja de diseño](#modo-hoja-de-diseño--parsing-del-archivo). Derivar feature, lista de archivos, entidades/campos (con inferencia de tipos), usecases, contratos y tablas. NO preguntar `feature_name`, `fields` ni `operations`.
    - **Modo clásico** (si no): preguntar feature name, lista de campos (nombre + tipo Dart), operaciones CRUD deseadas, y nombre del paquete (app name)
-2. Preguntar opcionalmente: table_name y columnas Postgres si desea integración Supabase. En modo hoja de diseño las tablas se deducen del archivo y solo se preguntan las columnas (si se quiere migración y el archivo no las trae)
+2. Preguntar opcionalmente: table_name y columnas Postgres si desea integración Supabase. En modo hoja de diseño las tablas se deducen del archivo; en modo cambio OpenSpec salen de `design.md` §Backend Supabase (si incluye columnas se usan tal cual; si no, preguntarlas solo si se desea migración)
 3. Preguntar opcionalmente: páginas iniciales deseadas (`pages`) con sus patrones — si se omiten, generar el placeholder genérico (modo clásico) o las páginas del mapeo con patrón `listener_builder` (modo hoja de diseño)
 4. Preguntar opcionalmente: wiring deseado (`[di]`, `[router]` o `[di, router]`)
 5. Generar cada archivo siguiendo los templates de arriba
@@ -739,5 +774,5 @@ CREATE POLICY "Users can update own {table_name}"
 8. Si se proporcionó `wiring` con `di`: invocar la skill `di-getit-scaffold` pasándole los componentes generados (datasources, repositorios, usecases, cubit, estado) para que actualice `service_locator.dart`. No escribir la lógica de DI aquí — delegar.
 9. Si se proporcionó `wiring` con `router`: invocar la skill `go-route-scaffold` pasándole las páginas generadas para que actualice `app_router.dart`. No escribir la lógica de rutas aquí — delegar.
 10. No generar bodies de métodos — usar `throw UnimplementedError()`
-11. Mostrar resumen de archivos creados al final. En modo hoja de diseño incluir además: dependencias externas pendientes (si hay) y campos con tipo inferido (`// TODO: verificar tipo`)
+11. Mostrar resumen de archivos creados al final. En modo hoja de diseño incluir además: dependencias externas pendientes (si hay) y campos con tipo inferido (`// TODO: verificar tipo`). En modo cambio OpenSpec incluir: requisitos ADDED cubiertos (REQ → usecase), requisitos MODIFIED/REMOVED pendientes brownfield, y matriz Req↔tarea si existe
 12. Recordar al usuario que debe: implementar bodies, revisar RLS policies si aplica, ejecutar migración en Supabase, verificar los tipos inferidos en modo hoja de diseño, y ejecutar `flutter pub get` si añadió nuevos paquetes

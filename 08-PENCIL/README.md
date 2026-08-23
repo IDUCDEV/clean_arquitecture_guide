@@ -80,7 +80,7 @@ Este módulo te enseña a usar **Pencil** como herramienta de diseño manual, si
 
 ## 🔗 Siguiente paso
 
-Después de este módulo, regresa a [02-DISENIO-FEATURE](../02-DISENIO-FEATURE/) para conectar el diseño visual con la descomposición FADER, o continúa con [01-CLEAN-ARCHITECTURE](../01-CLEAN-ARCHITECTURE/) para implementar en código.
+Después de este módulo, regresa a [02-SPEC-DRIVEN-DEVELOPMENT](../02-SPEC-DRIVEN-DEVELOPMENT/) para conectar el diseño visual con las especificaciones del cambio (SDD), o continúa con [01-CLEAN-ARCHITECTURE](../01-CLEAN-ARCHITECTURE/) para implementar en código.
 
 ---
 

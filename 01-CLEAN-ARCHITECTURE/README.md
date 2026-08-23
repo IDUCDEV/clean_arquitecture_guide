@@ -45,7 +45,7 @@
 
 ## 🚀 Siguiente paso
 
-Continúa con [05-TESTING](../05-TESTING/) para aprender a probar tu código, o si prefieres diseñar primero, ve a [02-DISENIO-FEATURE](../02-DISENIO-FEATURE/).
+Continúa con [05-TESTING](../05-TESTING/) para aprender a probar tu código, o si prefieres diseñar primero, ve a [02-SPEC-DRIVEN-DEVELOPMENT](../02-SPEC-DRIVEN-DEVELOPMENT/).
 
 ---
 

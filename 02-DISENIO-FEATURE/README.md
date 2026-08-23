@@ -1,5 +1,13 @@
 # 02 - Diseño de Features
 
+> [!WARNING]
+> **MÓDULO HISTÓRICO — MIGRADO.** Este contenido fue fusionado y actualizado en
+> **[02-SPEC-DRIVEN-DEVELOPMENT](../02-SPEC-DRIVEN-DEVELOPMENT/)**, que combina la teoría del libro
+> *Spec Driven Development para Equipos Ágiles* (pdf/), la herramienta OpenSpec CLI y esta metodología
+> FADER diluida en la terminología estándar de SDD (fases, puertas, EARS, deltas).
+> Los casos prácticos viven ahora en [`ejemplos-cambios/`](../02-SPEC-DRIVEN-DEVELOPMENT/ejemplos-cambios/).
+> Esta carpeta se conserva intacta por trazabilidad histórica; no se recomienda seguir aprendiendo desde aquí.
+
 > Aprende a descomponer cualquier feature en papel y lápiz antes de escribir código. El arte perdido de pensar primero, codificar después.
 
 ---

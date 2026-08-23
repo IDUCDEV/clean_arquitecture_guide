@@ -62,7 +62,7 @@ Si el sistema es lento para **un solo usuario**, es un problema de *performance*
 |---|---|---|---|
 | **Pregunta** | ¿Cómo organizo el código? | ¿Qué construyo y cómo encaja? | ¿Cómo funciona el sistema completo? |
 | **Escala** | 1 archivo / 1 clase | 1 feature | Todo el ecosistema |
-| **Artefacto** | Carpetas y clases | Documento de diseño (FADER) | Diagrama de componentes + trade-offs |
+| **Artefacto** | Carpetas y clases | Spec OpenSpec (SDD) | Diagrama de componentes + trade-offs |
 | **¿Toca código?** | Sí | Solo diseño | Diagramas y decisiones de infraestructura |
 | **Nº de "computadoras"** | 1 (el dispositivo) | 1 app + 1 backend | Muchas (servidores, CDN, replicas) |
 

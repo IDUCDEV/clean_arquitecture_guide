@@ -32,7 +32,7 @@
 
 ## 🎯 Objetivo del módulo
 
-Los módulos anteriores te enseñaron a organizar **código** (01 Clean Architecture) y a diseñar **features** (02 FADER). Este módulo te enseña a diseñar el **sistema completo**: la app Flutter, el backend, la base de datos, la red y la infraestructura que los conecta, y cómo todo eso se comporta cuando lo usan cientos de miles de usuarios.
+Los módulos anteriores te enseñaron a organizar **código** (01 Clean Architecture) y a diseñar **features** (02 Spec Driven Development). Este módulo te enseña a diseñar el **sistema completo**: la app Flutter, el backend, la base de datos, la red y la infraestructura que los conecta, y cómo todo eso se comporta cuando lo usan cientos de miles de usuarios.
 
 Al terminar sabrás:
 
@@ -73,7 +73,7 @@ Tiempo estimado: 25-35 horas
 | Módulo | Relación |
 |--------|----------|
 | **01-CLEAN-ARCHITECTURE** | Complementario. Clean Arch organiza el código interno de la app (escala micro); System Design organiza el sistema completo (escala macro). |
-| **02-DISENIO-FEATURE** | Complementario. El diseño de features descompone *qué construir*; System Design decide *cómo se sostiene* a escala. |
+| **02-SPEC-DRIVEN-DEVELOPMENT** | Complementario. El SDD define *qué construir* (specs, requisitos, deltas); System Design decide *cómo se sostiene* a escala. |
 | **03-SUPABASE** | Base técnica. Este módulo diseña usando Supabase (Postgres, Auth, Storage, Realtime, Edge Functions) y lo cita como infraestructura. |
 | **04-ALMACENAMIENTO-LOCAL** | Necesario para el diseño offline-first (archivo 10). |
 | **06-NIVEL-EXPERTO/04** | Streams y real-time en Flutter, usados en el diseño de chat y feeds. |

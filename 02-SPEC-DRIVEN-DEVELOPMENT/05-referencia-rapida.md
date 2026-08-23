@@ -1,4 +1,4 @@
-# 04 - Referencia Rápida
+# 05 - Referencia Rápida
 
 > Cheat sheet de SDD: fases, puertas, EARS, boundaries, proporcionalidad y OpenSpec.
 
@@ -85,7 +85,31 @@ MIENTRAS [precondición], CUANDO [evento], el sistema debe [respuesta]
 | Bug trivial, script, prototipo | Vibe coding |
 | Feature compleja, cambio con riesgo, trabajo en equipo | SDD |
 | Feature nueva en codebase existente | SDD + Impact Report |
-| Refactor grande | SDD (sin FADER) |
+| Refactor grande | SDD (flujo completo) |
+
+---
+
+## Equivalencias de terminología (glosario de dilución)
+
+Si venías del método de diseño anterior (FADER) o de Scrum, aquí está el mapa:
+
+| Antes (FADER / Scrum) | Ahora (SDD estándar) | Dónde vive |
+|------------------------|----------------------|------------|
+| Paso Alcance | Sección Scope del `proposal.md` | Fase 1 |
+| Formular + Actorizar | Historias precisas + tabla de actores/permisos | Fase 1 |
+| Descomponer | Operaciones atómicas → requisitos dirigidos por evento EARS | Fase 1 |
+| Entidades | Specs por componente Clean Arch | Fase 1 |
+| Reglas RN (negocio) | Requisitos EARS (ubicuo/evento/no deseado) + escenarios | `specs/*/spec.md` |
+| Reglas RT (técnicas) | Decisiones explícitas en `design.md` | Fase 2 |
+| Reglas RS (seguridad) | Escenarios EARS + políticas RLS | spec + design §Backend |
+| Mapeo a capas | Tabla "Ficheros afectados" | `design.md` |
+| Contratos + ADRs | Sección Contratos Dart + Decisions | `design.md` |
+| Flujo de datos | Diagrama Page→Cubit→UseCase→Repo→DataSource→Supabase | `design.md` |
+| Criterios BDD | Escenarios GIVEN-WHEN-THEN dentro de cada Requirement | deltas |
+| Trazabilidad | Matriz Req ↔ tarea ↔ test ↔ commit | `tasks.md` |
+| Estimación de complejidad | Proporcionalidad Simple/Intermedia/Compleja | todo el flujo |
+| Sprint Planning (Scrum) | Puerta 3: aprobar tasks.md antes de ejecutar | ceremonias |
+| Sprint Review | Revisión final contra la spec al cierre de la implementación | ceremonias |
 
 ---
 
@@ -120,17 +144,21 @@ MIENTRAS [precondición], CUANDO [evento], el sistema debe [respuesta]
 
 ---
 
-## OpenSpec: comandos rápidos
+## OpenSpec: comandos rápidos (CLI v1.6.0, OpenCode)
 
 | Comando | Acción |
 |---------|--------|
 | `npm install -g @fission-ai/openspec@latest` | Instalar |
 | `openspec init` | Inicializar en el proyecto |
-| `/opsx:explore` | Explorar opciones |
-| `/opsx:propose <nombre>` | Crear cambio completo |
-| `/opsx:apply` | Ejecutar tareas |
-| `/opsx:archive` | Archivar cambio |
+| `openspec validate` | Validar formato de changes/specs |
+| `/opsx-explore` | Explorar opciones |
+| `/opsx-propose <nombre>` | Crear cambio completo |
+| `/opsx-apply-change` | Ejecutar tareas |
+| `/opsx-verify-change` | Verificar cumplimiento de specs |
+| `/opsx-archive-change` | Archivar cambio |
 | `openspec update` | Regenerar instrucciones de agentes |
+
+Detalle completo: [03-openspec-guia-practica.md](./03-openspec-guia-practica.md)
 
 ---
 
@@ -165,11 +193,24 @@ The [Sistema/Capa] SHALL [comportamiento].
 
 ---
 
+## Métricas (cap. 22 del libro)
+
+| Tipo | Ejemplos |
+|------|----------|
+| De flujo | Tiempo de ciclo por fase, % de cambios que pasan la puerta a la primera, retrabajos por fase |
+| De resultado | Bugs en producción, deriva spec-código, velocidad de onboarding |
+
+**Qué NO medir:** líneas de spec producidas, número de requisitos — fomenta teatro de especificación.
+
+---
+
 ## Referencia completa
 
 | Documento | Ubicación |
 |-----------|-----------|
-| Guía SDD teórica | `Guia-SDD-equipos-agiles.pdf` (raíz del proyecto) |
-| OpenSpec guía práctica | `01-openspec-guia-practica.md` (este módulo) |
-| SDD en Flutter | `02-sdd-en-flutter.md` (este módulo) |
-| Integración con FADER | `03-integracion-modulo-02-fader.md` (este módulo) |
+| Teoría: mapa del libro oficial | [01-teoria-sdd.md](./01-teoria-sdd.md) · `pdf/SDDEquiposAgiles_v.1.pdf` |
+| Resumen state-of-the-art | `pdf/Guia-SDD-equipos-agiles.pdf` |
+| Metodología aplicada a Flutter+Supabase | [02-sdd-flutter-supabase.md](./02-sdd-flutter-supabase.md) |
+| OpenSpec guía práctica | [03-openspec-guia-practica.md](./03-openspec-guia-practica.md) |
+| Plantilla de cambio | [04-plantilla-cambio-openspec.md](./04-plantilla-cambio-openspec.md) |
+| Ejemplos completos | [`ejemplos-cambios/`](./ejemplos-cambios/) |

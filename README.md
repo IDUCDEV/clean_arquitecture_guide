@@ -37,7 +37,8 @@ La guía está organizada en **23 módulos numerados** para seguir un orden de a
 ```
 00-DISENIO-PRODUCTO-MVP/       → Diseño de producto y Design Sprint
 01-CLEAN-ARCHITECTURE/         → Fundamentos de arquitectura
-02-DISENIO-FEATURE/            → Diseño y descomposición de features (¡empieza aquí!)
+02-SPEC-DRIVEN-DEVELOPMENT/    → Spec Driven Development: teoría + OpenSpec + práctica (¡empieza aquí!)
+02-DISENIO-FEATURE/            → [HISTÓRICO] Framework FADER original (migrado a 02-SPEC-DRIVEN-DEVELOPMENT)
 03-SUPABASE/                   → Backend + automatización
 04-ALMACENAMIENTO-LOCAL/       → Almacenamiento local con Isar
 05-TESTING/                    → Cómo probar el código
@@ -83,22 +84,22 @@ La guía está organizada en **23 módulos numerados** para seguir un orden de a
 
 ---
 
-### ✏️ Sección 02: Diseño de Features
+### ✏️ Sección 02: Spec Driven Development
 
 | Archivo | Descripción |
 |---------|-------------|
-| [README.md](./02-DISENIO-FEATURE/README.md) | Filosofía "papel y lápiz" + framework FADER |
-| [01-descomposicion-feature.md](./02-DISENIO-FEATURE/01-descomposicion-feature.md) | Framework FADER: Formular, Actorizar, Descomponer, Entidades, Reglas |
-| [01a-practica-carrito.md](./02-DISENIO-FEATURE/01a-practica-carrito.md) | Práctica: descomponer Carrito de Compras |
-| [02-mapeo-capas.md](./02-DISENIO-FEATURE/02-mapeo-capas.md) | Traducir FADER a las capas de Clean Architecture |
-| [02a-practica-carrito-capas.md](./02-DISENIO-FEATURE/02a-practica-carrito-capas.md) | Práctica: mapear Carrito a capas |
-| [03-contratos-primero.md](./02-DISENIO-FEATURE/03-contratos-primero.md) | Contract-First Design y ADRs |
-| [03a-practica-carrito-contratos.md](./02-DISENIO-FEATURE/03a-practica-carrito-contratos.md) | Práctica: contratos del Carrito |
-| [04-flujo-datos.md](./02-DISENIO-FEATURE/04-flujo-datos.md) | Flujo de datos entre capas |
-| [04a-practica-carrito-flujo.md](./02-DISENIO-FEATURE/04a-practica-carrito-flujo.md) | Práctica: flujo del Carrito |
-| [05-caso-completo-reservas.md](./02-DISENIO-FEATURE/05-caso-completo-reservas.md) | Caso integral: Sistema de Reservas |
+| [README.md](./02-SPEC-DRIVEN-DEVELOPMENT/README.md) | Índice del módulo: teoría + herramienta + metodología |
+| [01-teoria-sdd.md](./02-SPEC-DRIVEN-DEVELOPMENT/01-teoria-sdd.md) | Mapa del libro *Spec Driven Development para Equipos Ágiles* (pdf/) |
+| [02-sdd-flutter-supabase.md](./02-SPEC-DRIVEN-DEVELOPMENT/02-sdd-flutter-supabase.md) | Metodología SDD adaptada: Flutter + Clean Architecture + Supabase |
+| [03-openspec-guia-practica.md](./02-SPEC-DRIVEN-DEVELOPMENT/03-openspec-guia-practica.md) | OpenSpec CLI: instalación, slash commands y flujo |
+| [04-plantilla-cambio-openspec.md](./02-SPEC-DRIVEN-DEVELOPMENT/04-plantilla-cambio-openspec.md) | Plantilla de carpeta de cambio (proposal, specs delta, design, tasks) |
+| [05-referencia-rapida.md](./02-SPEC-DRIVEN-DEVELOPMENT/05-referencia-rapida.md) | Cheatsheet: comandos, EARS y equivalencias de terminología |
+| [ejemplos-cambios/](./02-SPEC-DRIVEN-DEVELOPMENT/ejemplos-cambios/) | 6 cambios completos (carrito, reservas, e-learning, facturación, delivery, buyers) |
+| [trabajar-sin-ia/](./02-SPEC-DRIVEN-DEVELOPMENT/trabajar-sin-ia/) | Ejercicios para recuperar autonomía sin IA |
 
-**Contenido:** Metodología FADER, descomposición de features, mapeo a capas, contract-first, ADRs, diagramas de flujo.
+**Contenido:** Teoría del libro SDD (fases, puertas, EARS, deltas), herramienta OpenSpec CLI, metodología adaptada a este stack, plantillas y 6 ejemplos completos.
+
+> **Histórico:** la versión anterior de esta sección (framework FADER) se conserva intacta en [02-DISENIO-FEATURE/](./02-DISENIO-FEATURE/). Su contenido fue migrado y diluido en la terminología estándar de SDD.
 
 ---
 
@@ -472,7 +473,7 @@ La guía está organizada en **23 módulos numerados** para seguir un orden de a
 ## 🚀 Orden de Aprendizaje Sugerido
 
 ```
-02-DISENIO-FEATURE            → Diseño de features (6-8 h) — ¡empieza aquí!
+02-SPEC-DRIVEN-DEVELOPMENT   → SDD: teoría + OpenSpec + práctica (6-8 h) — ¡empieza aquí!
     ↓
 01-CLEAN-ARCHITECTURE        → Fundamentos (4-6 h)
     ↓

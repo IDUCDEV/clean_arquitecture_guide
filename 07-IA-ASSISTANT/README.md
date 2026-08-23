@@ -18,7 +18,7 @@
 
 ¿Quieres reconstruir tus habilidades de resolución de problemas sin dependencia de IA?
 
-→ Ve a **[02-DISENIO-FEATURE/trabajar-sin-ia/](../02-DISENIO-FEATURE/trabajar-sin-ia/)** — 9 archivos con ejercicios, checklists y ejemplos progresivos para recuperar tu autonomía como developer.
+→ Ve a **[02-SPEC-DRIVEN-DEVELOPMENT/trabajar-sin-ia/](../02-SPEC-DRIVEN-DEVELOPMENT/trabajar-sin-ia/)** — 9 archivos con ejercicios, checklists y ejemplos progresivos para recuperar tu autonomía como developer.
 
 ---
 

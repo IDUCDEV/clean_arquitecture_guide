@@ -9,8 +9,8 @@ Mapa de navegación cruzada entre los 23 módulos de la guía.
 | Concepto | Módulo principal | Módulos relacionados |
 |---|---|---|
 | Diseño de producto (MVP) | [00-DISENIO-PRODUCTO-MVP](./00-DISENIO-PRODUCTO-MVP/) | [01-CLEAN-ARCHITECTURE](./01-CLEAN-ARCHITECTURE/) (implementación), [08-PENCIL](./08-PENCIL/) (diseño visual) |
-| Clean Architecture (capas) | [01-CLEAN-ARCHITECTURE](./01-CLEAN-ARCHITECTURE/) | [02-DISENIO-FEATURE](./02-DISENIO-FEATURE/) (mapeo a capas), [06-NIVEL-EXPERTO/04](./06-NIVEL-EXPERTO/04-streams-tiempo-real.md) (StreamUseCase) |
-| Diseño de features (FADER) | [02-DISENIO-FEATURE](./02-DISENIO-FEATURE/) | [01-CLEAN-ARCHITECTURE/03](./01-CLEAN-ARCHITECTURE/03-estructura-de-carpetas.md) (carpetas) |
+| Clean Architecture (capas) | [01-CLEAN-ARCHITECTURE](./01-CLEAN-ARCHITECTURE/) | [02-SPEC-DRIVEN-DEVELOPMENT](./02-SPEC-DRIVEN-DEVELOPMENT/) (mapeo a capas), [06-NIVEL-EXPERTO/04](./06-NIVEL-EXPERTO/04-streams-tiempo-real.md) (StreamUseCase) |
+| Diseño de features (SDD) | [02-SPEC-DRIVEN-DEVELOPMENT](./02-SPEC-DRIVEN-DEVELOPMENT/) | [01-CLEAN-ARCHITECTURE/03](./01-CLEAN-ARCHITECTURE/03-estructura-de-carpetas.md) (carpetas), [22-DISENIO-SISTEMAS](./22-DISENIO-SISTEMAS/) (system design) |
 | State management (BLoC/Cubit) | [16-BLOC-CUBIT](./16-BLOC-CUBIT/) | [15-WIDGETS-FLUTTER](./15-WIDGETS-FLUTTER/) (widgets puros), [06-NIVEL-EXPERTO/03](./06-NIVEL-EXPERTO/03-comunicacion-features.md) (cross-feature), [06-NIVEL-EXPERTO/04](./06-NIVEL-EXPERTO/04-streams-tiempo-real.md) (streams) |
 | Widgets de Flutter | [15-WIDGETS-FLUTTER](./15-WIDGETS-FLUTTER/) | [16-BLOC-CUBIT/05-06](./16-BLOC-CUBIT/05-widgets-flutter-bloc-p1.md) (flutter_bloc widgets), [05-TESTING/04b](./05-TESTING/04-presentation/04b-practica-widgets.md) (widget tests) |
 | Testing | [05-TESTING](./05-TESTING/) | [16-BLOC-CUBIT/14](./16-BLOC-CUBIT/14-testing-bloc.md) (blocTest), [06-NIVEL-EXPERTO/01](./06-NIVEL-EXPERTO/01-fpdart-result-pattern.md) (fpdart + testing) |
@@ -71,7 +71,7 @@ Mapa de navegación cruzada entre los 23 módulos de la guía.
 |---|---|---|
 | 00-DISENIO-PRODUCTO-MVP | `README.md` | `09-caso-completo-mvp.md` (integrador) |
 | 01-CLEAN-ARCHITECTURE | `README.md` | `05c-presentation-ui-layer.md` (CRUD completo) |
-| 02-DISENIO-FEATURE | `README.md` | `05-caso-completo-reservas.md` (caso integrador) |
+| 02-SPEC-DRIVEN-DEVELOPMENT | `README.md` | `02-sdd-flutter-supabase.md` (metodología), `ejemplos-cambios/` (casos integradores) |
 | 03-SUPABASE | `README.md` | `PARTE-0-SQL-POSTGRESQL/01-fundamentos-sql/` (SQL desde cero), `PARTE-0-SQL-POSTGRESQL/02-postgresql-especifico/07-rpc-para-supabase.md` (RPC), `PARTE-1-DESARROLLO/05-migraciones-y-seeds.md` |
 | 04-ALMACENAMIENTO-LOCAL | `README.md` | `03-implementacion-local-datasource.md` |
 | 05-TESTING | `README.md` | `04-presentation/04a-practica-cubits-bloc-test.md` |
