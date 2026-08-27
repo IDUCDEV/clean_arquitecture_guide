@@ -447,77 +447,865 @@ Tras archive, las specs archivadas son la documentación viva del sistema.
 
 ---
 
-## 6. Ejemplo completo: Mini-feature "Notificaciones push"
+## 6. Ejemplos prácticos de complejidad creciente
 
-### Fase 0+1: Crear cambio + requisitos
+Los 3 ejemplos muestran el flujo completo de SDD con OpenSpec. Copia, adapta, y usa como referencia.
+
+---
+
+### Ejemplo A: Simple — Cambiar color del tema de la app
+
+**Contexto:** Quieres que el usuario pueda elegir entre tema claro y oscuro. Es un cambio que toca solo presentación, sin tablas nuevas ni decisiones técnicas.
+
+**Clasificación:** Simple → sin design.md, 1 puerta combinada.
+
+#### Paso 1: Crear el cambio
 
 ```bash
-/opsx-propose add-push-notifications
+/opsx-propose add-theme-color
 ```
 
-La IA genera proposal/spec/design/tasks. Tú ajustas:
+OpenSpec genera la carpeta `openspec/changes/add-theme-color/`. La IA llena los 4 archivos.
 
-**proposal.md** (resumen):
-- Impacto: toca `auth` (token), `core/di`, `app_router`
-- Scope: SÍ recibe tokens FCM, NO envía emails
-- Actores: Cliente (recibe), Admin (configura campañas)
+#### Paso 2: proposal.md (lo que escribiste)
 
-**spec.md** (2 requisitos):
-- REQ-001: Registrar token FCM al login
-- REQ-002: Recibir y mostrar notificación
+```
+# Proposal: add-theme-color
 
-### Fase 2: Diseño
+## Impacto (Impact Report)
+- Features afectadas: ninguna directamente (configuración global de tema)
+- Reutilizable: `AppTheme` en `lib/core/theme/` ya maneja tema claro
+- Supabase: sin tablas nuevas
+- DI / rutas: sin cambios
+- Riesgos: ninguno
 
-```markdown
+## Why (Problema)
+Los usuarios no pueden cambiar entre tema claro y oscuro. La app solo tiene tema claro.
+
+## What Changes (Solución)
+Agregar toggle de tema claro/oscuro en la pantalla de configuración, persistiendo la preferencia del usuario.
+
+## Capabilities
+### New Capabilities
+- `theme-color`: toggle de tema claro/oscuro con persistencia
+
+## Scope (Alcance)
+**Incluye:**
+- Toggle en pantalla de settings
+- Persistir preferencia en SharedPreferences
+- Aplicar tema al iniciar la app
+
+**No incluye:**
+- Temas personalizados con colores custom
+- Sincronización entre dispositivos
+
+**Dependencias:** SharedPreferences (ya en pubspec)
+**Suposiciones:** solo 2 temas: claro y oscuro
+**Preguntas abiertas:** ~~¿sincronizar entre dispositivos?~~ → NO (fuera de alcance)
+
+## Actores y permisos
+| Actor | Puede | No puede | Mapeo RLS |
+|-------|-------|----------|-----------|
+| Usuario | Cambiar su tema, persistir preferencia | Cambiar tema de otros usuarios | N/A (datos locales)
+
+## Impact
+- Código: ~3 ficheros modificados en `lib/core/theme/` y `lib/features/settings/`
+- Datos: sin tablas nuevas
+- Breaking changes: ninguno
+```
+
+#### Paso 3: spec.md (lo que escribiste)
+
+```
+# Spec: theme-color
+
+## WHY
+Los usuarios prefieren temas oscuros para reducir fatiga visual. No hay forma de cambiar el tema actual.
+
+## Purpose
+Permitir al usuario elegir entre tema claro y oscuro, persistiendo su preferencia localmente.
+
+## ADDED Requirements
+
+### Requirement: Cambiar tema de la app (REQ-001)
+El usuario cambiará entre tema claro y oscuro desde la configuración.
+
+#### Scenario: Cambiar a tema oscuro
+- **WHEN** el usuario toca el toggle de tema en settings
+- **THEN** el sistema DEBERÁ aplicar el tema oscuro inmediatamente
+
+#### Scenario: Cambiar a tema claro
+- **WHEN** el usuario toca el toggle de tema estando en oscuro
+- **THEN** el sistema DEBERÁ aplicar el tema claro inmediatamente
+
+#### Scenario: Persistir preferencia
+- **WHEN** el usuario cambia el tema
+- **THEN** el sistema DEBERÁ guardar la preferencia en SharedPreferences
+
+### Requirement: Recordar tema al iniciar (REQ-002)
+La app cargará el tema guardado al abrir.
+
+#### Scenario: App inicia con tema oscuro guardado
+- **GIVEN** el usuario tiene guardado "tema oscuro"
+- **WHEN** la app inicia
+- **THEN** el sistema DEBERÁ mostrar el tema oscuro sin intervención del usuario
+
+#### Scenario: Primera vez sin preferencia
+- **GIVEN** el usuario nunca cambió el tema
+- **WHEN** la app inicia
+- **THEN** el sistema DEBERÁ usar el tema claro por defecto
+```
+
+#### Paso 4: design.md — NO se crea
+
+Es Simple. La skill `clean-arch-feature` derivará los archivos automáticamente de los requisitos.
+
+#### Paso 5: tasks.md
+
+```
+## 1. Dominio y datos base
+- [ ] 1.1 Crear enum ThemeMode en `lib/core/theme/app_theme.dart` (REQ-001)
+
+## 2. Capa de datos
+- [ ] 2.1 Crear ThemeLocalDataSource en `lib/core/theme/theme_local_data_source.dart` (REQ-002)
+
+## 3. Implementaciones
+- [ ] 3.1 Crear ThemeCubit + ThemeState en `lib/core/theme/cubit/theme_cubit.dart` (REQ-001, REQ-002)
+
+## 4. Presentación e integración
+- [ ] 4.1 Agregar toggle en settings_page.dart (REQ-001)
+- [ ] 4.2 Cargar tema guardado en main.dart (REQ-002)
+
+## 5. Tests
+- [ ] 5.1 Test ThemeCubit: cambiar tema + persistir (REQ-001, REQ-002)
+
+## Trazabilidad
+| Req | Tarea(s) | Test | Cubre escenario |
+|-----|----------|------|-----------------|
+| REQ-001 | 1.1, 2.1, 3.1, 4.1 | 5.1 | Toggle + persistir |
+| REQ-002 | 2.1, 3.1, 4.2 | 5.1 | Cargar tema guardado + defecto |
+```
+
+#### Paso 6: Implementar y cerrar
+
+**Vía A (recomendada para Simple):**
+```bash
+# Llamas la skill en tu agente IA:
+Usa la skill clean-arch-feature con openspec_change: openspec/changes/add-theme-color/
+
+# Implementas los bodies de cada archivo
+# El cubit es muy pequeño: 2 métodos (toggleTheme, loadTheme)
+```
+
+**Vía B:**
+```bash
+/opsx-apply-change
+# La IA escribe todo (son ~3 ficheros pequeños)
+# Auditas rápidamente
+```
+
+```bash
+# Cerrar
+/opsx-verify-change
+/opsx-archive-change
+```
+
+**Lo que aprendiste:** Un cambio Simple se resuelve en ~30 minutos. Solo necesitas proposal + spec. Sin design.md. La skill genera todo el scaffold y tú solo implementas 2-3 métodos pequeños.
+
+---
+
+### Ejemplo B: Intermedia — Gestión de perfil de usuario
+
+**Contexto:** Los usuarios necesitan ver y editar su perfil (nombre, email, foto). Ya existe la feature `auth` con login. Necesitas una pantalla de perfil que lea/escriba a Supabase.
+
+**Clasificación:** Intermedia → design.md ligero, 1-2 puertas.
+
+#### Paso 1: Crear el cambio
+
+```bash
+/opsx-propose add-user-profile
+```
+
+#### Paso 2: proposal.md
+
+```
+# Proposal: add-user-profile
+
+## Impacto (Impact Report)
+- Features afectadas: `auth` (user entity existente), `core/di` (+1 registro), `app_router` (+1 ruta)
+- Reutilizable: `User` entity de auth, `Failure` hierarchy, patrón CRUD existente
+- Supabase: tabla `profiles` nueva, RLS por dueño, migración nº 0008
+- DI / rutas: service_locator.dart (+1 registro), app_router.dart (+1 ruta `/profile` con guard)
+- Riesgos:actualización de perfil concurrente (2 pestañas), validación de email duplicado
+
+## Why (Problema)
+Los usuarios no pueden ver ni editar su perfil después del registro. El nombre se muestra como email completo y no hay forma de subir foto.
+
+## What Changes (Solución)
+Pantalla de perfil con visualización y edición de nombre, email y foto de perfil. Foto se sube a Supabase Storage.
+
+## Capabilities
+### New Capabilities
+- `user-profile`: visualización y edición de perfil con upload de foto
+
+## Scope (Alcance)
+**Incluye:**
+- Ver perfil (nombre, email, foto)
+- Editar nombre y bio
+- Subir foto de perfil (máx 2MB, JPEG/PNG)
+- Pull-to-refresh para recargar datos
+
+**No incluye:**
+- Cambiar email (requiere verificación)
+- Cambiar contraseña
+- Verificación de email
+- Eliminar cuenta
+
+**Dependencias:** autenticación (login existente), Supabase Storage
+**Suposiciones:** un usuario tiene un solo perfil; la foto se almacena en bucket `avatars`
+**Preguntas abiertas:** ~~¿editar email requiere verificación?~~ → SÍ, fuera de alcance por ahora
+
+## Actores y permisos
+| Actor | Puede | No puede | Mapeo RLS |
+|-------|-------|----------|-----------|
+| Usuario | Ver/editar su perfil, subir su foto | Ver/editar perfil ajeno | `auth.uid() = user_id` |
+| Admin | Ver perfiles (lectura) | Editar perfiles | claim `role = 'admin'` solo lectura |
+
+## Impact
+- Código: ~10 ficheros nuevos en `lib/features/user_profile/`
+- Datos: 1 tabla + storage bucket + RLS + migración 0008
+- Breaking changes: ninguno
+```
+
+#### Paso 3: spec.md
+
+```
+# Spec: user-profile
+
+## WHY
+El nombre del usuario se muestra como email completo después del registro. No hay forma de personalizar el perfil ni subir foto.
+
+## Purpose
+Permitir al usuario ver y editar su perfil (nombre, bio, foto) con validación de datos y upload seguro a Supabase Storage.
+
+## ADDED Requirements
+
+### Requirement: Ver perfil propio (REQ-001)
+El usuario verá su perfil completo al acceder a la pantalla.
+
+#### Scenario: Perfil con datos completos
+- **GIVEN** un usuario con nombre, email y foto
+- **WHEN** accede a la pantalla de perfil
+- **THEN** el sistema DEBERÁ mostrar nombre, email, foto y bio
+
+#### Scenario: Perfil sin datos opcionales
+- **GIVEN** un usuario sin nombre ni bio establecidos
+- **WHEN** accede a la pantalla de perfil
+- **THEN** el sistema DEBERÁ mostrar "---" en nombre y bio, y un avatar por defecto
+
+### Requirement: Editar nombre y bio (REQ-002)
+El usuario editará su nombre y bio desde la pantalla de perfil.
+
+#### Scenario: Editar nombre exitosamente
+- **WHEN** el usuario guarda un nombre válido (2-50 caracteres)
+- **THEN** el sistema DEBERÁ actualizar el perfil y mostrar "Perfil actualizado"
+
+#### Scenario: Nombre muy corto
+- **IF** el nombre tiene menos de 2 caracteres
+- **THEN** el sistema DEBERÁ mostrar "El nombre debe tener al menos 2 caracteres"
+
+#### Scenario: Nombre muy largo
+- **IF** el nombre tiene más de 50 caracteres
+- **THEN** el sistema DEBERÁ mostrar "El nombre no puede exceder 50 caracteres"
+
+### Requirement: Subir foto de perfil (REQ-003)
+El usuario subirá una foto de perfil desde la galería o cámara.
+
+#### Scenario: Foto válida
+- **WHEN** el usuario selecciona una imagen JPEG o PNG menor a 2MB
+- **THEN** el sistema DEBERÁ subirla a Supabase Storage y actualizar la foto del perfil
+
+#### Scenario: Archivo demasiado grande
+- **IF** la imagen supera 2MB
+- **THEN** el sistema DEBERÁ mostrar "La imagen no puede exceder 2MB"
+
+#### Scenario: Formato no válido
+- **IF** el archivo no es JPEG ni PNG
+- **THEN** el sistema DEBERÁ mostrar "Solo se permiten archivos JPEG o PNG"
+
+### Requirement: Aislamiento de perfil (REQ-004)
+Cada usuario accederá únicamente a su propio perfil.
+
+#### Scenario: Lectura propia
+- **GIVEN** un usuario autenticado
+- **WHEN** consulta su perfil
+- **THEN** solo recibe su propia fila (`auth.uid() = user_id`)
+
+#### Scenario: Intento de acceso ajeno
+- **IF** un usuario intenta leer o editar el perfil de otro
+- **THEN** Supabase DEBERÁ devolver conjunto vacío vía RLS
+```
+
+#### Paso 4: design.md (ligero)
+
+```
+# Design: user-profile
+
+## Context
+Existe la feature `auth` con User entity y login. Falta pantalla de perfil. Se necesita CRUD sobre tabla `profiles`.
+
+## Goals / Non-Goals
+- ✅ CRUD de perfil con validación
+- ✅ Upload de foto a Supabase Storage
+- ❌ Cambio de email (requiere verificación)
+- ❌ Eliminar cuenta
+
+## Decisions
+
+### D1: Storage bucket `avatars` público vs privado
+- Decision: bucket privado con URL firmada temporal
+- Alternativas descartadas: público (riesgo de scraping de fotos)
+- Por qué: fotos son datos personales; URL firmada expira en 1h
+
+### D2: Validación de foto en cliente vs servidor
+- Decision: validación en cliente (tamaño, formato) + Supabase RPC para resize
+- Alternativas descartadas: solo servidor (latencia innecesaria para validación básica)
+- Por qué: feedback inmediato al usuario; el servidor solo confirma
+
 ## Ficheros afectados
 | Elemento | Capa | Archivo | Req |
 |----------|------|---------|-----|
-| PushTokenService | core/services | `lib/core/services/push_token_service.dart` | REQ-001 |
-| NotificationHandler | core/services | `lib/core/services/notification_handler.dart` | REQ-002 |
+| UserProfile | domain/entity | `lib/features/user_profile/domain/entities/user_profile.dart` | REQ-001 |
+| UserProfileRepository | domain/repository | `lib/features/user_profile/domain/repositories/user_profile_repository.dart` | REQ-001..004 |
+| UserProfileModel | data/model | `lib/features/user_profile/data/models/user_profile_model.dart` | REQ-001 |
+| UserProfileRemoteDataSource | data/datasource | `lib/features/user_profile/data/datasources/user_profile_remote_data_source.dart` | REQ-001..003 |
+| UserProfileRepositoryImpl | data/repositories | `lib/features/user_profile/data/repositories/user_profile_repository_impl.dart` | REQ-001..004 |
+| GetUserProfile | domain/usecase | `lib/features/user_profile/domain/usecases/get_user_profile.dart` | REQ-001 |
+| UpdateUserProfile | domain/usecase | `lib/features/user_profile/domain/usecases/update_user_profile.dart` | REQ-002 |
+| UploadProfilePhoto | domain/usecase | `lib/features/user_profile/domain/usecases/upload_profile_photo.dart` | REQ-003 |
+| UserProfileCubit | presentation/cubit | `lib/features/user_profile/presentation/cubit/user_profile_cubit.dart` | REQ-001..003 |
+| UserProfilePage | presentation/pages | `lib/features/user_profile/presentation/pages/user_profile_page.dart` | REQ-001..003 |
 
-## Decisions
-### D1: FCM vs OneSignal
-- Decision: FCM directo
-- Alternativas: OneSignal (dependencia externa innecesaria)
-- Por qué: proyecto ya usa Firebase, sin dependencia nueva
+## Contratos Dart clave
+
+```dart
+abstract interface class UserProfileRepository {
+  Future<Either<Failure, UserProfile>> getProfile(String userId);
+  Future<Either<Failure, Unit>> updateProfile({required String userId, required String name, String? bio});
+  Future<Either<Failure, String>> uploadPhoto({required String userId, required File image});
+}
+
+sealed class UserProfileState {}
+class UserProfileInitial extends UserProfileState {}
+class UserProfileLoading extends UserProfileState {}
+class UserProfileLoaded extends UserProfileState {
+  final UserProfile profile;
+  UserProfileLoaded(this.profile);
+}
+class UserProfileError extends UserProfileState {
+  final String message;
+  UserProfileError(this.message);
+}
+```
+
+## Flujo de datos
+
+```
+UserProfilePage ──load──► UserProfileCubit.getProfile()
+                              │ emit UserProfileLoading
+                              ▼
+                       GetUserProfile(repository)
+                              ▼
+                       UserProfileRepositoryImpl ──► UserProfileRemoteDataSource.getProfile()
+                              │                           │ supabase.from('profiles').select().eq('user_id', uid)
+                              ▼                           ▼
+                       ◄── Either.right(UserProfile) ◄── respuesta
+                       │
+                       └── Either.left(Failure) ──► UserProfileError(msg) ──► SnackBar
+```
 
 ## Backend Supabase
-- **Tabla:** `push_tokens` (user_id UUID FK, token TEXT, platform TEXT, created_at)
-- **RLS:** auth.uid() = user_id
+- **Tabla:** `profiles` (user_id UUID PK FK → auth.users, name TEXT, bio TEXT, photo_url TEXT, created_at TIMESTAMPTZ)
+- **RLS:** auth.uid() = user_id (lectura y escritura propia); admin solo lectura vía claim
+- **Storage:** bucket `avatars` (privado, URL firmada 1h)
+- **Migración:** supabase/migrations/0008_profiles.sql
+
+## Boundaries
+- Foto subida a Storage, URL guardada en tabla profiles (no foto inline)
+- Validación de tamaño/formato solo en cliente
+- Nombre obligatorio (2-50 chars), bio opcional (max 500 chars)
 ```
 
-### Fase 3: Tareas
+#### Paso 5: tasks.md
 
-```markdown
+```
 ## 1. Dominio y datos base
-- [ ] 1.1 Migración tabla push_tokens + RLS
+- [ ] 1.1 Entity UserProfile en `lib/features/user_profile/domain/entities/user_profile.dart` (REQ-001)
+- [ ] 1.2 Interface UserProfileRepository en `lib/features/user_profile/domain/repositories/user_profile_repository.dart` (REQ-001..004)
+- [ ] 1.3 Migración SQL tabla profiles + RLS (REQ-004)
 
 ## 2. Capa de datos
-- [ ] 2.1 PushTokenService (registrar token vía Supabase)
+- [ ] 2.1 UserProfileModel (fromJson/toJson, snake_case mapping) (REQ-001)
+- [ ] 2.2 UserProfileRemoteDataSource (select, update, storage upload) (REQ-001..003)
+- [ ] 2.3 UseCases: GetUserProfile, UpdateUserProfile, UploadProfilePhoto (REQ-001..003)
 
-## 3. Implementaciones
-- [ ] 3.1 NotificationHandler (escuchar FCM, mostrar snackbar)
+## 3. Implementaciones y estado
+- [ ] 3.1 UserProfileRepositoryImpl (Either wrapper + Failure mapping) (REQ-001..004)
+- [ ] 3.2 UserProfileState sealed (Initial, Loading, Loaded, Error) (REQ-001..003)
+- [ ] 3.3 UserProfileCubit (getProfile, updateProfile, uploadPhoto) (REQ-001..003)
 
-## 4. Integración
-- [ ] 4.1 Registro en service_locator.dart
-- [ ] 4.2 Init en main.dart
+## 4. Presentación e integración
+- [ ] 4.1 UserProfilePage (form con nombre, bio, foto) (REQ-001..003)
+- [ ] 4.2 Registro en service_locator.dart (+1)
+- [ ] 4.3 Ruta en app_router.dart (+1 con guard de sesión)
 
 ## 5. Tests
-- [ ] 5.1 Test PushTokenService (mock Supabase)
-- [ ] 5.2 Test NotificationHandler
+- [ ] 5.1 Test UserProfileModel: roundtrip JSON (REQ-001)
+- [ ] 5.2 Test UserProfileCubit: getProfile, updateProfile, uploadPhoto (REQ-001..003)
+- [ ] 5.3 Test UserProfilePage: estados loading, loaded, error (REQ-001..003)
+
+## Trazabilidad
+| Req | Tarea(s) | Test | Cubre escenario |
+|-----|----------|------|-----------------|
+| REQ-001 | 1.1, 1.2, 2.1, 2.2, 3.1, 3.2, 3.3, 4.1 | 5.1, 5.2, 5.3 | Ver perfil + datos vacíos |
+| REQ-002 | 2.3, 3.3, 4.1 | 5.2, 5.3 | Editar nombre exitoso + corto + largo |
+| REQ-003 | 2.2, 2.3, 3.3, 4.1 | 5.2, 5.3 | Upload válido + grande + formato inválido |
+| REQ-004 | 1.3 | 5.2 | Aislamiento RLS |
 ```
 
-### Fase 4: Implementar
+#### Paso 6: Validar y cerrar
 
-**Vía A:** llamas la skill → genera scaffold → implementas bodies.
-**Vía B:** `/opsx-apply-change` → agente escribe todo → auditas.
+```bash
+# Puerta 1: validar requisitos
+openspec validate
 
-### Cerrar
+# Puerta 2: validar diseño
+openspec validate
+
+# Puerta 3: validar tareas
+openspec validate
+```
+
+**Vía A:** llamas la skill con `openspec_change: openspec/changes/add-user-profile/` → genera scaffold → implementas body por body.
+**Vía B:** `/opsx-apply-change` → auditas con `06-auditoria-codigo-ia.md`.
 
 ```bash
 /opsx-verify-change
 /opsx-archive-change
 ```
+
+**Lo que aprendiste:** Intermedia tiene design.md ligero. Los requisitos crecen (4 REQs, 10 escenarios) pero no se vuelven enormes. Las decisiones son pocas pero importantes (Storage privado vs público). La tabla de ficheros afectados ya es clave para que el agente no invente rutas.
+
+---
+
+### Ejemplo C: Compleja — Sistema de pagos con pasarela
+
+**Contexto:** Tu app de e-commerce necesita cobrar. Integrarás una pasarela de pago (Stripe), crearás órdenes de compra, y manejarás estados de pago (pendiente, pagado, fallido, reembolsado). Toca múltiples features existentes (carrito, productos, inventario).
+
+**Clasificación:** Compleja → design.md completo, 3 puertas.
+
+#### Paso 1: Crear el cambio
+
+```bash
+/opsx-propose add-payments
+```
+
+#### Paso 2: proposal.md
+
+```
+# Proposal: add-payments
+
+## Impacto (Impact Report)
+- Features afectadas: `cart` (vaciar al pagar), `products` (descontar stock), `auth` (user_id para cobro), `core/di` (+3 registros), `app_router` (+2 rutas)
+- Reutilizable: `Failure` hierarchy, `Cart` entity, patrón UseCase, `Either` pattern
+- Supabase: tablas `orders`, `payments` nuevas; tabla `products` modificada (stock); 1 RPC `process_payment`; RLS por dueño; migración nº 0009
+- DI / rutas: service_locator.dart (+3), app_router.dart (+2: `/checkout`, `/payment-result`)
+- Riesgos: **pagos dobles** si falla la red entre Stripe y Supabase; **stock negativo** si 2 usuarios pagan el último ítem simultáneamente; **PCI compliance** (nunca almacenar datos de tarjeta)
+
+## Why (Problema)
+Los usuarios pueden agregar productos al carrito pero no tienen forma de pagar. El negocio no genera ingresos.
+
+## What Changes (Solución)
+Flujo de checkout completo: resumen del carrito → selección de método de pago → proceso de pago vía Stripe → confirmación y vaciado del carrito → historial de órdenes.
+
+## Capabilities
+### New Capabilities
+- `checkout`: flujo de pago con Stripe, confirmación de orden, vaciado de carrito
+- `payment-history`: historial de órdenes y estados de pago del usuario
+
+## Scope (Alcance)
+**Incluye:**
+- Pantalla de checkout con resumen del carrito
+- Proceso de pago con Stripe (tarjeta crédito/débito)
+- Estados de pago: pendiente, pagado, fallido, reembolsado
+- Vaciar carrito al pago exitoso
+- Descontar stock al confirmar pago
+- Historial de órdenes del usuario
+- Webhook de Stripe para confirmar pagos async
+
+**No incluye:**
+- Métodos de pago adicionales (PayPal, transferencia)
+- Facturación electrónica
+- Reembolsos manuales (solo vía Stripe dashboard)
+- Suscripciones o pagos recurrentes
+
+**Dependencias:** Stripe API key, autenticación, carrito existente, productos con stock
+**Suposiciones:** un pago = una orden; el stock se descuenta al confirmar (no al iniciar checkout); el webhook de Stripe llega en <30s
+**Preguntas abiertas:** ~~¿reembolsos manuales?~~ → NO, vía Stripe dashboard; ~~¿stock se descuenta al iniciar checkout?~~ → NO, al confirmar pago
+
+## Actores y permisos
+| Actor | Puede | No puede | Mapeo RLS |
+|-------|-------|----------|-----------|
+| Cliente | Iniciar checkout, pagar, ver sus órdenes | Pagar por otro usuario, ver órdenes ajenas | `auth.uid() = user_id` |
+| Admin | Ver todas las órdenes, procesar reembolsos | Crear órdenes por clientes | claim `role = 'admin'` |
+| Stripe (webhook) | Confirmar estado de pago | Modificar datos de orden | verificar firma webhook |
+
+## Impact
+- Código: ~20 ficheros nuevos en `lib/features/checkout/` y `lib/features/payment_history/`
+- Datos: 2 tablas nuevas + 1 RPC + RLS + migración 0009
+- Breaking changes: `cart` se vacía al confirmar pago (comportamiento esperado)
+```
+
+#### Paso 3: spec.md
+
+```
+# Spec: checkout + payment-history
+
+## WHY
+El carrito existe pero no hay forma de cobrar. Los usuarios agregan productos pero nunca completan la compra.
+
+## Purpose
+Procesar pagos de forma segura con Stripe, crear órdenes, gestionar estados de pago, y mostrar historial al usuario.
+
+## ADDED Requirements
+
+### Requirement: Iniciar checkout (REQ-001)
+El usuario verá el resumen de su carrito antes de pagar.
+
+#### Scenario: Checkout con items
+- **GIVEN** un carrito con 2 o más items
+- **WHEN** el usuario accede a checkout
+- **THEN** el sistema DEBERÁ mostrar resumen con items, subtotal, impuesto, total y botón "Pagar"
+
+#### Scenario: Checkout con carrito vacío
+- **IF** el carrito está vacío
+- **THEN** el sistema DEBERÁ mostrar "Tu carrito está vacío" y redirigir a la tienda
+
+### Requirement: Procesar pago con Stripe (REQ-002)
+El sistema procesará el pago de forma segura.
+
+#### Scenario: Pago exitoso
+- **WHEN** el usuario confirma el pago y Stripe responde con status "succeeded"
+- **THEN** el sistema DEBERÁ crear la orden, vaciar el carrito, descontar stock y mostrar "Pago exitoso"
+
+#### Scenario: Pago rechazado por Stripe
+- **IF** Stripe responde con status "failed"
+- **THEN** el sistema DEBERÁ mostrar "El pago fue rechazado. Intenta con otro método" y mantener el carrito
+
+#### Scenario: Error de red durante pago
+- **IF** la comunicación con Stripe se interrumpe
+- **THEN** el sistema DEBERÁ mostrar "Error de conexión. Verifica tu estado de pago antes de reintentar"
+
+#### Scenario: Pago doble (idempotencia)
+- **IF** el usuario presiona "Pagar" dos veces rápidamente
+- **THEN** el sistema DEBERÁ procesar solo un pago (idempotency key de Stripe)
+
+### Requirement: Confirmar pago vía webhook (REQ-003)
+El sistema confirmará pagos pendientes cuando Stripe envíe el webhook.
+
+#### Scenario: Webhook payment_intent.succeeded
+- **GIVEN** una orden con estado "pendiente"
+- **WHEN** llega el webhook payment_intent.succeeded de Stripe
+- **THEN** el sistema DEBERÁ actualizar el estado a "pagado", vaciar carrito y descontar stock
+
+#### Scenario: Webhook con firma inválida
+- **IF** la firma del webhook no es válida
+- **THEN** el sistema DEBERÁ rechazar el webhook con status 401 y no modificar datos
+
+### Requirement: Gestionar estados de pago (REQ-004)
+Cada orden tendrá un estado rastreable.
+
+#### Scenario: Estados válidos
+- **MIENTRAS** una orden exista
+- **EL SISTEMA DEBERÁ** permitir solo transiciones válidas: pendiente → pagado, pendiente → fallido, pagado → reembolsado
+
+#### Scenario: Transición inválida
+- **IF** se intenta una transición no válida (ej: pagado → pendiente)
+- **THEN** el sistema DEBERÁ rechazar la actualización
+
+### Requirement: Aislamiento de órdenes (REQ-005)
+Cada usuario verá solo sus propias órdenes.
+
+#### Scenario: Lectura propia
+- **GIVEN** un usuario autenticado
+- **WHEN** consulta su historial de órdenes
+- **THEN** solo recibe filas donde `auth.uid() = user_id`
+
+#### Scenario: Intento de acceso ajeno
+- **IF** un usuario intenta leer la orden de otro usuario
+- **THEN** Supabase DEBERÁ devolver conjunto vacío vía RLS
+
+### Requirement: Historial de órdenes (REQ-006)
+El usuario verá su historial de compras.
+
+#### Scenario: Con órdenes previas
+- **GIVEN** un usuario con 3 órdenes pagadas
+- **WHEN** accede al historial
+- **THEN** el sistema DEBERÁ mostrar las 3 órdenes ordenadas por fecha descendente con total y estado
+
+#### Scenario: Sin órdenes
+- **GIVEN** un usuario sin órdenes
+- **WHEN** accede al historial
+- **THEN** el sistema DEBERÁ mostrar "Aún no tienes órdenes"
+```
+
+#### Paso 4: design.md (completo)
+
+```
+# Design: checkout + payment-history
+
+## Context
+Existe carrito con items y productos con stock. Falta el flujo de cobro. Se integra Stripe como pasarela.
+
+## Goals / Non-Goals
+- ✅ Pago seguro con Stripe (PCI: nunca almacenar datos de tarjeta)
+- ✅ Órdenes con estados rastreables
+- ✅ Idempotencia (sin pagos dobles)
+- ✅ Webhook para confirmaciones async
+- ❌ Métodos de pago alternativos
+- ❌ Facturación electrónica
+- ❌ Reembolsos manuales
+
+## Decisions
+
+### D1: Confirmar pago al recibir webhook vs al recibir respuesta de Stripe
+- Decision: confirmar al recibir webhook payment_intent.succeeded
+- Alternativas descartadas: confirmar al recibir respuesta de Stripe (puede ser ambigua si la red falla)
+- Por qué: el webhook es la fuente de verdad de Stripe; la respuesta de la API puede ser incompleta si hay timeout
+
+### D2: Descontar stock al iniciar checkout vs al confirmar pago
+- Decision: descontar stock al confirmar pago (no al iniciar checkout)
+- Alternativas descartadas: descontar al iniciar (bloquea stock durante minutos, reduce ventas)
+- Por qué: stock negativo es preferible a stock bloqueado; si 2 usuarios pagan el último ítem, el segundo recibe "sin stock" al confirmar
+
+### D3: Idempotency key generada en cliente vs servidor
+- Decision: generar en servidor (una por checkout)
+- Alternativas descartadas: en cliente (manipulable)
+- Por qué: el servidor es la autoridad; el idempotency key se almacena en tabla payments
+
+### D4: Tabla orders separada vs extender cart_items
+- Decision: tabla `orders` separada con `order_items`
+- Alternativas descartadas: extender cart_items con campos de orden
+- Por qué: carrito es temporal, orden es persistente; separación de responsabilidades
+
+## Ficheros afectados
+| Elemento | Capa | Archivo | Req |
+|----------|------|---------|-----|
+| Order | domain/entity | `lib/features/checkout/domain/entities/order.dart` | REQ-004 |
+| OrderItem | domain/entity | `lib/features/checkout/domain/entities/order_item.dart` | REQ-001 |
+| Payment | domain/entity | `lib/features/checkout/domain/entities/payment.dart` | REQ-002 |
+| PaymentStatus | domain/enum | `lib/features/checkout/domain/enums/payment_status.dart` | REQ-004 |
+| CheckoutRepository | domain/repository | `lib/features/checkout/domain/repositories/checkout_repository.dart` | REQ-001..005 |
+| OrderRepository | domain/repository | `lib/features/payment_history/domain/repositories/order_repository.dart` | REQ-005..006 |
+| OrderModel | data/model | `lib/features/checkout/data/models/order_model.dart` | REQ-004 |
+| PaymentModel | data/model | `lib/features/checkout/data/models/payment_model.dart` | REQ-002 |
+| CheckoutRemoteDataSource | data/datasource | `lib/features/checkout/data/datasources/checkout_remote_data_source.dart` | REQ-001..003 |
+| OrderRemoteDataSource | data/datasource | `lib/features/payment_history/data/datasources/order_remote_data_source.dart` | REQ-005..006 |
+| CheckoutRepositoryImpl | data/repositories | `lib/features/checkout/data/repositories/checkout_repository_impl.dart` | REQ-001..005 |
+| OrderRepositoryImpl | data/repositories | `lib/features/payment_history/data/repositories/order_repository_impl.dart` | REQ-005..006 |
+| InitiateCheckout | domain/usecase | `lib/features/checkout/domain/usecases/initiate_checkout.dart` | REQ-001 |
+| ProcessPayment | domain/usecase | `lib/features/checkout/domain/usecases/process_payment.dart` | REQ-002 |
+| ConfirmPayment | domain/usecase | `lib/features/checkout/domain/usecases/confirm_payment.dart` | REQ-003 |
+| GetOrderHistory | domain/usecase | `lib/features/payment_history/domain/usecases/get_order_history.dart` | REQ-006 |
+| CheckoutCubit | presentation/cubit | `lib/features/checkout/presentation/cubit/checkout_cubit.dart` | REQ-001..004 |
+| CheckoutPage | presentation/pages | `lib/features/checkout/presentation/pages/checkout_page.dart` | REQ-001..002 |
+| PaymentResultPage | presentation/pages | `lib/features/checkout/presentation/pages/payment_result_page.dart` | REQ-002 |
+| OrderHistoryCubit | presentation/cubit | `lib/features/payment_history/presentation/cubit/order_history_cubit.dart` | REQ-006 |
+| OrderHistoryPage | presentation/pages | `lib/features/payment_history/presentation/pages/order_history_page.dart` | REQ-006 |
+| StripeWebhookHandler | edge/function | `supabase/functions/stripe-webhook/index.ts` | REQ-003 |
+
+## Contratos Dart clave
+
+```dart
+abstract interface class CheckoutRepository {
+  Future<Either<Failure, Order>> initiateCheckout(String userId);
+  Future<Either<Failure, Payment>> processPayment({required String orderId, required String paymentMethodId});
+  Future<Either<Failure, Unit>> confirmPayment(String paymentIntentId);
+}
+
+abstract interface class OrderRepository {
+  Future<Either<Failure, List<Order>>> getOrdersByUser(String userId);
+}
+
+sealed class CheckoutState {}
+class CheckoutInitial extends CheckoutState {}
+class CheckoutLoading extends CheckoutState {}
+class CheckoutSummary extends CheckoutState {
+  final Order order;
+  final double subtotal;
+  final double tax;
+  final double total;
+  CheckoutSummary({required this.order, required this.subtotal, required this.tax, required this.total});
+}
+class CheckoutProcessing extends CheckoutState {}
+class CheckoutSuccess extends CheckoutState {
+  final String orderId;
+  CheckoutSuccess(this.orderId);
+}
+class CheckoutError extends CheckoutState {
+  final String message;
+  CheckoutError(this.message);
+}
+```
+
+## Flujo de datos
+
+```
+CheckoutPage ──initiate──► CheckoutCubit.initiateCheckout()
+                              │ emit CheckoutLoading
+                              ▼
+                       InitiateCheckout(repository)
+                              ▼
+                       CheckoutRepositoryImpl ──► crear orden + order_items en Supabase
+                              ▼
+                       ◄── Either.right(Order)
+                              ▼
+                       emit CheckoutSummary(order, subtotal, tax, total)
+                              │
+User toca "Pagar" ──────► CheckoutCubit.processPayment(paymentMethodId)
+                              │ emit CheckoutProcessing
+                              ▼
+                       ProcessPayment(repository) ──► Stripe.createPaymentIntent(amount, currency)
+                              │                           │
+                              │                           ▼
+                              │                       Stripe procesa
+                              │
+              ┌───────────────┼───────────────┐
+              ▼               ▼               ▼
+         succeeded        failed         network_error
+              │               │               │
+              ▼               ▼               ▼
+     ConfirmPayment    CheckoutError   CheckoutError
+     (webhook)         "rechazado"     "verifica estado"
+              │
+              ▼
+     actualizar estado → pagado
+     vaciar carrito
+     descontar stock
+              │
+              ▼
+     CheckoutSuccess ──► PaymentResultPage
+```
+
+## Backend Supabase
+- **Tabla `orders`:** id UUID PK, user_id UUID FK → auth.users, status TEXT (pending/paid/refunded/failed), total DECIMAL, created_at TIMESTAMPTZ
+- **Tabla `order_items`:** id UUID PK, order_id UUID FK → orders, product_id UUID FK → products, quantity INT, unit_price DECIMAL
+- **Tabla `payments`:** id UUID PK, order_id UUID FK → orders, stripe_payment_intent_id TEXT UNIQUE, amount DECIMAL, currency TEXT, status TEXT, idempotency_key TEXT UNIQUE, created_at TIMESTAMPTZ
+- **Tabla `products`:** MODIFICADA — agregar columna `stock INT NOT NULL DEFAULT 0`
+- **RLS orders:** auth.uid() = user_id (lectura); admin solo lectura vía claim
+- **RLS order_items:** hereda de orders
+- **RLS payments:** auth.uid() = user_id (solo lectura de sus pagos)
+- **RPC `decrement_stock`:** function security definer que decrementa stock atómicamente (evita race condition)
+- **Edge Function:** `stripe-webhook` (verifica firma, actualiza estado)
+- **Migración:** supabase/migrations/0009_payments.sql
+
+## Boundaries
+- Nunca almacenar datos de tarjeta (PCI compliance)
+- Idempotency key obligatoria en cada payment intent
+- Webhook siempre verificado con firma Stripe
+- Stock decrementado solo al confirmar pago (no al iniciar checkout)
+- Transiciones de estado válidas forzadas en la DB (CHECK constraint)
+```
+
+#### Paso 5: tasks.md
+
+```
+## 1. Dominio y datos base
+- [ ] 1.1 Entity Order + OrderItem en `lib/features/checkout/domain/entities/` (REQ-001, REQ-004)
+- [ ] 1.2 Entity Payment en `lib/features/checkout/domain/entities/payment.dart` (REQ-002)
+- [ ] 1.3 Enum PaymentStatus en `lib/features/checkout/domain/enums/payment_status.dart` (REQ-004)
+- [ ] 1.4 Interfaces CheckoutRepository + OrderRepository (REQ-001..006)
+- [ ] 1.5 Migración SQL: tablas orders, order_items, payments + RLS + CHECK constraints (REQ-004, REQ-005)
+- [ ] 1.6 RPC decrement_stock (security definer) (REQ-002)
+
+## 2. Capa de datos
+- [ ] 2.1 OrderModel + PaymentModel (fromJson/toJson, snake_case) (REQ-004)
+- [ ] 2.2 CheckoutRemoteDataSource (crear orden, procesar pago, confirmar) (REQ-001..003)
+- [ ] 2.3 OrderRemoteDataSource (consultar historial) (REQ-005..006)
+- [ ] 2.4 UseCases: InitiateCheckout, ProcessPayment, ConfirmPayment, GetOrderHistory (REQ-001..006)
+
+## 3. Implementaciones y estado
+- [ ] 3.1 CheckoutRepositoryImpl (Either + Failure mapping + idempotency) (REQ-001..005)
+- [ ] 3.2 OrderRepositoryImpl (historial) (REQ-005..006)
+- [ ] 3.3 CheckoutState sealed (Initial, Loading, Summary, Processing, Success, Error) (REQ-001..004)
+- [ ] 3.4 CheckoutCubit (initiateCheckout, processPayment) (REQ-001..004)
+- [ ] 3.5 OrderHistoryCubit (getOrders) (REQ-006)
+
+## 4. Presentación e integración
+- [ ] 4.1 CheckoutPage (resumen + botón pagar) (REQ-001, REQ-002)
+- [ ] 4.2 PaymentResultPage (éxito/error) (REQ-002)
+- [ ] 4.3 OrderHistoryPage (lista de órdenes) (REQ-006)
+- [ ] 4.4 Edge Function stripe-webhook (verificar firma + confirmar) (REQ-003)
+- [ ] 4.5 Registro en service_locator.dart (+3)
+- [ ] 4.6 Rutas en app_router.dart (+2: /checkout, /payment-result)
+
+## 5. Tests
+- [ ] 5.1 Test OrderModel + PaymentModel: roundtrip JSON (REQ-004)
+- [ ] 5.2 Test CheckoutCubit: initiateCheckout, processPayment success/failure (REQ-001..004)
+- [ ] 5.3 Test OrderHistoryCubit: getOrders empty/populated (REQ-006)
+- [ ] 5.4 Test CheckoutPage: estados Summary, Processing, Success, Error (REQ-001..002)
+- [ ] 5.5 Test webhook handler: firma válida/inválida (REQ-003)
+
+## Trazabilidad
+| Req | Tarea(s) | Test | Cubre escenario |
+|-----|----------|------|-----------------|
+| REQ-001 | 1.1, 1.4, 2.2, 2.4, 3.1, 3.3, 3.4, 4.1 | 5.2, 5.4 | Checkout con items + vacío |
+| REQ-002 | 1.2, 2.2, 2.4, 3.1, 3.4, 4.1, 4.2 | 5.2, 5.4 | Pago exitoso + rechazado + red + doble |
+| REQ-003 | 1.6, 4.4 | 5.5 | Webhook válido + firma inválida |
+| REQ-004 | 1.1, 1.3, 1.5, 2.1, 3.3 | 5.1, 5.2 | Estados válidos + transición inválida |
+| REQ-005 | 1.5 | 5.2 | Aislamiento RLS |
+| REQ-006 | 2.3, 2.4, 3.2, 3.5, 4.3 | 5.3, 5.4 | Historial con/sin órdenes |
+```
+
+#### Paso 6: Validar y cerrar
+
+```bash
+# Puerta 1: requisitos
+openspec validate
+
+# Puerta 2: diseño
+openspec validate
+
+# Puerta 3: tareas
+openspec validate
+```
+
+**Vía A (recomendada para Compleja):**
+```bash
+# Llamas la skill:
+Usa la skill clean-arch-feature con openspec_change: openspec/changes/add-payments/
+
+# Implementas oleada por oleada:
+# Oleada 1: entities, interfaces, migración SQL, RPC
+# Oleada 2: models, datasources, usecases
+# Oleada 3: repository impl, cubit
+# Oleada 4: pages, DI, rutas, webhook
+# Oleada 5: tests
+```
+
+**Vía B:**
+```bash
+/opsx-apply-change
+# La IA implementa todo — MUCHO más código, audita con cuidado
+# Especial atención a: idempotency, webhook firma, CHECK constraints
+```
+
+```bash
+/opsx-verify-change
+/opsx-archive-change
+```
+
+**Lo que aprendiste:** Compleja toca múltiples features existentes, tiene 6 REQs con 14 escenarios, 4 decisiones técnicas con alternativas, 20+ ficheros, y requiere atención especial a seguridad (Stripe webhook, idempotency, RLS). Las 3 puertas son necesarias porque un error en pagos es costoso.
 
 ---
 
