@@ -27,7 +27,7 @@ Convención de nombre: `add-` para features nuevas, `update-` para modificar exi
 ```markdown
 # Proposal: add-<feature>
 
-## Impacto (Impact Report)
+Impacto (Impact Report)
 <!-- 5-15 líneas. Obligatorio en brownfield. -->
 - Features afectadas: `lib/features/...` — [cuáles y cómo]
 - Reutilizable: [contratos/widgets/tablas que ya existen]
@@ -35,20 +35,20 @@ Convención de nombre: `add-` para features nuevas, `update-` para modificar exi
 - DI / rutas: `service_locator.dart` (+<n> registros), `app_router.dart` (+1 ruta)
 - Riesgos: [los 2-3 principales]
 
-## Why (Problema)
+Why (Problema)
 [2-4 frases: qué necesidad real existe hoy sin resolver]
 
-## What Changes (Solución)
+What Changes (Solución)
 [Qué se construye/cambia, en lenguaje del dominio]
 
-## Capabilities
+Capabilities
 ### New Capabilities
 - `<capacidad>`: [una frase]
 
 ### Modified Capabilities
 - `<capacidad>`: [qué cambia y por qué] <!-- si aplica -->
 
-## Scope (Alcance)
+Scope (Alcance)
 **Incluye:**
 - [...]
 **No incluye:**
@@ -57,12 +57,12 @@ Convención de nombre: `add-` para features nuevas, `update-` para modificar exi
 **Suposiciones:** [...]
 **Preguntas abiertas:** [→ cerrar antes de Puerta 1]
 
-## Actores y permisos
+Actores y permisos
 | Actor | Puede | No puede | Mapeo RLS |
 |-------|-------|----------|-----------|
 | Cliente | ... | ... | auth.uid() = user_id |
 
-## Impact
+Impact
 - Código: [ficheros nuevos/modificados estimados]
 - Datos: [tablas nuevas/columnas/migraciones]
 - Breaking changes: [ninguno / cuáles]
@@ -73,13 +73,13 @@ Convención de nombre: `add-` para features nuevas, `update-` para modificar exi
 ## specs/&lt;capacidad&gt;/spec.md
 
 ```markdown
-## WHY
+WHY
 <!-- Por qué existe esta capacidad, ligado al problema del proposal -->
 
-## Purpose
+Purpose
 [1-2 frases: qué garantiza esta capacidad]
 
-## ADDED Requirements
+ADDED Requirements
 
 ### Requirement: <Nombre del requisito>
 <Enunciado EARS resumen: qué hará el sistema y para quién>
@@ -100,11 +100,11 @@ Convención de nombre: `add-` para features nuevas, `update-` para modificar exi
 <!-- Repetir Requirement por cada operación atómica.
      Cubrir SIEMPRE: camino feliz + bordes + errores + seguridad (RLS). -->
 
-## MODIFIED Requirements
+MODIFIED Requirements
 <!-- Solo si este cambio modifica requisitos ya archivados.
      Se reescribe el requisito COMPLETO; reemplaza al anterior. -->
 
-## REMOVED Requirements
+REMOVED Requirements
 <!-- Solo si algo deja de existir. Explicar el porqué. -->
 ```
 
@@ -122,21 +122,21 @@ Reglas EARS rápidas:
 ```markdown
 # Design: add-<feature>
 
-## Context
+Context
 [Estado actual relevante: patrón existente que se sigue, restricciones descubiertas]
 
-## Goals / Non-Goals
+Goals / Non-Goals
 - Goals: [...]
 - Non-Goals: [...]
 
-## Decisions
+Decisions
 <!-- Una por decisión no obvia -->
 ### D1: <título>
 - Decisión: [...]
 - Alternativas descartadas: [...]
 - Por qué: [...]
 
-## Ficheros afectados
+Ficheros afectados
 | Elemento | Capa | Archivo | Req |
 |----------|------|---------|-----|
 | <Entity> | domain/entity | lib/features/x/domain/entities/… | REQ-00x |
@@ -149,33 +149,29 @@ Reglas EARS rápidas:
 | Registro DI | core/di | lib/core/di/service_locator.dart | … |
 | Ruta | core/router | lib/core/router/app_router.dart | … |
 
-## Contratos Dart clave
-```dart
-abstract interface class <X>Repository {
-  Future<Either<Failure, T>> operacion(...);
-}
-sealed class XState {}
-class XInitial extends XState {}
-class XLoading extends XState {}
-class XLoaded extends XState { final T data; XLoaded(this.data); }
-class XError extends XState { final String message; XError(this.message); }
-```
+Contratos Dart clave
+    abstract interface class <X>Repository {
+      Future<Either<Failure, T>> operacion(...);
+    }
+    sealed class XState {}
+    class XInitial extends XState {}
+    class XLoading extends XState {}
+    class XLoaded extends XState { final T data; XLoaded(this.data); }
+    class XError extends XState { final String message; XError(this.message); }
 
-## Flujo de datos
-```
-Page ──► Cubit ──► UseCase ──► RepositoryImpl ──► DataSource ──► Supabase
-                                    │                        │
-                          Either.left(Failure) ◄────────────┘
-        ◄── CartError(message) ◄── mapeo de failures
-```
+Flujo de datos
+    Page ──► Cubit ──► UseCase ──► RepositoryImpl ──► DataSource ──► Supabase
+                                        │                        │
+                              Either.left(Failure) ◄────────────┘
+            ◄── CartError(message) ◄── mapeo de failures
 
-## Backend Supabase
+Backend Supabase
 - Tablas: [columnas, tipos, FKs, constraints]
 - RLS: [política por escenario de seguridad]
 - RPC/Triggers: [si hay cálculo atómico o concurrencia]
 - Migración: supabase/migrations/NNNN_*.sql (idempotente, no editar previas)
 
-## Boundaries aplicables a este cambio
+Boundaries aplicables a este cambio
 [Qué NO debe hacer el agente aquí: ej. no tocar feature Y, no añadir paquetes]
 ```
 
@@ -186,7 +182,7 @@ Page ──► Cubit ──► UseCase ──► RepositoryImpl ──► DataSo
 ```markdown
 # Tasks: add-<feature>
 
-## 1. Dominio y datos base
+1. Dominio y datos base
 - [ ] 1.1 Crear <Entity> con invariantes
       Rol: experto Flutter/Dart + Clean Architecture
       Éxito: invariantes cubiertas por test unitario
@@ -200,27 +196,27 @@ Page ──► Cubit ──► UseCase ──► RepositoryImpl ──► DataSo
       Éxito: openspec validate + supabase db reset OK
       Req: escenarios RS · Commit: db(x): add tables and rls
 
-## 2. Capa de datos
+2. Capa de datos
 - [ ] 2.1 <Model> fromJson/toJson (snake_case ↔ camelCase)
 - [ ] 2.2 <RemoteDataSource> (llamadas exactas + errores de red)
 - [ ] 2.3 UseCases (uno por operación)
 
-## 3. Implementaciones y estado
+3. Implementaciones y estado
 - [ ] 3.1 <RepositoryImpl> (mapeo excepciones → Failure)
 - [ ] 3.2 <State> sealed class
 - [ ] 3.3 <Cubit> (transiciones + mensajes exactos de los escenarios)
 
-## 4. Presentación e integración
+4. Presentación e integración
 - [ ] 4.1 <Page> + widgets (un render por estado)
 - [ ] 4.2 Registros en service_locator.dart
 - [ ] 4.3 Ruta en app_router.dart
 
-## 5. Tests
+5. Tests
 - [ ] 5.1 Unit tests entidades/usecases (bordes de la spec)
 - [ ] 5.2 Test repository impl (mock datasource)
 - [ ] 5.3 Widget test página clave
 
-## Trazabilidad
+Trazabilidad
 | Req | Tarea(s) | Test | Commits |
 |-----|----------|------|---------|
 | REQ-001 | 1.1 | entity_test | abc123 |

@@ -77,7 +77,7 @@ cat lib/core/router/app_router.dart
 
 Llena los 5 bullets:
 ```markdown
-## Impacto (Impact Report)
+Impacto (Impact Report)
 - Features afectadas: [nombre] existente provee [X]
 - Reutilizable: [patrones, widgets, contratos que ya existen]
 - Supabase: [tablas nuevas/existentes, RLS, migración nº XXXX]
@@ -88,7 +88,7 @@ Llena los 5 bullets:
 #### Sección Scope (Alcance)
 
 ```markdown
-## Scope (Alcance)
+Scope (Alcance)
 **Incluye:**
 - [lista de lo que SÍ se construye]
 
@@ -103,7 +103,7 @@ Llena los 5 bullets:
 #### Sección Actores y permisos
 
 ```markdown
-## Actores y permisos
+Actores y permisos
 | Actor | Puede | No puede | Mapeo RLS |
 |-------|-------|----------|-----------|
 | [nombre] | [acciones] | [restricciones] | [política RLS] |
@@ -128,7 +128,7 @@ Cada requisito tiene:
 4. **Escenarios** con casos happy path + error + bordes
 
 ```markdown
-## ADDED Requirements
+ADDED Requirements
 
 ### Requirement: [Nombre descriptivo] (REQ-001)
 [Descripción en lenguaje natural del requisito]
@@ -161,6 +161,8 @@ Cada requisito tiene:
 | `MIENTRAS/THEN` | Estados持续的 | `MIENTRAS el carrito tenga items EL SISTEMA DEBERÁ...` |
 | `GIVEN/WHEN/THEN` | Aislamiento, seguridad | `GIVEN un cliente autenticado WHEN consulta su carrito THEN solo recibe filas propias` |
 | `DONDE/THEN` | Feature flags | `DONDE el modo oscuro está habilitado EL SISTEMA DEBERÁ...` |
+
+> **Criterios de aceptación:** Cada escenario EARS es un criterio de aceptación verificable. Cuando el usuario dice "esto es lo que debe pasar", ese enunciado se traduce a un `#### Scenario:` con `WHEN/THEN`. Los tests (unit, widget, integration) validan estos mismos criterios. Si un escenario no es testeable, reescríbelo hasta que lo sea.
 
 ### Paso 4: Iterar si es necesario
 
@@ -202,10 +204,10 @@ Abre `openspec/changes/add-nombre/design.md` y llena estas secciones:
 #### Context + Goals
 
 ```markdown
-## Context
+Context
 [1-2 oraciones: qué existe hoy y qué cambia]
 
-## Goals / Non-Goals
+Goals / Non-Goals
 - ✅ [objetivo claro]
 - ❌ [anti-objetivo explícito]
 ```
@@ -219,7 +221,7 @@ Registra solo decisiones **no obvia**. Señales de que merece registro:
 - Cambiar un contrato público
 
 ```markdown
-## Decisions
+Decisions
 
 ### D1: [Título de la decisión]
 - Decision: [qué se eligió]
@@ -242,7 +244,7 @@ Registra solo decisiones **no obvia**. Señales de que merece registro:
 Tabla **obligatoria** — sin ella el agente improvisa rutas:
 
 ```markdown
-## Ficheros afectados
+Ficheros afectados
 | Elemento | Capa | Archivo | Req |
 |----------|------|---------|-----|
 | [Entity] | domain/entity | `lib/features/[name]/domain/entities/[file].dart` | REQ-001 |
@@ -259,56 +261,49 @@ Tabla **obligatoria** — sin ella el agente improvisa rutas:
 Escribe las interfaces ANTES de implementar. Copia el patrón de la feature más parecida:
 
 ```markdown
-## Contratos Dart clave
+Contratos Dart clave
 
-```dart
-// Repository interface
-abstract interface class [Name]Repository {
-  Future<Either<Failure, [Type]>> [method]();
-}
+    // Repository interface
+    abstract interface class [Name]Repository {
+      Future<Either<Failure, [Type]>> [method]();
+    }
 
-// States UI
-sealed class [Name]State {}
-class [Name]Initial extends [Name]State {}
-class [Name]Loading extends [Name]State {}
-class [Name]Loaded extends [Name]State { final [Type] data; }
-class [Name]Error extends [Name]State { final String message; }
-```
+    // States UI
+    sealed class [Name]State {}
+    class [Name]Initial extends [Name]State {}
+    class [Name]Loading extends [Name]State {}
+    class [Name]Loaded extends [Name]State { final [Type] data; }
+    class [Name]Error extends [Name]State { final String message; }
 
 #### Flujo de datos
 
 Diagrama ASCII del recorrido completo, incluyendo errores:
 
-```markdown
-## Flujo de datos
-```
-[Page] ──onTap──► [Cubit].[method]()
-                    │ emit [Loading]
-                    ▼
-             [UseCase](repository)
-                    ▼
-             [RepositoryImpl] ──► [DataSource].[method]()
-                    │                │ supabase.from('[table]').[operation]()
-                    ▼                ▼
-             ◄── Either.right ◄── respuesta
-             │
-             └── Either.left(Failure) ──► [Error](message) ──► SnackBar
-```
+Flujo de datos
+
+    [Page] ──onTap──► [Cubit].[method]()
+                        │ emit [Loading]
+                        ▼
+                 [UseCase](repository)
+                        ▼
+                 [RepositoryImpl] ──► [DataSource].[method]()
+                        │                │ supabase.from('[table]').[operation]()
+                        ▼                ▼
+                 ◄── Either.right ◄── respuesta
+                 │
+                 └── Either.left(Failure) ──► [Error](message) ──► SnackBar
 
 #### Backend Supabase
 
-```markdown
-## Backend Supabase
+Backend Supabase
 - **Tablas:** [nombres, columnas, tipos, FKs]
 - **RLS:** [políticas por escenario, citando REQ]
 - **RPCs:** [si aplica, firma y comportamiento]
 - **Migración:** supabase/migrations/[XXXX].sql
-```
 
 #### Boundaries
 
-```markdown
-## Boundaries
+Boundaries
 - [regla 1]
 - [regla 2]
 - [regla 3]
@@ -340,32 +335,32 @@ Checklist de la Puerta 2:
 Abre `openspec/changes/add-nombre/tasks.md` y escribe las tareas agrupadas en oleadas:
 
 ```markdown
-## 1. Dominio y datos base
+1. Dominio y datos base
 - [ ] 1.1 Entity [Name] (+ invariantes, REQ-001)
 - [ ] 1.2 Interface [Name]Repository (REQ-002..005)
 - [ ] 1.3 Migración SQL tablas + RLS (REQ-005)
 
-## 2. Capa de datos
+2. Capa de datos
 - [ ] 2.1 Models (fromJson/toJson, REQ-001)
 - [ ] 2.2 RemoteDataSource (REQ-002)
 - [ ] 2.3 UseCases (uno por operación, REQ-003)
 
-## 3. Implementaciones y estado
+3. Implementaciones y estado
 - [ ] 3.1 [Name]RepositoryImpl (REQ-002)
 - [ ] 3.2 [Name]State sealed (REQ-006)
 - [ ] 3.3 [Name]Cubit (REQ-006)
 
-## 4. Presentación e integración
+4. Presentación e integración
 - [ ] 4.1 [Name]Page + widgets (REQ-006)
 - [ ] 4.2 Registro en service_locator.dart
 - [ ] 4.3 Ruta en app_router.dart
 
-## 5. Tests
+5. Tests
 - [ ] 5.1 Unit tests entidades/usecases
 - [ ] 5.2 Test repository impl (mock datasource)
 - [ ] 5.3 Widget test página clave
 
-## Trazabilidad
+Trazabilidad
 | Req | Tarea(s) | Test | Cubre escenario |
 |-----|----------|------|-----------------|
 | REQ-001 | 1.1, 2.1 | 5.1 | Happy path + error |

@@ -106,6 +106,8 @@ Equivalencia de términos entre el método de diseño anterior y SDD:
 | Contratos + ADRs | Sección Contratos Dart + Decisions | `design.md` |
 | Flujo de datos | Diagrama Page→Cubit→UseCase→Repo→DataSource→Supabase | `design.md` |
 | Criterios BDD | Escenarios GIVEN-WHEN-THEN dentro de cada Requirement | deltas |
+
+> **Nota:** Los "Criterios BDD" y los "escenarios EARS" son la misma cosa: cada `#### Scenario:` con `GIVEN/WHEN/THEN` en `spec.md` **es** el criterio de aceptación. Ver también sección 1.5 de `02-sdd-flutter-supabase.md`.
 | Trazabilidad | Matriz Req ↔ tarea ↔ test ↔ commit | `tasks.md` |
 | Estimación de complejidad | Proporcionalidad Simple/Intermedia/Compleja | todo el flujo |
 | Sprint Planning (Scrum) | Puerta 3: aprobar tasks.md antes de ejecutar | ceremonias |

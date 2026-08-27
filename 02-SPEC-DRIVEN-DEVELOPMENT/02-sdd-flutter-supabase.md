@@ -169,6 +169,12 @@ El cliente agregará productos validando stock y límites.
 - **THEN** el sistema DEBERÁ mostrar "Has alcanzado el límite de 50 productos"
 ```
 
+> **Nota: Los escenarios EARS son tus criterios de aceptación.**
+>
+> Cada `#### Scenario:` en spec.md define una condición verificable que el sistema DEBERÁ cumplir. En terminología clásica de QA/BA, estos son los *acceptance criteria* de la user story. La diferencia es el formato: EARS reemplaza la prosa libre por patrones con keywords (`WHEN/THEN`, `IF/THEN`, `GIVEN/WHEN/THEN`) que eliminan ambigüedad.
+>
+> **Ubicación:** los criterios de aceptación viven en `spec.md`, dentro de cada requisito (`REQ-XXX`), como escenarios con caso feliz + error + bordes. Los tests (unit, widget, integration) validan estos mismos criterios.
+
 ### 1.6 Clasificación de reglas → dónde viven
 
 Las categorías RN/RT/RS anteriores se diluyen así:
@@ -178,6 +184,19 @@ Las categorías RN/RT/RS anteriores se diluyen así:
 | RN (negocio): restricción/cálculo/validación/flujo | Requisitos EARS ubicuos/evento/no deseado | `specs/carrito/spec.md` |
 | RT (técnicas) | Decisiones explícitas + requisitos de comportamiento interno | `design.md` §Decisiones |
 | RS (seguridad) | Escenarios EARS + política RLS concreta | `spec.md` escenario + `design.md` §Backend |
+
+> **Reglas de negocio: no son un documento separado.**
+>
+> Las reglas de negocio (antes "RN") son requisitos EARS que especifican invariantes, cálculos y validaciones. Ejemplos de mapeo:
+>
+> | Regla de negocio | Patrón EARS | Ubicación |
+> |------------------|-------------|-----------|
+> | "El precio unitario se congela al agregar al carrito" | Ubicuo (`DEBERÁ`) | `spec.md` REQ + `entity` (invariante) |
+> | "Tope de descuento: 50%" | No deseado (`IF/THEN`) | `spec.md` REQ + `usecase` (validación) |
+> | "Stock se descuenta al confirmar pago, no al iniciar" | Ubicuo (`DEBERÁ`) | `spec.md` REQ + `usecase` (orquestación) |
+> | "RLS: cada usuario solo ve sus datos" | Aislamiento (`GIVEN/WHEN/THEN`) | `spec.md` escenario + `design.md` §Backend |
+>
+> **Dónde vive la implementación:** `domain/entity` (invariantes, cálculos puros) y `domain/usecases` (validaciones de negocio). **NUNCA** en `presentation` (cubit/widget).
 
 ### 1.7 Specs por componente Clean Architecture
 

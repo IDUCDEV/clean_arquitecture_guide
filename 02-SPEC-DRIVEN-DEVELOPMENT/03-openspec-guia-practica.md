@@ -152,7 +152,7 @@ Las specs son **markdown simple** con requisitos concretos y escenarios. No hay 
 
 **Ejemplo de spec:**
 ```markdown
-## ADDED Requirements
+ADDED Requirements
 
 ### Requirement: Theme selection
 The app SHALL let users switch between light and dark themes,
@@ -249,13 +249,13 @@ Proyecto Flutter con Clean Architecture, Supabase como backend.
 ```markdown
 # Proposal: Add Supabase Authentication
 
-## Problem
+Problem
 Users need to authenticate to access protected features.
 
-## Solution
+Solution
 Integrate Supabase Auth with email/password login, following Clean Architecture.
 
-## Impact
+Impact
 - New feature: `auth` under `lib/features/`
 - Dependencies: supabase_flutter (already in pubspec)
 - No breaking changes to existing features
@@ -263,7 +263,7 @@ Integrate Supabase Auth with email/password login, following Clean Architecture.
 
 `openspec/changes/add-supabase-auth/specs/auth-login/spec.md`:
 ```markdown
-## ADDED Requirements
+ADDED Requirements
 
 ### Requirement: Email/password login
 The system SHALL authenticate users via email and password using Supabase Auth.
@@ -296,13 +296,13 @@ The system SHALL persist the user session across app restarts.
 ```markdown
 # Design: Supabase Auth
 
-## Architecture
+Architecture
 Follow Clean Architecture layers:
 - Domain: User entity, AuthRepository interface, LoginUseCase
 - Data: AuthDataSource (Supabase), AuthRepositoryImpl, UserModel
 - Presentation: AuthCubit, AuthState, LoginPage
 
-## Decisions
+Decisions
 - Use Supabase GoTrue client for auth operations
 - Store session via Supabase's built-in persistence
 - Emit auth state changes via Stream in Cubit
