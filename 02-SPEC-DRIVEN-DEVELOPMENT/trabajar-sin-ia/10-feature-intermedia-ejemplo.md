@@ -65,7 +65,7 @@
 
 ## FASE 2: Diseñar (45 min)
 
-### Descomposición (FADER)
+### Descomposición (EARS)
 
 | Paso | Qué hago | Resultado |
 |------|----------|-----------|

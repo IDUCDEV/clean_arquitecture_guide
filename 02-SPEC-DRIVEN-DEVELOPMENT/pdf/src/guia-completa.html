@@ -85,7 +85,7 @@
 </tbody>
 </table>
 <blockquote>
-<p><strong>Nota histórica:</strong> este módulo absorbe y reemplaza al antiguo <code>02-DISENIO-FEATURE</code> (metodología FADER). La carpeta original se conserva como referencia histórica; toda la teoría de diseño de features vive ahora aquí, en terminología SDD estándar (<a href="./05-referencia-rapida.md#equivalencias-de-terminología-glosario-de-dilución">tabla de equivalencias</a>).</p>
+<p><strong>Nota histórica:</strong> este módulo absorbe y reemplaza al antiguo <code>02-DISENIO-FEATURE</code>. La carpeta original se conserva como referencia histórica; toda la teoría de diseño de features vive ahora aquí, en terminología SDD estándar (<a href="./05-referencia-rapida.md#equivalencias-de-terminología-glosario-de-dilución">tabla de equivalencias</a>).</p>
 </blockquote>
 <hr />
 <h2 id="por-qué-sdd">¿Por qué SDD?</h2>
@@ -157,12 +157,17 @@
 <tr>
 <td>05</td>
 <td><a href="./05-referencia-rapida.md">05-referencia-rapida.md</a></td>
-<td>Cheat sheet + glosario de equivalencias FADER/Scrum → SDD</td>
+<td>Cheat sheet + glosario de equivalencias → SDD</td>
 </tr>
 <tr>
 <td>06</td>
 <td><a href="./06-auditoria-codigo-ia.md">06-auditoria-codigo-ia.md</a></td>
 <td>Checklist para auditar código escrito por IA (Vía B): contratos, sealed states, RLS, tests contra EARS</td>
+</tr>
+<tr>
+<td>07</td>
+<td><a href="./07-guia-paso-a-paso.md">07-guia-paso-a-paso.md</a></td>
+<td><strong>Receta de cocina</strong>: cada fase de SDD con su comando OpenSpec, qué escribir, y checklist de puertas</td>
 </tr>
 <tr>
 <td>—</td>
@@ -186,10 +191,11 @@
 <pre><code>1. Lee el libro (Partes II y III primero)     → 01-teoria-sdd.md es tu mapa
 2. Aprende la herramienta                     → 03-openspec-guia-practica.md
 3. Domina la metodología en tu stack          → 02-sdd-flutter-supabase.md
-4. Practica sin IA                            → trabajar-sin-ia/
-5. Copia un ejemplo real y adáptalo           → ejemplos-cambios/add-cart/
-6. Usa la plantilla en tu proyecto            → 04-plantilla-cambio-openspec.md
-7. Delega todo y verifica como auditor        → 06-auditoria-codigo-ia.md</code></pre>
+4. Aplica paso a paso con OpenSpec            → 07-guia-paso-a-paso.md
+5. Practica sin IA                            → trabajar-sin-ia/
+6. Copia un ejemplo real y adáptalo           → ejemplos-cambios/add-cart/
+7. Usa la plantilla en tu proyecto            → 04-plantilla-cambio-openspec.md
+8. Delega todo y verifica como auditor        → 06-auditoria-codigo-ia.md</code></pre>
 <hr />
 <h2 id="módulos-relacionados">Módulos relacionados</h2>
 <table>
@@ -445,7 +451,7 @@
 </div></div>
 <div class="chapter"><div class="chapter-head"><span class="num-chip">Metodologia aplicada</span><div class="kick">Parte 1 · Nucleo del modulo</div><h2>02 - SDD Aplicado a Flutter + Supabase</h2></div><div class="article"><blockquote>
 <p>La metodología del libro (<a href="./01-teoria-sdd.md">01-teoria-sdd.md</a>) operativizada para tu stack: Flutter + Clean Architecture + BLoC/Cubit + fpdart + GetIt + GoRouter + Supabase.</p>
-<p>Este documento absorbe la metodología de diseño del módulo histórico <code>02-DISENIO-FEATURE</code> (FADER) y la reescribe en terminología SDD estándar. La correspondencia está señalada donde importa.</p>
+<p>Este documento absorbe la metodología de diseño del módulo histórico <code>02-DISENIO-FEATURE</code> y la reescribe en terminología SDD estándar.</p>
 </blockquote>
 <hr />
 <h2 id="el-flujo-completo">El flujo completo</h2>
@@ -1967,11 +1973,11 @@ Requisitos → Diseño   Diseño → Tareas       Tareas → Implementación</co
 </table>
 <hr />
 <h2 id="equivalencias-de-terminología-glosario-de-dilución">Equivalencias de terminología (glosario de dilución)</h2>
-<p>Si venías del método de diseño anterior (FADER) o de Scrum, aquí está el mapa:</p>
+<p>Equivalencia de términos entre el método de diseño anterior y SDD:</p>
 <table>
 <thead>
 <tr>
-<th>Antes (FADER / Scrum)</th>
+<th>Equivalencia</th>
 <th>Ahora (SDD estándar)</th>
 <th>Dónde vive</th>
 </tr>

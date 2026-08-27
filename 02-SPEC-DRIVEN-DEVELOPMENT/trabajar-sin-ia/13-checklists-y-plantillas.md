@@ -1,7 +1,7 @@
 # Checklists y Plantillas
 
 > Herramientas reutilizables para cada fase del framework. Copia, pega y adapta a tu feature.
-> Para el diseño de una feature completa usa [PLANTILLA-DISENIO-FEATURE.md](../PLANTILLA-DISENIO-FEATURE.md) (Alcance → FADER → Reglas → Mapeo → Contratos → Flujo → Supabase → Criterios → Trazabilidad).
+> Para el diseño de una feature completa usa [PLANTILLA-DISENIO-FEATURE.md](../PLANTILLA-DISENIO-FEATURE.md) (Alcance → Requisitos EARS → Mapeo → Contratos → Flujo → Supabase → Criterios → Trazabilidad).
 
 ---
 
@@ -43,7 +43,7 @@
 
 ## FASE 2: Diseño
 
-### Descomposición (FADER)
+### Descomposición (EARS)
 | Pieza | Capa | Responsabilidad |
 |-------|------|-----------------|
 | | | |
@@ -178,13 +178,13 @@
 ```markdown
 ## Diseño: [Feature]
 
-### FADER
+### Requisitos EARS
 - [ ] **Alcance**: Incluye / No incluye / Dependencias definidas
-- [ ] **F**ormular: User Story definida
-- [ ] **A**ctorizar: Actores identificados
-- [ ] **D**escomponer: Operaciones atómicas listadas
-- [ ] **E**ntidades: Modelos del negocio definidos
-- [ ] **R**eglas: Clasificadas como RN (negocio), RT (técnica) y RS (seguridad)
+- [ ] **Historias precisas**: User Story definida
+- [ ] **Actores**: Actores identificados
+- [ ] **Operaciones atómicas**: Operaciones listadas
+- [ ] **Entidades**: Modelos del negocio definidos
+- [ ] **Requisitos EARS**: Clasificados con IDs (REQ-XXX)
 
 ### Clean Architecture
 - [ ] Domain: Entidades definidas

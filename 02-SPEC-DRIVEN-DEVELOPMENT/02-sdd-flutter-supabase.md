@@ -2,7 +2,7 @@
 
 > La metodología del libro ([01-teoria-sdd.md](./01-teoria-sdd.md)) operativizada para tu stack: Flutter + Clean Architecture + BLoC/Cubit + fpdart + GetIt + GoRouter + Supabase.
 >
-> Este documento absorbe la metodología de diseño del módulo histórico `02-DISENIO-FEATURE` (FADER) y la reescribe en terminología SDD estándar. La correspondencia está señalada donde importa.
+> Este documento absorbe la metodología de diseño del módulo histórico `02-DISENIO-FEATURE` y la reescribe en terminología SDD estándar.
 
 ---
 

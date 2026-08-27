@@ -91,9 +91,9 @@ MIENTRAS [precondición], CUANDO [evento], el sistema debe [respuesta]
 
 ## Equivalencias de terminología (glosario de dilución)
 
-Si venías del método de diseño anterior (FADER) o de Scrum, aquí está el mapa:
+Equivalencia de términos entre el método de diseño anterior y SDD:
 
-| Antes (FADER / Scrum) | Ahora (SDD estándar) | Dónde vive |
+| Equivalencia | Ahora (SDD estándar) | Dónde vive |
 |------------------------|----------------------|------------|
 | Paso Alcance | Sección Scope del `proposal.md` | Fase 1 |
 | Formular + Actorizar | Historias precisas + tabla de actores/permisos | Fase 1 |

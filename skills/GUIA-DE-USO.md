@@ -122,10 +122,10 @@ En vez de describir la feature en el prompt, la skill puede **leer la hoja de di
 **Cómo funciona:**
 - Si se provee `design_file`, se ignoran `feature_name`, `fields` y `operations`; la skill parsea el archivo y extrae archivos, entidades, usecases, contratos, tablas y páginas.
 - Sección `3 · Mapeo` → qué archivos crear (y sus nombres exactos).
-- Sección `2 · FADER [E]` → campos de las entidades; los tipos se **infieren por convención** de nombre (`id`→`String`, `fecha*`→`DateTime`, `precio/total`→`double`, `cantidad`→`int`, default→`String`) y se marcan con `// TODO: verificar tipo`.
+- Sección `2 · Diseño [E]` → campos de las entidades; los tipos se **infieren por convención** de nombre (`id`→`String`, `fecha*`→`DateTime`, `precio/total`→`double`, `cantidad`→`int`, default→`String`) y se marcan con `// TODO: verificar tipo`.
 - Sección `4 · Contratos` → firmas verbatim de repository/datasource/usecases.
 - Sección `6 · Backend` → tablas y RPCs para el datasource. Para la migración SQL la skill **pregunta las columnas** (el archivo no las trae); si declinas, se omite.
-- Sección `2 · FADER [R]` → reglas de negocio como `// TODO` en los usecases.
+- Sección `2 · Diseño [R]` → reglas de negocio como `// TODO` en los usecases.
 - Filas del mapeo que apunten a **otras features** (ej. `tickets/...`) no se generan: se listan como dependencias externas pendientes.
 - `pages`, `wiring`, Supabase y `app_name` siguen pidiéndose igual que en modo clásico.
 
@@ -346,7 +346,7 @@ python3 skills/flutter-test-generator/generate_test.py lib/features/product/pres
 
 | Skill | Obligatorio | Opcional | Prompt de ejemplo |
 |---|---|---|---|
-| `clean-arch-feature` | `feature_name` + `fields` + `operations` **o** `design_file` | Supabase (`table_name`, `columns`), `pages`, `wiring` | "Crea un feature `product` con campos `id`, `name`, `price` y operaciones CRUD..." / "Usa la skill `clean-arch-feature` con `design_file: .../disenio-feature-buyers-fader.md`" |
+| `clean-arch-feature` | `feature_name` + `fields` + `operations` **o** `design_file` | Supabase (`table_name`, `columns`), `pages`, `wiring` | "Crea un feature `product` con campos `id`, `name`, `price` y operaciones CRUD..." / "Usa la skill `clean-arch-feature` con `design_file: .../disenio-feature-buyers.md`" |
 | `clean-arch-component` | `feature_name`, `component_type` | `fields`, `operation`, `page_name`, `pattern_type` (según tipo) | "Añade un usecase `cancel_order` al feature `order`" |
 | `di-getit-scaffold` | `mode`, `app_name`, `features` | `external_libs`, `local_datasource` | "Registra el feature `product` en el service locator (manual)" |
 | `go-route-scaffold` | `app_name`, `has_auth`, `routes` | `use_sentry`, `auth_cubit`, `auth_states` | "Añade las rutas de `/orders` y `/orders/:id` al router" |

@@ -108,7 +108,7 @@ Traducir la investigación en un plan de implementación en papel.
 │ CHECKLIST FASE 2                                                │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│ □ Descompongo la feature usando FADER (Módulo 02)               │
+│ □ Descompongo la feature usando requisitos EARS (Módulo 02)      │
 │ □ Mapeo cada pieza a su capa en Clean Architecture             │
 │ □ Defino contratos (interfaces) ANTES de implementar            │
 │ □ Diagramo el flujo de datos entre capas                        │
@@ -124,7 +124,7 @@ Traducir la investigación en un plan de implementación en papel.
 ```markdown
 ## Diseño: [Nombre Feature]
 
-### Descomposición (FADER)
+### Descomposición (EARS)
 | Pieza | Capa | Responsabilidad |
 |-------|------|-----------------|
 | [Nombre] | [Domain/Data/Presentation] | [Qué hace] |
@@ -368,7 +368,7 @@ Has recibido feedback externo, lo has evaluado críticamente, y has hecho mejora
 │  └──────┬──────┘                                                        │
 │         ↓                                                               │
 │  ┌─────────────┐                                                        │
-│  │ 2. DISEÑAR  │ ← FADER, mapeo de capas, contratos, flujos           │
+│  │ 2. DISEÑAR  │ ← requisitos EARS, mapeo de capas, contratos, flujos  │
 │  └──────┬──────┘                                                        │
 │         ↓                                                               │
 │  ┌─────────────┐                                                        │

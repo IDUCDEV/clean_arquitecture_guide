@@ -1,6 +1,6 @@
 ---
 name: clean-arch-feature
-description: Generate a complete Clean Architecture feature scaffold (entity, model, datasource, repository interface + impl, usecases, cubit, state, optional pages) from a feature name + entity fields (classic mode), from a design file (design_file) following the 8-step methodology (Alcance → FADER → Mapeo → Contratos → Flujo → Backend → Criterios → Estimación), or from an OpenSpec change folder (openspec_change: proposal.md + specs/*/spec.md con requisitos EARS en formato delta + design.md con ficheros afectados y contratos Dart + tasks.md, e.g. 02-SPEC-DRIVEN-DEVELOPMENT/ejemplos-cambios/add-cart). Optionally includes Supabase integration (table schema → snake_case model + datasource + SQL migration), initial pages (listener_builder / builder / form patterns) and wiring orchestration (delegates DI registration to di-getit-scaffold and routing to go-route-scaffold). All method bodies are left as throw UnimplementedError() — implementation is the developer's responsibility.
+description: Generate a complete Clean Architecture feature scaffold (entity, model, datasource, repository interface + impl, usecases, cubit, state, optional pages) from a feature name + entity fields (classic mode), from a design file (design_file) following the 8-step methodology (Alcance → Diseño → Mapeo → Contratos → Flujo → Backend → Criterios → Estimación), or from an OpenSpec change folder (openspec_change: proposal.md + specs/*/spec.md con requisitos EARS en formato delta + design.md con ficheros afectados y contratos Dart + tasks.md, e.g. 02-SPEC-DRIVEN-DEVELOPMENT/ejemplos-cambios/add-cart). Optionally includes Supabase integration (table schema → snake_case model + datasource + SQL migration), initial pages (listener_builder / builder / form patterns) and wiring orchestration (delegates DI registration to di-getit-scaffold and routing to go-route-scaffold). All method bodies are left as throw UnimplementedError() — implementation is the developer's responsibility.
 ---
 
 # clean-arch-feature — Scaffold completo de feature
@@ -21,7 +21,7 @@ Genera la estructura completa de carpetas y archivos para una feature siguiendo 
 
 | Parámetro | Descripción | Ejemplo |
 |---|---|---|
-| `design_file` | Ruta a una hoja de diseño markdown que sigue el flujo de 8 pasos del módulo 02 (Alcance → FADER → Mapeo → Contratos → Flujo → Backend → Criterios → Estimación) | `ruta/a/hoja-diseno.md` (metodología en `02-SPEC-DRIVEN-DEVELOPMENT/02-sdd-flutter-supabase.md`) |
+| `design_file` | Ruta a una hoja de diseño markdown que sigue el flujo de 8 pasos del módulo 02 (Alcance → Diseño → Mapeo → Contratos → Flujo → Backend → Criterios → Estimación) | `ruta/a/hoja-diseno.md` (metodología en `02-SPEC-DRIVEN-DEVELOPMENT/02-sdd-flutter-supabase.md`) |
 
 **Si se omite:** se usa el modo clásico (`feature_name` + `fields` + `operations`).
 **Si se proporciona:** se ignoran `feature_name`, `fields` y `operations`; la skill lee el archivo, lo parsea (ver [Modo hoja de diseño](#modo-hoja-de-diseño--parsing-del-archivo)) y deriva entidades, usecases, repositorios, datasource, cubit, state y páginas. `table_name`, `columns`, `pages` y `wiring` siguen siendo inputs opcionales que se piden aparte si aplican.
@@ -155,22 +155,22 @@ Cuando se provee `openspec_change`, la skill parsea la carpeta del cambio (estru
 
 ## Modo hoja de diseño — parsing del archivo
 
-Cuando se provee `design_file`, la skill convierte la hoja de diseño en el mismo spec que el modo clásico. El archivo esperado sigue el flujo de 8 pasos del módulo 02 (metodología en `02-SPEC-DRIVEN-DEVELOPMENT/02-sdd-flutter-supabase.md`; el formato FADER es el heredado del módulo histórico `02-DISENIO-FEATURE`). El parsing es **estructural por encabezados de sección** (1 Alcance, 2 FADER, 3 Mapeo, 4 Contratos, 5 Flujo, 6 Backend, 7 Criterios, 8 Estimación), no por contenido literal.
+Cuando se provee `design_file`, la skill convierte la hoja de diseño en el mismo spec que el modo clásico. El archivo esperado sigue el flujo de 8 pasos del módulo 02 (metodología en `02-SPEC-DRIVEN-DEVELOPMENT/02-sdd-flutter-supabase.md`; el formato de diseño es el heredado del módulo histórico `02-DISENIO-FEATURE`). El parsing es **estructural por encabezados de sección** (1 Alcance, 2 Diseño, 3 Mapeo, 4 Contratos, 5 Flujo, 6 Backend, 7 Criterios, 8 Estimación), no por contenido literal.
 
 Reglas de parsing, sección por sección:
 
 | Sección del archivo | Qué se extrae | Cómo se usa |
 |---|---|---|
-| `3 · Mapeo FADER → Capas` | Tabla `Elemento FADER \| Capa \| Archivo` → lista exacta de archivos a generar | **Fuente principal.** Cada fila → un artefacto (tabla abajo). `feature_name` = prefijo de ruta repetido en la columna Capa (ej. `buyers`) |
-| `2 · FADER [E] Entidades` | Entidades y atributos (`Entidad: attr1, attr2, ...`) | Campos de entity/model. Los tipos se infieren (ver [Inferencia de tipos](#inferencia-de-tipos)) |
-| `2 · FADER [D] Descomponer` | Operaciones atómicas por actor | Fallback para usecases si `4 · Contratos` no las define |
-| `2 · FADER [R] Reglas` | Reglas de negocio (R001…R009) | `// TODO` comentadas en el body del usecase que las valida (matriz de `7 · Criterios` o descripción) |
+| `3 · Mapeo Diseño → Capas` | Tabla `Elemento \| Capa \| Archivo` → lista exacta de archivos a generar | **Fuente principal.** Cada fila → un artefacto (tabla abajo). `feature_name` = prefijo de ruta repetido en la columna Capa (ej. `buyers`) |
+| `2 · Diseño [E] Entidades` | Entidades y atributos (`Entidad: attr1, attr2, ...`) | Campos de entity/model. Los tipos se infieren (ver [Inferencia de tipos](#inferencia-de-tipos)) |
+| `2 · Diseño [D] Descomponer` | Operaciones atómicas por actor | Fallback para usecases si `4 · Contratos` no las define |
+| `2 · Diseño [R] Reglas` | Reglas de negocio (R001…R009) | `// TODO` comentadas en el body del usecase que las valida (matriz de `7 · Criterios` o descripción) |
 | `4 · Contratos` | Firmas Dart exactas de Repository (4.1), DataSource (4.2) y UseCases (4.3) | Se usan **verbatim** (qué, no cómo). Sin `Either` explícito en la hoja → envolver según el patrón estándar (Failure/Data) |
 | `6 · Backend` | Tablas Supabase y RPCs | El datasource referencia RPCs en sus TODOs; nombres de tabla para `_tableName` y migración |
 | `7 · Criterios` | Escenarios BDD + matriz | No genera archivos; anota qué usecases cubre. Útil después para `flutter-test-generator` |
 | `1 · Alcance` y `8 · Estimación` | Contexto y tiempos | No generan archivos |
 
-**Artefactos por fila del mapeo (columna "Elemento FADER"):**
+**Artefactos por fila del mapeo (columna "Elemento"):**
 
 | La fila contiene | Template |
 |---|---|

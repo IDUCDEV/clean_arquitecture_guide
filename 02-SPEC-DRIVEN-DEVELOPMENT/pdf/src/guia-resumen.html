@@ -130,7 +130,7 @@
 
   <h3>Clasificacion de reglas → patron EARS</h3>
   <table>
-    <thead><tr><th>Tipo FADER</th><th>Significado</th><th>Patron tipico</th></tr></thead>
+    <thead><tr><th>Tipo de regla</th><th>Significado</th><th>Patron tipico</th></tr></thead>
     <tbody>
       <tr><td>RN (regla negocio)</td><td>invariantes del dominio (tope 50% descuento)</td><td>Unwanted / Event</td></tr>
       <tr><td>RT (regla transicion)</td><td>estados y transiciones validas</td><td>State-driven</td></tr>
@@ -285,23 +285,23 @@
   <div class="callout green"><p><strong>Ciclo por oleada:</strong> agente aplica → tu auditas diff vs spec → cumple ✓ sigue / no cumple → fix citando REQ+escenario. Si el bug era de la SPEC, corrigela primero (/opsx-update-change) y re-aplica.</p></div>
 </section>
 
-<!-- ================= 9. EQUIVALENCIAS FADER ================= -->
+<!-- ================= 9. EQUIVALENCIAS ================= -->
 <section>
   <div class="section-head s-gray">
     <span class="num">9</span>
     <h2>Equivalencias de terminologia (1 min)</h2>
-    <span class="meta">Del modulo historico FADER → estandar SDD</span>
+    <span class="meta">Del metodo de diseno anterior → estandar SDD</span>
   </div>
 
   <table>
-    <thead><tr><th>Antes (FADER / Scrum)</th><th>Ahora (SDD / OpenSpec)</th></tr></thead>
+    <thead><tr><th>Equivalencia</th><th>Ahora (SDD / OpenSpec)</th></tr></thead>
     <tbody>
       <tr><td>Descomposicion de feature</td><td>Carpeta de cambio (proposal + specs + design + tasks)</td></tr>
       <tr><td>Historias de usuario + criterios Gherkin</td><td>Requirements con ID + escenarios EARS</td></tr>
       <tr><td>Definition of Done / sprint review</td><td>Puertas de calidad (Puerta 1, 2, 3)</td></tr>
       <tr><td>Product Backlog refinado</td><td>Main specs (openspec/specs/) — sistema actual</td></tr>
       <tr><td>Nuevo sprint para cambiar algo</td><td>Deltas ADDED / MODIFIED / REMOVED</td></tr>
-      <tr><td>Mapeo FADER a capas</td><td>design.md §Ficheros afectados (Elemento|Capa|Archivo|Req)</td></tr>
+      <tr><td>Mapeo de diseno a capas</td><td>design.md §Ficheros afectados (Elemento|Capa|Archivo|Req)</td></tr>
     </tbody>
   </table>
 </section>
