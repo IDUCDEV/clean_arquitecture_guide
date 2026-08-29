@@ -2429,6 +2429,78 @@ Tú: audita el diff de la oleada contra specs/*/spec.md + design.md   ← este d
 <div class="chapter"><div class="chapter-head"><span class="num-chip">Indice de ejemplos</span><div class="kick">Parte 2 · Ejemplos de cambios</div><h2>Ejemplos de Cambios OpenSpec</h2></div><div class="article"><blockquote>
 <p>6 cambios completos listos para estudiar o copiar a <code>openspec/changes/</code> en tu proyecto. Derivan de los casos del módulo histórico <code>02-DISENIO-FEATURE</code> (conservado como referencia).</p>
 </blockquote>
+<h2 id="el-patrón-que-repiten-los-6-cambios">El patrón que repiten los 6 cambios</h2>
+<p>Todos siguen el mismo esqueleto. Léelo una vez y no tendrás que deducirlo de cada ejemplo:</p>
+<table>
+<thead>
+<tr>
+<th>Paso</th>
+<th>Qué produces</th>
+<th>Vía A</th>
+<th>Vía B</th>
+<th>Validación</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0 · Clasificar</td>
+<td>Simple / Intermedia / Compleja</td>
+<td>tú decides</td>
+<td>tú decides</td>
+<td>proporcionalidad</td>
+</tr>
+<tr>
+<td>1 · Crear cambio</td>
+<td>carpeta <code>openspec/changes/&lt;feat&gt;/</code></td>
+<td><code>/opsx-propose</code></td>
+<td>ídem</td>
+<td><code>openspec validate</code></td>
+</tr>
+<tr>
+<td>2 · proposal.md</td>
+<td>WHY + Impact + Scope + Actores</td>
+<td>IA redacta → tú apruebas</td>
+<td>ídem</td>
+<td>—</td>
+</tr>
+<tr>
+<td>3 · spec.md</td>
+<td>requisitos EARS con escenarios</td>
+<td>IA redacta → tú apruebas</td>
+<td>ídem</td>
+<td><strong>Puerta 1</strong> + Clarity Gate</td>
+</tr>
+<tr>
+<td>4 · design.md</td>
+<td>ficheros, contratos, backend, decisiones</td>
+<td>IA redacta → tú apruebas</td>
+<td>ídem</td>
+<td><strong>Puerta 2</strong></td>
+</tr>
+<tr>
+<td>5 · tasks.md</td>
+<td>5 oleadas + trazabilidad</td>
+<td>IA redacta → tú apruebas</td>
+<td>ídem</td>
+<td>validate</td>
+</tr>
+<tr>
+<td>6 · Implementar</td>
+<td>código + tests</td>
+<td>skill genera scaffold, <strong>tú escribes los bodies</strong></td>
+<td><code>/opsx-apply-change</code>, <strong>tú auditas cada diff</strong></td>
+<td>tests verdes</td>
+</tr>
+<tr>
+<td>7 · Verificar · archivar</td>
+<td>specs vivas consolidadas</td>
+<td><code>/opsx-verify-change</code> → <code>/opsx-archive-change</code></td>
+<td>ídem</td>
+<td><strong>Puerta 3</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Observación clave:</strong> hasta el Paso 5, Vía A y Vía B hacen <strong>lo mismo</strong> (la IA redacta, tú apruebas). Solo el Paso 6 difiere: <strong>Vía A</strong> = tú implementas sobre el scaffold generado; <strong>Vía B</strong> = la IA escribe y tú auditas cada diff contra la spec. Las plantillas anotadas (qué va en cada parte) están en <a href="../07-guia-paso-a-paso.md">07-guia-paso-a-paso.md</a> y la plantilla completa en <a href="../04-plantilla-cambio-openspec.md">04-plantilla-cambio-openspec.md</a>.</p>
 <table>
 <thead>
 <tr>
