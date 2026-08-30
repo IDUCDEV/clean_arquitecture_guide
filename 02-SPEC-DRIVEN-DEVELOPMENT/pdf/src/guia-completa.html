@@ -30,7 +30,7 @@
 <div class="row"><span class="num">03</span><span class="title">03 - OpenSpec: Guía Práctica</span></div>
 <div class="row"><span class="num">04</span><span class="title">04 - Plantilla de Cambio OpenSpec</span></div>
 <div class="row"><span class="num">05</span><span class="title">05 - Referencia Rápida</span></div>
-<div class="row"><span class="num">06</span><span class="title">06 · Auditoría de código generado por IA (Vía B)</span></div>
+<div class="row"><span class="num">06</span><span class="title">06 · Auditoría de código generado por IA (Modo completo)</span></div>
 <div class="part">Parte 2 · Ejemplos de cambios</div>
 <div class="row"><span class="num">E0</span><span class="title">Ejemplos de Cambios OpenSpec</span></div>
 <div class="row"><span class="num">EC1a</span><span class="title">Proposal: add-cart</span></div>
@@ -162,7 +162,7 @@
 <tr>
 <td>06</td>
 <td><a href="./06-auditoria-codigo-ia.md">06-auditoria-codigo-ia.md</a></td>
-<td>Checklist para auditar código escrito por IA (Vía B): contratos, sealed states, RLS, tests contra EARS</td>
+<td>Checklist para auditar código escrito por IA (Modo completo): contratos, sealed states, RLS, tests contra EARS</td>
 </tr>
 <tr>
 <td>07</td>
@@ -590,7 +590,7 @@
 <li><code>openspec validate &lt;cambio&gt; --strict</code></li>
 <li>Clarity Gate como prueba final: ¿otro agente, leyendo SOLO tu spec, produciría código equivalente?</li>
 </ol>
-<p>Ambos modos convergen en la misma <strong>Puerta 1</strong>. La elección posterior de implementación (Vía A skill / Vía B agente) es independiente del modo elegido.</p>
+<p>Ambos modos convergen en la misma <strong>Puerta 1</strong>. La implementación posterior usa siempre el mismo motor —<code>/opsx-apply-change</code>—; lo único que varía es el <strong>Modo</strong> declarado en <code>tasks.md</code> (<code>andamiaje</code> | <code>completo</code>), independiente del modo de redacción elegido.</p>
 <hr />
 <h2 id="fase-1--requisitos--qué-construir">Fase 1 · Requisitos — QUÉ construir</h2>
 <blockquote>
@@ -998,26 +998,26 @@ OLEADA 5 — Tests
 [ ] Hay tareas de test para los escenarios críticos</code></pre>
 <hr />
 <h2 id="fase-4--implementación">Fase 4 · Implementación</h2>
-<p>Dos vías válidas según <strong>quién escribe el código</strong>:</p>
-<h3 id="vía-a--skill-clean-arch-feature-andamiaje-ia--lógica-crítica-tuya-recomendada-para-features-nuevas-completas">Vía A — Skill <code>clean-arch-feature</code>: andamiaje IA + lógica crítica tuya (recomendada para features nuevas completas)</h3>
+<p>Un único motor —<code>/opsx-apply-change</code>— según <strong>quién escribe el código</strong>. El <strong>Modo</strong> se declara por cambio en la primera línea de <code>tasks.md</code>:</p>
+<h3 id="modo-andamiaje--scaffold-ia--lógica-crítica-tuya">Modo: andamiaje — scaffold IA + lógica crítica tuya</h3>
 <ol type="1">
-<li>Pasa la carpeta del cambio a la skill → genera scaffold (entity/model/datasource/repo/usecases/cubit/state/pages) con cuerpos <code>UnimplementedError()</code> y comentarios TODO citando el requisito</li>
-<li>Tú implementas siguiendo tasks.md oleada por oleada</li>
+<li><code>/opsx-apply-change</code> genera scaffold por tarea (entity/model/datasource/repo/usecases/cubit/state/pages) con cuerpos <code>UnimplementedError()</code> y comentarios TODO citando el requisito, deja la casilla en <code>- [ ]</code> y pausa</li>
+<li>Tú implementas las tareas siguiendo tasks.md oleada por oleada (la práctica de escribir la lógica crítica se preserva)</li>
 <li>Delegación automática: DI → skill <code>di-getit-scaffold</code>, routing → skill <code>go-route-scaffold</code></li>
 </ol>
-<h3 id="vía-b--agente--openspec-la-ia-escribe-todo-tú-verificas-recomendada-para-cambios-pequeños-o-brownfield-quirúrgico">Vía B — Agente + OpenSpec: la IA escribe todo, tú verificas (recomendada para cambios pequeños o brownfield quirúrgico)</h3>
+<h3 id="modo-completo--la-ia-escribe-todo-tú-verificas">Modo: completo — la IA escribe todo, tú verificas</h3>
 <ol type="1">
-<li><code>/opsx-apply-change</code> — el agente lee proposal/specs/design/tasks y ejecuta todas las tareas, commit por tarea</li>
+<li><code>/opsx-apply-change</code> — el agente lee proposal/specs/design/tasks y ejecuta todas las tareas, commit por tarea, escribiendo el 100% del código</li>
 <li>Al cierre de cada oleada auditas el resultado contra la spec</li>
 <li>Checklist completo de auditoría: <a href="./06-auditoria-codigo-ia.md">06-auditoria-codigo-ia.md</a></li>
 </ol>
-<h3 id="vía-a-o-vía-b-matriz-de-decisión">¿Vía A o Vía B? Matriz de decisión</h3>
+<h3 id="andamiaje-o-completo-matriz-de-decisión">¿andamiaje o completo? Matriz de decisión</h3>
 <table>
 <thead>
 <tr>
 <th>Criterio</th>
-<th>Vía A (tú implementas)</th>
-<th>Vía B (IA escribe todo)</th>
+<th>andamiaje (tú implementas la crítica)</th>
+<th>completo (IA escribe todo)</th>
 </tr>
 </thead>
 <tbody>
@@ -1761,55 +1761,102 @@ Tú: Sí, hagámoslo</code></pre>
 <hr />
 <h2 id="tasksmd">tasks.md</h2>
 <div class="sourceCode" id="cb5"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu"># Tasks: add-&lt;feature&gt;</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>Dominio y datos base</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 1.1 Crear <span class="dt">&lt;</span><span class="kw">Entity</span><span class="dt">&gt;</span> con invariantes</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>      Rol: experto Flutter/Dart + Clean Architecture</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>      Éxito: invariantes cubiertas por test unitario</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>      Req: REQ-001 · Commit: feat(x): add Entity</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 1.2 Definir interface <span class="dt">&lt;</span><span class="kw">X</span><span class="dt">&gt;</span>Repository (Either&lt;Failure,T&gt;)</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>      Éxito: firmas coinciden con design.md</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>      Req: REQ-002..007 · Commit: feat(x): add repository contract</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 1.3 Migración SQL + políticas RLS          ← si aplica</span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>      Éxito: openspec validate + supabase db reset OK</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>      Req: escenarios RS · Commit: db(x): add tables and rls</span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>Capa de datos</span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 2.1 <span class="dt">&lt;</span><span class="kw">Model</span><span class="dt">&gt;</span> fromJson/toJson (snake_case ↔ camelCase)</span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 2.2 <span class="dt">&lt;</span><span class="kw">RemoteDataSource</span><span class="dt">&gt;</span> (llamadas exactas + errores de red)</span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 2.3 UseCases (uno por operación)</span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>Implementaciones y estado</span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 3.1 <span class="dt">&lt;</span><span class="kw">RepositoryImpl</span><span class="dt">&gt;</span> (mapeo excepciones → Failure)</span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 3.2 <span class="dt">&lt;</span><span class="kw">State</span><span class="dt">&gt;</span> sealed class</span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 3.3 <span class="dt">&lt;</span><span class="kw">Cubit</span><span class="dt">&gt;</span> (transiciones + mensajes exactos de los escenarios)</span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>Presentación e integración</span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 4.1 <span class="dt">&lt;</span><span class="kw">Page</span><span class="dt">&gt;</span> + widgets (un render por estado)</span>
-<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 4.2 Registros en service_locator.dart</span>
-<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 4.3 Ruta en app_router.dart</span>
-<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>Tests</span>
-<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 5.1 Unit tests entidades/usecases (bordes de la spec)</span>
-<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 5.2 Test repository impl (mock datasource)</span>
-<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 5.3 Widget test página clave</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Modo de implementación: andamiaje</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;   andamiaje = la IA genera el scaffold (throw UnimplementedError() + TODOs citando REQ) y TÚ implementas los métodos críticos</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;   completo = la IA escribe todo (100%) y tú auditas cada diff contra la spec</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>Dominio</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 1.1 Crear <span class="dt">&lt;</span><span class="kw">Entity</span><span class="dt">&gt;</span> con invariantes</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>      Rol: experto Flutter/Dart + Clean Architecture</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>      Éxito: invariantes cubiertas por test unitario</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>      Req: REQ-001 · Commit: feat(x): add Entity</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 1.2 Definir interface <span class="dt">&lt;</span><span class="kw">X</span><span class="dt">&gt;</span>Repository (Either&lt;Failure,T&gt;)</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>      Éxito: firmas coinciden con design.md</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>      Req: REQ-002..007 · Commit: feat(x): add repository contract</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 1.3 UseCases (uno por operación)</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>      Éxito: mensajes exactos de los escenarios en failures de dominio</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>      Req: REQ spec · Commit: feat(x): add usecases</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>Capa de datos</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 2.1 <span class="dt">&lt;</span><span class="kw">Model</span><span class="dt">&gt;</span> fromJson/toJson (snake_case ↔ camelCase)</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 2.2 <span class="dt">&lt;</span><span class="kw">RemoteDataSource</span><span class="dt">&gt;</span> (llamadas exactas + errores de red)</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 2.3 <span class="dt">&lt;</span><span class="kw">RepositoryImpl</span><span class="dt">&gt;</span> (mapeo excepciones → Failure)</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>Estado y presentación</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 3.1 <span class="dt">&lt;</span><span class="kw">State</span><span class="dt">&gt;</span> sealed class</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 3.2 <span class="dt">&lt;</span><span class="kw">Cubit</span><span class="dt">&gt;</span> (transiciones + mensajes exactos de los escenarios)</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 3.3 <span class="dt">&lt;</span><span class="kw">Page</span><span class="dt">&gt;</span> + widgets (un render por estado)</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>Integración</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 4.1 Migración SQL + políticas RLS          ← si aplica</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>      Éxito: openspec validate + supabase db reset OK</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>      Req: escenarios RS · Commit: db(x): add tables and rls</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 4.2 Registros en service_locator.dart</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 4.3 Ruta en app_router.dart</span>
 <span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>Trazabilidad</span>
-<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Req <span class="pp">|</span> Tarea(s) <span class="pp">|</span> Test <span class="pp">|</span> Commits <span class="pp">|</span></span>
-<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a><span class="pp">|-----|----------|------|---------|</span></span>
-<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> REQ-001 <span class="pp">|</span> 1.1 <span class="pp">|</span> entity_test <span class="pp">|</span> abc123 <span class="pp">|</span></span></code></pre></div>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>Tests</span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 5.1 Unit tests entidades/usecases (bordes de la spec)</span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 5.2 Test repository impl (mock datasource)</span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 5.3 Widget test página clave</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>Trazabilidad</span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Req <span class="pp">|</span> Tarea(s) <span class="pp">|</span> Test <span class="pp">|</span> Commits <span class="pp">|</span></span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a><span class="pp">|-----|----------|------|---------|</span></span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> REQ-001 <span class="pp">|</span> 1.1 <span class="pp">|</span> entity_test <span class="pp">|</span> abc123 <span class="pp">|</span></span></code></pre></div>
+<hr />
+<h2 id="configuración--que-opsx-apply-change-respete-el-modo">Configuración — que <code>/opsx-apply-change</code> respete el modo</h2>
+<p>El modo se declara <strong>por cambio</strong> en la primera línea de <code>tasks.md</code> (véase arriba). Para que el agente de <code>/opsx-apply-change</code> —el único motor de implementación— lo cumpla de forma fiable, añade una vez al <code>openspec/config.yaml</code> de tu proyecto:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># openspec/config.yaml — se añade una sola vez; el interruptor por cambio es la línea &quot;Modo&quot; de tasks.md</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">operations</span><span class="kw">:</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">apply</span><span class="kw">:</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">guidance</span><span class="kw">:</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="st">&quot;Si tasks.md declara &#39;Modo: andamiaje&#39;: NO escribas los bodies. Por cada tarea genera solo el scaffolding (throw UnimplementedError() + TODO citando REQ-xxx), NO marques la casilla - [x], y pausa para que el desarrollador complete e implemente.&quot;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="st">&quot;Si tasks.md declara &#39;Modo: completo&#39;: implementa la tarea al 100% contra la spec (caminos de éxito y error de los escenarios) y márcala - [x].&quot;</span></span></code></pre></div>
+<blockquote>
+<p><strong>Por qué funciona:</strong> ese archivo vive en tu proyecto (<code>openspec/config.yaml</code>, junto a <code>lib/</code>), no es parte de la herramienta. El CLI lo lee en tiempo de ejecución (<code>openspec instructions apply</code>) y lo inyecta en el prompt del agente como <code>operationGuidance</code>, que el flujo built-in ordena leer y seguir. El interruptor por cambio sigue siendo la línea <code>Modo</code> de <code>tasks.md</code> — el <code>config.yaml</code> se configura una sola vez.</p>
+</blockquote>
+<p><strong>Comportamiento según el modo</strong> (vía <code>/opsx-apply-change</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Tarea</th>
+<th><code>andamiaje</code></th>
+<th><code>completo</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cuerpos</td>
+<td>la IA deja <code>throw UnimplementedError()</code> + TODO citando REQ</td>
+<td>la IA escribe el código completo</td>
+</tr>
+<tr>
+<td>Casilla</td>
+<td>se deja en <code>- [ ]</code> (la tarea NO está terminada)</td>
+<td>se marca <code>- [x]</code> al cumplir la spec</td>
+</tr>
+<tr>
+<td>Final</td>
+<td>el agente pausa y pasas a implementar</td>
+<td>el agente termina y tú auditas cada diff</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>La skill <code>clean-arch-feature</code> queda como <strong>herramienta manual opcional (fuera del flujo)</strong>: con <code>andamiaje</code> genera el scaffold del cambio completo y deja los bodies para ti; con <code>completo</code> puedes pedirle que implemente. En el flujo, el grano del andamiaje lo decide el modo dentro de <code>/opsx-apply-change</code>: <code>andamiaje</code> = scaffold por tarea y pausa en cada una; <code>completo</code> = escribe el cambio entero.</p>
+</blockquote>
 <hr />
 <h2 id="checklist-de-las-3-puertas">Checklist de las 3 puertas</h2>
 <p><strong>Puerta 1 (tras Fase 1):</strong> historias precisas · EARS con IDs · bordes cubiertos · alcance cerrado · delta correcto.</p>
 <p><strong>Puerta 2 (tras Fase 2):</strong> ficheros afectados completos · contratos coherentes · flujo con caminos de error · RLS especificada · decisiones registradas.</p>
-<p><strong>Puerta 3 (tras Fase 3):</strong> todo requisito tiene ≥1 tarea · trazabilidad bidireccional · tareas ≤3 ficheros · orden de oleadas correcto · tests presentes.</p>
+<p><strong>Puerta 3 (tras Fase 3):</strong> todo requisito tiene ≥1 tarea · trazabilidad bidireccional · tareas ≤3 ficheros · orden de oleadas correcto · tests presentes · <code>tasks.md</code> declara su modo (<code>andamiaje</code> | <code>completo</code>).</p>
 <hr />
 <h2 id="cierre">Cierre</h2>
-<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">openspec</span> validate            <span class="co"># formato OK</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># ... implementar (Fase 4) ...</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ex">openspec</span> archive add-<span class="op">&lt;</span>feature<span class="op">&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">openspec</span> validate            <span class="co"># formato OK</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># ... implementar (Fase 4) ...</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ex">openspec</span> archive add-<span class="op">&lt;</span>feature<span class="op">&gt;</span></span></code></pre></div>
 <p>Ejemplos reales completados: <a href="./ejemplos-cambios/"><code>ejemplos-cambios/</code></a></p>
 </div></div>
 <div class="chapter"><div class="chapter-head"><span class="num-chip">Referencia rapida</span><div class="kick">Parte 1 · Nucleo del modulo</div><h2>05 - Referencia Rápida</h2></div><div class="article"><blockquote>
@@ -2288,12 +2335,12 @@ Requisitos → Diseño   Diseño → Tareas       Tareas → Implementación</co
 </tbody>
 </table>
 </div></div>
-<div class="chapter"><div class="chapter-head"><span class="num-chip">Auditoria de codigo IA</span><div class="kick">Parte 1 · Nucleo del modulo</div><h2>06 · Auditoría de código generado por IA (Vía B)</h2></div><div class="article"><blockquote>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">Auditoria de codigo IA</span><div class="kick">Parte 1 · Nucleo del modulo</div><h2>06 · Auditoría de código generado por IA (Modo completo)</h2></div><div class="article"><blockquote>
 <p>Escenario: la IA escribe <strong>todo</strong> el código y tú solo verificas. Este documento es el manual del nuevo rol: <strong>de autor a auditor</strong>. Complementa Fase 4 de <a href="./02-sdd-flutter-supabase.md">02-sdd-flutter-supabase.md</a> y se aplica con los ejemplos de <a href="./ejemplos-cambios/"><code>ejemplos-cambios/</code></a>.</p>
 </blockquote>
 <hr />
 <h2 id="el-cambio-de-rol">El cambio de rol</h2>
-<p>En la Vía A implementas y entiendes cada línea porque la escribiste. En la Vía B tu valor ya no está en escribir sino en <strong>dos momentos que no se delegan</strong>:</p>
+<p>En el Modo <code>andamiaje</code> implementas y entiendes cada línea porque la escribiste. En el Modo <code>completo</code> tu valor ya no está en escribir sino en <strong>dos momentos que no se delegan</strong>:</p>
 <table>
 <thead>
 <tr>
@@ -2410,14 +2457,14 @@ Tú: audita el diff de la oleada contra specs/*/spec.md + design.md   ← este d
 </ol>
 <p>Si las cinco casillas pasan, ese escenario está auditado. Repite por escenario; un Requirement con 4 escenarios son 4 mini-auditorías.</p>
 <hr />
-<h2 id="señales-de-que-no-deberías-estar-en-vía-b">Señales de que NO deberías estar en Vía B</h2>
+<h2 id="señales-de-que-no-deberías-estar-en-modo-completo">Señales de que NO deberías estar en Modo completo</h2>
 <p>Sé honesto contigo mismo:</p>
 <ul>
 <li>Leíste el checklist y más de la mitad de los términos te suenan vagos (<code>Either</code>, sealed, RLS, security definer…)</li>
 <li>No sabrías distinguir un <code>try/catch</code> tragador de un manejo legítimo de errores</li>
 <li>Firmarías el diff "porque compila y los tests pasan"</li>
 </ul>
-<p>→ Empieza con <strong>Vía A</strong> (implementas tú sobre scaffold) hasta que el checklist sea lectura natural. Ahí es exactamente donde entra <a href="./trabajar-sin-ia/"><code>trabajar-sin-ia/</code></a>: criterio de auditoría se construye escribiendo código, no leyendo diffs.</p>
+<p>→ Cambia a <strong>Modo andamiaje</strong> (implementas tú sobre scaffold) hasta que el checklist sea lectura natural. Ahí es exactamente donde entra <a href="./trabajar-sin-ia/"><code>trabajar-sin-ia/</code></a>: criterio de auditoría se construye escribiendo código, no leyendo diffs.</p>
 <hr />
 <h2 id="resumen-en-una-línea">Resumen en una línea</h2>
 <blockquote>
@@ -2436,8 +2483,8 @@ Tú: audita el diff de la oleada contra specs/*/spec.md + design.md   ← este d
 <tr>
 <th>Paso</th>
 <th>Qué produces</th>
-<th>Vía A</th>
-<th>Vía B</th>
+<th>Comando</th>
+<th>Tu papel</th>
 <th>Validación</th>
 </tr>
 </thead>
@@ -2445,62 +2492,62 @@ Tú: audita el diff de la oleada contra specs/*/spec.md + design.md   ← este d
 <tr>
 <td>0 · Clasificar</td>
 <td>Simple / Intermedia / Compleja</td>
-<td>tú decides</td>
+<td>—</td>
 <td>tú decides</td>
 <td>proporcionalidad</td>
 </tr>
 <tr>
 <td>1 · Crear cambio</td>
 <td>carpeta <code>openspec/changes/&lt;feat&gt;/</code></td>
-<td><code>/opsx-propose</code></td>
-<td>ídem</td>
+<td><code>/opsx-propose add-nombre</code></td>
+<td>revisas el esqueleto</td>
 <td><code>openspec validate</code></td>
 </tr>
 <tr>
 <td>2 · proposal.md</td>
 <td>WHY + Impact + Scope + Actores</td>
+<td><code>openspec instructions proposal --change &lt;n&gt;</code></td>
 <td>IA redacta → tú apruebas</td>
-<td>ídem</td>
 <td>—</td>
 </tr>
 <tr>
 <td>3 · spec.md</td>
 <td>requisitos EARS con escenarios</td>
+<td><code>openspec instructions spec --change &lt;n&gt;</code></td>
 <td>IA redacta → tú apruebas</td>
-<td>ídem</td>
 <td><strong>Puerta 1</strong> + Clarity Gate</td>
 </tr>
 <tr>
 <td>4 · design.md</td>
 <td>ficheros, contratos, backend, decisiones</td>
+<td><code>openspec instructions design --change &lt;n&gt;</code></td>
 <td>IA redacta → tú apruebas</td>
-<td>ídem</td>
 <td><strong>Puerta 2</strong></td>
 </tr>
 <tr>
 <td>5 · tasks.md</td>
-<td>5 oleadas + trazabilidad</td>
+<td>5 oleadas + trazabilidad + Modo</td>
+<td><code>openspec instructions tasks --change &lt;n&gt;</code></td>
 <td>IA redacta → tú apruebas</td>
-<td>ídem</td>
 <td>validate</td>
 </tr>
 <tr>
 <td>6 · Implementar</td>
 <td>código + tests</td>
-<td>skill genera scaffold, <strong>tú escribes los bodies</strong></td>
-<td><code>/opsx-apply-change</code>, <strong>tú auditas cada diff</strong></td>
+<td><code>/opsx-apply-change</code></td>
+<td>andamiaje: implementas la lógica crítica · completo: auditas cada diff</td>
 <td>tests verdes</td>
 </tr>
 <tr>
 <td>7 · Verificar · archivar</td>
 <td>specs vivas consolidadas</td>
 <td><code>/opsx-verify-change</code> → <code>/opsx-archive-change</code></td>
-<td>ídem</td>
+<td>auditas</td>
 <td><strong>Puerta 3</strong></td>
 </tr>
 </tbody>
 </table>
-<p><strong>Observación clave:</strong> hasta el Paso 5, Vía A y Vía B hacen <strong>lo mismo</strong> (la IA redacta, tú apruebas). Solo el Paso 6 difiere: <strong>Vía A</strong> = tú implementas sobre el scaffold generado; <strong>Vía B</strong> = la IA escribe y tú auditas cada diff contra la spec. Las plantillas anotadas (qué va en cada parte) están en <a href="../07-guia-paso-a-paso.md">07-guia-paso-a-paso.md</a> y la plantilla completa en <a href="../04-plantilla-cambio-openspec.md">04-plantilla-cambio-openspec.md</a>.</p>
+<p><strong>Observación clave:</strong> hasta el Paso 5 la IA redacta los artefactos y tú los apruebas. Solo el Paso 6 depende del <strong>Modo</strong> declarado en <code>tasks.md</code>: <code>andamiaje</code> = la IA deja scaffold por tarea y tú implementas la lógica crítica; <code>completo</code> = la IA escribe todo y tú auditas cada diff contra la spec. El motor es siempre el mismo: <code>/opsx-apply-change</code>. Las plantillas anotadas (qué va en cada parte) están en <a href="../07-guia-paso-a-paso.md">07-guia-paso-a-paso.md</a> y la plantilla completa en <a href="../04-plantilla-cambio-openspec.md">04-plantilla-cambio-openspec.md</a>.</p>
 <table>
 <thead>
 <tr>
@@ -2869,27 +2916,27 @@ Tú: audita el diff de la oleada contra specs/*/spec.md + design.md   ← este d
 <li>No desactivar RLS bajo ninguna circunstancia</li>
 </ul>
 </div></div>
-<div class="chapter"><div class="chapter-head"><span class="num-chip">add-cart · Tasks</span><div class="kick">Parte 2 · Ejemplos de cambios</div><h2>Tasks: add-cart</h2></div><div class="article"><h2 id="1-dominio-y-datos-base">1. Dominio y datos base</h2>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">add-cart · Tasks</span><div class="kick">Parte 2 · Ejemplos de cambios</div><h2>Tasks: add-cart</h2></div><div class="article"><h2 id="1-dominio">1. Dominio</h2>
 <ul class="task-list">
 <li><p><label><input type="checkbox" />1.1 Crear entities Cart, CartItem, Coupon con cálculos puros (subtotal, impuesto 16%, descuento tope 50%, total) Rol: experto Flutter/Dart + Clean Architecture Éxito: RN004/RN006 cubiertos por unit test de invariantes Req: REQ-003 · Commit: <code>feat(cart): add cart entities with pricing rules</code></label></p></li>
 <li><p><label><input type="checkbox" />1.2 Definir interface CartRepository (Either&lt;Failure,T&gt;, 5 métodos) Éxito: firmas idénticas a design.md · Compila en main sin impl Req: REQ-001..005 · Commit: <code>feat(cart): add repository contract</code></label></p></li>
-<li><p><label><input type="checkbox" />1.3 Migración 0007_carts_rls.sql (3 tablas + RPC add_cart_item + RLS) Restricciones: idempotente; no editar migraciones previas; RLS enable SIEMPRE Éxito: <code>supabase db reset</code> OK; políticas citan escenarios REQ-005 Req: REQ-005 · Commit: <code>db(cart): add carts tables, rpc and rls</code></label></p></li>
+<li><p><label><input type="checkbox" />1.3 UseCases: GetCart, AddItemToCart, RemoveItem, UpdateQuantity, ApplyCoupon Restricciones: un UseCase = una operación; validaciones de entrada aquí Éxito: mensajes exactos de los escenarios (RN001-RN006) en failures de dominio Req: REQ-001..004 · Commit: <code>feat(cart): add usecases</code></label></p></li>
 </ul>
 <h2 id="2-capa-de-datos">2. Capa de datos</h2>
 <ul class="task-list">
 <li><p><label><input type="checkbox" />2.1 CartModel/CouponModel (snake_case ↔︎ camelCase, roundtrip fromJson/toJson) Éxito: roundtrip cubierto en test Req: REQ-001..004 · Commit: <code>feat(cart): add data models</code></label></p></li>
 <li><p><label><input type="checkbox" />2.2 CartRemoteDataSource (supabase.rpc / .from, manejo AuthException/SocketException) Éxito: cada método lanza excepciones mapeables a Failure Req: REQ-001..005 · Commit: <code>feat(cart): add remote data source</code></label></p></li>
-<li><p><label><input type="checkbox" />2.3 UseCases: GetCart, AddItemToCart, RemoveItem, UpdateQuantity, ApplyCoupon Restricciones: un UseCase = una operación; validaciones de entrada aquí Éxito: mensajes exactos de los escenarios (RN001-RN006) en failures de dominio Req: REQ-001..004 · Commit: <code>feat(cart): add usecases</code></label></p></li>
+<li><p><label><input type="checkbox" />2.3 CartRepositoryImpl (mapeo excepciones → Failure, delega datasource) Éxito: test con mock datasource pasa Req: REQ-001..005 · Commit: <code>feat(cart): implement repository</code></label></p></li>
 </ul>
-<h2 id="3-implementaciones-y-estado">3. Implementaciones y estado</h2>
+<h2 id="3-estado-y-presentación">3. Estado y presentación</h2>
 <ul class="task-list">
-<li><p><label><input type="checkbox" />3.1 CartRepositoryImpl (mapeo excepciones → Failure, delega datasource) Éxito: test con mock datasource pasa Req: REQ-001..005 · Commit: <code>feat(cart): implement repository</code></label></p></li>
-<li><p><label><input type="checkbox" />3.2 CartState sealed class (Initial/Loading/Loaded/Error) Commit: <code>feat(cart): add cart state</code></label></p></li>
-<li><p><label><input type="checkbox" />3.3 CartCubit (transiciones + mensajes EXACTOS de los escenarios) Éxito: cada escenario REQ-001..006 tiene su transición probada Req: REQ-006 · Commit: <code>feat(cart): add cart cubit</code></label></p></li>
+<li><p><label><input type="checkbox" />3.1 CartState sealed class (Initial/Loading/Loaded/Error) Commit: <code>feat(cart): add cart state</code></label></p></li>
+<li><p><label><input type="checkbox" />3.2 CartCubit (transiciones + mensajes EXACTOS de los escenarios) Éxito: cada escenario REQ-001..006 tiene su transición probada Req: REQ-006 · Commit: <code>feat(cart): add cart cubit</code></label></p></li>
+<li><p><label><input type="checkbox" />3.3 CartPage + widgets (un render por estado; SnackBar para errores) Éxito: widget test renderiza Loaded y Error correctamente Req: REQ-006 · Commit: <code>feat(cart): add cart page</code></label></p></li>
 </ul>
-<h2 id="4-presentación-e-integración">4. Presentación e integración</h2>
+<h2 id="4-integración">4. Integración</h2>
 <ul class="task-list">
-<li><p><label><input type="checkbox" />4.1 CartPage + widgets (un render por estado; SnackBar para errores) Éxito: widget test renderiza Loaded y Error correctamente Req: REQ-006 · Commit: <code>feat(cart): add cart page</code></label></p></li>
+<li><p><label><input type="checkbox" />4.1 Migración 0007_carts_rls.sql (3 tablas + RPC add_cart_item + RLS) Restricciones: idempotente; no editar migraciones previas; RLS enable SIEMPRE Éxito: <code>supabase db reset</code> OK; políticas citan escenarios REQ-005 Req: REQ-005 · Commit: <code>db(cart): add carts tables, rpc and rls</code></label></p></li>
 <li><p><label><input type="checkbox" />4.2 Registros en service_locator.dart (datasource, repo, usecases ×5, cubit — lazy singletons/factory según patrón) Commit: <code>chore(di): register cart dependencies</code></label></p></li>
 <li><p><label><input type="checkbox" />4.3 Ruta /cart en app_router.dart con guard de sesión Commit: <code>feat(router): add cart route</code></label></p></li>
 </ul>
@@ -2912,13 +2959,13 @@ Tú: audita el diff de la oleada contra specs/*/spec.md + design.md   ← este d
 <tbody>
 <tr>
 <td>REQ-001</td>
-<td>1.1, 1.3, 2.2, 2.3</td>
+<td>1.1, 4.1, 2.2, 1.3</td>
 <td>entity_test</td>
 <td>feliz/sin stock/límite/cantidad</td>
 </tr>
 <tr>
 <td>REQ-002</td>
-<td>1.2, 2.3</td>
+<td>1.2, 1.3</td>
 <td>repo_test</td>
 <td>quitar item</td>
 </tr>
@@ -2930,19 +2977,19 @@ Tú: audita el diff de la oleada contra specs/*/spec.md + design.md   ← este d
 </tr>
 <tr>
 <td>REQ-004</td>
-<td>2.3, 3.3</td>
+<td>1.3, 3.2</td>
 <td>cubit_test</td>
 <td>cupón vigente/expirado/tope</td>
 </tr>
 <tr>
 <td>REQ-005</td>
-<td>1.3</td>
+<td>4.1</td>
 <td>(política RLS)</td>
 <td>aislamiento</td>
 </tr>
 <tr>
 <td>REQ-006</td>
-<td>3.2, 3.3, 4.1</td>
+<td>3.1, 3.2, 3.3</td>
 <td>widget_test</td>
 <td>estados UI</td>
 </tr>
@@ -3189,26 +3236,26 @@ Either.left(Failure(&quot;slot_ocupado&quot;)) ──► Error(mensaje) ──�
 <h2 id="boundaries">Boundaries</h2>
 <p>No tocar catálogo de mascotas/doctores existente; no añadir paquetes; RLS nunca desactivada.</p>
 </div></div>
-<div class="chapter"><div class="chapter-head"><span class="num-chip">approve-reservas · Tasks</span><div class="kick">Parte 2 · Ejemplos de cambios</div><h2>Tasks: approve-reservas</h2></div><div class="article"><h2 id="1-dominio-y-datos-base">1. Dominio y datos base</h2>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">approve-reservas · Tasks</span><div class="kick">Parte 2 · Ejemplos de cambios</div><h2>Tasks: approve-reservas</h2></div><div class="article"><h2 id="1-dominio">1. Dominio</h2>
 <ul class="task-list">
 <li><label><input type="checkbox" />1.1 Entities: Appointment (+status enum), WorkSchedule, BlockedDay</label></li>
 <li><label><input type="checkbox" />1.2 Interfaces AppointmentRepository + VeterinarianRepository (Either)</label></li>
-<li><label><input type="checkbox" />1.3 Migración 0008: tablas + RPCs atómicos + RLS + pg_cron Éxito: doble reserva rechazada en SQL puro; políticas por actor</label></li>
+<li><label><input type="checkbox" />1.3 UseCases ×7 (uno por operación)</label></li>
 </ul>
 <h2 id="2-capa-de-datos">2. Capa de datos</h2>
 <ul class="task-list">
 <li><label><input type="checkbox" />2.1 Models con roundtrip JSON (timestamptz ↔︎ DateTime UTC) Restricción: slots siempre en huso horario de la clínica (RT001)</label></li>
 <li><label><input type="checkbox" />2.2 RemoteDataSource (RPC + select) y LocalDataSource (caché de agenda)</label></li>
-<li><label><input type="checkbox" />2.3 UseCases ×7 (uno por operación)</label></li>
+<li><label><input type="checkbox" />2.3 RepositoryImpls (mapeo excepciones → Failure con mensajes exactos)</label></li>
 </ul>
-<h2 id="3-implementaciones-y-estado">3. Implementaciones y estado</h2>
+<h2 id="3-estado-y-presentación">3. Estado y presentación</h2>
 <ul class="task-list">
-<li><label><input type="checkbox" />3.1 RepositoryImpls (mapeo excepciones → Failure con mensajes exactos)</label></li>
-<li><label><input type="checkbox" />3.2 AgendaState/CreateAppointmentState sealed + Cubits Éxito: stream realtime actualiza AgendaLoaded</label></li>
+<li><label><input type="checkbox" />3.1 AgendaState/CreateAppointmentState sealed + Cubits Éxito: stream realtime actualiza AgendaLoaded</label></li>
+<li><label><input type="checkbox" />3.2 Pages + widgets (slot selector, tarjeta cita, calendario)</label></li>
 </ul>
-<h2 id="4-presentación-e-integración">4. Presentación e integración</h2>
+<h2 id="4-integración">4. Integración</h2>
 <ul class="task-list">
-<li><label><input type="checkbox" />4.1 Pages + widgets (slot selector, tarjeta cita, calendario)</label></li>
+<li><label><input type="checkbox" />4.1 Migración 0008: tablas + RPCs atómicos + RLS + pg_cron Éxito: doble reserva rechazada en SQL puro; políticas por actor</label></li>
 <li><label><input type="checkbox" />4.2 DI + rutas con guards por rol (dueño/doctor/admin)</label></li>
 </ul>
 <h2 id="5-tests">5. Tests</h2>
@@ -3229,27 +3276,27 @@ Either.left(Failure(&quot;slot_ocupado&quot;)) ──► Error(mensaje) ──�
 <tbody>
 <tr>
 <td>REQ-001</td>
-<td>1.3, 2.3</td>
+<td>1.3, 4.1</td>
 <td>unit+SQL (doble reserva, antelación, límites)</td>
 </tr>
 <tr>
 <td>REQ-002</td>
-<td>2.3, 3.1</td>
+<td>1.3, 2.3</td>
 <td>unit (2h antelación)</td>
 </tr>
 <tr>
 <td>REQ-003</td>
-<td>3.2, 4.1</td>
+<td>3.1, 3.2</td>
 <td>cubit (transiciones + realtime)</td>
 </tr>
 <tr>
 <td>REQ-004</td>
-<td>1.3</td>
+<td>4.1</td>
 <td>integration RLS</td>
 </tr>
 <tr>
 <td>REQ-005</td>
-<td>1.3 (cron)</td>
+<td>4.1 (cron)</td>
 <td>integration pg_cron</td>
 </tr>
 </tbody>
@@ -3484,26 +3531,26 @@ PlayerReady(lesson, progress%) ──► si 100% → inscripción &#39;completad
 <h2 id="boundaries">Boundaries</h2>
 <p>No integrar pasarela de pagos real en este cambio (MODIFIED futuro); no filtrar catálogo en cliente.</p>
 </div></div>
-<div class="chapter"><div class="chapter-head"><span class="num-chip">elearning-progress · Tasks</span><div class="kick">Parte 2 · Ejemplos de cambios</div><h2>Tasks: add-elearning-progress</h2></div><div class="article"><h2 id="1-dominio-y-datos-base">1. Dominio y datos base</h2>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">elearning-progress · Tasks</span><div class="kick">Parte 2 · Ejemplos de cambios</div><h2>Tasks: add-elearning-progress</h2></div><div class="article"><h2 id="1-dominio">1. Dominio</h2>
 <ul class="task-list">
 <li><label><input type="checkbox" />1.1 Entities: Course, Module, Lesson, Enrollment, LessonProgress Éxito: RN004 implementado como método puro con test de borde (0 lecciones)</label></li>
 <li><label><input type="checkbox" />1.2 Interfaces CourseRepository + EnrollmentRepository</label></li>
-<li><label><input type="checkbox" />1.3 Migración 0009: tablas + checks (RN010) + vista progreso + RPC enroll + RLS Éxito: SELECT de lección sin inscripción devuelve vacío (test SQL)</label></li>
+<li><label><input type="checkbox" />1.3 UseCases ×8</label></li>
 </ul>
 <h2 id="2-capa-de-datos">2. Capa de datos</h2>
 <ul class="task-list">
 <li><label><input type="checkbox" />2.1 Models roundtrip (enums de estado incluidos)</label></li>
 <li><label><input type="checkbox" />2.2 RemoteDataSource (búsqueda full-text vía rpc; stream no requerido)</label></li>
-<li><label><input type="checkbox" />2.3 UseCases ×8</label></li>
+<li><label><input type="checkbox" />2.3 RepositoryImpls</label></li>
 </ul>
-<h2 id="3-implementaciones-y-estado">3. Implementaciones y estado</h2>
+<h2 id="3-estado-y-presentación">3. Estado y presentación</h2>
 <ul class="task-list">
-<li><label><input type="checkbox" />3.1 RepositoryImpls</label></li>
-<li><label><input type="checkbox" />3.2 CatalogCubit/PlayerCubit/InstructorCubit + states sealed Éxito: PlayerLocked cuando no hay inscripción (mensaje exacto)</label></li>
+<li><label><input type="checkbox" />3.1 CatalogCubit/PlayerCubit/InstructorCubit + states sealed Éxito: PlayerLocked cuando no hay inscripción (mensaje exacto)</label></li>
+<li><label><input type="checkbox" />3.2 CatalogPage (paginación), CourseDetailPage, LessonPlayerPage, MyCoursesPage</label></li>
 </ul>
-<h2 id="4-presentación-e-integración">4. Presentación e integración</h2>
+<h2 id="4-integración">4. Integración</h2>
 <ul class="task-list">
-<li><label><input type="checkbox" />4.1 CatalogPage (paginación), CourseDetailPage, LessonPlayerPage, MyCoursesPage</label></li>
+<li><label><input type="checkbox" />4.1 Migración 0009: tablas + checks (RN010) + vista progreso + RPC enroll + RLS Éxito: SELECT de lección sin inscripción devuelve vacío (test SQL)</label></li>
 <li><label><input type="checkbox" />4.2 DI + rutas con guard por rol</label></li>
 </ul>
 <h2 id="5-tests">5. Tests</h2>
@@ -3524,22 +3571,22 @@ PlayerReady(lesson, progress%) ──► si 100% → inscripción &#39;completad
 <tbody>
 <tr>
 <td>REQ-001</td>
-<td>1.3, 2.3</td>
+<td>1.3, 4.1</td>
 <td>unit+SQL (duplicado, auto-inscripción)</td>
 </tr>
 <tr>
 <td>REQ-002</td>
-<td>1.3, 2.3</td>
+<td>1.3, 4.1</td>
 <td>SQL gating + cubit locked</td>
 </tr>
 <tr>
 <td>REQ-003</td>
-<td>1.1, 1.3</td>
+<td>1.1, 4.1</td>
 <td>unit fórmula + SQL trigger</td>
 </tr>
 <tr>
 <td>REQ-004</td>
-<td>2.3</td>
+<td>1.3</td>
 <td>unit publicación y archivo</td>
 </tr>
 </tbody>
@@ -3769,26 +3816,26 @@ UI refresca estado y lista de pagos</code></pre>
 <h2 id="boundaries">Boundaries</h2>
 <p>No implementar recurrentes ni plantillas en este cambio; no exponer número editable.</p>
 </div></div>
-<div class="chapter"><div class="chapter-head"><span class="num-chip">facturacion · Tasks</span><div class="kick">Parte 2 · Ejemplos de cambios</div><h2>Tasks: add-facturacion</h2></div><div class="article"><h2 id="1-dominio-y-datos-base">1. Dominio y datos base</h2>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">facturacion · Tasks</span><div class="kick">Parte 2 · Ejemplos de cambios</div><h2>Tasks: add-facturacion</h2></div><div class="article"><h2 id="1-dominio">1. Dominio</h2>
 <ul class="task-list">
 <li><label><input type="checkbox" />1.1 Entities + InvoiceStatus con canTransitionTo() (máquina de estados pura) Éxito: todas las transiciones válidas/inválidas cubiertas por unit test</label></li>
 <li><label><input type="checkbox" />1.2 Interface InvoiceRepository</label></li>
-<li><label><input type="checkbox" />1.3 Migración 0010: tablas, sequences, RPCs ×3, RLS, cron vencidas</label></li>
+<li><label><input type="checkbox" />1.3 UseCases ×7</label></li>
 </ul>
 <h2 id="2-capa-de-datos">2. Capa de datos</h2>
 <ul class="task-list">
 <li><label><input type="checkbox" />2.1 Models roundtrip (money como num; enums)</label></li>
 <li><label><input type="checkbox" />2.2 RemoteDataSource (RPC-first; sin UPDATE directo de estado desde cliente)</label></li>
-<li><label><input type="checkbox" />2.3 UseCases ×7</label></li>
+<li><label><input type="checkbox" />2.3 RepositoryImpl (mapeo errores SQL → Failure con mensajes RN00x)</label></li>
 </ul>
-<h2 id="3-implementaciones-y-estado">3. Implementaciones y estado</h2>
+<h2 id="3-estado-y-presentación">3. Estado y presentación</h2>
 <ul class="task-list">
-<li><label><input type="checkbox" />3.1 RepositoryImpl (mapeo errores SQL → Failure con mensajes RN00x)</label></li>
-<li><label><input type="checkbox" />3.2 EditorCubit/ListCubit + states sealed Éxito: doble tap en "pagar" no duplica pago (debounce + RPC idempotente)</label></li>
+<li><label><input type="checkbox" />3.1 EditorCubit/ListCubit + states sealed Éxito: doble tap en "pagar" no duplica pago (debounce + RPC idempotente)</label></li>
+<li><label><input type="checkbox" />3.2 Pages: editor (borrador), listado con filtros por estado, detalle con pagos</label></li>
 </ul>
-<h2 id="4-presentación-e-integración">4. Presentación e integración</h2>
+<h2 id="4-integración">4. Integración</h2>
 <ul class="task-list">
-<li><label><input type="checkbox" />4.1 Pages: editor (borrador), listado con filtros por estado, detalle con pagos</label></li>
+<li><label><input type="checkbox" />4.1 Migración 0010: tablas, sequences, RPCs ×3, RLS, cron vencidas</label></li>
 <li><label><input type="checkbox" />4.2 DI + rutas</label></li>
 </ul>
 <h2 id="5-tests">5. Tests</h2>
@@ -3809,32 +3856,32 @@ UI refresca estado y lista de pagos</code></pre>
 <tbody>
 <tr>
 <td>REQ-001</td>
-<td>1.1, 1.3</td>
+<td>1.1, 4.1</td>
 <td>unit+SQL numeración</td>
 </tr>
 <tr>
 <td>REQ-002</td>
-<td>1.1, 2.3</td>
+<td>1.1, 1.3</td>
 <td>unit transiciones</td>
 </tr>
 <tr>
 <td>REQ-003</td>
-<td>1.3, 2.3</td>
+<td>4.1, 1.3</td>
 <td>SQL pagos parciales/sobrepago</td>
 </tr>
 <tr>
 <td>REQ-004</td>
-<td>1.3 (cron)</td>
+<td>4.1 (cron)</td>
 <td>integration</td>
 </tr>
 <tr>
 <td>REQ-005</td>
-<td>1.3, 2.3</td>
+<td>4.1, 1.3</td>
 <td>unit anulación</td>
 </tr>
 <tr>
 <td>REQ-006</td>
-<td>1.3</td>
+<td>4.1</td>
 <td>SQL RLS</td>
 </tr>
 </tbody>
@@ -4058,26 +4105,26 @@ Cliente: mapa pinta TrackingLive(courier) ──► entregado → cancelar suscr
 <h2 id="boundaries">Boundaries</h2>
 <p>No integrar pasarela real ni calificaciones aquí; GPS nunca persiste histórico completo (privacidad).</p>
 </div></div>
-<div class="chapter"><div class="chapter-head"><span class="num-chip">delivery-seguimiento · Tasks</span><div class="kick">Parte 2 · Ejemplos de cambios</div><h2>Tasks: add-delivery-seguimiento</h2></div><div class="article"><h2 id="1-dominio-y-datos-base">1. Dominio y datos base</h2>
+<div class="chapter"><div class="chapter-head"><span class="num-chip">delivery-seguimiento · Tasks</span><div class="kick">Parte 2 · Ejemplos de cambios</div><h2>Tasks: add-delivery-seguimiento</h2></div><div class="article"><h2 id="1-dominio">1. Dominio</h2>
 <ul class="task-list">
 <li><label><input type="checkbox" />1.1 Entities + OrderStatus (9 estados) con transiciones por actor</label></li>
 <li><label><input type="checkbox" />1.2 Interfaces OrderRepository/DeliveryRepository (incl. Streams)</label></li>
-<li><label><input type="checkbox" />1.3 Migración 0011: tablas, RPCs tarifa/asignación, RLS, cron timeout</label></li>
+<li><label><input type="checkbox" />1.3 UseCases ×10</label></li>
 </ul>
 <h2 id="2-capa-de-datos">2. Capa de datos</h2>
 <ul class="task-list">
 <li><label><input type="checkbox" />2.1 Models roundtrip (Location VO ↔︎ PostGIS lat/lng)</label></li>
 <li><label><input type="checkbox" />2.2 RealtimeDataSource (watch order + broadcast GPS) y RemoteDataSource</label></li>
-<li><label><input type="checkbox" />2.3 UseCases ×10</label></li>
+<li><label><input type="checkbox" />2.3 RepositoryImpls</label></li>
 </ul>
-<h2 id="3-implementaciones-y-estado">3. Implementaciones y estado</h2>
+<h2 id="3-estado-y-presentación">3. Estado y presentación</h2>
 <ul class="task-list">
-<li><label><input type="checkbox" />3.1 RepositoryImpls</label></li>
-<li><label><input type="checkbox" />3.2 CustomerOrderCubit, RestaurantOrdersCubit, TrackingCubit Éxito: TrackingLive actualiza &lt;3s; cancelación de streams al entregar</label></li>
+<li><label><input type="checkbox" />3.1 CustomerOrderCubit, RestaurantOrdersCubit, TrackingCubit Éxito: TrackingLive actualiza &lt;3s; cancelación de streams al entregar</label></li>
+<li><label><input type="checkbox" />3.2 CheckoutPage, RestaurantOrdersPage, AvailableDeliveriesPage, TrackingMapPage Restricción: geolocator con permisos y battery-aware (pausa en background)</label></li>
 </ul>
-<h2 id="4-presentación-e-integración">4. Presentación e integración</h2>
+<h2 id="4-integración">4. Integración</h2>
 <ul class="task-list">
-<li><label><input type="checkbox" />4.1 CheckoutPage, RestaurantOrdersPage, AvailableDeliveriesPage, TrackingMapPage Restricción: geolocator con permisos y battery-aware (pausa en background)</label></li>
+<li><label><input type="checkbox" />4.1 Migración 0011: tablas, RPCs tarifa/asignación, RLS, cron timeout</label></li>
 <li><label><input type="checkbox" />4.2 DI + rutas por rol</label></li>
 </ul>
 <h2 id="5-tests">5. Tests</h2>
@@ -4098,22 +4145,22 @@ Cliente: mapa pinta TrackingLive(courier) ──► entregado → cancelar suscr
 <tbody>
 <tr>
 <td>REQ-001</td>
-<td>1.1, 1.3, 2.3</td>
+<td>1.1, 1.3, 4.1</td>
 <td>unit+SQL</td>
 </tr>
 <tr>
 <td>REQ-002</td>
-<td>1.3 (cron)</td>
+<td>4.1 (cron)</td>
 <td>integration</td>
 </tr>
 <tr>
 <td>REQ-003</td>
-<td>1.3, 2.3</td>
+<td>4.1, 1.3</td>
 <td>SQL asignación concurrente</td>
 </tr>
 <tr>
 <td>REQ-004</td>
-<td>2.2, 3.2, 4.1</td>
+<td>2.2, 3.1, 3.2</td>
 <td>cubit+widget streams</td>
 </tr>
 </tbody>
@@ -4319,25 +4366,26 @@ Either.right(Unit) ──► recarga listado ──► BuyersLoaded</code></pre>
 <div class="chapter"><div class="chapter-head"><span class="num-chip">add-buyers · Tasks</span><div class="kick">Parte 2 · Ejemplos de cambios</div><h2>Tasks: add-buyers</h2></div><div class="article"><blockquote>
 <p>Complejidad Intermedia: una sola puerta combinada antes de implementar (proposal+spec+design+tasks revisados juntos).</p>
 </blockquote>
-<h2 id="1-dominio-y-datos-base">1. Dominio y datos base</h2>
+<h2 id="1-dominio">1. Dominio</h2>
 <ul class="task-list">
 <li><label><input type="checkbox" />1.1 Entity Buyer + TicketStatus enum</label></li>
 <li><label><input type="checkbox" />1.2 Interface BuyerRepository</label></li>
-<li><label><input type="checkbox" />1.3 Migración 0012: tabla buyers + RPCs ×2 + RLS por organizador</label></li>
+<li><label><input type="checkbox" />1.3 UseCases ×3</label></li>
 </ul>
 <h2 id="2-capa-de-datos">2. Capa de datos</h2>
 <ul class="task-list">
 <li><label><input type="checkbox" />2.1 BuyerModel roundtrip</label></li>
 <li><label><input type="checkbox" />2.2 RemoteDataSource (RPC + query con búsqueda server-side)</label></li>
-<li><label><input type="checkbox" />2.3 UseCases ×3</label></li>
+<li><label><input type="checkbox" />2.3 BuyerRepositoryImpl (mapeo excepciones → Failure)</label></li>
 </ul>
-<h2 id="3-implementación-y-estado">3. Implementación y estado</h2>
+<h2 id="3-estado-y-presentación">3. Estado y presentación</h2>
 <ul class="task-list">
-<li><label><input type="checkbox" />3.1 RepositoryImpl + BuyersCubit/State</label></li>
+<li><label><input type="checkbox" />3.1 BuyersState sealed + BuyersCubit</label></li>
+<li><label><input type="checkbox" />3.2 BuyersPage con search bar y acciones aprobar/liberar</label></li>
 </ul>
-<h2 id="4-presentación-e-integración">4. Presentación e integración</h2>
+<h2 id="4-integración">4. Integración</h2>
 <ul class="task-list">
-<li><label><input type="checkbox" />4.1 BuyersPage con search bar y acciones aprobar/liberar</label></li>
+<li><label><input type="checkbox" />4.1 Migración 0012: tabla buyers + RPCs ×2 + RLS por organizador</label></li>
 <li><label><input type="checkbox" />4.2 DI + ruta anidada /raffles/:id/buyers</label></li>
 </ul>
 <h2 id="5-tests">5. Tests</h2>
@@ -4358,22 +4406,22 @@ Either.right(Unit) ──► recarga listado ──► BuyersLoaded</code></pre>
 <tbody>
 <tr>
 <td>REQ-001</td>
-<td>1.3, 4.1</td>
+<td>4.1, 3.2</td>
 <td>SQL RLS</td>
 </tr>
 <tr>
 <td>REQ-002</td>
-<td>1.3, 2.2</td>
+<td>4.1, 2.2</td>
 <td>unit datasource</td>
 </tr>
 <tr>
 <td>REQ-003</td>
-<td>1.3, 2.3</td>
+<td>4.1, 1.3</td>
 <td>SQL idempotencia</td>
 </tr>
 <tr>
 <td>REQ-004</td>
-<td>1.3, 2.3</td>
+<td>4.1, 1.3</td>
 <td>SQL liberación</td>
 </tr>
 </tbody>

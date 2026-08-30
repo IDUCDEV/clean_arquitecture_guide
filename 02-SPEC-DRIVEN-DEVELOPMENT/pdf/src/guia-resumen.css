@@ -212,21 +212,78 @@ td.mono {
 }
 
 /* --------------------------------------------------------------------------
-   PLANTILLA (bloque de codigo destacado)
+   COMANDOS (linea de terminal destacada)
    -------------------------------------------------------------------------- */
-.template {
-  background: #111827;
-  color: #E5E7EB;
-  border-radius: 8px;
-  padding: 4mm;
+.cmd {
+  background: #0F172A;
+  color: #A5F3FC;
   font-family: "Noto Sans Mono", "Adwaita Mono", monospace;
-  font-size: 7.6pt;
+  border-radius: 6px;
+  padding: 2.5mm 4mm;
+  margin: 2mm 0 3mm;
+  font-size: 8.2pt;
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
+  page-break-inside: avoid;
 }
-.template .c { color: #9CA3AF; }
-.template .k { color: #6EE7B7; font-weight: 700; }
+.cmd::before {
+  content: "$ ";
+  color: #FBBF24;
+  font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   ARCHIVO (plantilla mostrada como archivo .md completo)
+   -------------------------------------------------------------------------- */
+.md-file {
+  background: #F8FAFC;
+  border: 1px solid #94A3B8;
+  border-radius: 8px;
+  margin: 3mm 0 4mm;
+  page-break-inside: auto;
+}
+.file-tab {
+  background: #334155;
+  color: #E2E8F0;
+  font-family: "Noto Sans Mono", "Adwaita Mono", monospace;
+  font-size: 8.2pt;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 4px 12px;
+  border-radius: 7px 7px 0 0;
+}
+.file-tab:before {
+  content: "\25CF  \25CF  \25CF   ";
+  color: #94A3B8;
+}
+.md-file pre.template {
+  border: none;
+  border-radius: 0 0 7px 7px;
+  margin: 0;
+  background: #F8FAFC;
+  padding: 4mm 4mm;
+}
+
+/* --------------------------------------------------------------------------
+   PLANTILLA (bloque de codigo destacado)
+   -------------------------------------------------------------------------- */
+.template {
+  background: #F8FAFC;
+  color: #111827;
+  border: 1px solid #CBD5E1;
+  border-left: 4px solid #059669;
+  border-radius: 6px;
+  padding: 4mm;
+  font-family: "Noto Sans Mono", "Adwaita Mono", monospace;
+  font-size: 9pt;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+  page-break-inside: auto;
+}
+.template .c { color: #6B7280; }
+.template .k { color: #065F46; font-weight: 700; }
 
 /* --------------------------------------------------------------------------
    PIE

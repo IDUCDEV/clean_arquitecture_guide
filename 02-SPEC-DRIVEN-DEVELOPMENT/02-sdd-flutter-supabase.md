@@ -99,7 +99,7 @@ Toda feature nace como carpeta de cambio. Hay dos formas de llenarla, y **no son
 4. `openspec validate <cambio> --strict`
 5. Clarity Gate como prueba final: ¿otro agente, leyendo SOLO tu spec, produciría código equivalente?
 
-Ambos modos convergen en la misma **Puerta 1**. La elección posterior de implementación (Vía A skill / Vía B agente) es independiente del modo elegido.
+Ambos modos convergen en la misma **Puerta 1**. La implementación posterior usa siempre el mismo motor —`/opsx-apply-change`—; lo único que varía es el **Modo** declarado en `tasks.md` (`andamiaje` | `completo`), independiente del modo de redacción elegido.
 
 ---
 
@@ -418,23 +418,23 @@ El punto dulce: una responsabilidad verificable.
 
 ## Fase 4 · Implementación
 
-Dos vías válidas según **quién escribe el código**:
+Un único motor —`/opsx-apply-change`— según **quién escribe el código**. El **Modo** se declara por cambio en la primera línea de `tasks.md`:
 
-### Vía A — Skill `clean-arch-feature`: andamiaje IA + lógica crítica tuya (recomendada para features nuevas completas)
+### Modo: andamiaje — scaffold IA + lógica crítica tuya
 
-1. Pasa la carpeta del cambio a la skill → genera scaffold (entity/model/datasource/repo/usecases/cubit/state/pages) con cuerpos `UnimplementedError()` y comentarios TODO citando el requisito
-2. Tú implementas siguiendo tasks.md oleada por oleada
+1. `/opsx-apply-change` genera scaffold por tarea (entity/model/datasource/repo/usecases/cubit/state/pages) con cuerpos `UnimplementedError()` y comentarios TODO citando el requisito, deja la casilla en `- [ ]` y pausa
+2. Tú implementas las tareas siguiendo tasks.md oleada por oleada (la práctica de escribir la lógica crítica se preserva)
 3. Delegación automática: DI → skill `di-getit-scaffold`, routing → skill `go-route-scaffold`
 
-### Vía B — Agente + OpenSpec: la IA escribe todo, tú verificas (recomendada para cambios pequeños o brownfield quirúrgico)
+### Modo: completo — la IA escribe todo, tú verificas
 
-1. `/opsx-apply-change` — el agente lee proposal/specs/design/tasks y ejecuta todas las tareas, commit por tarea
+1. `/opsx-apply-change` — el agente lee proposal/specs/design/tasks y ejecuta todas las tareas, commit por tarea, escribiendo el 100% del código
 2. Al cierre de cada oleada auditas el resultado contra la spec
 3. Checklist completo de auditoría: [06-auditoria-codigo-ia.md](./06-auditoria-codigo-ia.md)
 
-### ¿Vía A o Vía B? Matriz de decisión
+### ¿andamiaje o completo? Matriz de decisión
 
-| Criterio | Vía A (tú implementas) | Vía B (IA escribe todo) |
+| Criterio | andamiaje (tú implementas la crítica) | completo (IA escribe todo) |
 |---|---|---|
 | Lógica crítica: dinero, permisos, estados | ✅ entiendes cada línea que firmas | ⚠️ solo si los escenarios EARS son exhaustivos |
 | CRUD, formularios, brownfield quirúrgico | posible overkill | ✅ terreno ideal |

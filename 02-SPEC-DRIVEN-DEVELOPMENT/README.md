@@ -40,7 +40,7 @@ La metodología **completa** de Spec Driven Development del curso, en tres pieza
 | 03 | [03-openspec-guia-practica.md](./03-openspec-guia-practica.md) | Setup y workflow de OpenSpec en un proyecto Flutter |
 | 04 | [04-plantilla-cambio-openspec.md](./04-plantilla-cambio-openspec.md) | Plantilla lista para copiar: proposal, spec delta, design, tasks |
 | 05 | [05-referencia-rapida.md](./05-referencia-rapida.md) | Cheat sheet + glosario de equivalencias → SDD |
-| 06 | [06-auditoria-codigo-ia.md](./06-auditoria-codigo-ia.md) | Checklist para auditar código escrito por IA (Vía B): contratos, sealed states, RLS, tests contra EARS |
+| 06 | [06-auditoria-codigo-ia.md](./06-auditoria-codigo-ia.md) | Checklist para auditar código escrito por IA (Modo completo): contratos, sealed states, RLS, tests contra EARS |
 | 07 | [07-guia-paso-a-paso.md](./07-guia-paso-a-paso.md) | **Receta de cocina**: cada fase de SDD con su comando OpenSpec, qué escribir, y checklist de puertas |
 | — | [`ejemplos-cambios/`](./ejemplos-cambios/) | 6 cambios completos listos para copiar (carrito walkthrough incluido) |
 | — | [`trabajar-sin-ia/`](./trabajar-sin-ia/) | Ejercicios de diseño con papel y lápiz, sin herramientas IA |

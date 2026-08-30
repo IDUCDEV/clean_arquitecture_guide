@@ -1,4 +1,4 @@
-# 06 · Auditoría de código generado por IA (Vía B)
+# 06 · Auditoría de código generado por IA (Modo completo)
 
 > Escenario: la IA escribe **todo** el código y tú solo verificas. Este documento es el manual del nuevo rol: **de autor a auditor**. Complementa Fase 4 de [02-sdd-flutter-supabase.md](./02-sdd-flutter-supabase.md) y se aplica con los ejemplos de [`ejemplos-cambios/`](./ejemplos-cambios/).
 
@@ -6,7 +6,7 @@
 
 ## El cambio de rol
 
-En la Vía A implementas y entiendes cada línea porque la escribiste. En la Vía B tu valor ya no está en escribir sino en **dos momentos que no se delegan**:
+En el Modo `andamiaje` implementas y entiendes cada línea porque la escribiste. En el Modo `completo` tu valor ya no está en escribir sino en **dos momentos que no se delegan**:
 
 | Momento | Qué haces | Por qué no se delega |
 |---|---|---|
@@ -117,7 +117,7 @@ Si las cinco casillas pasan, ese escenario está auditado. Repite por escenario;
 
 ---
 
-## Señales de que NO deberías estar en Vía B
+## Señales de que NO deberías estar en Modo completo
 
 Sé honesto contigo mismo:
 
@@ -125,7 +125,7 @@ Sé honesto contigo mismo:
 - No sabrías distinguir un `try/catch` tragador de un manejo legítimo de errores
 - Firmarías el diff "porque compila y los tests pasan"
 
-→ Empieza con **Vía A** (implementas tú sobre scaffold) hasta que el checklist sea lectura natural. Ahí es exactamente donde entra [`trabajar-sin-ia/`](./trabajar-sin-ia/): criterio de auditoría se construye escribiendo código, no leyendo diffs.
+→ Cambia a **Modo andamiaje** (implementas tú sobre scaffold) hasta que el checklist sea lectura natural. Ahí es exactamente donde entra [`trabajar-sin-ia/`](./trabajar-sin-ia/): criterio de auditoría se construye escribiendo código, no leyendo diffs.
 
 ---
 

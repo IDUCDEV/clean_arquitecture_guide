@@ -18,12 +18,12 @@
   <div class="section-head s-emerald">
     <span class="num">0</span>
     <h2>Como abordar una feature nueva — patron paso a paso</h2>
-    <span class="meta">Pasos 0-8 · Vias A y B</span>
+    <span class="meta">Pasos 0-8 · Modo andamiaje | completo</span>
   </div>
 
   <p>Este es el patron que distila los 6 casos practicos de <strong>ejemplos-cambios/</strong> y de <strong>07-guia-paso-a-paso.md</strong>. Sigue estos pasos en orden para <strong>CUALQUIER feature nueva</strong>. Dentro de cada plantilla, a la derecha de cada parte, hay un recordatorio de <strong>que debe ir ahi</strong>. Profundiza en <strong>04-plantilla-cambio-openspec.md</strong> (plantilla completa) y en <strong>07-guia-paso-a-paso.md</strong> (ejemplos llenos).</p>
 
-  <div class="callout teal"><p><strong>Hasta el Paso 5, Via A = Via B:</strong> la IA redacta los artefactos y TU los apruebas. La bifurcacion real aparece solo en el <strong>Paso 6</strong>: quien escribe el codigo.</p></div>
+  <div class="callout teal"><p><strong>Hasta el Paso 5 no hay modo que elegir:</strong> la IA redacta los artefactos y TU los apruebas. La decision real llega en el <strong>Paso 6</strong>: el <strong>modo</strong> (andamiaje | completo) de <code>tasks.md</code> decide cuanto escribe la IA — siempre sobre el MISMO motor: <code>/opsx-apply-change</code>.</p></div>
 
   <table class="flow">
     <tr>
@@ -31,14 +31,17 @@
       <td><span class="step-n">1</span><span class="step-t">Crea cambio</span><span class="step-f">carpeta</span></td>
       <td><span class="step-n">2-3</span><span class="step-t">Proposal+Spec</span><span class="step-f">EARS</span></td>
       <td><span class="step-n">4</span><span class="step-t">Design</span><span class="step-f">fase 2</span></td>
-      <td><span class="step-n">5</span><span class="step-t">Tasks</span><span class="step-f">oleadas</span></td>
-      <td><span class="step-n">6</span><span class="step-t">Implementa</span><span class="step-f">Via A | B</span></td>
+      <td><span class="step-n">5</span><span class="step-t">Tasks</span><span class="step-f">modo+oleadas</span></td>
+      <td><span class="step-n">6</span><span class="step-t">Implementa</span><span class="step-f">apply-change</span></td>
       <td><span class="step-n">7-8</span><span class="step-t">Verifica+Archiva</span><span class="step-f">specs vivas</span></td>
     </tr>
   </table>
 
   <h3>Paso 0 · Clasifica el cambio antes de empezar</h3>
   <p>Elegir el tamano define cuanto ritual aplicas (proporcionalidad). <strong>Regla practica:</strong> si dudarias en mergearlo sin revision de otro humano, es al menos Intermedia.</p>
+
+  <pre class="cmd">openspec list                ← cambios activos: ubicate antes de crear otro</pre>
+
   <table>
     <thead><tr><th>Nivel</th><th>Criterio</th><th>design.md</th><th>Puertas</th><th>Ejemplo lleno en doc 07</th></tr></thead>
     <tbody>
@@ -58,17 +61,25 @@
     </tbody>
   </table>
 
+  <pre class="cmd">/opsx-new-change add-&lt;feature&gt;      ← artesano: 4 ficheros vacios, los llenas TU
+/opsx-propose add-&lt;feature&gt;          ← copiloto: la IA redacta, tu apruebas</pre>
+
+  <div class="md-file"><div class="file-tab">openspec/changes/add-&lt;feature&gt;/</div>
   <pre class="template">openspec/changes/add-&lt;feature&gt;/       ← carpeta en kebab-case; prefijo add- para features nuevas
 ├── proposal.md        ← Por que, impacto, alcance y actores (Paso 2)
 ├── specs/
 │   └── &lt;capacidad&gt;/
 │       └── spec.md    ← requisitos EARS en formato delta (Paso 3)
 ├── design.md          ← solo Intermedia/Compleja: arquitectura + ficheros (Paso 4)
-└── tasks.md           ← 5 oleadas + trazabilidad Req↔tarea↔test (Paso 5)</pre>
+└── tasks.md           ← 5 oleadas + modo + trazabilidad Req↔tarea↔test (Paso 5)</pre></div>
 
   <h3>Paso 2 · Llena proposal.md</h3>
   <p>Obligatorio en brownfield. Responde <strong>POR QUE</strong> existe el cambio, <strong>QUE</strong> toca de lo actual y <strong>HASTA DONDE</strong> llega.</p>
 
+  <pre class="cmd">openspec instructions proposal --change add-&lt;feature&gt; --json   ← plantilla del artefacto
+# rellena: WHY · Impact · Scope · Actores · Preguntas abiertas</pre>
+
+  <div class="md-file"><div class="file-tab">proposal.md</div>
   <pre class="template"># Proposal: add-&lt;feature&gt;      ← nombre del cambio en kebab-case (add- = feature nueva)
 
 ## Impacto (Impact Report)       ← QUE del sistema ACTUAL toca este cambio. OBLIGATORIO en brownfield
@@ -88,11 +99,15 @@
 **Preguntas abiertas:** [pendientes; cierralas (tachado + respuesta) antes de la Puerta 1]
 
 ## Actores y permisos             ← tabla: Actor | Puede | No puede | Mapeo RLS
-## Impact                         ← resumen: ~n ficheros · tablas/migracion · breaking (o "ninguno")</pre>
+## Impact                         ← resumen: ~n ficheros · tablas/migracion · breaking (o "ninguno")</pre></div>
 
   <h3>Paso 3 · Llena spec.md — requisitos EARS</h3>
   <p>La spec es el <strong>contrato aprobado</strong>. Cada <strong>#### Scenario:</strong> ES un criterio de aceptacion testeable. Cubre SIEMPRE: camino feliz + error + borde + aislamiento RLS.</p>
 
+  <pre class="cmd">openspec instructions spec --change add-&lt;feature&gt; --json   ← plantilla con deltas EARS
+# cada #### Scenario: = 1 criterio de aceptacion testeable</pre>
+
+  <div class="md-file"><div class="file-tab">spec.md</div>
   <pre class="template"># Spec: &lt;capacidad&gt;                  ← nombre de la capacidad en kebab-case
 ## WHY                           ← por que existe esta capacidad (conecta con el Why del proposal)
 ## Purpose                       ← que garantiza esta capacidad, en 1-2 frases
@@ -107,10 +122,13 @@
 - **IF** [fallo esperable] → **THEN** el sistema DEBERA mostrar "[mensaje literal]"
 
 #### Scenario: [Borde / aislamiento]      ← limites numericos, vacios y permisos por usuario
-- **GIVEN** [estado previo, ej. autenticado] → **WHEN** [accion] → **THEN** [solo lo propio: auth.uid() = user_id]</pre>
+- **GIVEN** [estado previo, ej. autenticado] → **WHEN** [accion] → **THEN** [solo lo propio: auth.uid() = user_id]</pre></div>
 
   <h3>Puerta 1 · Validar requisitos</h3>
   <p>Ejecuta <strong>openspec validate</strong> y la <strong>Clarity Gate</strong>: ¿un dev senior entenderia la spec sin preguntar nada?</p>
+
+  <pre class="cmd">openspec validate add-&lt;feature&gt;   ← formato OK (schemas de los 4 archivos)
+# y luego la Clarity Gate abajo</pre>
 
   <pre class="template">[ ] cada historia es precisa: actor + accion + objeto + proposito
 [ ] requisitos con ID unico (REQ-XXX) y patron EARS correcto
@@ -120,8 +138,12 @@
 [ ] openspec validate pasa sin errores</pre>
 
   <h3>Paso 4 · Llena design.md — diseno tecnico (solo Intermedia/Compleja)</h3>
-  <p>En Simple se omite: la skill <strong>clean-arch-feature</strong> deriva los ficheros de los requisitos. En Intermedia/Compleja se decide <strong>como se implementa lo aprobado en la Puerta 1</strong>.</p>
+  <p>En Simple se omite: los ficheros se derivan directamente de los requisitos. En Intermedia/Compleja se decide <strong>como se implementa lo aprobado en la Puerta 1</strong>.</p>
 
+  <pre class="cmd">openspec instructions design --change add-&lt;feature&gt; --json   ← plantilla del artefacto
+# solo Intermedia/Compleja: en Simple se omite</pre>
+
+  <div class="md-file"><div class="file-tab">design.md</div>
   <pre class="template"># Design: add-&lt;feature&gt;           ← nombre del cambio
 ## Context                     ← estado ACTUAL relevante + que cambia (1-2 oraciones)
 ## Goals / Non-Goals           ← objetivo claro (haz) / anti-objetivo explicito (NO haz)
@@ -134,9 +156,11 @@
 ## Contratos Dart clave        ← Repository interface + sealed State ANTES de implementar
 ## Flujo de datos              ← ASCII: Page→Cubit→UseCase→Repo→DataSource→Supabase, con rama de error (Either.left)
 ## Backend Supabase            ← Tablas · RLS citando REQ · RPC si concurrencia · Migracion idempotente
-## Boundaries                  ← que NO debe hacer el agente aqui: ej. no tocar feature Y</pre>
+## Boundaries                  ← que NO debe hacer el agente aqui: ej. no tocar feature Y</pre></div>
 
   <h3>Puerta 2 · Validar diseno</h3>
+
+  <pre class="cmd">openspec validate add-&lt;feature&gt;   ← diseno estructuralmente valido (schemas)</pre>
 
   <pre class="template">[ ] la tabla de ficheros afectados cubre TODOS los REQ de la Puerta 1
 [ ] los contratos compilan mentalmente (firmas coherentes entre capas)
@@ -146,53 +170,86 @@
 [ ] openspec validate pasa sin errores</pre>
 
   <h3>Paso 5 · Llena tasks.md — las 5 oleadas</h3>
-  <p>Traduce el diseno en pasos de implementacion. Cada tarea: <strong>que se hace (≤3 ficheros) + REQ que implementa + criterio de exito + commit atomico</strong>.</p>
+  <p>Traduce el diseno en pasos de implementacion. Cada tarea: <strong>que se hace (≤3 ficheros) + REQ que implementa + criterio de exito + commit atomico</strong>. Antes de las oleadas, declara el <strong>modo de implementacion</strong> (andamiaje | completo): quien escribe el codigo, siempre via <code>/opsx-apply-change</code>.</p>
 
+  <pre class="cmd">openspec instructions tasks --change add-&lt;feature&gt; --json   ← oleadas + trazabilidad
+# linea 2: declara el modo (andamiaje | completo) — decide cuanto escribe la IA</pre>
+
+  <div class="md-file"><div class="file-tab">tasks.md</div>
   <pre class="template"># Tasks: add-&lt;feature&gt;
-## 1. Dominio y datos base      ← fundamentos: entidad, contrato y base de datos
+&gt; Modo de implementacion: andamiaje   ← quien escribe el codigo en este cambio
+&gt;   andamiaje = scaffold + TODOs REQ, implementas TU · completo = IA escribe 100%, auditas
+## 1. Dominio                   ← logica pura: entidad, contrato y casos de uso
 - [ ] 1.1 Entity &lt;Name&gt; + invariantes (REQ)  · 1.2 Interface &lt;Name&gt;Repository (REQ)
-- [ ] 1.3 Migracion SQL tablas + RLS (REQ)   (si aplica)
-## 2. Capa de datos             ← como viajan los datos: modelo, fuente y casos de uso
+- [ ] 1.3 UseCases (uno por operacion)
+## 2. Capa de datos             ← viaje de datos: modelo, fuente e implementacion
 - [ ] 2.1 Model fromJson/toJson (snake_case↔camelCase)  · 2.2 DataSource (llamadas exactas)
-- [ ] 2.3 UseCases (uno por operacion)
-## 3. Implementaciones y estado ← logica y estado visible de la UI
-- [ ] 3.1 RepositoryImpl (mapeo excepciones→Failure)  · 3.2 State sealed
-- [ ] 3.3 Cubit (transiciones + mensajes EXACTOS de los escenarios)
-## 4. Presentacion e integracion  ← UI, DI y rutas
-- [ ] 4.1 Page + widgets (un render por estado)  · 4.2 service_locator  · 4.3 app_router
+- [ ] 2.3 RepositoryImpl (mapeo excepciones→Failure)
+## 3. Estado y presentacion     ← estado visible y UI
+- [ ] 3.1 State sealed  · 3.2 Cubit (transiciones + mensajes EXACTOS de los escenarios)
+- [ ] 3.3 Page + widgets (un render por estado)
+## 4. Integracion               ← base de datos, DI y rutas
+- [ ] 4.1 Migracion SQL tablas + RLS (REQ)   · 4.2 service_locator  · 4.3 app_router
 ## 5. Tests                     ← 1 test por escenario critico citando REQ
 - [ ] 5.1 Unit entidades/usecases  · 5.2 Repository impl (mock)  · 5.3 Widget page clave
-## Trazabilidad                 ← matriz | Req | Tarea(s) | Test | Cubre escenario |</pre>
+## Trazabilidad                 ← matriz | Req | Tarea(s) | Test | Cubre escenario |</pre></div>
 
   <h3>Puerta 3 · Validar tareas</h3>
+
+  <pre class="cmd">openspec validate add-&lt;feature&gt;   ← tareas bien formadas y trazabilidad OK</pre>
 
   <pre class="template">[ ] cada requisito de la spec tiene al menos 1 tarea que lo implementa
 [ ] cada tarea referencia su REQ (trazabilidad bidireccional)
 [ ] las dependencias definen el orden correcto de oleadas
 [ ] ninguna tarea excede ~3 ficheros · hay tests para escenarios criticos
+[ ] tasks.md declara su modo (andamiaje | completo)
 [ ] openspec validate pasa sin errores</pre>
 
-  <h3>Paso 6 · Implementa — AQUI se bifurca Via A y Via B</h3>
-  <p>En los Pasos 0-5 ambas vias hacian lo mismo. Este es el unico paso donde cambia <strong>quien escribe el codigo</strong>.</p>
+  <h3>Paso 6 · Implementa — un solo motor: /opsx-apply-change</h3>
+  <p>En los Pasos 0-5 (y hasta la Puerta 3) solo redactaste y aprobaste artefactos. Aqui <strong>/opsx-apply-change</strong> ejecuta las tareas de tasks.md oleada por oleada; el <strong>modo</strong> declarado en tasks.md (Paso 5) decide cuanto escribe la IA y cuanto implementas tu.</p>
+
   <table>
-    <thead><tr><th>Criterio</th><th>Via A — tu implementas</th><th>Via B — IA escribe todo</th></tr></thead>
+    <thead><tr><th>Criterio</th><th>Modo andamiaje</th><th>Modo completo</th></tr></thead>
     <tbody>
-      <tr><td><strong>Como</strong></td><td>skill clean-arch-feature con openspec_change: &lt;carpeta&gt; genera scaffold con TODOs citando REQ; tu implementas cada body</td><td>/opsx-apply-change ejecuta las tareas oleada a oleada; tu auditas cada diff contra la spec</td></tr>
+      <tr><td><strong>Que hace la IA</strong></td><td>scaffold por tarea (throw UnimplementedError() + TODO citando REQ), casilla en <code>- [ ]</code>, pausa</td><td>implementa cada tarea al 100% contra los escenarios y marca <code>- [x]</code></td></tr>
+      <tr><td><strong>Tu rol</strong></td><td>implementas los bodies; escribes la logica critica del dominio</td><td>auditas cada diff contra la spec</td></tr>
       <tr><td><strong>Ideal para</strong></td><td>logica critica (dinero, permisos, estados) · aprender stack · spec ambigua</td><td>CRUD, formularios, brownfield quirurgico, specs bien especificadas</td></tr>
-      <tr><td><strong>Ciclo por oleada</strong></td><td>implementas → tests corren → ajustas</td><td>IA aplica → auditas vs spec → cumple? sigue : fix citando REQ+escenario</td></tr>
+      <tr><td><strong>Ciclo por oleada</strong></td><td>IA aplica scaffold → implementas → tests corren → ajustas</td><td>IA escribe → auditas vs spec → cumple? sigue : fix citando REQ+escenario</td></tr>
     </tbody>
   </table>
+
+  <pre class="cmd">/opsx-apply-change   ← unico motor; respeta el Modo declarado en tasks.md</pre>
+
+  <div class="callout teal"><p><strong>El modo se declaro en tasks.md (Paso 5):</strong> <strong>andamiaje</strong> = el agente genera scaffold por tarea (UnimplementedError + TODOs REQ), deja la casilla en <code>- [ ]</code> y pausa; TU implementas los metodos criticos — <strong>completo</strong> = la IA escribe 100% y marca <code>- [x]</code>; tu auditas. Para que <code>/opsx-apply-change</code> respete el modo de forma fiable, configura UNA vez <code>operations.apply.guidance</code> en <code>openspec/config.yaml</code> del proyecto (ver 04-plantilla).</p></div>
 
   <h3>Paso 7 · Verifica y Paso 8 · Archiva</h3>
   <p>Antes de cerrar: tests verdes, matriz llena, mensajes = literales exactos de la spec, contratos intactos.</p>
 
-  <pre class="template"># Verificar que el codigo cumple las specs (Puerta 3)   ← revisa el diff contra la spec
-/opsx-verify-change
-# Consolida los deltas en las specs vivas                ← openspec/specs/ = descripcion del sistema actual
-/opsx-archive-change</pre>
+  <pre class="cmd">/opsx-verify-change            ← valida la implementacion contra la spec
+flutter test                    ← tests verdes (matriz llena, mensajes literales)
+openspec validate --archived    ← todo el formato sigue OK</pre>
+
+  <pre class="cmd">/opsx-archive-change            ← consolida los deltas en openspec/specs/ (specs vivas)
+openspec list --specs           ← confirma: la capacidad ya esta descrita hoy</pre>
 
   <div class="callout teal"><p><strong>Regla del libro:</strong> puedes delegar la ESCRITURA, nunca la APROBACION de la spec (Puerta 1) ni la verificacion final (Puerta 3).</p></div>
   <div class="callout green"><p><strong>Si encontraste un bug al verificar:</strong> ¿bug de CODIGO? → fix citando REQ+escenario. ¿Bug de la SPEC? → corrigela primero con /opsx-update-change y re-aplica; no fuerces el codigo a cumplir un requisito mal escrito.</p></div>
+
+  <h3>Flujo en una mirada — fase → comando → puerta</h3>
+  <table>
+    <thead><tr><th>Fase</th><th>Comando</th><th>Puerta / Resultado</th></tr></thead>
+    <tbody>
+      <tr><td><strong>0 · Clasifica</strong></td><td class="mono">openspec list</td><td>decides Simple / Intermedia / Compleja</td></tr>
+      <tr><td><strong>1 · Crea</strong></td><td class="mono">/opsx-new-change &lt;nombre&gt; · /opsx-propose add-nombre</td><td>carpeta openspec/changes/&lt;nombre&gt;/</td></tr>
+      <tr><td><strong>2 · proposal</strong></td><td class="mono">openspec instructions proposal --change &lt;nombre&gt; --json</td><td><strong>Puerta 1</strong> + Clarity Gate</td></tr>
+      <tr><td><strong>3 · spec</strong></td><td class="mono">openspec instructions spec --change &lt;nombre&gt; --json</td><td>validada en Puerta 1: openspec validate</td></tr>
+      <tr><td><strong>4 · design</strong></td><td class="mono">openspec instructions design --change &lt;nombre&gt; --json</td><td><strong>Puerta 2</strong>: openspec validate</td></tr>
+      <tr><td><strong>5 · tasks</strong></td><td class="mono">openspec instructions tasks --change &lt;nombre&gt; --json</td><td><strong>Puerta 3</strong>: openspec validate</td></tr>
+      <tr><td><strong>6 · Implementa</strong></td><td class="mono">/opsx-apply-change  (modo andamiaje | completo)</td><td>tests verdes por oleada</td></tr>
+      <tr><td><strong>7 · Verifica</strong></td><td class="mono">/opsx-verify-change · flutter test</td><td><strong>Puerta 3 FINAL</strong>: matriz llena</td></tr>
+      <tr><td><strong>8 · Archiva</strong></td><td class="mono">/opsx-archive-change</td><td>openspec list --specs (specs vivas)</td></tr>
+    </tbody>
+  </table>
 </section>
 
 <!-- ================= 1. FLUJO ================= -->
@@ -209,7 +266,7 @@
       <td><span class="step-n">2</span><span class="step-t">Herramienta</span><span class="step-f">OpenSpec</span></td>
       <td><span class="step-n">3</span><span class="step-t">Metodologia</span><span class="step-f">stack</span></td>
       <td><span class="step-n">4</span><span class="step-t">Practica</span><span class="step-f">ejemplos</span></td>
-      <td><span class="step-n">5</span><span class="step-t">Auditoria</span><span class="step-f">Via B</span></td>
+      <td><span class="step-n">5</span><span class="step-t">Auditoria</span><span class="step-f">codigo IA</span></td>
     </tr>
   </table>
 
@@ -329,13 +386,14 @@
     <span class="meta">openspec/changes/&lt;nombre&gt;/</span>
   </div>
 
+  <div class="md-file"><div class="file-tab">openspec/changes/add-cart/</div>
   <pre class="template">openspec/changes/add-cart/
 ├── proposal.md          WHY + WHAT Changes + Impact
 ├── specs/
 │   └── shopping-cart/
 │       └── spec.md      Delta: ADDED / MODIFIED / REMOVED Requirements
 ├── design.md            Ficheros afectados · Contratos Dart · Backend · Decisiones
-└── tasks.md             Oleadas + trazabilidad Req↔tarea↔test</pre>
+└── tasks.md             Oleadas + trazabilidad Req↔tarea↔test</pre></div>
 
   <table>
     <thead><tr><th>Operador delta</th><th>Semantica</th><th>Efecto en archive</th></tr></thead>
@@ -354,7 +412,7 @@
   <div class="section-head s-green">
     <span class="num">6</span>
     <h2>OpenSpec CLI — comandos esenciales (3 min)</h2>
-    <span class="meta">v1.6.x · npm i -g @fission-ai/openspec</span>
+    <span class="meta">v1.11.x · npm i -g @fission-ai/openspec</span>
   </div>
 
   <table>
@@ -365,7 +423,7 @@
       <tr><td class="mono">/opsx-new-change</td><td>carpeta de cambio manual desde plantilla</td><td>control fino</td></tr>
       <tr><td class="mono">/opsx-continue-change</td><td>retoma el cambio donde quedo</td><td>sesiones largas</td></tr>
       <tr><td class="mono">/opsx-update-change</td><td>edita artifacts del cambio en curso</td><td>tras feedback de Puerta 1</td></tr>
-      <tr><td class="mono">/opsx-apply-change</td><td><strong>implementa</strong> tareas oleada por oleada</td><td>Via B (IA escribe)</td></tr>
+      <tr><td class="mono">/opsx-apply-change</td><td><strong>implementa</strong> tareas oleada por oleada</td><td>Paso 6 · unico motor (modo completo | andamiaje)</td></tr>
       <tr><td class="mono">/opsx-verify-change</td><td>valida implementacion contra la spec</td><td>Puerta 3</td></tr>
       <tr><td class="mono">/opsx-archive-change</td><td>consolida deltas en specs vivas</td><td>al aprobar todo</td></tr>
       <tr><td class="mono">/opsx-sync-specs · /opsx-onboard · /opsx-bulk-archive-change</td><td>mantenimiento de specs</td><td>ocasional</td></tr>
@@ -378,6 +436,7 @@
       <tr><td class="mono">openspec init [dir]</td><td>inicializar en un proyecto (una vez)</td></tr>
       <tr><td class="mono">openspec list · openspec list --specs</td><td>ver cambios activos / capacidades</td></tr>
       <tr><td class="mono">openspec validate &lt;cambio&gt; --strict</td><td>validar formato del cambio</td></tr>
+      <tr><td class="mono">openspec instructions &lt;proposal|spec|design|tasks|apply&gt; --change &lt;n&gt; --json</td><td>plantilla / guia del artefacto</td></tr>
       <tr><td class="mono">openspec view · openspec change &lt;nombre&gt;</td><td>dashboard / detalle</td></tr>
     </tbody>
   </table>
@@ -415,49 +474,50 @@
     <li>aislamiento entre usuarios = escenario EARS obligatorio (GIVEN ... auth.uid() = user_id)</li>
   </ul>
 
-  <div class="callout teal"><p><strong>Oleadas estandar de tasks.md:</strong> O1 modelos+entity → O2 datasource+repo impl → O3 usecases → O4 cubit+UI → O5 DI+rutas+migracion. Commit atomico por tarea.</p></div>
+  <div class="callout teal"><p><strong>Oleadas estandar de tasks.md (oleadas = capas):</strong> O1 Dominio (entity + interface + usecases) → O2 Capa de datos (model + datasource + repository impl) → O3 Estado + UI (state + cubit + page) → O4 Integracion (migracion SQL + RLS + DI + rutas) → O5 Tests. Commit atomico por tarea.</p></div>
 </section>
 
-<!-- ================= 8. VIA A VS VIA B ================= -->
+<!-- ================= 8. MODO ================= -->
 <section>
   <div class="section-head s-amber">
     <span class="num">8</span>
-    <h2>Quien escribe el codigo: Via A vs Via B (3 min)</h2>
+    <h2>Modo de implementacion: andamiaje vs completo (3 min)</h2>
     <span class="meta">Fase 4 · Implementacion</span>
   </div>
 
   <table class="flow">
     <tr>
-      <td><span class="step-n">A</span><span class="step-t">Scaffold IA + logica tuya</span><span class="step-f">skill clean-arch-feature</span></td>
-      <td><span class="step-n">B</span><span class="step-t">IA escribe todo</span><span class="step-f">/opsx-apply-change</span></td>
+      <td><span class="step-n">A</span><span class="step-t">Andamiaje</span><span class="step-f">scaffold por tarea + pausa</span></td>
+      <td><span class="step-n">C</span><span class="step-t">Completo</span><span class="step-f">IA escribe 100%</span></td>
     </tr>
   </table>
+  <div class="flowline">Ambos modos corren sobre el MISMO motor: <strong>/opsx-apply-change</strong> — la diferencia es el modo declarado en <code>tasks.md</code></div>
 
   <table>
-    <thead><tr><th>Criterio</th><th>Via A (tu implementas)</th><th>Via B (IA escribe todo)</th></tr></thead>
+    <thead><tr><th>Criterio</th><th>Modo andamiaje</th><th>Modo completo</th></tr></thead>
     <tbody>
-      <tr><td>Logica critica: dinero, permisos, estados</td><td>✅ entiendes cada linea</td><td>⚠️ solo con escenarios EARS exhaustivos</td></tr>
+      <tr><td>Logica critica: dinero, permisos, estados</td><td>✅ escribiste cada linea (no pierdes la practica)</td><td>⚠️ solo con escenarios EARS exhaustivos</td></tr>
       <tr><td>CRUD, formularios, brownfield quirurgico</td><td>posible overkill</td><td>✅ terreno ideal</td></tr>
       <tr><td>Aprendiendo stack o dominio</td><td>✅ implementar ES aprender</td><td>❌ no aprendes nada</td></tr>
       <tr><td>Specs ambiguas (falla Clarity Gate)</td><td>✅ implementar resuelve dudas</td><td>❌ el error se multiplica</td></tr>
     </tbody>
   </table>
 
-  <div class="callout teal"><p><strong>Regla del libro:</strong> puedes delegar la escritura, NUNCA la aprobacion de la spec (Puerta 1) ni la verificacion final (Puerta 3). La skill clean-arch-feature acepta modo openspec_change: pasa la carpeta y genera el scaffold con TODOs citando REQ.</p></div>
+  <div class="callout teal"><p><strong>Regla del libro:</strong> puedes delegar la escritura, NUNCA la aprobacion de la spec (Puerta 1) ni la verificacion final (Puerta 3). El modo se declara en <code>tasks.md</code> (Paso 5) y el motor es SIEMPRE <code>/opsx-apply-change</code>. La skill <code>clean-arch-feature</code> queda como herramienta manual opcional (fuera del flujo) si prefieres generar scaffolding a mano.</p></div>
 </section>
 
 <!-- ================= 9. AUDITORIA ================= -->
 <section>
   <div class="section-head s-amber">
     <span class="num">9</span>
-    <h2>Checklist de auditoria — Via B (3 min)</h2>
+    <h2>Checklist de auditoria — codigo IA en modo completo (3 min)</h2>
     <span class="meta">06-auditoria-codigo-ia.md</span>
   </div>
 
   <ul class="checklist">
     <li><strong>Contratos intactos:</strong> repository interface = design.md verbatim; Either&lt;Failure,T&gt; en todo; cero try/catch tragador; nada fuera de la tabla de ficheros</li>
     <li><strong>Sealed states:</strong> switch exhaustivo sin caso _; mensajes = literales EXACTOS de los escenarios ("Producto {nombre} sin stock disponible" ≠ "Stock insuficiente")</li>
-    <li><strong>Capa correcta:</strong> RN en domain, no en cubit/UI; una sola fuente de verdad cliente/servidor; decisiones D1..Dn respetadas</li>
+    <li><strong>Capa correcta:</strong> RN en domain, no en cubit/UI; usecases en domain/, repository impl en data/; una sola fuente de verdad cliente/servidor; decisiones D1..Dn respetadas</li>
     <li><strong>Supabase ⚠️:</strong> RLS en todas las tablas nuevas; policies = design.md; RPC security definer revisado linea por linea; cero service_role en cliente; migracion idempotente e igual al design</li>
     <li><strong>Tests contra spec:</strong> 1 test por Scenario citando REQ; asserts usan literales; cero tests siempre-verdes</li>
     <li><strong>Trazabilidad:</strong> matriz llena; cero UnimplementedError() huerfanos; commit atomico por tarea</li>

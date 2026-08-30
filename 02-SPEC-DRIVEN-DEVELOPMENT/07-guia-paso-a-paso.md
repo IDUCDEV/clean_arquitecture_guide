@@ -335,23 +335,28 @@ Checklist de la Puerta 2:
 Abre `openspec/changes/add-nombre/tasks.md` y escribe las tareas agrupadas en oleadas:
 
 ```markdown
-1. Dominio y datos base
+# Tasks: add-<feature>
+> Modo de implementación: andamiaje
+>   andamiaje = la IA genera el scaffold (throw UnimplementedError() + TODOs citando REQ) y TÚ implementas los métodos críticos
+>   completo  = la IA escribe todo (100%) y tú auditas cada diff contra la spec
+
+1. Dominio
 - [ ] 1.1 Entity [Name] (+ invariantes, REQ-001)
 - [ ] 1.2 Interface [Name]Repository (REQ-002..005)
-- [ ] 1.3 Migración SQL tablas + RLS (REQ-005)
+- [ ] 1.3 UseCases (uno por operación, REQ-003)
 
 2. Capa de datos
 - [ ] 2.1 Models (fromJson/toJson, REQ-001)
 - [ ] 2.2 RemoteDataSource (REQ-002)
-- [ ] 2.3 UseCases (uno por operación, REQ-003)
+- [ ] 2.3 [Name]RepositoryImpl (mapeo excepciones → Failure, REQ-002)
 
-3. Implementaciones y estado
-- [ ] 3.1 [Name]RepositoryImpl (REQ-002)
-- [ ] 3.2 [Name]State sealed (REQ-006)
-- [ ] 3.3 [Name]Cubit (REQ-006)
+3. Estado y presentación
+- [ ] 3.1 [Name]State sealed (REQ-006)
+- [ ] 3.2 [Name]Cubit (REQ-006)
+- [ ] 3.3 [Name]Page + widgets (REQ-006)
 
-4. Presentación e integración
-- [ ] 4.1 [Name]Page + widgets (REQ-006)
+4. Integración
+- [ ] 4.1 Migración SQL tablas + RLS (REQ-005)
 - [ ] 4.2 Registro en service_locator.dart
 - [ ] 4.3 Ruta en app_router.dart
 
@@ -364,9 +369,10 @@ Trazabilidad
 | Req | Tarea(s) | Test | Cubre escenario |
 |-----|----------|------|-----------------|
 | REQ-001 | 1.1, 2.1 | 5.1 | Happy path + error |
-| REQ-002 | 1.2, 2.2, 3.1 | 5.2 | Happy path |
-| REQ-003 | 2.3 | 5.1 | Happy path + borde |
-| REQ-006 | 3.2, 3.3, 4.1 | 5.3 | Loading + error |
+| REQ-002 | 1.2, 2.2, 2.3 | 5.2 | Happy path |
+| REQ-003 | 1.3 | 5.1 | Happy path + borde |
+| REQ-005 | 4.1 | 5.2 | Aislamiento RLS |
+| REQ-006 | 3.1, 3.2, 3.3 | 5.3 | Loading + error |
 ```
 
 ### Anotación mínima por tarea
@@ -375,6 +381,15 @@ Cada tarea debe tener:
 - **Qué se hace** (1-3 ficheros)
 - **REQ** que implementa
 - **Criterio de éxito** (verificable)
+
+### Declarar el modo de implementación
+
+La primera línea de `tasks.md` indica **quién escribe el código** en este cambio. Es una decisión binaria por cambio (no por tarea):
+
+- **`andamiaje`** → la IA genera el scaffold (`throw UnimplementedError()` + TODO citando REQ-xxx) y **tú implementas los métodos críticos**. Es el modo recomendado para mantener la práctica de escritura de código.
+- **`completo`** → la IA escribe el código al 100% y tú auditas cada diff contra la spec.
+
+Para que `/opsx-apply-change` —el único motor de implementación del flujo— respete el modo de forma fiable, hay que configurar `openspec/config.yaml` una sola vez — ver [Fase 4](#fase-4--implementar-).
 
 ### Puerta 3 — Validar tareas
 
@@ -389,6 +404,7 @@ Checklist:
 [ ] Las dependencias definen el orden de oleadas correctamente
 [ ] Ninguna tarea excede ~3 ficheros
 [ ] Hay tareas de test para los escenarios críticos
+[ ] tasks.md declara su modo de implementación (andamiaje | completo)
 [ ] `openspec validate` pasa sin errores
 ```
 
@@ -396,28 +412,42 @@ Checklist:
 
 ## 5. Fase 4 — Implementar
 
-### Vía A: Skill `clean-arch-feature` (recomendada)
-
-Tú implementas la lógica crítica, la skill genera el andamiaje:
-
-```bash
-# En tu agente IA, llama la skill:
-Usa la skill clean-arch-feature con openspec_change: openspec/changes/add-nombre/
-```
-
-La skill genera scaffold con `throw UnimplementedError()` y TODOs citando REQ-xxx.
-
-Luego implementas body por body siguiendo tasks.md oleada por oleada.
-
-### Vía B: Agente escribe todo (brownfield quirúrgico)
+### Modo andamiaje
 
 ```bash
 /opsx-apply-change
 ```
 
-El agente lee los 4 archivos y ejecuta todas las tareas, commit por tarea.
+El agente lee los 4 archivos y ejecuta las tareas **una a una**, generando scaffold por tarea (ficheros con `throw UnimplementedError()` + TODOs citando REQ-xxx), dejando la casilla en `- [ ]` y pausando. **Tú implementas la lógica crítica** (los métodos que exigen decisiones de negocio) antes de continuar con la siguiente tarea.
+
+### Modo completo
+
+```bash
+/opsx-apply-change
+```
+
+El agente lee los 4 archivos y ejecuta **todas** las tareas, commit por tarea, escribiendo el 100% del código.
 
 Audita cada oleada con [06-auditoria-codigo-ia.md](./06-auditoria-codigo-ia.md).
+
+> **`/opsx-apply-change` respeta el modo de `tasks.md`.** Con `Modo: completo` el agente escribe el 100% de cada tarea. Con `Modo: andamiaje`, el agente genera **scaffold por tarea** (cuerpos en `throw UnimplementedError()` + TODO citando REQ), **deja la casilla en `- [ ]`** y pausa para que tú implementes — así no pierdes la práctica de escritura de la lógica crítica. Para que esto sea fiable, configura el proyecto **una sola vez**:
+
+```yaml
+# openspec/config.yaml — se añade una vez; el interruptor por cambio es la línea "Modo" de tasks.md
+operations:
+  apply:
+    guidance:
+      - "Si tasks.md declara 'Modo: andamiaje': NO escribas los bodies. Por cada tarea genera solo el scaffolding (throw UnimplementedError() + TODO citando REQ-xxx), NO marques la casilla - [x], y pausa para que el desarrollador complete e implemente."
+      - "Si tasks.md declara 'Modo: completo': implementa la tarea al 100% contra la spec (caminos de éxito y error de los escenarios) y márcala - [x]."
+```
+
+`openspec/config.yaml` es de tu proyecto (lo genera `openspec init`); no se toca la herramienta. El CLI lo lee en `openspec instructions apply` y lo inyecta al agente como `operationGuidance` (canal oficial que el flujo built-in ordena seguir). Grano de los dos modos:
+
+| Grano | Modo: andamiaje | Modo: completo |
+|-------|-----------------|----------------|
+| Qué escribe la IA | solo scaffold, por tarea | todo el código al 100% |
+| Casillas | se quedan en `- [ ]` hasta que tú completes | se marcan `- [x]` al implementar |
+| Ritmo | pausa al final de cada tarea | corre todo el cambio, commit por tarea |
 
 ### Verificar contra spec
 
@@ -450,18 +480,18 @@ Antes de verlos, aquí tiene el esqueleto que repiten todos (y los 6 cambios de 
 
 ### El patrón que verás repetido
 
-| Paso | Qué produces | Vía A | Vía B | Validación |
-|------|--------------|-------|-------|------------|
-| 0 · Clasificar | Simple / Intermedia / Compleja | tú decides | tú decides | proporcionalidad |
-| 1 · Crear cambio | carpeta `openspec/changes/<feat>/` | `/opsx-propose` | ídem | `openspec validate` |
-| 2 · proposal.md | WHY + Impact + Scope + Actores | IA redacta → tú apruebas | ídem | — |
-| 3 · spec.md | requisitos EARS con escenarios | IA redacta → tú apruebas | ídem | **Puerta 1** + Clarity Gate |
-| 4 · design.md | ficheros, contratos, backend, decisiones | IA redacta → tú apruebas | ídem | **Puerta 2** |
-| 5 · tasks.md | 5 oleadas + trazabilidad | IA redacta → tú apruebas | ídem | validate |
-| 6 · Implementar | código + tests | skill genera scaffold, **tú escribes los bodies** | `/opsx-apply-change`, **tú auditas cada diff** | tests verdes |
-| 7 · Verificar · archivar | specs vivas consolidadas | `/opsx-verify-change` → `/opsx-archive-change` | ídem | **Puerta 3** |
+| Paso | Qué produces | Comando | Tu papel | Validación |
+|------|--------------|---------|----------|------------|
+| 0 · Clasificar | Simple / Intermedia / Compleja | — | tú decides | proporcionalidad |
+| 1 · Crear cambio | carpeta `openspec/changes/<feat>/` | `/opsx-propose add-nombre` | revisas el esqueleto | `openspec validate` |
+| 2 · proposal.md | WHY + Impact + Scope + Actores | `openspec instructions proposal --change <n>` | IA redacta → tú apruebas | — |
+| 3 · spec.md | requisitos EARS con escenarios | `openspec instructions spec --change <n>` | IA redacta → tú apruebas | **Puerta 1** + Clarity Gate |
+| 4 · design.md | ficheros, contratos, backend, decisiones | `openspec instructions design --change <n>` | IA redacta → tú apruebas | **Puerta 2** |
+| 5 · tasks.md | 5 oleadas + trazabilidad + Modo | `openspec instructions tasks --change <n>` | IA redacta → tú apruebas | validate |
+| 6 · Implementar | código + tests | `/opsx-apply-change` | andamiaje: implementas la lógica crítica · completo: auditas cada diff | tests verdes |
+| 7 · Verificar · archivar | specs vivas consolidadas | `/opsx-verify-change` → `/opsx-archive-change` | auditas | **Puerta 3** |
 
-**Observación clave:** hasta el Paso 5, Vía A y Vía B hacen **exactamente lo mismo** (la IA redacta los artefactos, tú los apruebas). Solo el Paso 6 difiere: **Vía A** = tú implementas sobre el scaffold generado; **Vía B** = la IA escribe y tú auditas cada diff contra la spec.
+**Observación clave:** hasta el Paso 5 la IA redacta los artefactos y tú los apruebas. Solo el Paso 6 depende del **Modo** declarado en `tasks.md`: `andamiaje` = la IA deja scaffold por tarea y tú implementas la lógica crítica; `completo` = la IA escribe todo y tú auditas cada diff contra la spec. El motor es siempre el mismo: `/opsx-apply-change`.
 
 **Las plantillas de cada fase (con la explicación de qué va en cada parte) viven aquí mismo:** proposal.md y spec.md en §2 (Pasos 2-3), design.md en §3, tasks.md en §4, y los checklists de las 3 puertas en sus secciones. La plantilla completa consolidada está en [04-plantilla-cambio-openspec.md](./04-plantilla-cambio-openspec.md) y los cambios terminados en [`ejemplos-cambios/`](./ejemplos-cambios/).
 
@@ -602,21 +632,14 @@ Es Simple. La skill `clean-arch-feature` derivará los archivos automáticamente
 
 #### Paso 6: Implementar y cerrar
 
-**Vía A (recomendada para Simple):**
-```bash
-# Llamas la skill en tu agente IA:
-Usa la skill clean-arch-feature con openspec_change: openspec/changes/add-theme-color/
-
-# Implementas los bodies de cada archivo
-# El cubit es muy pequeño: 2 métodos (toggleTheme, loadTheme)
-```
-
-**Vía B:**
+**Modo completo (recomendado para Simple):**
 ```bash
 /opsx-apply-change
-# La IA escribe todo (son ~3 ficheros pequeños)
-# Auditas rápidamente
+# La IA escribe todo (son ~3 ficheros pequeños) y marca - [x]
+# Auditas rápido cada diff contra REQ-001/REQ-002
 ```
+
+**Modo andamiaje:** mismo comando, pero el agente genera el scaffold de los ~3 ficheros, deja las casillas en `- [ ]` y pausa; tú implementas el cubit (2 métodos: toggleTheme, loadTheme) y continúas.
 
 ```bash
 # Cerrar
@@ -624,7 +647,7 @@ Usa la skill clean-arch-feature con openspec_change: openspec/changes/add-theme-
 /opsx-archive-change
 ```
 
-**Lo que aprendiste:** Un cambio Simple se resuelve en ~30 minutos. Solo necesitas proposal + spec. Sin design.md. La skill genera todo el scaffold y tú solo implementas 2-3 métodos pequeños.
+**Lo que aprendiste:** Un cambio Simple se resuelve en ~30 minutos. Solo necesitas proposal + spec. Sin design.md. Con `Modo: andamiaje` el agente deja el scaffold y tú implementas 2-3 métodos pequeños; con `Modo: completo` la IA lo escribe todo y tú auditas.
 
 ---
 
@@ -853,23 +876,23 @@ UserProfilePage ──load──► UserProfileCubit.getProfile()
 #### Paso 5: tasks.md
 
 ```
-## 1. Dominio y datos base
+## 1. Dominio
 - [ ] 1.1 Entity UserProfile en `lib/features/user_profile/domain/entities/user_profile.dart` (REQ-001)
 - [ ] 1.2 Interface UserProfileRepository en `lib/features/user_profile/domain/repositories/user_profile_repository.dart` (REQ-001..004)
-- [ ] 1.3 Migración SQL tabla profiles + RLS (REQ-004)
+- [ ] 1.3 UseCases: GetUserProfile, UpdateUserProfile, UploadProfilePhoto (REQ-001..003)
 
 ## 2. Capa de datos
 - [ ] 2.1 UserProfileModel (fromJson/toJson, snake_case mapping) (REQ-001)
 - [ ] 2.2 UserProfileRemoteDataSource (select, update, storage upload) (REQ-001..003)
-- [ ] 2.3 UseCases: GetUserProfile, UpdateUserProfile, UploadProfilePhoto (REQ-001..003)
+- [ ] 2.3 UserProfileRepositoryImpl (Either wrapper + Failure mapping) (REQ-001..004)
 
-## 3. Implementaciones y estado
-- [ ] 3.1 UserProfileRepositoryImpl (Either wrapper + Failure mapping) (REQ-001..004)
-- [ ] 3.2 UserProfileState sealed (Initial, Loading, Loaded, Error) (REQ-001..003)
-- [ ] 3.3 UserProfileCubit (getProfile, updateProfile, uploadPhoto) (REQ-001..003)
+## 3. Estado y presentación
+- [ ] 3.1 UserProfileState sealed (Initial, Loading, Loaded, Error) (REQ-001..003)
+- [ ] 3.2 UserProfileCubit (getProfile, updateProfile, uploadPhoto) (REQ-001..003)
+- [ ] 3.3 UserProfilePage (form con nombre, bio, foto) (REQ-001..003)
 
-## 4. Presentación e integración
-- [ ] 4.1 UserProfilePage (form con nombre, bio, foto) (REQ-001..003)
+## 4. Integración
+- [ ] 4.1 Migración SQL tabla profiles + RLS (REQ-004)
 - [ ] 4.2 Registro en service_locator.dart (+1)
 - [ ] 4.3 Ruta en app_router.dart (+1 con guard de sesión)
 
@@ -881,10 +904,10 @@ UserProfilePage ──load──► UserProfileCubit.getProfile()
 ## Trazabilidad
 | Req | Tarea(s) | Test | Cubre escenario |
 |-----|----------|------|-----------------|
-| REQ-001 | 1.1, 1.2, 2.1, 2.2, 3.1, 3.2, 3.3, 4.1 | 5.1, 5.2, 5.3 | Ver perfil + datos vacíos |
-| REQ-002 | 2.3, 3.3, 4.1 | 5.2, 5.3 | Editar nombre exitoso + corto + largo |
-| REQ-003 | 2.2, 2.3, 3.3, 4.1 | 5.2, 5.3 | Upload válido + grande + formato inválido |
-| REQ-004 | 1.3 | 5.2 | Aislamiento RLS |
+| REQ-001 | 1.1, 1.2, 2.1, 2.2, 2.3, 3.1, 3.2, 3.3 | 5.1, 5.2, 5.3 | Ver perfil + datos vacíos |
+| REQ-002 | 1.3, 3.2, 3.3 | 5.2, 5.3 | Editar nombre exitoso + corto + largo |
+| REQ-003 | 1.3, 2.2, 3.2, 3.3 | 5.2, 5.3 | Upload válido + grande + formato inválido |
+| REQ-004 | 4.1 | 5.2 | Aislamiento RLS |
 ```
 
 #### Paso 6: Validar y cerrar
@@ -900,8 +923,8 @@ openspec validate
 openspec validate
 ```
 
-**Vía A:** llamas la skill con `openspec_change: openspec/changes/add-user-profile/` → genera scaffold → implementas body por body.
-**Vía B:** `/opsx-apply-change` → auditas con `06-auditoria-codigo-ia.md`.
+**Modo andamiaje:** `/opsx-apply-change` genera scaffold por tarea (bodies en `throw UnimplementedError()` + TODOs citando REQ) y pausa; tú implementas body por body.
+**Modo completo:** `/opsx-apply-change` escribe todo el cambio → auditas cada diff con `06-auditoria-codigo-ia.md`.
 
 ```bash
 /opsx-verify-change
@@ -1234,34 +1257,34 @@ User toca "Pagar" ──────► CheckoutCubit.processPayment(paymentMeth
 #### Paso 5: tasks.md
 
 ```
-## 1. Dominio y datos base
+## 1. Dominio
 - [ ] 1.1 Entity Order + OrderItem en `lib/features/checkout/domain/entities/` (REQ-001, REQ-004)
 - [ ] 1.2 Entity Payment en `lib/features/checkout/domain/entities/payment.dart` (REQ-002)
 - [ ] 1.3 Enum PaymentStatus en `lib/features/checkout/domain/enums/payment_status.dart` (REQ-004)
 - [ ] 1.4 Interfaces CheckoutRepository + OrderRepository (REQ-001..006)
-- [ ] 1.5 Migración SQL: tablas orders, order_items, payments + RLS + CHECK constraints (REQ-004, REQ-005)
-- [ ] 1.6 RPC decrement_stock (security definer) (REQ-002)
+- [ ] 1.5 UseCases: InitiateCheckout, ProcessPayment, ConfirmPayment, GetOrderHistory (REQ-001..006)
 
 ## 2. Capa de datos
 - [ ] 2.1 OrderModel + PaymentModel (fromJson/toJson, snake_case) (REQ-004)
 - [ ] 2.2 CheckoutRemoteDataSource (crear orden, procesar pago, confirmar) (REQ-001..003)
 - [ ] 2.3 OrderRemoteDataSource (consultar historial) (REQ-005..006)
-- [ ] 2.4 UseCases: InitiateCheckout, ProcessPayment, ConfirmPayment, GetOrderHistory (REQ-001..006)
+- [ ] 2.4 CheckoutRepositoryImpl (Either + Failure mapping + idempotency) (REQ-001..005)
+- [ ] 2.5 OrderRepositoryImpl (historial) (REQ-005..006)
 
-## 3. Implementaciones y estado
-- [ ] 3.1 CheckoutRepositoryImpl (Either + Failure mapping + idempotency) (REQ-001..005)
-- [ ] 3.2 OrderRepositoryImpl (historial) (REQ-005..006)
-- [ ] 3.3 CheckoutState sealed (Initial, Loading, Summary, Processing, Success, Error) (REQ-001..004)
-- [ ] 3.4 CheckoutCubit (initiateCheckout, processPayment) (REQ-001..004)
-- [ ] 3.5 OrderHistoryCubit (getOrders) (REQ-006)
+## 3. Estado y presentación
+- [ ] 3.1 CheckoutState sealed (Initial, Loading, Summary, Processing, Success, Error) (REQ-001..004)
+- [ ] 3.2 CheckoutCubit (initiateCheckout, processPayment) (REQ-001..004)
+- [ ] 3.3 OrderHistoryCubit (getOrders) (REQ-006)
+- [ ] 3.4 CheckoutPage (resumen + botón pagar) (REQ-001, REQ-002)
+- [ ] 3.5 PaymentResultPage (éxito/error) (REQ-002)
+- [ ] 3.6 OrderHistoryPage (lista de órdenes) (REQ-006)
 
-## 4. Presentación e integración
-- [ ] 4.1 CheckoutPage (resumen + botón pagar) (REQ-001, REQ-002)
-- [ ] 4.2 PaymentResultPage (éxito/error) (REQ-002)
-- [ ] 4.3 OrderHistoryPage (lista de órdenes) (REQ-006)
-- [ ] 4.4 Edge Function stripe-webhook (verificar firma + confirmar) (REQ-003)
-- [ ] 4.5 Registro en service_locator.dart (+3)
-- [ ] 4.6 Rutas en app_router.dart (+2: /checkout, /payment-result)
+## 4. Integración
+- [ ] 4.1 Migración SQL: tablas orders, order_items, payments + RLS + CHECK constraints (REQ-004, REQ-005)
+- [ ] 4.2 RPC decrement_stock (security definer) (REQ-002)
+- [ ] 4.3 Edge Function stripe-webhook (verificar firma + confirmar) (REQ-003)
+- [ ] 4.4 Registro en service_locator.dart (+3)
+- [ ] 4.5 Rutas en app_router.dart (+2: /checkout, /payment-result)
 
 ## 5. Tests
 - [ ] 5.1 Test OrderModel + PaymentModel: roundtrip JSON (REQ-004)
@@ -1273,12 +1296,12 @@ User toca "Pagar" ──────► CheckoutCubit.processPayment(paymentMeth
 ## Trazabilidad
 | Req | Tarea(s) | Test | Cubre escenario |
 |-----|----------|------|-----------------|
-| REQ-001 | 1.1, 1.4, 2.2, 2.4, 3.1, 3.3, 3.4, 4.1 | 5.2, 5.4 | Checkout con items + vacío |
-| REQ-002 | 1.2, 2.2, 2.4, 3.1, 3.4, 4.1, 4.2 | 5.2, 5.4 | Pago exitoso + rechazado + red + doble |
-| REQ-003 | 1.6, 4.4 | 5.5 | Webhook válido + firma inválida |
-| REQ-004 | 1.1, 1.3, 1.5, 2.1, 3.3 | 5.1, 5.2 | Estados válidos + transición inválida |
-| REQ-005 | 1.5 | 5.2 | Aislamiento RLS |
-| REQ-006 | 2.3, 2.4, 3.2, 3.5, 4.3 | 5.3, 5.4 | Historial con/sin órdenes |
+| REQ-001 | 1.1, 1.4, 1.5, 2.2, 2.4, 3.1, 3.2, 3.4 | 5.2, 5.4 | Checkout con items + vacío |
+| REQ-002 | 1.2, 1.5, 2.2, 2.4, 3.2, 3.4, 3.5 | 5.2, 5.4 | Pago exitoso + rechazado + red + doble |
+| REQ-003 | 4.2, 4.3 | 5.5 | Webhook válido + firma inválida |
+| REQ-004 | 1.1, 1.3, 2.1, 3.1, 4.1 | 5.1, 5.2 | Estados válidos + transición inválida |
+| REQ-005 | 4.1 | 5.2 | Aislamiento RLS |
+| REQ-006 | 1.5, 2.3, 2.5, 3.3, 3.6 | 5.3, 5.4 | Historial con/sin órdenes |
 ```
 
 #### Paso 6: Validar y cerrar
@@ -1294,25 +1317,14 @@ openspec validate
 openspec validate
 ```
 
-**Vía A (recomendada para Compleja):**
-```bash
-# Llamas la skill:
-Usa la skill clean-arch-feature con openspec_change: openspec/changes/add-payments/
-
-# Implementas oleada por oleada:
-# Oleada 1: entities, interfaces, migración SQL, RPC
-# Oleada 2: models, datasources, usecases
-# Oleada 3: repository impl, cubit
-# Oleada 4: pages, DI, rutas, webhook
-# Oleada 5: tests
-```
-
-**Vía B:**
+**Modo completo (recomendado para Compleja — mejor grano para auditar):**
 ```bash
 /opsx-apply-change
 # La IA implementa todo — MUCHO más código, audita con cuidado
 # Especial atención a: idempotency, webhook firma, CHECK constraints
 ```
+
+> **Modo andamiaje:** mismo comando — el agente genera el scaffold por tarea y pausa; tú implementas la parte crítica (idempotency, Failure mapping, transiciones de estado) antes de continuar con la siguiente tarea.
 
 ```bash
 /opsx-verify-change
@@ -1332,7 +1344,7 @@ Usa la skill clean-arch-feature con openspec_change: openspec/changes/add-paymen
 | Crear cambio (copiloto) | `/opsx-propose add-nombre` | IA genera 4 archivos completos |
 | Continuar cambio existente | `/opsx-continue-change` | Reabre un cambio para iterar |
 | Registrar progreso | `/opsx-update-change` | Actualiza checklist de tareas |
-| Ejecutar tareas (Vía B) | `/opsx-apply-change` | IA implementa todo el cambio |
+| Implementar (respeta el Modo de tasks.md) | `/opsx-apply-change` | andamiaje: scaffold por tarea + pausa · completo: IA escribe todo |
 | Verificar contra specs | `/opsx-verify-change` | Valida código vs requisitos |
 | Archivar cambio | `/opsx-archive-change` | Consolida specs y archiva |
 | Validar formato | `openspec validate` (CLI) | Comprueba schemas de archivos |
