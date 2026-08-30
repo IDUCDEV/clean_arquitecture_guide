@@ -182,16 +182,17 @@
 ## 1. Dominio                   ← logica pura: entidad, contrato y casos de uso
 - [ ] 1.1 Entity &lt;Name&gt; + invariantes (REQ)  · 1.2 Interface &lt;Name&gt;Repository (REQ)
 - [ ] 1.3 UseCases (uno por operacion)
-## 2. Capa de datos             ← viaje de datos: modelo, fuente e implementacion
-- [ ] 2.1 Model fromJson/toJson (snake_case↔camelCase)  · 2.2 DataSource (llamadas exactas)
-- [ ] 2.3 RepositoryImpl (mapeo excepciones→Failure)
+## 2. Capa de datos + Backend Supabase   ← BD primero: soporta el flujo de datos desde el inicio
+- [ ] 2.1 Migracion SQL tablas + RLS (REQ)  (+ RPC / Edge Functions si aplica)
+- [ ] 2.2 Model fromJson/toJson (snake_case↔camelCase)  · 2.3 DataSource (llamadas exactas)
+- [ ] 2.4 RepositoryImpl (mapeo excepciones→Failure)
 ## 3. Estado y presentacion     ← estado visible y UI
 - [ ] 3.1 State sealed  · 3.2 Cubit (transiciones + mensajes EXACTOS de los escenarios)
 - [ ] 3.3 Page + widgets (un render por estado)
-## 4. Integracion               ← base de datos, DI y rutas
-- [ ] 4.1 Migracion SQL tablas + RLS (REQ)   · 4.2 service_locator  · 4.3 app_router
+## 4. Integracion               ← cableado de la app: DI y rutas
+- [ ] 4.1 service_locator  · 4.2 app_router
 ## 5. Tests                     ← 1 test por escenario critico citando REQ
-- [ ] 5.1 Unit entidades/usecases  · 5.2 Repository impl (mock)  · 5.3 Widget page clave
+- [ ] 5.1 Unit entidades/usecases  · 5.2 Repository impl (mock) + integracion BD real  · 5.3 Widget page clave
 ## Trazabilidad                 ← matriz | Req | Tarea(s) | Test | Cubre escenario |</pre></div>
 
   <h3>Puerta 3 · Validar tareas</h3>
@@ -474,7 +475,7 @@ openspec list --specs           ← confirma: la capacidad ya esta descrita hoy<
     <li>aislamiento entre usuarios = escenario EARS obligatorio (GIVEN ... auth.uid() = user_id)</li>
   </ul>
 
-  <div class="callout teal"><p><strong>Oleadas estandar de tasks.md (oleadas = capas):</strong> O1 Dominio (entity + interface + usecases) → O2 Capa de datos (model + datasource + repository impl) → O3 Estado + UI (state + cubit + page) → O4 Integracion (migracion SQL + RLS + DI + rutas) → O5 Tests. Commit atomico por tarea.</p></div>
+  <div class="callout teal"><p><strong>Oleadas estandar de tasks.md (oleadas = capas):</strong> O1 Dominio (entity + interface + usecases) → O2 Capa de datos + Backend Supabase (migracion SQL + RLS + RPC → model → datasource → repository impl) → O3 Estado + UI (state + cubit + page) → O4 Integracion (DI + rutas) → O5 Tests. La migracion abre la O2 para que el flujo de datos sea probable desde el inicio. Commit atomico por tarea.</p></div>
 </section>
 
 <!-- ================= 8. MODO ================= -->

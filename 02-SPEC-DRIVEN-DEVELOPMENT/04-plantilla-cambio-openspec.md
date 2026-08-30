@@ -199,10 +199,14 @@ Boundaries aplicables a este cambio
       Éxito: mensajes exactos de los escenarios en failures de dominio
       Req: REQ spec · Commit: feat(x): add usecases
 
-2. Capa de datos
-- [ ] 2.1 <Model> fromJson/toJson (snake_case ↔ camelCase)
-- [ ] 2.2 <RemoteDataSource> (llamadas exactas + errores de red)
-- [ ] 2.3 <RepositoryImpl> (mapeo excepciones → Failure)
+2. Capa de datos + Backend Supabase
+- [ ] 2.1 Migración SQL + políticas RLS           ← si aplica; abre la capa para probar el flujo de datos
+      (+ RPC si hay concurrencia · Edge Functions si aplica)
+      Éxito: openspec validate + supabase db reset OK
+      Req: escenarios RS · Commit: db(x): add tables and rls
+- [ ] 2.2 <Model> fromJson/toJson (snake_case ↔ camelCase)
+- [ ] 2.3 <RemoteDataSource> (llamadas exactas + errores de red)
+- [ ] 2.4 <RepositoryImpl> (mapeo excepciones → Failure)
 
 3. Estado y presentación
 - [ ] 3.1 <State> sealed class
@@ -210,15 +214,12 @@ Boundaries aplicables a este cambio
 - [ ] 3.3 <Page> + widgets (un render por estado)
 
 4. Integración
-- [ ] 4.1 Migración SQL + políticas RLS          ← si aplica
-      Éxito: openspec validate + supabase db reset OK
-      Req: escenarios RS · Commit: db(x): add tables and rls
-- [ ] 4.2 Registros en service_locator.dart
-- [ ] 4.3 Ruta en app_router.dart
+- [ ] 4.1 Registros en service_locator.dart
+- [ ] 4.2 Ruta en app_router.dart
 
 5. Tests
 - [ ] 5.1 Unit tests entidades/usecases (bordes de la spec)
-- [ ] 5.2 Test repository impl (mock datasource)
+- [ ] 5.2 Test repository impl (mock datasource) + integración contra la migración real
 - [ ] 5.3 Widget test página clave
 
 Trazabilidad

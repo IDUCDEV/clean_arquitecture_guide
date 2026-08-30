@@ -345,10 +345,11 @@ Abre `openspec/changes/add-nombre/tasks.md` y escribe las tareas agrupadas en ol
 - [ ] 1.2 Interface [Name]Repository (REQ-002..005)
 - [ ] 1.3 UseCases (uno por operación, REQ-003)
 
-2. Capa de datos
-- [ ] 2.1 Models (fromJson/toJson, REQ-001)
-- [ ] 2.2 RemoteDataSource (REQ-002)
-- [ ] 2.3 [Name]RepositoryImpl (mapeo excepciones → Failure, REQ-002)
+2. Capa de datos + Backend Supabase
+- [ ] 2.1 Migración SQL tablas + RLS (REQ-005)   ← abre la capa: el flujo de datos es probable de inmediato
+- [ ] 2.2 Models (fromJson/toJson, REQ-001)
+- [ ] 2.3 RemoteDataSource (REQ-002)
+- [ ] 2.4 [Name]RepositoryImpl (mapeo excepciones → Failure, REQ-002)
 
 3. Estado y presentación
 - [ ] 3.1 [Name]State sealed (REQ-006)
@@ -356,22 +357,21 @@ Abre `openspec/changes/add-nombre/tasks.md` y escribe las tareas agrupadas en ol
 - [ ] 3.3 [Name]Page + widgets (REQ-006)
 
 4. Integración
-- [ ] 4.1 Migración SQL tablas + RLS (REQ-005)
-- [ ] 4.2 Registro en service_locator.dart
-- [ ] 4.3 Ruta en app_router.dart
+- [ ] 4.1 Registro en service_locator.dart
+- [ ] 4.2 Ruta en app_router.dart
 
 5. Tests
 - [ ] 5.1 Unit tests entidades/usecases
-- [ ] 5.2 Test repository impl (mock datasource)
+- [ ] 5.2 Test repository impl (mock datasource) + integración contra la migración real
 - [ ] 5.3 Widget test página clave
 
 Trazabilidad
 | Req | Tarea(s) | Test | Cubre escenario |
 |-----|----------|------|-----------------|
-| REQ-001 | 1.1, 2.1 | 5.1 | Happy path + error |
-| REQ-002 | 1.2, 2.2, 2.3 | 5.2 | Happy path |
+| REQ-001 | 1.1, 2.2 | 5.1 | Happy path + error |
+| REQ-002 | 1.2, 2.3, 2.4 | 5.2 | Happy path |
 | REQ-003 | 1.3 | 5.1 | Happy path + borde |
-| REQ-005 | 4.1 | 5.2 | Aislamiento RLS |
+| REQ-005 | 2.1 | 5.2 | Aislamiento RLS |
 | REQ-006 | 3.1, 3.2, 3.3 | 5.3 | Loading + error |
 ```
 
@@ -881,10 +881,11 @@ UserProfilePage ──load──► UserProfileCubit.getProfile()
 - [ ] 1.2 Interface UserProfileRepository en `lib/features/user_profile/domain/repositories/user_profile_repository.dart` (REQ-001..004)
 - [ ] 1.3 UseCases: GetUserProfile, UpdateUserProfile, UploadProfilePhoto (REQ-001..003)
 
-## 2. Capa de datos
-- [ ] 2.1 UserProfileModel (fromJson/toJson, snake_case mapping) (REQ-001)
-- [ ] 2.2 UserProfileRemoteDataSource (select, update, storage upload) (REQ-001..003)
-- [ ] 2.3 UserProfileRepositoryImpl (Either wrapper + Failure mapping) (REQ-001..004)
+## 2. Capa de datos + Backend Supabase
+- [ ] 2.1 Migración SQL tabla profiles + RLS (REQ-004)
+- [ ] 2.2 UserProfileModel (fromJson/toJson, snake_case mapping) (REQ-001)
+- [ ] 2.3 UserProfileRemoteDataSource (select, update, storage upload) (REQ-001..003)
+- [ ] 2.4 UserProfileRepositoryImpl (Either wrapper + Failure mapping) (REQ-001..004)
 
 ## 3. Estado y presentación
 - [ ] 3.1 UserProfileState sealed (Initial, Loading, Loaded, Error) (REQ-001..003)
@@ -892,9 +893,8 @@ UserProfilePage ──load──► UserProfileCubit.getProfile()
 - [ ] 3.3 UserProfilePage (form con nombre, bio, foto) (REQ-001..003)
 
 ## 4. Integración
-- [ ] 4.1 Migración SQL tabla profiles + RLS (REQ-004)
-- [ ] 4.2 Registro en service_locator.dart (+1)
-- [ ] 4.3 Ruta en app_router.dart (+1 con guard de sesión)
+- [ ] 4.1 Registro en service_locator.dart (+1)
+- [ ] 4.2 Ruta en app_router.dart (+1 con guard de sesión)
 
 ## 5. Tests
 - [ ] 5.1 Test UserProfileModel: roundtrip JSON (REQ-001)
@@ -904,10 +904,10 @@ UserProfilePage ──load──► UserProfileCubit.getProfile()
 ## Trazabilidad
 | Req | Tarea(s) | Test | Cubre escenario |
 |-----|----------|------|-----------------|
-| REQ-001 | 1.1, 1.2, 2.1, 2.2, 2.3, 3.1, 3.2, 3.3 | 5.1, 5.2, 5.3 | Ver perfil + datos vacíos |
+| REQ-001 | 1.1, 1.2, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3 | 5.1, 5.2, 5.3 | Ver perfil + datos vacíos |
 | REQ-002 | 1.3, 3.2, 3.3 | 5.2, 5.3 | Editar nombre exitoso + corto + largo |
-| REQ-003 | 1.3, 2.2, 3.2, 3.3 | 5.2, 5.3 | Upload válido + grande + formato inválido |
-| REQ-004 | 4.1 | 5.2 | Aislamiento RLS |
+| REQ-003 | 1.3, 2.3, 3.2, 3.3 | 5.2, 5.3 | Upload válido + grande + formato inválido |
+| REQ-004 | 2.1 | 5.2 | Aislamiento RLS |
 ```
 
 #### Paso 6: Validar y cerrar
@@ -1264,12 +1264,15 @@ User toca "Pagar" ──────► CheckoutCubit.processPayment(paymentMeth
 - [ ] 1.4 Interfaces CheckoutRepository + OrderRepository (REQ-001..006)
 - [ ] 1.5 UseCases: InitiateCheckout, ProcessPayment, ConfirmPayment, GetOrderHistory (REQ-001..006)
 
-## 2. Capa de datos
-- [ ] 2.1 OrderModel + PaymentModel (fromJson/toJson, snake_case) (REQ-004)
-- [ ] 2.2 CheckoutRemoteDataSource (crear orden, procesar pago, confirmar) (REQ-001..003)
-- [ ] 2.3 OrderRemoteDataSource (consultar historial) (REQ-005..006)
-- [ ] 2.4 CheckoutRepositoryImpl (Either + Failure mapping + idempotency) (REQ-001..005)
-- [ ] 2.5 OrderRepositoryImpl (historial) (REQ-005..006)
+## 2. Capa de datos + Backend Supabase
+- [ ] 2.1 Migración SQL: tablas orders, order_items, payments + RLS + CHECK constraints (REQ-004, REQ-005)
+- [ ] 2.2 RPC decrement_stock (security definer) (REQ-002)
+- [ ] 2.3 Edge Function stripe-webhook (verificar firma + confirmar) (REQ-003)
+- [ ] 2.4 OrderModel + PaymentModel (fromJson/toJson, snake_case) (REQ-004)
+- [ ] 2.5 CheckoutRemoteDataSource (crear orden, procesar pago, confirmar) (REQ-001..003)
+- [ ] 2.6 OrderRemoteDataSource (consultar historial) (REQ-005..006)
+- [ ] 2.7 CheckoutRepositoryImpl (Either + Failure mapping + idempotency) (REQ-001..005)
+- [ ] 2.8 OrderRepositoryImpl (historial) (REQ-005..006)
 
 ## 3. Estado y presentación
 - [ ] 3.1 CheckoutState sealed (Initial, Loading, Summary, Processing, Success, Error) (REQ-001..004)
@@ -1280,11 +1283,8 @@ User toca "Pagar" ──────► CheckoutCubit.processPayment(paymentMeth
 - [ ] 3.6 OrderHistoryPage (lista de órdenes) (REQ-006)
 
 ## 4. Integración
-- [ ] 4.1 Migración SQL: tablas orders, order_items, payments + RLS + CHECK constraints (REQ-004, REQ-005)
-- [ ] 4.2 RPC decrement_stock (security definer) (REQ-002)
-- [ ] 4.3 Edge Function stripe-webhook (verificar firma + confirmar) (REQ-003)
-- [ ] 4.4 Registro en service_locator.dart (+3)
-- [ ] 4.5 Rutas en app_router.dart (+2: /checkout, /payment-result)
+- [ ] 4.1 Registro en service_locator.dart (+3)
+- [ ] 4.2 Rutas en app_router.dart (+2: /checkout, /payment-result)
 
 ## 5. Tests
 - [ ] 5.1 Test OrderModel + PaymentModel: roundtrip JSON (REQ-004)
@@ -1296,12 +1296,12 @@ User toca "Pagar" ──────► CheckoutCubit.processPayment(paymentMeth
 ## Trazabilidad
 | Req | Tarea(s) | Test | Cubre escenario |
 |-----|----------|------|-----------------|
-| REQ-001 | 1.1, 1.4, 1.5, 2.2, 2.4, 3.1, 3.2, 3.4 | 5.2, 5.4 | Checkout con items + vacío |
-| REQ-002 | 1.2, 1.5, 2.2, 2.4, 3.2, 3.4, 3.5 | 5.2, 5.4 | Pago exitoso + rechazado + red + doble |
-| REQ-003 | 4.2, 4.3 | 5.5 | Webhook válido + firma inválida |
-| REQ-004 | 1.1, 1.3, 2.1, 3.1, 4.1 | 5.1, 5.2 | Estados válidos + transición inválida |
-| REQ-005 | 4.1 | 5.2 | Aislamiento RLS |
-| REQ-006 | 1.5, 2.3, 2.5, 3.3, 3.6 | 5.3, 5.4 | Historial con/sin órdenes |
+| REQ-001 | 1.1, 1.4, 1.5, 2.5, 2.7, 3.1, 3.2, 3.4 | 5.2, 5.4 | Checkout con items + vacío |
+| REQ-002 | 1.2, 1.5, 2.5, 2.7, 3.2, 3.4, 3.5 | 5.2, 5.4 | Pago exitoso + rechazado + red + doble |
+| REQ-003 | 2.2, 2.3 | 5.5 | Webhook válido + firma inválida |
+| REQ-004 | 1.1, 1.3, 2.1, 2.4, 3.1 | 5.1, 5.2 | Estados válidos + transición inválida |
+| REQ-005 | 2.1 | 5.2 | Aislamiento RLS |
+| REQ-006 | 1.5, 2.6, 2.8, 3.3, 3.6 | 5.3, 5.4 | Historial con/sin órdenes |
 ```
 
 #### Paso 6: Validar y cerrar

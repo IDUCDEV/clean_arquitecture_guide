@@ -6,10 +6,11 @@
 - [ ] 1.2 Interface InvoiceRepository
 - [ ] 1.3 UseCases ×7
 
-## 2. Capa de datos
-- [ ] 2.1 Models roundtrip (money como num; enums)
-- [ ] 2.2 RemoteDataSource (RPC-first; sin UPDATE directo de estado desde cliente)
-- [ ] 2.3 RepositoryImpl (mapeo errores SQL → Failure con mensajes RN00x)
+## 2. Capa de datos + Backend Supabase
+- [ ] 2.1 Migración 0010: tablas, sequences, RPCs ×3, RLS, cron vencidas
+- [ ] 2.2 Models roundtrip (money como num; enums)
+- [ ] 2.3 RemoteDataSource (RPC-first; sin UPDATE directo de estado desde cliente)
+- [ ] 2.4 RepositoryImpl (mapeo errores SQL → Failure con mensajes RN00x)
 
 ## 3. Estado y presentación
 - [ ] 3.1 EditorCubit/ListCubit + states sealed
@@ -17,8 +18,7 @@
 - [ ] 3.2 Pages: editor (borrador), listado con filtros por estado, detalle con pagos
 
 ## 4. Integración
-- [ ] 4.1 Migración 0010: tablas, sequences, RPCs ×3, RLS, cron vencidas
-- [ ] 4.2 DI + rutas
+- [ ] 4.1 DI + rutas
 
 ## 5. Tests
 - [ ] 5.1 Unit: máquina de estados completa + cálculo saldo/sobrepago
@@ -28,9 +28,9 @@
 ## Trazabilidad
 | Req | Tarea(s) | Test |
 |-----|----------|------|
-| REQ-001 | 1.1, 4.1 | unit+SQL numeración |
+| REQ-001 | 1.1, 2.1 | unit+SQL numeración |
 | REQ-002 | 1.1, 1.3 | unit transiciones |
-| REQ-003 | 4.1, 1.3 | SQL pagos parciales/sobrepago |
-| REQ-004 | 4.1 (cron) | integration |
-| REQ-005 | 4.1, 1.3 | unit anulación |
-| REQ-006 | 4.1 | SQL RLS |
+| REQ-003 | 2.1, 1.3 | SQL pagos parciales/sobrepago |
+| REQ-004 | 2.1 (cron) | integration |
+| REQ-005 | 2.1, 1.3 | unit anulación |
+| REQ-006 | 2.1 | SQL RLS |

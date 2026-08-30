@@ -364,29 +364,29 @@ Cada tarea: 1–3 ficheros, verificable en aislado, con criterios de éxito obje
 Dentro de una oleada las tareas son independientes (paralelizables); entre oleadas hay dependencia:
 
 ```
-OLEADA 1 — Dominio y datos base (independientes entre sí)
+OLEADA 1 — Dominio (independientes entre sí)
   1.1 Entity Cart/CartItem (+ invariantes)
   1.2 Interface CartRepository
-  1.3 Migración SQL tablas + RLS        ← si aplica
+  1.3 UseCases (uno por operación)
 
-OLEADA 2 — Capa de datos
-  2.1 Models (fromJson/toJson)
-  2.2 RemoteDataSource
-  2.3 UseCases (uno por operación)
+OLEADA 2 — Capa de datos + Backend Supabase
+  2.1 Migración SQL tablas + RLS        ← si aplica; abre la capa: el flujo de datos es probable de inmediato
+  2.2 Models (fromJson/toJson)
+  2.3 RemoteDataSource
+  2.4 CartRepositoryImpl
 
-OLEADA 3 — Implementaciones y estado
-  3.1 CartRepositoryImpl
-  3.2 CartState (sealed)
-  3.3 CartCubit
+OLEADA 3 — Estado y presentación
+  3.1 CartState (sealed)
+  3.2 CartCubit
+  3.3 CartPage + widgets
 
-OLEADA 4 — Presentación e integración
-  4.1 CartPage + widgets
-  4.2 Registro en service_locator.dart
-  4.3 Ruta en app_router.dart
+OLEADA 4 — Integración (cableado de la app)
+  4.1 Registro en service_locator.dart
+  4.2 Ruta en app_router.dart
 
 OLEADA 5 — Tests
   5.1 Unit tests entidades/usecases
-  5.2 Test repository impl (mock datasource)
+  5.2 Test repository impl (mock datasource) + integración contra la migración real
   5.3 Widget test página clave
 ```
 
@@ -492,7 +492,7 @@ Regla práctica: si dudarías en mergearlo sin revisión de otro humano, es al m
 - Tras archive, las capacidades archivadas son la documentación viva del sistema: léelas antes de planear el próximo cambio (alimentan el siguiente Impact Report).
 
 ```
-REQ-003 (spec) ──► tarea 2.3 AddItemToCart (tasks) ──► test add_item_test.dart ──► commit feat(cart): ...
+REQ-003 (spec) ──► tarea 1.3 AddItemToCart (tasks) ──► test add_item_test.dart ──► commit feat(cart): ...
 ```
 
 ---

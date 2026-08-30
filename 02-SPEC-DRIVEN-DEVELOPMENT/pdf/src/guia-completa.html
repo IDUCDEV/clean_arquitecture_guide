@@ -960,29 +960,29 @@
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>      Éxito: fromJson/toJson roundtrip; tests unitarios pasan</span></code></pre></div>
 <h3 id="32-oleadas-estándar-para-una-feature-clean-architecture">3.2 Oleadas estándar para una feature Clean Architecture</h3>
 <p>Dentro de una oleada las tareas son independientes (paralelizables); entre oleadas hay dependencia:</p>
-<pre><code>OLEADA 1 — Dominio y datos base (independientes entre sí)
+<pre><code>OLEADA 1 — Dominio (independientes entre sí)
   1.1 Entity Cart/CartItem (+ invariantes)
   1.2 Interface CartRepository
-  1.3 Migración SQL tablas + RLS        ← si aplica
+  1.3 UseCases (uno por operación)
 
-OLEADA 2 — Capa de datos
-  2.1 Models (fromJson/toJson)
-  2.2 RemoteDataSource
-  2.3 UseCases (uno por operación)
+OLEADA 2 — Capa de datos + Backend Supabase
+  2.1 Migración SQL tablas + RLS        ← si aplica; abre la capa: el flujo de datos es probable de inmediato
+  2.2 Models (fromJson/toJson)
+  2.3 RemoteDataSource
+  2.4 CartRepositoryImpl
 
-OLEADA 3 — Implementaciones y estado
-  3.1 CartRepositoryImpl
-  3.2 CartState (sealed)
-  3.3 CartCubit
+OLEADA 3 — Estado y presentación
+  3.1 CartState (sealed)
+  3.2 CartCubit
+  3.3 CartPage + widgets
 
-OLEADA 4 — Presentación e integración
-  4.1 CartPage + widgets
-  4.2 Registro en service_locator.dart
-  4.3 Ruta en app_router.dart
+OLEADA 4 — Integración (cableado de la app)
+  4.1 Registro en service_locator.dart
+  4.2 Ruta en app_router.dart
 
 OLEADA 5 — Tests
   5.1 Unit tests entidades/usecases
-  5.2 Test repository impl (mock datasource)
+  5.2 Test repository impl (mock datasource) + integración contra la migración real
   5.3 Widget test página clave</code></pre>
 <h3 id="33-commits-atómicos">3.3 Commits atómicos</h3>
 <p>1 tarea = 1 commit con mensaje convencional (<code>feat(cart): add CartModel with json mapping</code>). Beneficios: reversión granular, bisección eficaz, trazabilidad requisito→commit. Al cerrar la oleada: revisión contra la spec (no diff-and-hope).</p>
@@ -1139,7 +1139,7 @@ OLEADA 5 — Tests
 <li>Matriz de trazabilidad mínima (vive en tasks.md): requisito ↔︎ tarea ↔︎ test ↔︎ commit.</li>
 <li>Tras archive, las capacidades archivadas son la documentación viva del sistema: léelas antes de planear el próximo cambio (alimentan el siguiente Impact Report).</li>
 </ul>
-<pre><code>REQ-003 (spec) ──► tarea 2.3 AddItemToCart (tasks) ──► test add_item_test.dart ──► commit feat(cart): ...</code></pre>
+<pre><code>REQ-003 (spec) ──► tarea 1.3 AddItemToCart (tasks) ──► test add_item_test.dart ──► commit feat(cart): ...</code></pre>
 <hr />
 <h2 id="errores-comunes-anti-patrones-aplicados">Errores comunes (anti-patrones aplicados)</h2>
 <table>
@@ -1779,32 +1779,33 @@ Tú: Sí, hagámoslo</code></pre>
 <span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>      Éxito: mensajes exactos de los escenarios en failures de dominio</span>
 <span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>      Req: REQ spec · Commit: feat(x): add usecases</span>
 <span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>Capa de datos</span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 2.1 <span class="dt">&lt;</span><span class="kw">Model</span><span class="dt">&gt;</span> fromJson/toJson (snake_case ↔ camelCase)</span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 2.2 <span class="dt">&lt;</span><span class="kw">RemoteDataSource</span><span class="dt">&gt;</span> (llamadas exactas + errores de red)</span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 2.3 <span class="dt">&lt;</span><span class="kw">RepositoryImpl</span><span class="dt">&gt;</span> (mapeo excepciones → Failure)</span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>Estado y presentación</span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 3.1 <span class="dt">&lt;</span><span class="kw">State</span><span class="dt">&gt;</span> sealed class</span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 3.2 <span class="dt">&lt;</span><span class="kw">Cubit</span><span class="dt">&gt;</span> (transiciones + mensajes exactos de los escenarios)</span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 3.3 <span class="dt">&lt;</span><span class="kw">Page</span><span class="dt">&gt;</span> + widgets (un render por estado)</span>
-<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>Integración</span>
-<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 4.1 Migración SQL + políticas RLS          ← si aplica</span>
-<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>      Éxito: openspec validate + supabase db reset OK</span>
-<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>      Req: escenarios RS · Commit: db(x): add tables and rls</span>
-<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 4.2 Registros en service_locator.dart</span>
-<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 4.3 Ruta en app_router.dart</span>
-<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>Tests</span>
-<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 5.1 Unit tests entidades/usecases (bordes de la spec)</span>
-<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 5.2 Test repository impl (mock datasource)</span>
-<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 5.3 Widget test página clave</span>
-<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>Trazabilidad</span>
-<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Req <span class="pp">|</span> Tarea(s) <span class="pp">|</span> Test <span class="pp">|</span> Commits <span class="pp">|</span></span>
-<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a><span class="pp">|-----|----------|------|---------|</span></span>
-<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> REQ-001 <span class="pp">|</span> 1.1 <span class="pp">|</span> entity_test <span class="pp">|</span> abc123 <span class="pp">|</span></span></code></pre></div>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>Capa de datos + Backend Supabase</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 2.1 Migración SQL + políticas RLS           ← si aplica; abre la capa para probar el flujo de datos</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>      (+ RPC si hay concurrencia · Edge Functions si aplica)</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>      Éxito: openspec validate + supabase db reset OK</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>      Req: escenarios RS · Commit: db(x): add tables and rls</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 2.2 <span class="dt">&lt;</span><span class="kw">Model</span><span class="dt">&gt;</span> fromJson/toJson (snake_case ↔ camelCase)</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 2.3 <span class="dt">&lt;</span><span class="kw">RemoteDataSource</span><span class="dt">&gt;</span> (llamadas exactas + errores de red)</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 2.4 <span class="dt">&lt;</span><span class="kw">RepositoryImpl</span><span class="dt">&gt;</span> (mapeo excepciones → Failure)</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>Estado y presentación</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 3.1 <span class="dt">&lt;</span><span class="kw">State</span><span class="dt">&gt;</span> sealed class</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 3.2 <span class="dt">&lt;</span><span class="kw">Cubit</span><span class="dt">&gt;</span> (transiciones + mensajes exactos de los escenarios)</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 3.3 <span class="dt">&lt;</span><span class="kw">Page</span><span class="dt">&gt;</span> + widgets (un render por estado)</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>Integración</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 4.1 Registros en service_locator.dart</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 4.2 Ruta en app_router.dart</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>Tests</span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 5.1 Unit tests entidades/usecases (bordes de la spec)</span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 5.2 Test repository impl (mock datasource) + integración contra la migración real</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="va">[ ]</span> 5.3 Widget test página clave</span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>Trazabilidad</span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Req <span class="pp">|</span> Tarea(s) <span class="pp">|</span> Test <span class="pp">|</span> Commits <span class="pp">|</span></span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a><span class="pp">|-----|----------|------|---------|</span></span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> REQ-001 <span class="pp">|</span> 1.1 <span class="pp">|</span> entity_test <span class="pp">|</span> abc123 <span class="pp">|</span></span></code></pre></div>
 <hr />
 <h2 id="configuración--que-opsx-apply-change-respete-el-modo">Configuración — que <code>/opsx-apply-change</code> respete el modo</h2>
 <p>El modo se declara <strong>por cambio</strong> en la primera línea de <code>tasks.md</code> (véase arriba). Para que el agente de <code>/opsx-apply-change</code> —el único motor de implementación— lo cumpla de forma fiable, añade una vez al <code>openspec/config.yaml</code> de tu proyecto:</p>
@@ -2922,11 +2923,12 @@ Tú: audita el diff de la oleada contra specs/*/spec.md + design.md   ← este d
 <li><p><label><input type="checkbox" />1.2 Definir interface CartRepository (Either&lt;Failure,T&gt;, 5 métodos) Éxito: firmas idénticas a design.md · Compila en main sin impl Req: REQ-001..005 · Commit: <code>feat(cart): add repository contract</code></label></p></li>
 <li><p><label><input type="checkbox" />1.3 UseCases: GetCart, AddItemToCart, RemoveItem, UpdateQuantity, ApplyCoupon Restricciones: un UseCase = una operación; validaciones de entrada aquí Éxito: mensajes exactos de los escenarios (RN001-RN006) en failures de dominio Req: REQ-001..004 · Commit: <code>feat(cart): add usecases</code></label></p></li>
 </ul>
-<h2 id="2-capa-de-datos">2. Capa de datos</h2>
+<h2 id="2-capa-de-datos--backend-supabase">2. Capa de datos + Backend Supabase</h2>
 <ul class="task-list">
-<li><p><label><input type="checkbox" />2.1 CartModel/CouponModel (snake_case ↔︎ camelCase, roundtrip fromJson/toJson) Éxito: roundtrip cubierto en test Req: REQ-001..004 · Commit: <code>feat(cart): add data models</code></label></p></li>
-<li><p><label><input type="checkbox" />2.2 CartRemoteDataSource (supabase.rpc / .from, manejo AuthException/SocketException) Éxito: cada método lanza excepciones mapeables a Failure Req: REQ-001..005 · Commit: <code>feat(cart): add remote data source</code></label></p></li>
-<li><p><label><input type="checkbox" />2.3 CartRepositoryImpl (mapeo excepciones → Failure, delega datasource) Éxito: test con mock datasource pasa Req: REQ-001..005 · Commit: <code>feat(cart): implement repository</code></label></p></li>
+<li><p><label><input type="checkbox" />2.1 Migración 0007_carts_rls.sql (3 tablas + RPC add_cart_item + RLS) Restricciones: idempotente; no editar migraciones previas; RLS enable SIEMPRE Éxito: <code>supabase db reset</code> OK; políticas citan escenarios REQ-005 Req: REQ-005 · Commit: <code>db(cart): add carts tables, rpc and rls</code></label></p></li>
+<li><p><label><input type="checkbox" />2.2 CartModel/CouponModel (snake_case ↔︎ camelCase, roundtrip fromJson/toJson) Éxito: roundtrip cubierto en test Req: REQ-001..004 · Commit: <code>feat(cart): add data models</code></label></p></li>
+<li><p><label><input type="checkbox" />2.3 CartRemoteDataSource (supabase.rpc / .from, manejo AuthException/SocketException) Éxito: cada método lanza excepciones mapeables a Failure Req: REQ-001..005 · Commit: <code>feat(cart): add remote data source</code></label></p></li>
+<li><p><label><input type="checkbox" />2.4 CartRepositoryImpl (mapeo excepciones → Failure, delega datasource) Éxito: test con mock datasource pasa Req: REQ-001..005 · Commit: <code>feat(cart): implement repository</code></label></p></li>
 </ul>
 <h2 id="3-estado-y-presentación">3. Estado y presentación</h2>
 <ul class="task-list">
@@ -2936,9 +2938,8 @@ Tú: audita el diff de la oleada contra specs/*/spec.md + design.md   ← este d
 </ul>
 <h2 id="4-integración">4. Integración</h2>
 <ul class="task-list">
-<li><p><label><input type="checkbox" />4.1 Migración 0007_carts_rls.sql (3 tablas + RPC add_cart_item + RLS) Restricciones: idempotente; no editar migraciones previas; RLS enable SIEMPRE Éxito: <code>supabase db reset</code> OK; políticas citan escenarios REQ-005 Req: REQ-005 · Commit: <code>db(cart): add carts tables, rpc and rls</code></label></p></li>
-<li><p><label><input type="checkbox" />4.2 Registros en service_locator.dart (datasource, repo, usecases ×5, cubit — lazy singletons/factory según patrón) Commit: <code>chore(di): register cart dependencies</code></label></p></li>
-<li><p><label><input type="checkbox" />4.3 Ruta /cart en app_router.dart con guard de sesión Commit: <code>feat(router): add cart route</code></label></p></li>
+<li><p><label><input type="checkbox" />4.1 Registros en service_locator.dart (datasource, repo, usecases ×5, cubit — lazy singletons/factory según patrón) Commit: <code>chore(di): register cart dependencies</code></label></p></li>
+<li><p><label><input type="checkbox" />4.2 Ruta /cart en app_router.dart con guard de sesión Commit: <code>feat(router): add cart route</code></label></p></li>
 </ul>
 <h2 id="5-tests">5. Tests</h2>
 <ul class="task-list">
@@ -2959,7 +2960,7 @@ Tú: audita el diff de la oleada contra specs/*/spec.md + design.md   ← este d
 <tbody>
 <tr>
 <td>REQ-001</td>
-<td>1.1, 4.1, 2.2, 1.3</td>
+<td>1.1, 2.1, 2.3, 1.3</td>
 <td>entity_test</td>
 <td>feliz/sin stock/límite/cantidad</td>
 </tr>
@@ -2983,7 +2984,7 @@ Tú: audita el diff de la oleada contra specs/*/spec.md + design.md   ← este d
 </tr>
 <tr>
 <td>REQ-005</td>
-<td>4.1</td>
+<td>2.1</td>
 <td>(política RLS)</td>
 <td>aislamiento</td>
 </tr>
@@ -3242,11 +3243,12 @@ Either.left(Failure(&quot;slot_ocupado&quot;)) ──► Error(mensaje) ──�
 <li><label><input type="checkbox" />1.2 Interfaces AppointmentRepository + VeterinarianRepository (Either)</label></li>
 <li><label><input type="checkbox" />1.3 UseCases ×7 (uno por operación)</label></li>
 </ul>
-<h2 id="2-capa-de-datos">2. Capa de datos</h2>
+<h2 id="2-capa-de-datos--backend-supabase">2. Capa de datos + Backend Supabase</h2>
 <ul class="task-list">
-<li><label><input type="checkbox" />2.1 Models con roundtrip JSON (timestamptz ↔︎ DateTime UTC) Restricción: slots siempre en huso horario de la clínica (RT001)</label></li>
-<li><label><input type="checkbox" />2.2 RemoteDataSource (RPC + select) y LocalDataSource (caché de agenda)</label></li>
-<li><label><input type="checkbox" />2.3 RepositoryImpls (mapeo excepciones → Failure con mensajes exactos)</label></li>
+<li><label><input type="checkbox" />2.1 Migración 0008: tablas + RPCs atómicos + RLS + pg_cron Éxito: doble reserva rechazada en SQL puro; políticas por actor</label></li>
+<li><label><input type="checkbox" />2.2 Models con roundtrip JSON (timestamptz ↔︎ DateTime UTC) Restricción: slots siempre en huso horario de la clínica (RT001)</label></li>
+<li><label><input type="checkbox" />2.3 RemoteDataSource (RPC + select) y LocalDataSource (caché de agenda)</label></li>
+<li><label><input type="checkbox" />2.4 RepositoryImpls (mapeo excepciones → Failure con mensajes exactos)</label></li>
 </ul>
 <h2 id="3-estado-y-presentación">3. Estado y presentación</h2>
 <ul class="task-list">
@@ -3255,8 +3257,7 @@ Either.left(Failure(&quot;slot_ocupado&quot;)) ──► Error(mensaje) ──�
 </ul>
 <h2 id="4-integración">4. Integración</h2>
 <ul class="task-list">
-<li><label><input type="checkbox" />4.1 Migración 0008: tablas + RPCs atómicos + RLS + pg_cron Éxito: doble reserva rechazada en SQL puro; políticas por actor</label></li>
-<li><label><input type="checkbox" />4.2 DI + rutas con guards por rol (dueño/doctor/admin)</label></li>
+<li><label><input type="checkbox" />4.1 DI + rutas con guards por rol (dueño/doctor/admin)</label></li>
 </ul>
 <h2 id="5-tests">5. Tests</h2>
 <ul class="task-list">
@@ -3276,12 +3277,12 @@ Either.left(Failure(&quot;slot_ocupado&quot;)) ──► Error(mensaje) ──�
 <tbody>
 <tr>
 <td>REQ-001</td>
-<td>1.3, 4.1</td>
+<td>1.3, 2.1</td>
 <td>unit+SQL (doble reserva, antelación, límites)</td>
 </tr>
 <tr>
 <td>REQ-002</td>
-<td>1.3, 2.3</td>
+<td>1.3, 2.4</td>
 <td>unit (2h antelación)</td>
 </tr>
 <tr>
@@ -3291,12 +3292,12 @@ Either.left(Failure(&quot;slot_ocupado&quot;)) ──► Error(mensaje) ──�
 </tr>
 <tr>
 <td>REQ-004</td>
-<td>4.1</td>
+<td>2.1</td>
 <td>integration RLS</td>
 </tr>
 <tr>
 <td>REQ-005</td>
-<td>4.1 (cron)</td>
+<td>2.1 (cron)</td>
 <td>integration pg_cron</td>
 </tr>
 </tbody>
@@ -3537,11 +3538,12 @@ PlayerReady(lesson, progress%) ──► si 100% → inscripción &#39;completad
 <li><label><input type="checkbox" />1.2 Interfaces CourseRepository + EnrollmentRepository</label></li>
 <li><label><input type="checkbox" />1.3 UseCases ×8</label></li>
 </ul>
-<h2 id="2-capa-de-datos">2. Capa de datos</h2>
+<h2 id="2-capa-de-datos--backend-supabase">2. Capa de datos + Backend Supabase</h2>
 <ul class="task-list">
-<li><label><input type="checkbox" />2.1 Models roundtrip (enums de estado incluidos)</label></li>
-<li><label><input type="checkbox" />2.2 RemoteDataSource (búsqueda full-text vía rpc; stream no requerido)</label></li>
-<li><label><input type="checkbox" />2.3 RepositoryImpls</label></li>
+<li><label><input type="checkbox" />2.1 Migración 0009: tablas + checks (RN010) + vista progreso + RPC enroll + RLS Éxito: SELECT de lección sin inscripción devuelve vacío (test SQL)</label></li>
+<li><label><input type="checkbox" />2.2 Models roundtrip (enums de estado incluidos)</label></li>
+<li><label><input type="checkbox" />2.3 RemoteDataSource (búsqueda full-text vía rpc; stream no requerido)</label></li>
+<li><label><input type="checkbox" />2.4 RepositoryImpls</label></li>
 </ul>
 <h2 id="3-estado-y-presentación">3. Estado y presentación</h2>
 <ul class="task-list">
@@ -3550,8 +3552,7 @@ PlayerReady(lesson, progress%) ──► si 100% → inscripción &#39;completad
 </ul>
 <h2 id="4-integración">4. Integración</h2>
 <ul class="task-list">
-<li><label><input type="checkbox" />4.1 Migración 0009: tablas + checks (RN010) + vista progreso + RPC enroll + RLS Éxito: SELECT de lección sin inscripción devuelve vacío (test SQL)</label></li>
-<li><label><input type="checkbox" />4.2 DI + rutas con guard por rol</label></li>
+<li><label><input type="checkbox" />4.1 DI + rutas con guard por rol</label></li>
 </ul>
 <h2 id="5-tests">5. Tests</h2>
 <ul class="task-list">
@@ -3571,17 +3572,17 @@ PlayerReady(lesson, progress%) ──► si 100% → inscripción &#39;completad
 <tbody>
 <tr>
 <td>REQ-001</td>
-<td>1.3, 4.1</td>
+<td>1.3, 2.1</td>
 <td>unit+SQL (duplicado, auto-inscripción)</td>
 </tr>
 <tr>
 <td>REQ-002</td>
-<td>1.3, 4.1</td>
+<td>1.3, 2.1</td>
 <td>SQL gating + cubit locked</td>
 </tr>
 <tr>
 <td>REQ-003</td>
-<td>1.1, 4.1</td>
+<td>1.1, 2.1</td>
 <td>unit fórmula + SQL trigger</td>
 </tr>
 <tr>
@@ -3822,11 +3823,12 @@ UI refresca estado y lista de pagos</code></pre>
 <li><label><input type="checkbox" />1.2 Interface InvoiceRepository</label></li>
 <li><label><input type="checkbox" />1.3 UseCases ×7</label></li>
 </ul>
-<h2 id="2-capa-de-datos">2. Capa de datos</h2>
+<h2 id="2-capa-de-datos--backend-supabase">2. Capa de datos + Backend Supabase</h2>
 <ul class="task-list">
-<li><label><input type="checkbox" />2.1 Models roundtrip (money como num; enums)</label></li>
-<li><label><input type="checkbox" />2.2 RemoteDataSource (RPC-first; sin UPDATE directo de estado desde cliente)</label></li>
-<li><label><input type="checkbox" />2.3 RepositoryImpl (mapeo errores SQL → Failure con mensajes RN00x)</label></li>
+<li><label><input type="checkbox" />2.1 Migración 0010: tablas, sequences, RPCs ×3, RLS, cron vencidas</label></li>
+<li><label><input type="checkbox" />2.2 Models roundtrip (money como num; enums)</label></li>
+<li><label><input type="checkbox" />2.3 RemoteDataSource (RPC-first; sin UPDATE directo de estado desde cliente)</label></li>
+<li><label><input type="checkbox" />2.4 RepositoryImpl (mapeo errores SQL → Failure con mensajes RN00x)</label></li>
 </ul>
 <h2 id="3-estado-y-presentación">3. Estado y presentación</h2>
 <ul class="task-list">
@@ -3835,8 +3837,7 @@ UI refresca estado y lista de pagos</code></pre>
 </ul>
 <h2 id="4-integración">4. Integración</h2>
 <ul class="task-list">
-<li><label><input type="checkbox" />4.1 Migración 0010: tablas, sequences, RPCs ×3, RLS, cron vencidas</label></li>
-<li><label><input type="checkbox" />4.2 DI + rutas</label></li>
+<li><label><input type="checkbox" />4.1 DI + rutas</label></li>
 </ul>
 <h2 id="5-tests">5. Tests</h2>
 <ul class="task-list">
@@ -3856,7 +3857,7 @@ UI refresca estado y lista de pagos</code></pre>
 <tbody>
 <tr>
 <td>REQ-001</td>
-<td>1.1, 4.1</td>
+<td>1.1, 2.1</td>
 <td>unit+SQL numeración</td>
 </tr>
 <tr>
@@ -3866,22 +3867,22 @@ UI refresca estado y lista de pagos</code></pre>
 </tr>
 <tr>
 <td>REQ-003</td>
-<td>4.1, 1.3</td>
+<td>2.1, 1.3</td>
 <td>SQL pagos parciales/sobrepago</td>
 </tr>
 <tr>
 <td>REQ-004</td>
-<td>4.1 (cron)</td>
+<td>2.1 (cron)</td>
 <td>integration</td>
 </tr>
 <tr>
 <td>REQ-005</td>
-<td>4.1, 1.3</td>
+<td>2.1, 1.3</td>
 <td>unit anulación</td>
 </tr>
 <tr>
 <td>REQ-006</td>
-<td>4.1</td>
+<td>2.1</td>
 <td>SQL RLS</td>
 </tr>
 </tbody>
@@ -4111,11 +4112,12 @@ Cliente: mapa pinta TrackingLive(courier) ──► entregado → cancelar suscr
 <li><label><input type="checkbox" />1.2 Interfaces OrderRepository/DeliveryRepository (incl. Streams)</label></li>
 <li><label><input type="checkbox" />1.3 UseCases ×10</label></li>
 </ul>
-<h2 id="2-capa-de-datos">2. Capa de datos</h2>
+<h2 id="2-capa-de-datos--backend-supabase">2. Capa de datos + Backend Supabase</h2>
 <ul class="task-list">
-<li><label><input type="checkbox" />2.1 Models roundtrip (Location VO ↔︎ PostGIS lat/lng)</label></li>
-<li><label><input type="checkbox" />2.2 RealtimeDataSource (watch order + broadcast GPS) y RemoteDataSource</label></li>
-<li><label><input type="checkbox" />2.3 RepositoryImpls</label></li>
+<li><label><input type="checkbox" />2.1 Migración 0011: tablas, RPCs tarifa/asignación, RLS, cron timeout</label></li>
+<li><label><input type="checkbox" />2.2 Models roundtrip (Location VO ↔︎ PostGIS lat/lng)</label></li>
+<li><label><input type="checkbox" />2.3 RealtimeDataSource (watch order + broadcast GPS) y RemoteDataSource</label></li>
+<li><label><input type="checkbox" />2.4 RepositoryImpls</label></li>
 </ul>
 <h2 id="3-estado-y-presentación">3. Estado y presentación</h2>
 <ul class="task-list">
@@ -4124,8 +4126,7 @@ Cliente: mapa pinta TrackingLive(courier) ──► entregado → cancelar suscr
 </ul>
 <h2 id="4-integración">4. Integración</h2>
 <ul class="task-list">
-<li><label><input type="checkbox" />4.1 Migración 0011: tablas, RPCs tarifa/asignación, RLS, cron timeout</label></li>
-<li><label><input type="checkbox" />4.2 DI + rutas por rol</label></li>
+<li><label><input type="checkbox" />4.1 DI + rutas por rol</label></li>
 </ul>
 <h2 id="5-tests">5. Tests</h2>
 <ul class="task-list">
@@ -4145,22 +4146,22 @@ Cliente: mapa pinta TrackingLive(courier) ──► entregado → cancelar suscr
 <tbody>
 <tr>
 <td>REQ-001</td>
-<td>1.1, 1.3, 4.1</td>
+<td>1.1, 1.3, 2.1</td>
 <td>unit+SQL</td>
 </tr>
 <tr>
 <td>REQ-002</td>
-<td>4.1 (cron)</td>
+<td>2.1 (cron)</td>
 <td>integration</td>
 </tr>
 <tr>
 <td>REQ-003</td>
-<td>4.1, 1.3</td>
+<td>2.1, 1.3</td>
 <td>SQL asignación concurrente</td>
 </tr>
 <tr>
 <td>REQ-004</td>
-<td>2.2, 3.1, 3.2</td>
+<td>2.3, 3.1, 3.2</td>
 <td>cubit+widget streams</td>
 </tr>
 </tbody>
@@ -4372,11 +4373,12 @@ Either.right(Unit) ──► recarga listado ──► BuyersLoaded</code></pre>
 <li><label><input type="checkbox" />1.2 Interface BuyerRepository</label></li>
 <li><label><input type="checkbox" />1.3 UseCases ×3</label></li>
 </ul>
-<h2 id="2-capa-de-datos">2. Capa de datos</h2>
+<h2 id="2-capa-de-datos--backend-supabase">2. Capa de datos + Backend Supabase</h2>
 <ul class="task-list">
-<li><label><input type="checkbox" />2.1 BuyerModel roundtrip</label></li>
-<li><label><input type="checkbox" />2.2 RemoteDataSource (RPC + query con búsqueda server-side)</label></li>
-<li><label><input type="checkbox" />2.3 BuyerRepositoryImpl (mapeo excepciones → Failure)</label></li>
+<li><label><input type="checkbox" />2.1 Migración 0012: tabla buyers + RPCs ×2 + RLS por organizador</label></li>
+<li><label><input type="checkbox" />2.2 BuyerModel roundtrip</label></li>
+<li><label><input type="checkbox" />2.3 RemoteDataSource (RPC + query con búsqueda server-side)</label></li>
+<li><label><input type="checkbox" />2.4 BuyerRepositoryImpl (mapeo excepciones → Failure)</label></li>
 </ul>
 <h2 id="3-estado-y-presentación">3. Estado y presentación</h2>
 <ul class="task-list">
@@ -4385,8 +4387,7 @@ Either.right(Unit) ──► recarga listado ──► BuyersLoaded</code></pre>
 </ul>
 <h2 id="4-integración">4. Integración</h2>
 <ul class="task-list">
-<li><label><input type="checkbox" />4.1 Migración 0012: tabla buyers + RPCs ×2 + RLS por organizador</label></li>
-<li><label><input type="checkbox" />4.2 DI + ruta anidada /raffles/:id/buyers</label></li>
+<li><label><input type="checkbox" />4.1 DI + ruta anidada /raffles/:id/buyers</label></li>
 </ul>
 <h2 id="5-tests">5. Tests</h2>
 <ul class="task-list">
@@ -4406,22 +4407,22 @@ Either.right(Unit) ──► recarga listado ──► BuyersLoaded</code></pre>
 <tbody>
 <tr>
 <td>REQ-001</td>
-<td>4.1, 3.2</td>
+<td>2.1, 3.2</td>
 <td>SQL RLS</td>
 </tr>
 <tr>
 <td>REQ-002</td>
-<td>4.1, 2.2</td>
+<td>2.1, 2.3</td>
 <td>unit datasource</td>
 </tr>
 <tr>
 <td>REQ-003</td>
-<td>4.1, 1.3</td>
+<td>2.1, 1.3</td>
 <td>SQL idempotencia</td>
 </tr>
 <tr>
 <td>REQ-004</td>
-<td>4.1, 1.3</td>
+<td>2.1, 1.3</td>
 <td>SQL liberación</td>
 </tr>
 </tbody>

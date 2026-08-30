@@ -15,16 +15,21 @@
       Éxito: mensajes exactos de los escenarios (RN001-RN006) en failures de dominio
       Req: REQ-001..004 · Commit: `feat(cart): add usecases`
 
-## 2. Capa de datos
-- [ ] 2.1 CartModel/CouponModel (snake_case ↔ camelCase, roundtrip fromJson/toJson)
+## 2. Capa de datos + Backend Supabase
+- [ ] 2.1 Migración 0007_carts_rls.sql (3 tablas + RPC add_cart_item + RLS)
+      Restricciones: idempotente; no editar migraciones previas; RLS enable SIEMPRE
+      Éxito: `supabase db reset` OK; políticas citan escenarios REQ-005
+      Req: REQ-005 · Commit: `db(cart): add carts tables, rpc and rls`
+
+- [ ] 2.2 CartModel/CouponModel (snake_case ↔ camelCase, roundtrip fromJson/toJson)
       Éxito: roundtrip cubierto en test
       Req: REQ-001..004 · Commit: `feat(cart): add data models`
 
-- [ ] 2.2 CartRemoteDataSource (supabase.rpc / .from, manejo AuthException/SocketException)
+- [ ] 2.3 CartRemoteDataSource (supabase.rpc / .from, manejo AuthException/SocketException)
       Éxito: cada método lanza excepciones mapeables a Failure
       Req: REQ-001..005 · Commit: `feat(cart): add remote data source`
 
-- [ ] 2.3 CartRepositoryImpl (mapeo excepciones → Failure, delega datasource)
+- [ ] 2.4 CartRepositoryImpl (mapeo excepciones → Failure, delega datasource)
       Éxito: test con mock datasource pasa
       Req: REQ-001..005 · Commit: `feat(cart): implement repository`
 
@@ -41,15 +46,10 @@
       Req: REQ-006 · Commit: `feat(cart): add cart page`
 
 ## 4. Integración
-- [ ] 4.1 Migración 0007_carts_rls.sql (3 tablas + RPC add_cart_item + RLS)
-      Restricciones: idempotente; no editar migraciones previas; RLS enable SIEMPRE
-      Éxito: `supabase db reset` OK; políticas citan escenarios REQ-005
-      Req: REQ-005 · Commit: `db(cart): add carts tables, rpc and rls`
-
-- [ ] 4.2 Registros en service_locator.dart (datasource, repo, usecases ×5, cubit — lazy singletons/factory según patrón)
+- [ ] 4.1 Registros en service_locator.dart (datasource, repo, usecases ×5, cubit — lazy singletons/factory según patrón)
       Commit: `chore(di): register cart dependencies`
 
-- [ ] 4.3 Ruta /cart en app_router.dart con guard de sesión
+- [ ] 4.2 Ruta /cart en app_router.dart con guard de sesión
       Commit: `feat(router): add cart route`
 
 ## 5. Tests
@@ -60,9 +60,9 @@
 ## Trazabilidad
 | Req | Tarea(s) | Test | Cubre escenario |
 |-----|----------|------|-----------------|
-| REQ-001 | 1.1, 4.1, 2.2, 1.3 | entity_test | feliz/sin stock/límite/cantidad |
+| REQ-001 | 1.1, 2.1, 2.3, 1.3 | entity_test | feliz/sin stock/límite/cantidad |
 | REQ-002 | 1.2, 1.3 | repo_test | quitar item |
 | REQ-003 | 1.1 | entity_test | resumen y vacío |
 | REQ-004 | 1.3, 3.2 | cubit_test | cupón vigente/expirado/tope |
-| REQ-005 | 4.1 | (política RLS) | aislamiento |
+| REQ-005 | 2.1 | (política RLS) | aislamiento |
 | REQ-006 | 3.1, 3.2, 3.3 | widget_test | estados UI |
